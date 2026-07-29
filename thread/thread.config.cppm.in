@@ -1,0 +1,19 @@
+module;
+
+#include <cstdint>
+#include <string>
+
+#include "silicon/thread/common.h"
+
+export module silicon.thread:config;
+
+
+namespace silicon::thread {
+export THREAD_API const std::string GetVersion() { return "${VERSION}"; }
+export THREAD_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export THREAD_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export THREAD_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export THREAD_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export THREAD_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export THREAD_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+} // namespace silicon::thread

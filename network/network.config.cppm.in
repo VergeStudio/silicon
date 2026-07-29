@@ -1,0 +1,19 @@
+module;
+
+#include <cstdint>
+#include <string>
+
+#include "silicon/network/common.h"
+
+export module silicon.network:config;
+
+
+namespace silicon::network {
+export NET_API const std::string GetVersion() { return "${VERSION}"; }
+export NET_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export NET_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export NET_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export NET_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export NET_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export NET_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+} // namespace silicon::network

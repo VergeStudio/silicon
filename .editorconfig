@@ -1,0 +1,79 @@
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+insert_final_newline = false
+max_line_length = 300
+tab_width = 4
+
+[*.dart]
+max_line_length = 80
+
+[*.feature]
+indent_size = 2
+
+[*.less]
+indent_size = 2
+
+[*.properties]
+
+[*.proto]
+indent_size = 2
+tab_width = 2
+
+[*.sass]
+indent_size = 2
+
+[*.scss]
+indent_size = 2
+
+[*.styl]
+indent_size = 2
+
+[*.vue]
+indent_size = 2
+tab_width = 2
+
+[.editorconfig]
+
+[{*.ant,*.fxml,*.jhm,*.jnlp,*.jrxml,*.rng,*.tld,*.wsdl,*.xml,*.xsd,*.xsl,*.xslt,*.xul}]
+
+[{*.apinotes,*.yml,.clang-format,.clang-tidy,_clang-format}]
+indent_size = 2
+
+[{*.ats,*.cts,*.mts,*.ts}]
+
+[{*.bash,*.sh,*.zsh}]
+indent_size = 2
+tab_width = 2
+
+[{*.c,*.c++,*.c++m,*.cc,*.ccm,*.cp,*.cpp,*.cppm,*.cu,*.cuh,*.cxx,*.cxxm,*.h,*.h++,*.hh,*.hp,*.hpp,*.hxx,*.i,*.icc,*.ii,*.inl,*.ino,*.ipp,*.ixx,*.m,*.mm,*.mxx,*.pch,*.tcc,*.tpp}]
+
+[{*.cjs,*.js}]
+
+[{*.cmake,CMakeLists.txt}]
+
+[{*.dts,*.dtsi,*.overlay}]
+indent_style = tab
+
+[{*.har,*.jsb2,*.jsb3,*.json,*.jsonc,*.postman_collection,*.postman_collection.json,*.postman_environment,*.postman_environment.json,.babelrc,.eslintrc,.prettierrc,.stylelintrc,.ws-context,bowerrc,jest.config}]
+indent_size = 2
+
+[{*.htm,*.html,*.sht,*.shtm,*.shtml}]
+
+[{*.http,*.rest}]
+indent_size = 0
+
+[{*.lua,*.lua.txt}]
+
+[{*.markdown,*.md}]
+
+[{*.pb,*.textproto,*.txtpb}]
+indent_size = 2
+tab_width = 2
+
+[{*.py,*.pyw}]
+
+[{*.qml,*.qmltypes}]
+
+[{*.toml,Cargo.lock,Cargo.toml.orig,Gopkg.lock,Pipfile,poetry.lock}]

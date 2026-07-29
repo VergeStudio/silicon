@@ -39,15 +39,9 @@
 .codegraph/
 .workbuddy/
 [Bb]uild/
-# Explicitly re-include the in-repo build tooling dir (clang++ wrapper, shims,
-# std preamble, bootstrap) — must NOT be confused with xmake's build/ output dir.
-!tools/build/
+cmake-build*/
 logs/
 
 /CMakeLists.txt
 CMakeLists.txt.user
 CMakeSettings.json
-
-# Clang crash core dumps (core.<pid>), e.g. core.15377 / core.15636
-core.[0-9]*
-*.core

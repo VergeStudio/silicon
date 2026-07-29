@@ -1,0 +1,21 @@
+module;
+
+#include <cstdint>
+#include <string>
+
+#include "silicon/logger/common.h"
+
+export module silicon.logger:config;
+
+namespace silicon::logger {
+export LOGGER_API const std::string GetVersion() { return "${VERSION}"; }
+export LOGGER_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export LOGGER_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export LOGGER_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export LOGGER_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export LOGGER_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export LOGGER_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+} // namespace silicon::logger
+
+// module silicon.logger.config;
+// module;

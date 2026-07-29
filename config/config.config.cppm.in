@@ -1,0 +1,18 @@
+module;
+
+#include <cstdint>
+#include <string>
+
+#include "silicon/config/common.h"
+
+export module silicon.config:config;
+
+namespace silicon::config {
+export CONFIG_API const std::string GetVersion() { return "${VERSION}"; }
+export CONFIG_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export CONFIG_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export CONFIG_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export CONFIG_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export CONFIG_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export CONFIG_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+} // namespace silicon::config
