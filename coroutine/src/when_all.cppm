@@ -13,7 +13,7 @@ module;
 #include <utility>
 #include <vector>
 
-#include "silicon/coroutine/attribute.hpp"
+#include "silicon/coroutine/common.h"
 
 export module silicon.coroutine:when_all;
 

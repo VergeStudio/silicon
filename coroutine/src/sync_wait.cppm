@@ -15,7 +15,7 @@ module;
 #include <stdexcept>
 #include <variant>
 
-#include "silicon/coroutine/attribute.hpp"
+#include "silicon/coroutine/common.h"
 
 export module silicon.coroutine:sync_wait;
 

@@ -7,7 +7,7 @@ module;
 
 
 
-#include "silicon/coroutine/attribute.hpp"
+#include "silicon/coroutine/common.h"
 
 #include <atomic>
 #include <list>

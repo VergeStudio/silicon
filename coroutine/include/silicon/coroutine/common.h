@@ -24,4 +24,12 @@
 #    endif
 #endif
 
+// GCC attribute macro. This is a GCC extension; define it only for GCC and
+// compilers that emulate GCC. Clang/MSVC leave it empty.
+#if defined(__GNUC__) && !defined(__clang__)
+#    define __ATTRIBUTE__(attr) __attribute__((attr))
+#else
+#    define __ATTRIBUTE__(attr)
+#endif
+
 #endif // SILICON_COROUTINE_COMMON_H
