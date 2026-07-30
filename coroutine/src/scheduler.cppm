@@ -376,7 +376,7 @@ class scheduler {
 
 #ifdef LIBCORO_FEATURE_NETWORKING
     /**
-     * Polls the given silicon::coroutine::net::socket for the given operations.
+     * Polls the given silicon::network::socket for the given operations.
      * @param sock The socket to poll for events on.
      * @param op The operations to poll for.
      * @param timeout The amount of time to wait for the events to trigger.  A timeout of zero will
@@ -384,7 +384,7 @@ class scheduler {
      * @return THe result of the poll operation.
      */
     [[nodiscard]] auto poll(
-            const net::socket &sock,
+            const silicon::network::socket &sock,
             silicon::coroutine::poll_op op,
             std::chrono::milliseconds timeout = std::chrono::milliseconds{0},
             std::optional<poll_stop_token> cancel_trigger = std::nullopt

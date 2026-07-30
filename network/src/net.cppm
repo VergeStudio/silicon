@@ -27,25 +27,25 @@ export import :config;
 
 // Re-export public types via using-declarations for module consumers.
 
-export namespace silicon::coroutine::network {
-    using ::silicon::coroutine::network::connect;
-    using ::silicon::coroutine::network::hostname;
-    using ::silicon::coroutine::network::io_status;
-    using ::silicon::coroutine::network::ip_address;
-    using ::silicon::coroutine::network::recv_status;
-    using ::silicon::coroutine::network::send_status;
-    using ::silicon::coroutine::network::socket;
-    using ::silicon::coroutine::network::socket_address;
-    using ::silicon::coroutine::network::dns::resolver;
-    using ::silicon::coroutine::network::tcp::client;
-    using ::silicon::coroutine::network::tcp::server;
-    using ::silicon::coroutine::network::udp::peer;
+export namespace silicon::network {
+    using ::silicon::network::connect;
+    using ::silicon::network::hostname;
+    using ::silicon::network::io_status;
+    using ::silicon::network::ip_address;
+    using ::silicon::network::recv_status;
+    using ::silicon::network::send_status;
+    using ::silicon::network::socket;
+    using ::silicon::network::socket_address;
+    using ::silicon::network::dns::resolver;
+    using ::silicon::network::tcp::client;
+    using ::silicon::network::tcp::server;
+    using ::silicon::network::udp::peer;
 #ifdef LIBCORO_FEATURE_TLS
-    using ::silicon::coroutine::network::tls::client;
-    using ::silicon::coroutine::network::tls::server;
-    using ::silicon::coroutine::network::tls::context;
-    using ::silicon::coroutine::network::tls::connection_status;
-    using ::silicon::coroutine::network::tls::recv_status;
-    using ::silicon::coroutine::network::tls::send_status;
+    using ::silicon::network::tls::client;
+    using ::silicon::network::tls::server;
+    using ::silicon::network::tls::context;
+    using ::silicon::network::tls::connection_status;
+    using ::silicon::network::tls::recv_status;
+    using ::silicon::network::tls::send_status;
 #endif
-} // namespace silicon::coroutine::network
+} // namespace silicon::network
