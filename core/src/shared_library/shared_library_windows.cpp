@@ -71,7 +71,9 @@ void *SharedLibrary::findSymbol(const std::string &rName) {
         UnicodeConverter::toUTF16(rName, uname);
         return static_cast<void *>(GetProcAddressW(static_cast<HMODULE>(m_pHandle), uname.c_str()));
 #else
-        return static_cast<void *>(GetProcAddress(static_cast<HMODULE>(m_pHandle), rName.data()));
+        // 函数指针 → 对象指针的 static_cast 是 MS 扩展（-Wmicrosoft-cast），
+        // 标准写法需经 reinterpret_cast。
+        return reinterpret_cast<void *>(GetProcAddress(static_cast<HMODULE>(m_pHandle), rName.data()));
 #endif
     }
 

@@ -8,6 +8,9 @@
 
 module;
 
+#include <memory>
+#include <string>
+
 export module silicon.platform;
 
 export namespace silicon::platform {
@@ -193,6 +196,48 @@ export namespace silicon::platform {
             return ".exe";
         else
             return "";
+    }
+
+    // ── Runtime abstraction（spec：IPlatform / 各平台实现 / create_platform） ──
+
+    class IPlatform {
+      public:
+        virtual ~IPlatform() = default;
+        virtual std::string os_name() const = 0;
+        virtual char path_separator() const = 0;
+        virtual std::string line_ending() const = 0;
+    };
+
+    class WindowsPlatform: public IPlatform {
+      public:
+        std::string os_name() const override { return "windows"; }
+        char path_separator() const override { return '\\'; }
+        std::string line_ending() const override { return "\r\n"; }
+    };
+
+    class LinuxPlatform: public IPlatform {
+      public:
+        std::string os_name() const override { return "linux"; }
+        char path_separator() const override { return '/'; }
+        std::string line_ending() const override { return "\n"; }
+    };
+
+    class UnixPlatform: public IPlatform {
+      public:
+        std::string os_name() const override { return "unix"; }
+        char path_separator() const override { return '/'; }
+        std::string line_ending() const override { return "\n"; }
+    };
+
+    // 编译期选中当前平台实现（互斥，仅一个分支参与重载决议）。
+    inline std::unique_ptr<IPlatform> create_platform() {
+        if constexpr (os == os_id::windows_nt) {
+            return std::make_unique<WindowsPlatform>();
+        } else if constexpr (os == os_id::linux_os) {
+            return std::make_unique<LinuxPlatform>();
+        } else {
+            return std::make_unique<UnixPlatform>();
+        }
     }
 
 } // namespace silicon::platform

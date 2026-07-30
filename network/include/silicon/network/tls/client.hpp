@@ -16,7 +16,8 @@ import silicon.coroutine;
 #    include "silicon/network/tls/itls_client.hpp"
 #    include "silicon/network/tls/recv_status.hpp"
 #    include "silicon/network/tls/send_status.hpp"
-#    include "silicon/task/task.hpp"
+#include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
+import silicon.task; // 兼容头文本包含与 silicon.task 模块冲突，改用 import
 
 namespace silicon::network::tls {
 class server;

@@ -3,9 +3,9 @@ module;
 #include <cstdint>
 #include <string>
 
-#include "silicon/cli/common.h"
-
 export module silicon.cli:config;
+
+#include "silicon/cli/common.h"
 
 namespace silicon::cli {
 export CLI_API const std::string GetVersion() { return "${VERSION}"; }
@@ -16,3 +16,6 @@ export CLI_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
 export CLI_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
 export CLI_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
 } // namespace silicon::cli
+
+// module silicon.cli:config;
+// module;

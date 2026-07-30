@@ -1,12 +1,15 @@
 module;
 
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#    include <Windows.h> // GetLastError
+#else
 #    include <sys/socket.h>
 #    include <sys/types.h>
 #    include <unistd.h>
 #endif
 #include <atomic>
 #include <cstring>
+#include <system_error> // std::system_category：替代被 MSVC 弃用的 strerror
 #include <iostream>
 #include <optional>
 
@@ -169,7 +172,7 @@ auto scheduler::shutdown() noexcept -> void {
     if(m_shutdown_requested.exchange(true, std::memory_order::acq_rel) == false) {
         // Signal the event loop to stop asap.
         const constexpr int value{1};
-        ssize_t written = m_shutdown_pipe.write(&value, sizeof(value));
+        long written = m_shutdown_pipe.write(&value, sizeof(value));
         if(written != sizeof(value)) {
             std::cerr << "silicon::coroutine::scheduler::shutdown() failed to write to shutdown pipe, bytes written=" << written
                       << "\n";
@@ -280,9 +283,9 @@ auto scheduler::process_scheduled_execute_inline() -> void {
     // resetting the flag that writes to the pipe need to happen.
     while(true) {
         constexpr std::size_t READ_COUNT{4};
-        constexpr ssize_t READ_COUNT_BYTES = READ_COUNT * sizeof(int);
+        constexpr long READ_COUNT_BYTES = READ_COUNT * sizeof(int);
         std::array<int, READ_COUNT> control{};
-        const ssize_t read_bytes = m_schedule_pipe.read(control.data(), READ_COUNT_BYTES);
+        const long read_bytes = m_schedule_pipe.read(control.data(), READ_COUNT_BYTES);
         if(read_bytes == READ_COUNT_BYTES) {
             continue;
         }
@@ -298,7 +301,7 @@ auto scheduler::process_scheduled_execute_inline() -> void {
         }
 
         // Not much we can do here, we're in a very bad state, lets report to stderr.
-        std::cerr << "::read(m_schedule_pipe.read_fd()) error[" << errno << "] " << ::strerror(errno) << " fd=["
+        std::cerr << "::read(m_schedule_pipe.read_fd()) error[" << errno << "] " << std::system_category().message(errno) << " fd=["
                   << m_schedule_pipe.read_fd() << "]" << std::endl;
         break;
     }
@@ -434,7 +437,7 @@ auto scheduler::update_timeout(time_point now) -> void {
 #if defined(_WIN32)
             std::cerr << "Failed to set timer, error=[" << GetLastError() << "].";
 #else
-            std::cerr << "Failed to set timerfd errorno=[" << std::string{strerror(errno)} << "].";
+            std::cerr << "Failed to set timerfd errorno=[" << std::system_category().message(errno) << "].";
 #endif
         }
     } else {

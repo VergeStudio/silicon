@@ -29,7 +29,11 @@
 #include "silicon/di/static/container_traits.h"
 #include "silicon/di/static/local_resolution.h"
 #include "silicon/di/static/resolution.h"
+#include "silicon/di/storage/external.h"
 #include "silicon/di/storage/interface_storage_traits.h"
+#include "silicon/di/storage/shared.h"
+#include "silicon/di/storage/shared_cyclical.h"
+#include "silicon/di/storage/unique.h"
 #include "silicon/di/type/complete_type.h"
 #include "silicon/di/type/normalized_type.h"
 #include "silicon/di/type/request_traits.h"
@@ -99,7 +103,9 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     : public detail::runtime_registration_api<
           detail::container_with_static_bindings<
               static_registry<Registrations...>, ParentContainer>> {
-    friend class runtime_context;
+    // 显式限定：类属 detail 命名空间，非限定 friend 指向外层 silicon::di 的类型
+    // 属 Microsoft 扩展（-Werror,-Wmicrosoft-unqualified-friend）。
+    friend class silicon::di::runtime_context;
 
     using static_registry_type_ = static_registry<Registrations...>;
     using self_type =

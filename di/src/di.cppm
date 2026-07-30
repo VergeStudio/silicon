@@ -28,6 +28,14 @@ using ::silicon::di::external;
 using ::silicon::di::bind;
 using ::silicon::di::type_registration;
 
+// Composition-root primitives（cli 等组合根直接使用）
+using ::silicon::di::container;
+using ::silicon::di::bindings;
+using ::silicon::di::scope;
+using ::silicon::di::storage;
+using ::silicon::di::interfaces;
+using ::silicon::di::factory;
+
 // RTTI
 using ::silicon::di::rtti;
 using ::silicon::di::type_descriptor;

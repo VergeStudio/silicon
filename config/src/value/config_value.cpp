@@ -1,6 +1,13 @@
-module silicon.config.config_value;
+module;
 
+// 标准库头必须置于全局模块片段（module 声明之前）
+#include <cstdint>
 #include <stdexcept>
+#include <string>
+#include <utility>
+#include <variant>
+
+module silicon.config.config_value;
 
 namespace silicon::config {
 

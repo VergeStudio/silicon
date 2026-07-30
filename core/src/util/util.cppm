@@ -2,6 +2,7 @@ module;
 
 #include <atomic>
 #include <cstdio>
+#include <cstdlib> // silicon::os::get_env（_dupenv_s / std::getenv / std::free）
 #include <cstring>
 #include <mutex>
 #include <queue>
@@ -59,3 +60,27 @@ inline void StrAppend(std::string *pDestination, const Args &...args) {
 }
 
 } // namespace silicon::util
+
+// OS 兼容工具（原 silicon.common 并入 core 后保留 silicon::os 命名空间）。
+// Windows 使用安全 CRT（_dupenv_s），POSIX 回落 std::getenv，规避
+// -Wdeprecated-declarations。
+export namespace silicon::os {
+
+// 读取环境变量。未设置或为空时返回空字符串。
+inline std::string get_env(const char *name) {
+#ifdef _WIN32
+    char *buf = nullptr;
+    size_t len = 0;
+    if(_dupenv_s(&buf, &len, name) == 0 && buf != nullptr) {
+        std::string value(buf);
+        std::free(buf);
+        return value;
+    }
+    return {};
+#else
+    const char *v = std::getenv(name);
+    return (v && *v) ? std::string(v) : std::string{};
+#endif
+}
+
+} // namespace silicon::os

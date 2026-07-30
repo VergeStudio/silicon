@@ -1,13 +1,15 @@
 module;
 
+
 #include <cerrno>
 #include <cstring>
+#include <system_error> // std::system_category：替代被 MSVC 弃用的 strerror
 #include <stdexcept>
 #include <string>
 #include <utility>
 
-module silicon.coroutine;
-
+// 平台头必须置于全局模块片段（module 声明之前）；
+// 在 module purview 内文本包含会与 BMI 中的声明产生附着冲突。
 #if defined(_WIN32)
 #    include <io.h>
 #    include <fcntl.h>
@@ -16,6 +18,8 @@ module silicon.coroutine;
 #    include <fcntl.h>
 #    include <unistd.h>
 #endif
+
+module silicon.coroutine;
 
 namespace silicon::coroutine::detail
 {
@@ -26,7 +30,7 @@ pipe_t::pipe_t()
 #if defined(_WIN32)
     if (_pipe(m_fds.data(), 256, _O_BINARY) != 0)
     {
-        const std::string msg = "Failed to create pipe, errno=[" + std::string{std::strerror(errno)} + "]";
+        const std::string msg = "Failed to create pipe, errno=[" + std::system_category().message(errno) + "]";
         throw std::runtime_error(msg);
     }
 
@@ -40,7 +44,7 @@ pipe_t::pipe_t()
 #else
     if (::pipe(m_fds.data()) != 0)
     {
-        const std::string msg = "Failed to create pipe, errno=[" + std::string{std::strerror(errno)} + "]";
+        const std::string msg = "Failed to create pipe, errno=[" + std::system_category().message(errno) + "]";
         throw std::runtime_error(msg);
     }
 

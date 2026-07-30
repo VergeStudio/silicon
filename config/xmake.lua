@@ -1,6 +1,9 @@
 target("config", function()
     set_kind("$(kind)")
 
+    -- src/json/loader.cppm 依赖 silicon.json 模块 BMI（全限定名，跨命名空间可解析）。
+    add_deps("silicon::json", "silicon::fs", {configs = {shared = true}})
+
     if is_plat("windows") and is_config("kind", "shared") then
         add_rules("utils.symbols.export_all", {export_classes = true})
     end

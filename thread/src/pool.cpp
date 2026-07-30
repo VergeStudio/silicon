@@ -33,9 +33,12 @@ struct pool::Impl {
 
     struct alignas(64) ThreadState {
         std::deque<std::coroutine_handle<void>> queue;
-        std::mutex mutex;
+        // mutable：all_queues_empty() 等 const 成员需在只读语义下加锁。
+        mutable std::mutex mutex;
     };
-    std::vector<ThreadState> m_states;
+    // ThreadState 含 std::mutex（不可移动），vector::resize 要求 move-insertable，
+    // 属非法实例化；deque::resize 原位构造且不搬迁元素，故改用 deque。
+    std::deque<ThreadState> m_states;
 
     std::vector<std::thread> m_threads;
 

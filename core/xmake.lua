@@ -1,7 +1,9 @@
 target("core", function()
     set_kind("$(kind)")
 
-    add_deps("thread")
+    -- 全限定名：跨命名空间入口（app 侧 target）解析传递依赖时，裸名 "thread"
+    -- 会以入口 target 的命名空间上下文查找而失败（dep target not found）。
+    add_deps("silicon::thread")
 
     if is_plat("windows") then
         add_defines("WIN")

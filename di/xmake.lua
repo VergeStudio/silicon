@@ -4,7 +4,7 @@ target("di", function()
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/di/**.h")
 
-    add_files("src/**.cpp")
+    -- di 为纯模板库，仅有模块接口单元（无 .cpp 实现单元）
     add_files("src/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")

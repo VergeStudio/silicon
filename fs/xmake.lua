@@ -9,7 +9,8 @@ target("fs", function()
     end
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/fs/**.hpp")
-    add_deps("silicon::exception")
+    -- silicon.exception 模块由 core 目标编译，依赖 core 以获取其 BMI。
+    add_deps("silicon::core")
     add_files("src/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)

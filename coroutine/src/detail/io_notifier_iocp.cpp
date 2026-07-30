@@ -37,7 +37,8 @@ static void CALLBACK timer_callback(PTP_CALLBACK_INSTANCE, void *ctx, PTP_TIMER 
     // pointer is embedded in the first pointer, poll_info in the second.
     // We post the full timer_completion_key so the event loop can process it.
     // This is a simplified approach — in production you'd use a pool of keys.
-    HANDLE iocp = static_cast<HANDLE>(tck->pi->m_fd); // stored during watch_timer
+    // fd_t 为 int：整型→指针须经 uintptr_t 中转 reinterpret_cast。
+    HANDLE iocp = reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(tck->pi->m_fd)); // stored during watch_timer
     PostQueuedCompletionStatus(iocp, 0, reinterpret_cast<ULONG_PTR>(tck->pi), nullptr);
     CloseThreadpoolTimer(timer);
 }
@@ -253,7 +254,7 @@ auto io_notifier_iocp::next_events(
                         pi->m_processed = true;
                         ready_events.emplace_back(pi, poll_status::write);
                     }
-                } else if (pfd.revents & POLLHUP || pfd.revents & POLLRDHUP) {
+                } else if (pfd.revents & POLLHUP) { // Windows WSAPoll 无 POLLRDHUP
                     if (!pi->m_processed) {
                         pi->m_processed = true;
                         ready_events.emplace_back(pi, poll_status::closed);

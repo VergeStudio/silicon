@@ -1,9 +1,9 @@
 module;
 
-module silicon.util;
-
 #include <cstring>
 #include <atomic>
+
+module silicon.util;
 
 namespace silicon::util {
 

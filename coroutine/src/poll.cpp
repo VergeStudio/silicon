@@ -1,9 +1,5 @@
 module;
 
-#include "silicon/coroutine/poll.hpp"
-
-#include "silicon/coroutine/poll.hpp"
-
 module silicon.coroutine;
 
 
