@@ -29,6 +29,18 @@ module;
 
 export module silicon.di:core;
 
+// Logical functional partitioning of the single self-contained :core
+// partition. The di subdirectories form a strongly-connected include
+// component, so C++20 + xmake require everything in ONE translation
+// unit. These banners only annotate the original per-directory
+// boundaries (DFS include order preserved) for maintainability.
+
+
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/config.h ---
 
 #if !defined(DINGO_CONSTRUCTOR_DETECTION_ARGS)
 #define DINGO_CONSTRUCTOR_DETECTION_ARGS 32
@@ -60,6 +72,12 @@ export module silicon.di:core;
 #define DINGO_CXX_STANDARD 17
 #endif
 
+
+// ==============================================================================
+// ==  type  —  type traits, descriptors, type lists & maps
+// ==============================================================================
+
+// --- type/type_descriptor.h ---
 
 
 
@@ -279,6 +297,12 @@ inline void append_type_name(std::string& name, type_descriptor descriptor) {
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/exceptions.h ---
 
 
 
@@ -503,6 +527,12 @@ type_index_out_of_range_exception make_type_index_out_of_range_exception(
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  registration  —  type registration, annotations & requirements
+// ==============================================================================
+
+// --- registration/annotated.h ---
+
 
 
 export namespace silicon::di {
@@ -567,6 +597,12 @@ struct annotated_traits<annotated<T, Tag>*> {
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/keyed.h ---
 
 
 
@@ -688,6 +724,12 @@ struct keyed_binding_identity : Binding {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  type  —  type traits, descriptors, type lists & maps
+// ==============================================================================
+
+// --- type/type_list.h ---
+
 
 
 export namespace silicon::di {
@@ -806,6 +848,7 @@ void for_each(type_list<Types...>, Function&& fn) {
 
 } // export namespace silicon::di
 
+// --- type/type_traits.h ---
 
 
 
@@ -1596,6 +1639,7 @@ template <typename T, typename... Args> T make_nested(Args&&... args) {
 
 } // export namespace silicon::di
 
+// --- type/normalized_type.h ---
 
 
 
@@ -1644,6 +1688,12 @@ struct normalized_type<keyed<T, Key>, void>
 template <class T> using normalized_type_t = typename normalized_type<T>::type;
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  registration  —  type registration, annotations & requirements
+// ==============================================================================
+
+// --- registration/collection_traits.h ---
 
 
 
@@ -1721,6 +1771,12 @@ struct collection_traits : detail::collection_traits<normalized_type_t<T>> {};
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/binding_collection.h ---
+
 
 
 export namespace silicon::di::detail {
@@ -1787,6 +1843,12 @@ T construct_binding_collection(PrimaryCountFn&& primary_count,
 } // export namespace silicon::di::detail
 
 
+// ==============================================================================
+// ==  type  —  type traits, descriptors, type lists & maps
+// ==============================================================================
+
+// --- type/complete_type.h ---
+
 
 export namespace silicon::di {
 namespace detail {
@@ -1814,6 +1876,12 @@ template <typename T, typename = void> struct is_complete : detail::is_complete<
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/auto_constructible.h ---
+
 
 
 export namespace silicon::di {
@@ -1833,6 +1901,12 @@ struct is_auto_constructible : detail::default_auto_constructible<T> {};
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  type  —  type traits, descriptors, type lists & maps
+// ==============================================================================
+
+// --- type/rebind_type.h ---
 
 
 
@@ -2089,6 +2163,12 @@ inline constexpr bool is_exact_lookup_v = is_exact_lookup<T>::value;
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  storage  —  storage policies (shared / unique / external / cyclical)
+// ==============================================================================
+
+// --- storage/interface_storage_traits.h ---
+
 
 
 
@@ -2138,6 +2218,12 @@ inline constexpr bool use_interface_as_stored_leaf_v =
 } // namespace detail
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  factory  —  constructor detection, callable & function injection
+// ==============================================================================
+
+// --- factory/constructor_traits.h ---
 
 
 
@@ -2263,6 +2349,7 @@ struct construction_dispatch<
 #pragma warning(pop)
 #endif
 
+// --- factory/constructor_typedef.h ---
 
 
 
@@ -2300,6 +2387,7 @@ struct constructor_typedef : detail::constructor_typedef_impl<T> {
 
 } // export namespace silicon::di
 
+// --- factory/constructor_detection.h ---
 
 
 
@@ -2768,6 +2856,7 @@ struct constructor_detection {
 
 } // export namespace silicon::di
 
+// --- factory/constructor.h ---
 
 
 
@@ -2800,6 +2889,12 @@ template <typename T, typename... Args> struct constructor<T(Args...)> {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  storage  —  storage policies (shared / unique / external / cyclical)
+// ==============================================================================
+
+// --- storage/storage.h ---
+
 
 export namespace silicon::di {
 namespace detail {
@@ -2821,6 +2916,12 @@ inline constexpr bool storage_interface_requirements_v =
 } // namespace detail
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  registration  —  type registration, annotations & requirements
+// ==============================================================================
+
+// --- registration/requirements.h ---
 
 
 
@@ -3014,6 +3115,12 @@ struct registration_requirements<Storage, type_list<TypeInterfaces...>, Type> {
 } // namespace detail
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  factory  —  constructor detection, callable & function injection
+// ==============================================================================
+
+// --- factory/callable.h ---
 
 
 
@@ -3231,6 +3338,7 @@ template <typename Signature = void, typename T> auto callable(T&& fn) {
 
 } // export namespace silicon::di
 
+// --- factory/function.h ---
 
 
 export namespace silicon::di {
@@ -3253,6 +3361,12 @@ template <auto fn> struct function : function_decl<decltype(fn), fn> {};
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/factory_traits.h ---
 
 
 
@@ -3348,6 +3462,12 @@ struct factory_traits<detail::callable_factory<Signature, T>> {
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  registration  —  type registration, annotations & requirements
+// ==============================================================================
+
+// --- registration/type_registration.h ---
 
 // #include "silicon/di/core/config.h"
 
@@ -3787,6 +3907,12 @@ template <typename... Args> struct type_registration {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/binding_model.h ---
+
 
 
 
@@ -3878,6 +4004,7 @@ using binding_expansion =
 } // namespace detail
 } // export namespace silicon::di
 
+// --- core/binding_selection.h ---
 
 
 
@@ -3990,6 +4117,7 @@ make_runtime_selection(Visitor&& visit_candidates) {
 } // namespace detail
 } // export namespace silicon::di
 
+// --- core/binding_resolution_policy.h ---
 
 
 #ifdef _MSC_VER
@@ -4244,6 +4372,7 @@ template <typename LookupRequest> struct missing_binding_source {
 #pragma warning(pop)
 #endif
 
+// --- core/none.h ---
 
 
 export namespace silicon::di {
@@ -4256,6 +4385,12 @@ template <typename T> inline constexpr auto is_none_v = is_none<T>::value;
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  factory  —  constructor detection, callable & function injection
+// ==============================================================================
+
+// --- factory/invoke.h ---
 
 
 
@@ -4272,6 +4407,12 @@ template <typename T> struct invoke {
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  memory  —  allocators, arena & object lifetime
+// ==============================================================================
+
+// --- memory/allocator.h ---
 
 
 
@@ -4315,6 +4456,12 @@ struct allocator_traits {
 };
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  index  —  index collections (array / map / unordered_map)
+// ==============================================================================
+
+// --- index/index.h ---
 
 
 
@@ -4436,6 +4583,12 @@ struct index<std::tuple<Entries...>, Value, Allocator>
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  memory  —  allocators, arena & object lifetime
+// ==============================================================================
+
+// --- memory/aligned_storage.h ---
+
 
 export namespace silicon::di {
 template <std::size_t Len, std::size_t Alignment> struct aligned_storage {
@@ -4460,6 +4613,7 @@ template <std::size_t MinLen, typename... Ts> struct aligned_union {
 
 } // export namespace silicon::di
 
+// --- memory/static_allocator.h ---
 
 
 
@@ -4514,6 +4668,7 @@ inline constexpr bool is_static_allocator_v =
 
 } // export namespace silicon::di
 
+// --- memory/arena_allocator.h ---
 
 
 export namespace silicon::di {
@@ -4743,12 +4898,19 @@ bool operator != (const arena_allocator<T, Arena, AlignmentT>& x, const arena_al
 }
 
 
+// ==============================================================================
+// ==  resolution  —  type resolution, conversion cache & recursion guards
+// ==============================================================================
+
+// --- resolution/resolving_frame_fwd.h ---
+
 export namespace silicon::di::detail {
 
 class resolving_frame;
 
 } // export namespace silicon::di::detail
 
+// --- resolution/resolving_frame.h ---
 
 
 export namespace silicon::di {
@@ -4779,6 +4941,12 @@ class resolving_frame {
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/context_base.h ---
 
 
 
@@ -5122,6 +5290,12 @@ detail::resolving_frame context_path_state::track_type() {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  type  —  type traits, descriptors, type lists & maps
+// ==============================================================================
+
+// --- type/type_conversion_traits.h ---
+
 
 
 export namespace silicon::di {
@@ -5143,6 +5317,12 @@ struct type_conversion_traits<Target*, Source*> {
 };
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  resolution  —  type resolution, conversion cache & recursion guards
+// ==============================================================================
+
+// --- resolution/conversion_cache.h ---
 
 
 
@@ -5226,6 +5406,7 @@ template <> struct conversion_cache<type_list<>> {
 
 } // export namespace silicon::di
 
+// --- resolution/runtime_binding_interface.h ---
 
 
 export namespace silicon::di {
@@ -5293,6 +5474,12 @@ template <typename Container> class runtime_binding_interface {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  memory  —  allocators, arena & object lifetime
+// ==============================================================================
+
+// --- memory/object_lifetime.h ---
+
 
 
 export namespace silicon::di {
@@ -5309,6 +5496,12 @@ template <typename Type> void destroy_object_value(Type& value) {
 } // namespace detail
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  storage  —  storage policies (shared / unique / external / cyclical)
+// ==============================================================================
+
+// --- storage/materialized_source.h ---
 
 
 
@@ -5533,6 +5726,12 @@ pointer_source<Source> make_resolved_source(Source* source) {
 #pragma warning(pop)
 #endif
 
+
+// ==============================================================================
+// ==  resolution  —  type resolution, conversion cache & recursion guards
+// ==============================================================================
+
+// --- resolution/type_conversion.h ---
 
 
 
@@ -6540,6 +6739,7 @@ struct type_conversion<
 #pragma warning(pop)
 #endif
 
+// --- resolution/recursion_guard.h ---
 
 
 export namespace silicon::di::detail {
@@ -6623,6 +6823,12 @@ template <typename T> class recursion_guard_wrapper {
 
 } // export namespace silicon::di::detail
 
+
+// ==============================================================================
+// ==  storage  —  storage policies (shared / unique / external / cyclical)
+// ==============================================================================
+
+// --- storage/type_storage_traits.h ---
 
 
 
@@ -6919,6 +7125,12 @@ struct type_storage_traits<
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  type  —  type traits, descriptors, type lists & maps
+// ==============================================================================
+
+// --- type/request_traits.h ---
+
 
 
 export namespace silicon::di {
@@ -6949,6 +7161,12 @@ using resolve_result_t =
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  core  —  binding model, binding collection & context
+// ==============================================================================
+
+// --- core/binding_resolution.h ---
 
 
 
@@ -7483,6 +7701,12 @@ construct_request_or_wrap_normalized(ResolveExact&& resolve_exact,
 #endif
 
 
+// ==============================================================================
+// ==  runtime  —  runtime container traits & registry
+// ==============================================================================
+
+// --- runtime/context.h ---
+
 
 export namespace silicon::di {
 
@@ -7524,6 +7748,12 @@ class runtime_context : public detail::context_state {
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  resolution  —  type resolution, conversion cache & recursion guards
+// ==============================================================================
+
+// --- resolution/runtime_binding.h ---
 
 
 
@@ -7865,6 +8095,7 @@ template <typename T> struct runtime_binding_ptr {
 
 } // export namespace silicon::di
 
+// --- resolution/type_cache.h ---
 
 
 // #include <unordered_map>
@@ -7970,6 +8201,12 @@ struct static_type_cache {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  rtti  —  runtime type info & typeid providers
+// ==============================================================================
+
+// --- rtti/rtti.h ---
+
 
 export namespace silicon::di {
     struct static_provider {};
@@ -7978,6 +8215,7 @@ export namespace silicon::di {
     template< typename T > class rtti;
 }
 
+// --- rtti/static_provider.h ---
 
 
 
@@ -8022,6 +8260,7 @@ namespace std {
     };
 }
 
+// --- rtti/typeid_provider.h ---
 
 
 
@@ -8062,6 +8301,12 @@ namespace std {
     };
 }
 
+
+// ==============================================================================
+// ==  type  —  type traits, descriptors, type lists & maps
+// ==============================================================================
+
+// --- type/type_map.h ---
 
 
 // #include <unordered_map>
@@ -8243,6 +8488,12 @@ struct static_type_map {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  runtime  —  runtime container traits & registry
+// ==============================================================================
+
+// --- runtime/container_traits.h ---
+
 
 
 export namespace silicon::di {
@@ -8287,6 +8538,7 @@ inline constexpr bool is_tagged_container_v =
 } // namespace detail
 } // export namespace silicon::di
 
+// --- runtime/registration_api.h ---
 
 
 
@@ -8347,6 +8599,12 @@ template <typename Derived> class runtime_registration_api {
 } // namespace detail
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  static  —  static container graph, registry & resolution
+// ==============================================================================
+
+// --- static/registry.h ---
 
 
 
@@ -9269,6 +9527,7 @@ template <typename... Registrations> struct static_registry {
 
 } // export namespace silicon::di
 
+// --- static/graph.h ---
 
 
 
@@ -10569,6 +10828,7 @@ struct static_graph<static_registry<Registrations...>, void>
 
 } // export namespace silicon::di
 
+// --- static/activation_set.h ---
 
 
 
@@ -11356,6 +11616,7 @@ using binding_scope_ref =
 #pragma warning(pop)
 #endif
 
+// --- static/local_resolution.h ---
 
 
 
@@ -11511,6 +11772,12 @@ class binding_resolution<Host, static_registry<Registrations...>>
 } // namespace detail
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  runtime  —  runtime container traits & registry
+// ==============================================================================
+
+// --- runtime/registry.h ---
 
 
 
@@ -12624,6 +12891,12 @@ void runtime_registry<ContainerTraits, Allocator, ParentRegistry,
 } // export namespace silicon::di
 
 
+// ==============================================================================================
+// ==  umbrella  —  container entry points (container / runtime_container / static_container)
+// ==============================================================================================
+
+// --- runtime_container.h ---
+
 
 export namespace silicon::di {
 
@@ -12803,6 +13076,12 @@ class runtime_container
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  static  —  static container graph, registry & resolution
+// ==============================================================================
+
+// --- static/context.h ---
 
 
 
@@ -12985,6 +13264,7 @@ using static_context = basic_static_context<StaticRegistry, false>;
 
 } // export namespace silicon::di
 
+// --- static/container_traits.h ---
 
 
 
@@ -13041,6 +13321,7 @@ using bindings_wrapper_registry_t = typename bindings_wrapper_registry<T>::type;
 } // namespace detail
 } // export namespace silicon::di
 
+// --- static/resolution.h ---
 
 
 
@@ -13117,6 +13398,12 @@ construct_static_binding_value(ResolveNormalized&& resolve_normalized) {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  storage  —  storage policies (shared / unique / external / cyclical)
+// ==============================================================================
+
+// --- storage/resettable.h ---
+
 
 export namespace silicon::di {
 class resettable {
@@ -13126,6 +13413,7 @@ class resettable {
 };
 } // export namespace silicon::di
 
+// --- storage/external.h ---
 
 
 
@@ -13396,6 +13684,7 @@ class storage<external, Type, StoredType, Factory, Conversions>
 } // namespace detail
 } // export namespace silicon::di
 
+// --- storage/shared.h ---
 
 
 
@@ -13795,6 +14084,7 @@ class storage<shared, Type, StoredType, Factory, Conversions>
 } // namespace detail
 } // export namespace silicon::di
 
+// --- storage/shared_cyclical.h ---
 
 
 
@@ -14120,6 +14410,7 @@ class storage<shared_cyclical, Type, StoredType, Factory, Conversions>
 } // namespace detail
 } // export namespace silicon::di
 
+// --- storage/unique.h ---
 
 
 
@@ -14369,6 +14660,12 @@ class storage<unique, Type[N], StoredType, Factory, Conversions> : Factory {
 } // namespace detail
 } // export namespace silicon::di
 
+
+// ==============================================================================================
+// ==  umbrella  —  container entry points (container / runtime_container / static_container)
+// ==============================================================================================
+
+// --- static_container.h ---
 
 
 
@@ -14766,6 +15063,7 @@ class static_container
 #pragma warning(pop)
 #endif
 
+// --- container.h ---
 
 
 
@@ -16098,6 +16396,12 @@ class container : public detail::container_base_t<Params...> {
 
 
 
+// ==============================================================================
+// ==  index  —  index collections (array / map / unordered_map)
+// ==============================================================================
+
+// --- index/array.h ---
+
 
 
 
@@ -16135,6 +16439,7 @@ struct index_collection<Key, Value, Allocator, index_type::array<N>> {
 
 } // export namespace silicon::di
 
+// --- index/map.h ---
 
 
 
@@ -16168,6 +16473,7 @@ struct index_collection<Key, Value, Allocator, index_type::map> {
 };
 } // export namespace silicon::di
 
+// --- index/unordered_map.h ---
 
 
 
@@ -16204,6 +16510,12 @@ struct index_collection<Key, Value, Allocator, index_type::unordered_map> {
 } // export namespace silicon::di
 
 
+// ==============================================================================
+// ==  registration  —  type registration, annotations & requirements
+// ==============================================================================
+
+// --- registration/constructor.h ---
+
 // Intentionally without any includes
 
 export namespace silicon::di {
@@ -16216,6 +16528,12 @@ template <typename...> struct constructor;
 
 } // export namespace silicon::di
 
+
+// ==============================================================================
+// ==  type  —  type traits, descriptors, type lists & maps
+// ==============================================================================
+
+// --- type/type_name.h ---
 
 
 
