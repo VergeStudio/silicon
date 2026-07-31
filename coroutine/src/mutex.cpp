@@ -1,8 +1,22 @@
 module;
 
+#include <atomic>
+#include <memory>
+#include <stdexcept>
+
 module silicon.coroutine;
 
 namespace silicon::coroutine {
+
+/// Implementation state of silicon::coroutine::mutex.
+class mutex::P {
+  public:
+    /// unlocked -> state == unlocked_value()
+    /// locked but empty waiter list == nullptr
+    /// locked with waiters == lock_operation_base*
+    std::atomic<void *> m_state;
+};
+
 namespace detail {
 auto lock_operation_base::await_ready() const noexcept -> bool {
     return m_mutex.try_lock();
@@ -10,7 +24,7 @@ auto lock_operation_base::await_ready() const noexcept -> bool {
 
 auto lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
     m_awaiting_coroutine = awaiting_coroutine;
-    auto &state = m_mutex.m_state;
+    auto &state = m_mutex.m_p->m_state;
     void *current = state.load(std::memory_order::acquire);
     const void *unlocked_value = m_mutex.unlocked_value();
     do {
@@ -43,20 +57,30 @@ scoped_lock::~scoped_lock() {
 }
 
 auto scoped_lock::unlock() -> void {
-    if(m_mutex != nullptr) {
+    if(m_p != nullptr && m_p->m_mutex != nullptr) {
         std::atomic_thread_fence(std::memory_order::acq_rel);
-        m_mutex->unlock();
-        m_mutex = nullptr;
+        m_p->m_mutex->unlock();
+        m_p->m_mutex = nullptr;
     }
+}
+
+mutex::mutex() noexcept: m_p(std::make_unique<P>()) {
+    m_p->m_state.store(const_cast<void *>(unlocked_value()), std::memory_order::relaxed);
+}
+
+mutex::~mutex() = default;
+
+auto mutex::unlocked_value() const noexcept -> const void * {
+    return &m_p->m_state;
 }
 
 auto mutex::try_lock() -> bool {
     void *expected = const_cast<void *>(unlocked_value());
-    return m_state.compare_exchange_strong(expected, nullptr, std::memory_order::acq_rel, std::memory_order::relaxed);
+    return m_p->m_state.compare_exchange_strong(expected, nullptr, std::memory_order::acq_rel, std::memory_order::relaxed);
 }
 
 auto mutex::unlock() -> void {
-    void *current = m_state.load(std::memory_order::acquire);
+    void *current = m_p->m_state.load(std::memory_order::acquire);
     do {
         // Sanity check that the mutex isn't already unlocked.
         if(current == const_cast<void *>(unlocked_value())) {
@@ -65,7 +89,7 @@ auto mutex::unlock() -> void {
 
         // There are no current waiters, attempt to set the mutex as unlocked.
         if(current == nullptr) {
-            if(m_state.compare_exchange_weak(
+            if(m_p->m_state.compare_exchange_weak(
                        current,
                        const_cast<void *>(unlocked_value()),
                        std::memory_order::acq_rel,
@@ -81,7 +105,8 @@ auto mutex::unlock() -> void {
             }
         } else {
             // There are waiters, lets wake the first one up. This will set the state to the next waiter, or nullptr (no waiters but locked).
-            std::atomic<detail::lock_operation_base *> *casted = reinterpret_cast<std::atomic<detail::lock_operation_base *> *>(&m_state);
+            std::atomic<detail::lock_operation_base *> *casted =
+                    reinterpret_cast<std::atomic<detail::lock_operation_base *> *>(&m_p->m_state);
             auto *waiter = detail::awaiter_list_pop<detail::lock_operation_base>(*casted);
             // assert waiter != nullptr, nobody else should be unlocking this mutex.
             // Directly transfer control to the waiter, they are now responsible for unlocking the mutex.

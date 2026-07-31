@@ -1,17 +1,23 @@
 module;
 
+#include <atomic>
+#include <memory>
+
 module silicon.coroutine;
 
 
 
 namespace silicon::coroutine {
-event::event(bool initially_set) noexcept: m_state((initially_set) ? static_cast<void *>(this) : nullptr) {
+event::event(bool initially_set) noexcept: m_p(std::make_unique<P>()) {
+    m_p->m_state.store((initially_set) ? static_cast<void *>(this) : nullptr, std::memory_order::relaxed);
 }
+
+event::~event() = default;
 
 auto event::set(resume_order_policy policy) noexcept -> void {
     // Exchange the state to this, if the state was previously not this, then traverse the list
     // of awaiters and resume their coroutines.
-    void *old_value = m_state.exchange(this, std::memory_order::acq_rel);
+    void *old_value = m_p->m_state.exchange(this, std::memory_order::acq_rel);
     if(old_value != this) {
         // If FIFO has been requsted then reverse the order upon resuming.
         if(policy == resume_order_policy::fifo) {
@@ -38,7 +44,7 @@ auto event::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) n
     m_awaiting_coroutine = awaiting_coroutine;
 
     // This value will update if other threads write to it via acquire.
-    void *old_value = m_event.m_state.load(std::memory_order::acquire);
+    void *old_value = m_event.m_p->m_state.load(std::memory_order::acquire);
     do {
         // Resume immediately if already in the set state.
         if(old_value == set_state) {
@@ -46,7 +52,7 @@ auto event::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) n
         }
 
         m_next = static_cast<awaiter *>(old_value);
-    } while(!m_event.m_state.compare_exchange_weak(
+    } while(!m_event.m_p->m_state.compare_exchange_weak(
             old_value, this, std::memory_order::release, std::memory_order::acquire
     ));
 
@@ -55,7 +61,7 @@ auto event::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) n
 
 auto event::reset() noexcept -> void {
     void *old_value = this;
-    m_state.compare_exchange_strong(old_value, nullptr, std::memory_order::acquire);
+    m_p->m_state.compare_exchange_strong(old_value, nullptr, std::memory_order::acquire);
 }
 
 } // namespace silicon::coroutine

@@ -255,7 +255,7 @@ class condition_variable {
 
                 // This means the timeout has occurred first. Before resuming the wait_[for|until]() caller the lock
                 // must be re-acquired.
-                co_await m_lock.m_mutex->lock();
+                co_await m_lock.m_p->m_mutex->lock();
                 m_predicate_result = data.m_predicate.has_value() ? data.m_predicate.value()() : true;
                 m_awaiting_coroutine.resume();
                 co_return;
@@ -278,8 +278,8 @@ class condition_variable {
             // We enqueue the hook_task since we can make it live until the notify occurs and will properly resume the
             // actual coroutine only once.
             awaiter_with_wait_hook hook_task{m_condition_variable, m_lock, data};
-            detail::awaiter_list_push(m_condition_variable.m_awaiters, static_cast<awaiter_base *>(&hook_task));
-            m_lock.m_mutex->unlock(); // Unlock the actual lock now that we are setup, not the fake hook task.
+            detail::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(&hook_task));
+            m_lock.m_p->m_mutex->unlock(); // Unlock the actual lock now that we are setup, not the fake hook task.
 
             co_await silicon::coroutine::when_all(make_on_notify_callback_task(data), make_timeout_task(data));
             co_return;
@@ -335,7 +335,15 @@ class condition_variable {
 #endif
 
   public:
-    condition_variable() = default;
+    /// Implementation state of the condition variable.  Defined in the interface unit because the
+    /// templated notify_*(executor) overloads reach the waiter list from the interface.
+    class P {
+      public:
+        /// @brief The list of waiters.
+        std::atomic<awaiter_base *> m_awaiters{nullptr};
+    };
+
+    condition_variable(): m_p(std::make_unique<P>()) {}
     ~condition_variable() = default;
 
     condition_variable(const condition_variable &) = delete;
@@ -376,7 +384,7 @@ class condition_variable {
      */
     template<silicon::coroutine::concepts::executor executor_type>
     auto notify_all(std::unique_ptr<executor_type> &executor) -> void {
-        auto *waiter = detail::awaiter_list_pop_all(m_awaiters);
+        auto *waiter = detail::awaiter_list_pop_all(m_p->m_awaiters);
 
         while(waiter != nullptr) {
             // Need to grab next before notifying since the notifier will self destruct after completing.
@@ -522,14 +530,14 @@ class condition_variable {
 #endif
 
   private:
-    /// @brief The list of waiters.
-    std::atomic<awaiter_base *> m_awaiters{nullptr};
+    /// Hidden implementation state.
+    std::unique_ptr<P> m_p;
 
     auto make_notify_all_executor_individual_task(awaiter_base *waiter) -> silicon::coroutine::task<void> {
         switch(co_await waiter->on_notify()) {
             case notify_status_t::not_ready:
                 // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
-                detail::awaiter_list_push(m_awaiters, waiter);
+                detail::awaiter_list_push(m_p->m_awaiters, waiter);
                 break;
             case notify_status_t::ready:
             case notify_status_t::awaiter_dead:

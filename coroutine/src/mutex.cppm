@@ -77,10 +77,19 @@ class scoped_lock {
         adopt
     };
 
-    explicit scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy = lock_strategy::adopt): m_mutex(&m) {
+    /// Implementation state of the scoped lock.  Defined in the interface unit because
+    /// silicon::coroutine::condition_variable reaches the owned mutex from inline/template wait hooks.
+    class P {
+      public:
+        class silicon::coroutine::mutex *m_mutex{nullptr};
+    };
+
+    explicit scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy = lock_strategy::adopt)
+        : m_p(std::make_unique<P>()) {
         // Future -> support acquiring the lock?  Not sure how to do that without being able to
         // co_await in the constructor.
         (void)strategy;
+        m_p->m_mutex = &m;
     }
 
     /**
@@ -89,12 +98,11 @@ class scoped_lock {
     ~scoped_lock();
 
     scoped_lock(const scoped_lock &) = delete;
-    scoped_lock(scoped_lock &&other) noexcept
-        : m_mutex(std::exchange(other.m_mutex, nullptr)) {}
+    scoped_lock(scoped_lock &&other) noexcept: m_p(std::move(other.m_p)) {}
     auto operator=(const scoped_lock &) -> scoped_lock & = delete;
     auto operator=(scoped_lock &&other) noexcept -> scoped_lock & {
         if(std::addressof(other) != this) {
-            m_mutex = std::exchange(other.m_mutex, nullptr);
+            m_p = std::move(other.m_p);
         }
         return *this;
     }
@@ -105,13 +113,13 @@ class scoped_lock {
     auto unlock() -> void;
 
   private:
-    class silicon::coroutine::mutex *m_mutex{nullptr};
+    std::unique_ptr<P> m_p;
 };
 
 class mutex {
   public:
-    explicit mutex() noexcept: m_state(const_cast<void *>(unlocked_value())) {}
-    ~mutex() = default;
+    explicit mutex() noexcept;
+    ~mutex();
 
     mutex(const mutex &) = delete;
     mutex(mutex &&) = delete;
@@ -146,15 +154,17 @@ class mutex {
   private:
     friend struct detail::lock_operation_base;
 
+    /// Implementation state, fully hidden in the implementation unit.
     /// unlocked -> state == unlocked_value()
     /// locked but empty waiter list == nullptr
     /// locked with waiters == lock_operation_base*
-    std::atomic<void *> m_state;
+    class P;
+    std::unique_ptr<P> m_p;
 
     /// Inactive value, this cannot be nullptr since we want nullptr to signify that the mutex
     /// is locked but there are zero waiters, this makes it easy to CAS new waiters into the
     /// m_state linked list.
-    auto unlocked_value() const noexcept -> const void * { return &m_state; }
+    auto unlocked_value() const noexcept -> const void *;
 };
 
 } // namespace silicon::coroutine
