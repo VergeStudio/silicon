@@ -22,10 +22,12 @@ target("coroutine", function()
     add_files("src/**.cpp")
     add_files("src/**.cppm", {public = true})
 
-    -- 平台专属 io_notifier 后端（iocp / epoll / kqueue）的类声明合并进单一分区
-    -- src/io_notifier.cppm（:io_notifier）：该分区按平台宏展开当前后端，但三个后端类
-    -- 均为模块内部实现（不导出）；对外统一只暴露 silicon::coroutine::io_notifier 别名。
-    -- 三个同名 .cpp 实现单元由宏开关决定是否参与编译，因此这里不再按平台 remove_files。
+    -- 平台专属 io_notifier 后端（iocp / epoll / kqueue）统一为单一导出类
+    -- silicon::coroutine::io_notifier（位于分区 src/io_notifier.cppm，即 :io_notifier）。
+    -- 该类对外接口在所有平台完全一致；平台专属状态隐藏在私有的嵌套 struct P（PIMPL）
+    -- 中，P 的实体定义落在各自平台的 .cpp 实现单元
+    -- （io_notifier_iocp.cpp / io_notifier_kqueue.cpp / io_notifier_epoll.cpp），由宏开关
+    -- 决定哪个 .cpp 实际提供方法体。因此这里不再按平台 remove_files。
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("coroutine.config.cppm.in")
