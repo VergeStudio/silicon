@@ -134,7 +134,7 @@ auto scheduler::poll(
     auto pi = detail::poll_info{fd, op, cancel_trigger};
 
     if(timeout_requested) {
-        pi.m_timer_pos = add_timer_token(clock::now() + timeout, pi);
+        pi.m_p->m_timer_pos = add_timer_token(clock::now() + timeout, pi);
     }
 
     if(!m_io_notifier.watch(pi)) {
@@ -329,29 +329,29 @@ auto scheduler::process_scheduled_execute_inline() -> void {
 }
 
 auto scheduler::process_event_execute(detail::poll_info *pi, poll_status status) -> void {
-    if(!pi->m_processed) {
+    if(!pi->m_p->m_processed) {
         std::atomic_thread_fence(std::memory_order::acquire);
         // Its possible the event and the timeout occurred in the same epoll, make sure only one
         // is ever processed, the other is discarded.
-        pi->m_processed = true;
+        pi->m_p->m_processed = true;
 
         // Given a valid fd always remove it from epoll so the next poll can blindly EPOLL_CTL_ADD.
-        if(pi->m_fd != -1) {
+        if(pi->m_p->m_fd != -1) {
             m_io_notifier.unwatch(*pi);
         }
 
         // Since this event triggered, remove its corresponding timeout if it has one.
-        if(pi->m_timer_pos.has_value()) {
-            remove_timer_token(pi->m_timer_pos.value());
+        if(pi->m_p->m_timer_pos.has_value()) {
+            remove_timer_token(pi->m_p->m_timer_pos.value());
         }
 
-        pi->m_poll_status = status;
+        pi->m_p->m_poll_status = status;
 
-        while(pi->m_awaiting_coroutine == nullptr) {
+        while(pi->m_p->m_awaiting_coroutine == nullptr) {
             std::atomic_thread_fence(std::memory_order::acquire);
         }
 
-        m_handles_to_resume.emplace_back(pi->m_awaiting_coroutine);
+        m_handles_to_resume.emplace_back(pi->m_p->m_awaiting_coroutine);
     }
 }
 
@@ -375,22 +375,22 @@ auto scheduler::process_timeout_execute() -> void {
     }
 
     for(auto pi: poll_infos) {
-        if(!pi->m_processed) {
+        if(!pi->m_p->m_processed) {
             // Its possible the event and the timeout occurred in the same epoll, make sure only one
             // is ever processed, the other is discarded.
-            pi->m_processed = true;
+            pi->m_p->m_processed = true;
 
             // Since this timed out, remove its corresponding event if it has one.
-            if(pi->m_fd != -1) {
+            if(pi->m_p->m_fd != -1) {
                 m_io_notifier.unwatch(*pi);
             }
 
-            while(pi->m_awaiting_coroutine == nullptr) {
+            while(pi->m_p->m_awaiting_coroutine == nullptr) {
                 std::atomic_thread_fence(std::memory_order::acquire);
             }
 
-            m_handles_to_resume.emplace_back(pi->m_awaiting_coroutine);
-            pi->m_poll_status = silicon::coroutine::poll_status::timeout;
+            m_handles_to_resume.emplace_back(pi->m_p->m_awaiting_coroutine);
+            pi->m_p->m_poll_status = silicon::coroutine::poll_status::timeout;
         }
     }
 

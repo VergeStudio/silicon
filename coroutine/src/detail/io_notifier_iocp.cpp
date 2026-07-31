@@ -61,7 +61,7 @@ static void CALLBACK timer_callback(PTP_CALLBACK_INSTANCE, void *ctx, PTP_TIMER 
     // We post the full timer_completion_key so the event loop can process it.
     // This is a simplified approach — in production you'd use a pool of keys.
     // fd_t 为 int：整型→指针须经 uintptr_t 中转 reinterpret_cast。
-    HANDLE iocp = reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(tck->pi->m_fd)); // stored during watch_timer
+    HANDLE iocp = reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(tck->pi->m_p->m_fd)); // stored during watch_timer
     PostQueuedCompletionStatus(iocp, 0, reinterpret_cast<ULONG_PTR>(tck->pi), nullptr);
     CloseThreadpoolTimer(timer);
 }
@@ -93,10 +93,10 @@ auto io_notifier_iocp::watch(fd_t fd, poll_op op, void *data, bool keep, bool is
 }
 
 auto io_notifier_iocp::watch(poll_info &pi) -> bool {
-    watch(pi.m_fd, pi.m_op, static_cast<void *>(&pi), false, false);
+    watch(pi.m_p->m_fd, pi.m_p->m_op, static_cast<void *>(&pi), false, false);
 
-    if (pi.m_cancel_trigger.has_value()) {
-        watch(pi.m_cancel_trigger.value().native_handle(), poll_op::read,
+    if (pi.m_p->m_cancel_trigger.has_value()) {
+        watch(pi.m_p->m_cancel_trigger.value().native_handle(), poll_op::read,
               static_cast<void *>(&pi), false, true);
     }
 
@@ -109,9 +109,9 @@ auto io_notifier_iocp::unwatch(fd_t fd, poll_op) -> bool {
 }
 
 auto io_notifier_iocp::unwatch(poll_info &pi) -> bool {
-    remove_fd(pi.m_fd);
-    if (pi.m_cancel_trigger.has_value()) {
-        remove_fd(pi.m_cancel_trigger.value().native_handle());
+    remove_fd(pi.m_p->m_fd);
+    if (pi.m_p->m_cancel_trigger.has_value()) {
+        remove_fd(pi.m_p->m_cancel_trigger.value().native_handle());
     }
     return true;
 }
@@ -222,9 +222,9 @@ auto io_notifier_iocp::next_events(
         // completion_key is a poll_info* posted by the timer callback
         auto *pi = reinterpret_cast<poll_info *>(completion_key);
         if (pi) {
-            if (!pi->m_processed) {
-                pi->m_processed = true;
-                pi->m_poll_status = poll_status::timeout;
+            if (!pi->m_p->m_processed) {
+                pi->m_p->m_processed = true;
+                pi->m_p->m_poll_status = poll_status::timeout;
                 ready_events.emplace_back(pi, poll_status::timeout);
             }
         }
@@ -264,28 +264,28 @@ auto io_notifier_iocp::next_events(
                 auto *pi = poll_info_map[i];
 
                 if (pfd.revents & POLLRDNORM) {
-                    if (!pi->m_processed) {
-                        pi->m_processed = true;
+                    if (!pi->m_p->m_processed) {
+                        pi->m_p->m_processed = true;
                         ready_events.emplace_back(pi, poll_status::read);
                     }
                 } else if (pfd.revents & POLLWRNORM) {
-                    if (!pi->m_processed) {
-                        pi->m_processed = true;
+                    if (!pi->m_p->m_processed) {
+                        pi->m_p->m_processed = true;
                         ready_events.emplace_back(pi, poll_status::write);
                     }
                 } else if (pfd.revents & POLLHUP) { // Windows WSAPoll 无 POLLRDHUP
-                    if (!pi->m_processed) {
-                        pi->m_processed = true;
+                    if (!pi->m_p->m_processed) {
+                        pi->m_p->m_processed = true;
                         ready_events.emplace_back(pi, poll_status::closed);
                     }
                 } else if (pfd.revents & POLLERR) {
-                    if (!pi->m_processed) {
-                        pi->m_processed = true;
+                    if (!pi->m_p->m_processed) {
+                        pi->m_p->m_processed = true;
                         ready_events.emplace_back(pi, poll_status::error);
                     }
                 } else if (pfd.revents & POLLNVAL) {
-                    if (!pi->m_processed) {
-                        pi->m_processed = true;
+                    if (!pi->m_p->m_processed) {
+                        pi->m_p->m_processed = true;
                         ready_events.emplace_back(pi, poll_status::error);
                     }
                 }

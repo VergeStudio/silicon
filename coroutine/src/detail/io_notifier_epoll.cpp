@@ -97,10 +97,10 @@ auto io_notifier_epoll::watch(fd_t fd, poll_op op, void *data, bool keep, bool i
 }
 
 auto io_notifier_epoll::watch(poll_info &pi) -> bool {
-    watch(pi.m_fd, pi.m_op, static_cast<void *>(&pi), false, false);
+    watch(pi.m_p->m_fd, pi.m_p->m_op, static_cast<void *>(&pi), false, false);
 
-    if(pi.m_cancel_trigger.has_value()) {
-        watch(pi.m_cancel_trigger.value().native_handle(), poll_op::read, static_cast<void *>(&pi), false, true);
+    if(pi.m_p->m_cancel_trigger.has_value()) {
+        watch(pi.m_p->m_cancel_trigger.value().native_handle(), poll_op::read, static_cast<void *>(&pi), false, true);
     }
 
     return true;
@@ -111,7 +111,7 @@ auto io_notifier_epoll::unwatch(fd_t fd, poll_op) -> bool {
 }
 
 auto io_notifier_epoll::unwatch(detail::poll_info &pi) -> bool {
-    return unwatch(pi.m_fd, pi.m_op);
+    return unwatch(pi.m_p->m_fd, pi.m_p->m_op);
 }
 
 auto io_notifier_epoll::unwatch_timer(const timer_handle &timer) -> bool {
@@ -140,8 +140,8 @@ auto io_notifier_epoll::next_events(
             }
         } else {
             ready_events.emplace_back(pi, io_notifier_epoll::event_to_poll_status(ready_set[i]));
-            if(pi->m_cancel_trigger.has_value() && !keep_registered) {
-                unwatch(pi->m_cancel_trigger.value().native_handle(), poll_op::read);
+            if(pi->m_p->m_cancel_trigger.has_value() && !keep_registered) {
+                unwatch(pi->m_p->m_cancel_trigger.value().native_handle(), poll_op::read);
             }
         }
     }

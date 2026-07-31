@@ -69,19 +69,19 @@ auto io_notifier_kqueue::watch(fd_t fd, poll_op op, void *data, bool keep) -> bo
 
 auto io_notifier_kqueue::watch(poll_info &pi) -> bool {
     // For read-write event, we need to register both event types separately to the kqueue
-    if(pi.m_op == poll_op::read_write) {
-        if(!watch(pi.m_fd, poll_op::read, static_cast<void *>(&pi), false) ||
-           !watch(pi.m_fd, poll_op::write, static_cast<void *>(&pi), false)) {
+    if(pi.m_p->m_op == poll_op::read_write) {
+        if(!watch(pi.m_p->m_fd, poll_op::read, static_cast<void *>(&pi), false) ||
+           !watch(pi.m_p->m_fd, poll_op::write, static_cast<void *>(&pi), false)) {
             return false;
         }
     } else {
-        if(!watch(pi.m_fd, pi.m_op, static_cast<void *>(&pi), false)) {
+        if(!watch(pi.m_p->m_fd, pi.m_p->m_op, static_cast<void *>(&pi), false)) {
             return false;
         }
     }
 
-    if(pi.m_cancel_trigger.has_value()) {
-        watch(pi.m_cancel_trigger.value().native_handle(), poll_op::read, static_cast<void *>(&pi));
+    if(pi.m_p->m_cancel_trigger.has_value()) {
+        watch(pi.m_p->m_cancel_trigger.value().native_handle(), poll_op::read, static_cast<void *>(&pi));
     }
 
     return true;
@@ -107,7 +107,7 @@ auto io_notifier_kqueue::unwatch(fd_t fd, poll_op op) -> bool {
 }
 
 auto io_notifier_kqueue::unwatch(poll_info &pi) -> bool {
-    return unwatch(pi.m_fd, pi.m_op);
+    return unwatch(pi.m_p->m_fd, pi.m_p->m_op);
 }
 
 auto io_notifier_kqueue::unwatch_timer(const timer_handle &timer) -> bool {
@@ -135,16 +135,16 @@ auto io_notifier_kqueue::next_events(
 
         // If the event issuing fd is the same as the fd of the cancellation trigger of the registered poll_info we
         // this operation was cancelled by the user.
-        if(pi->m_cancel_trigger.has_value() &&
-           ready_set[i].ident == static_cast<uintptr_t>(pi->m_cancel_trigger.value().native_handle())) {
+        if(pi->m_p->m_cancel_trigger.has_value() &&
+           ready_set[i].ident == static_cast<uintptr_t>(pi->m_p->m_cancel_trigger.value().native_handle())) {
             ready_events.emplace_back(pi, poll_status::cancelled);
             if(!keep_registered) {
                 unwatch(*pi);
             }
         } else {
             ready_events.emplace_back(pi, io_notifier_kqueue::event_to_poll_status(ready_set[i]));
-            if(pi->m_cancel_trigger.has_value() && !keep_registered) {
-                unwatch(pi->m_cancel_trigger.value().native_handle(), poll_op::read);
+            if(pi->m_p->m_cancel_trigger.has_value() && !keep_registered) {
+                unwatch(pi->m_p->m_cancel_trigger.value().native_handle(), poll_op::read);
             }
         }
     }

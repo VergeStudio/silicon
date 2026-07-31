@@ -4,7 +4,9 @@ module;
 #include <atomic>
 #include <coroutine>
 #include <map>
+#include <memory>
 #include <optional>
+#include <utility>
 
 
 export module silicon.coroutine:detail.poll_info;
@@ -31,15 +33,44 @@ export namespace silicon::coroutine::detail {
 struct poll_info {
     using timed_events = std::multimap<silicon::coroutine::time_point, detail::poll_info *>;
 
-    poll_info() = default;
+    /// Implementation state of a poll operation.  Kept behind `m_p` so the layout of a poll
+    /// operation is an implementation detail.  The definition has to stay in the interface unit
+    /// because `poll_awaiter` resumes/reads state from inline coroutine hooks.
+    class P {
+      public:
+        /// The file descriptor being polled on.  This is needed so that if the timeout occurs first
+        /// then the event loop can immediately disable the event within epoll.
+        fd_t m_fd{-1};
+        /// The operation that is being waited for to be performed on the file descriptor.
+        silicon::coroutine::poll_op m_op{};
+        /// The timeout's position in the timeout map.  A poll() with no timeout or yield() this is
+        /// empty.  This is needed so that if the event occurs first then the event loop can
+        /// immediately disable the timeout within epoll.
+        std::optional<timed_events::iterator> m_timer_pos{std::nullopt};
+        /// The awaiting coroutine for this poll info to resume upon event or timeout.
+        std::coroutine_handle<> m_awaiting_coroutine;
+        /// The status of the poll operation.
+        silicon::coroutine::poll_status m_poll_status{silicon::coroutine::poll_status::error};
+        /// Did the timeout and event trigger at the same time on the same epoll_wait call?
+        /// Once this is set to true all future events on this poll info are null and void.
+        bool m_processed{false};
+        /// Cancellation receiver of this poll operation.
+        std::optional<poll_stop_token> m_cancel_trigger{std::nullopt};
+    };
+
+    poll_info(): m_p(std::make_unique<P>()) {}
     ~poll_info() = default;
 
-    poll_info(fd_t fd, silicon::coroutine::poll_op op): m_fd(fd), m_op(op) {}
+    poll_info(fd_t fd, silicon::coroutine::poll_op op): m_p(std::make_unique<P>()) {
+        m_p->m_fd = fd;
+        m_p->m_op = op;
+    }
 
     poll_info(fd_t fd, silicon::coroutine::poll_op op, std::optional<poll_stop_token> cancel_trigger)
-        : m_fd(fd),
-          m_op(op),
-          m_cancel_trigger(cancel_trigger) {
+        : m_p(std::make_unique<P>()) {
+        m_p->m_fd             = fd;
+        m_p->m_op             = op;
+        m_p->m_cancel_trigger = std::move(cancel_trigger);
     }
 
     poll_info(const poll_info &) = delete;
@@ -52,34 +83,17 @@ struct poll_info {
 
         auto await_ready() const noexcept -> bool { return false; }
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> void {
-            m_pi.m_awaiting_coroutine = awaiting_coroutine;
+            m_pi.m_p->m_awaiting_coroutine = awaiting_coroutine;
             std::atomic_thread_fence(std::memory_order::release);
         }
-        auto await_resume() noexcept -> silicon::coroutine::poll_status { return m_pi.m_poll_status; }
+        auto await_resume() noexcept -> silicon::coroutine::poll_status { return m_pi.m_p->m_poll_status; }
 
         poll_info &m_pi;
     };
 
     auto operator co_await() noexcept -> poll_awaiter { return poll_awaiter{*this}; }
 
-    /// The file descriptor being polled on.  This is needed so that if the timeout occurs first then
-    /// the event loop can immediately disable the event within epoll.
-    fd_t m_fd{-1};
-    /// The operation that is being waited for to be performed on the file descriptor.
-    silicon::coroutine::poll_op m_op;
-    /// The timeout's position in the timeout map.  A poll() with no timeout or yield() this is empty.
-    /// This is needed so that if the event occurs first then the event loop can immediately disable
-    /// the timeout within epoll.
-    std::optional<timed_events::iterator> m_timer_pos{std::nullopt};
-    /// The awaiting coroutine for this poll info to resume upon event or timeout.
-    std::coroutine_handle<> m_awaiting_coroutine;
-    /// The status of the poll operation.
-    silicon::coroutine::poll_status m_poll_status{silicon::coroutine::poll_status::error};
-    /// Did the timeout and event trigger at the same time on the same epoll_wait call?
-    /// Once this is set to true all future events on this poll info are null and void.
-    bool m_processed{false};
-    /// Cancellation receiver of this poll operation.
-    std::optional<poll_stop_token> m_cancel_trigger = std::nullopt;
+    std::unique_ptr<P> m_p;
 };
 
 } // namespace silicon::coroutine::detail
