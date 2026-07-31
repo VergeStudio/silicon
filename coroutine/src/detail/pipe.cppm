@@ -2,6 +2,7 @@ module;
 
 
 #include <array>
+#include <memory>
 
 
 export module silicon.coroutine:detail.pipe;
@@ -30,7 +31,8 @@ class pipe_t {
     auto close() -> void;
 
   private:
-    std::array<fd_t, 2> m_fds{-1};
+    class P;
+    std::unique_ptr<P> m_p;
 };
 
 } // namespace silicon::coroutine::detail

@@ -1,5 +1,6 @@
 module;
 
+#include <memory>
 
 
 export module silicon.coroutine:detail.timer_handle;
@@ -12,15 +13,17 @@ export namespace silicon::coroutine {
 namespace detail {
 
 class timer_handle {
-    silicon::coroutine::fd_t m_fd;
-    const void *m_timer_handle_ptr = nullptr;
+    class P;
+    std::unique_ptr<P> m_p;
 
   public:
     timer_handle(const void *timer_handle_ptr, io_notifier &notifier);
 
-    silicon::coroutine::fd_t get_fd() const { return m_fd; }
+    ~timer_handle();
 
-    const void *get_inner() const { return m_timer_handle_ptr; }
+    silicon::coroutine::fd_t get_fd() const;
+
+    const void *get_inner() const;
 };
 
 } // namespace detail
