@@ -1,15 +1,15 @@
 module;
 
-
-#include <sys/epoll.h>
-#include <sys/timerfd.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include <chrono>
 #include <ctime>
 #include <vector>
 
+#if defined(__linux__)
+#include <sys/epoll.h>
+#include <sys/timerfd.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
 
 export module silicon.coroutine:detail.io_notifier_epoll;
 
@@ -17,6 +17,13 @@ import :detail.poll_info;
 import :fd;
 import :poll;
 
+// 始终导出一个与平台无关的合法符号，确保该模块分区在非目标平台上也非空
+// （clang 22 对零导出的模块分区接口单元处理有 bug，会生成损坏 BMI）。
+export namespace silicon::coroutine::detail {
+inline constexpr bool io_notifier_epoll_available = true;
+}
+
+#if defined(__linux__)
 export namespace silicon::coroutine::detail {
 
 using event_t = struct ::epoll_event;
@@ -59,3 +66,4 @@ class io_notifier_epoll {
 };
 
 } // namespace silicon::coroutine::detail
+#endif

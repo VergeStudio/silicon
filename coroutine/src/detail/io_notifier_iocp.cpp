@@ -1,12 +1,10 @@
 module;
 
-#ifndef _WIN32
-#    error "io_notifier_iocp.cpp is Windows-only"
-#endif
-
+#if defined(_WIN32)
 #include <winsock2.h>
 #include <windows.h>
 #include <mswsock.h>
+#endif
 
 #include <algorithm>
 #include <chrono>
@@ -17,6 +15,7 @@ module;
 
 module silicon.coroutine;
 
+#if defined(_WIN32)
 using namespace std::chrono_literals;
 
 namespace silicon::coroutine::detail {
@@ -276,3 +275,4 @@ auto io_notifier_iocp::next_events(
 }
 
 } // namespace silicon::coroutine::detail
+#endif

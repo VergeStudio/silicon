@@ -1,15 +1,19 @@
 module;
 
+#if defined(__linux__)
+#include <sys/epoll.h>
+#include <sys/timerfd.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 #include <chrono>
 #include <cstdint>
 #include <stdexcept>
 
-
 module silicon.coroutine;
 
-
-
-
+#if defined(__linux__)
 using namespace std::chrono_literals;
 
 namespace silicon::coroutine::detail {
@@ -153,3 +157,4 @@ auto io_notifier_epoll::event_to_poll_status(const event_t &event) -> poll_statu
 }
 
 } // namespace silicon::coroutine::detail
+#endif

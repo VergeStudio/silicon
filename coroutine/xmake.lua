@@ -22,18 +22,10 @@ target("coroutine", function()
     add_files("src/**.cpp")
     add_files("src/**.cppm", {public = true})
 
-    -- 平台专属 io_notifier 后端：仅编译当前平台对应实现；其余平台的
-    -- 分区接口与实现单元一并剔除（接口侧以 #if 条件 import 匹配）。
-    if is_plat("windows") then
-        remove_files("src/detail/io_notifier_epoll.cpp", "src/detail/io_notifier_epoll.cppm",
-                     "src/detail/io_notifier_kqueue.cpp", "src/detail/io_notifier_kqueue.cppm")
-    elseif is_plat("linux") then
-        remove_files("src/detail/io_notifier_iocp.cpp", "src/detail/io_notifier_iocp.cppm",
-                     "src/detail/io_notifier_kqueue.cpp", "src/detail/io_notifier_kqueue.cppm")
-    else -- macosx / bsd
-        remove_files("src/detail/io_notifier_iocp.cpp", "src/detail/io_notifier_iocp.cppm",
-                     "src/detail/io_notifier_epoll.cpp", "src/detail/io_notifier_epoll.cppm")
-    end
+    -- 平台专属 io_notifier 后端（iocp / epoll / kqueue）始终加入编译；各
+    -- .cpp/.cppm 内部以标准预定义宏（_WIN32 / __linux__ / __APPLE__ 等）围栏，
+    -- 非目标平台编译为空翻译单元，仅当前平台分区被 coroutine.cppm 无条件
+    -- re-export 选取。因此这里不再按平台 remove_files。
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("coroutine.config.cppm.in")

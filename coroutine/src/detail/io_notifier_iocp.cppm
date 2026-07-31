@@ -1,20 +1,17 @@
 module;
 
 
-#ifndef _WIN32
-#    error "io_notifier_iocp.hpp is Windows-only"
-#endif
-
-#include <winsock2.h>
-#include <windows.h>
-#include <mswsock.h>
-
 #include <chrono>
 #include <cstdint>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
 
+#if defined(_WIN32)
+#include <winsock2.h>
+#include <windows.h>
+#include <mswsock.h>
+#endif
 
 export module silicon.coroutine:detail.io_notifier_iocp;
 
@@ -22,6 +19,13 @@ import :detail.poll_info;
 import :fd;
 import :poll;
 
+// 始终导出一个与平台无关的合法符号，确保该模块分区在非目标平台上也非空
+// （clang 22 对零导出的模块分区接口单元处理有 bug，会生成损坏 BMI）。
+export namespace silicon::coroutine::detail {
+inline constexpr bool io_notifier_iocp_available = true;
+}
+
+#if defined(_WIN32)
 export namespace silicon::coroutine::detail {
 
 class timer_handle;
@@ -81,3 +85,4 @@ class io_notifier_iocp {
 };
 
 } // namespace silicon::coroutine::detail
+#endif

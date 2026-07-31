@@ -18,8 +18,10 @@ export import :concepts.range_of;
 export import :condition_variable;
 export import :default_executor;
 export import :detail.awaiter_list;
-// 平台专属 io_notifier 后端：仅 import 当前平台对应分区（其余源文件已在
-// xmake.lua 中按平台 remove_files，BMI 不存在）。
+// 平台专属 io_notifier 后端：仅 import 当前平台对应分区。其余两个分区仍参与
+// 编译（其 .cpp/.cppm 内部以标准预定义宏围栏编译为空翻译单元），但此处不
+// import，从而避免消费方加载空分区的 BMI（规避 clang 模块 BMI 数量相关的
+// 内部崩溃）。空分区不贡献任何名字，暴露行为与本机平台一致。
 #if defined(_WIN32)
 export import :detail.io_notifier_iocp;
 #elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)

@@ -1,17 +1,21 @@
 module;
 
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#include <sys/event.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 #include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdint>
 #include <stdexcept>
 
-
 module silicon.coroutine;
 
-
-
-
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 using namespace std::chrono_literals;
 
 namespace silicon::coroutine::detail {
@@ -163,3 +167,4 @@ auto io_notifier_kqueue::event_to_poll_status(const event_t &event) -> poll_stat
 }
 
 } // namespace silicon::coroutine::detail
+#endif
