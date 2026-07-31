@@ -19,17 +19,28 @@ export class CORE_API Exception: public std::exception {
     explicit Exception(std::string_view);
 
     template<typename... SV>
-    Exception(const SV &...args): m_p(std::make_unique<P>()) { m_p->m_message = silicon::util::StrCat(args...); }
+    Exception(const SV &...args) {
+        m_p->m_message = silicon::util::StrCat(args...);
+    }
 
-    const char *what() const noexcept;
+    // 异常对象必须可拷贝（[except.throw]），故 P 用 shared_ptr 承载 + 深拷贝。
+    Exception(const Exception &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    Exception &operator=(const Exception &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    Exception(Exception &&) noexcept = default;
+    Exception &operator=(Exception &&) noexcept = default;
+    ~Exception() = default;
+
+    const char *what() const noexcept override;
 
   private:
     struct P {
       public:
-      std::string m_message;
+        std::string m_message;
     };
-    std::unique_ptr<P> m_p;
-
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
 };
 
 // This errors are usually related to problems which "probably" require code refactoring
@@ -76,7 +87,25 @@ export class CORE_API FsError: public RuntimeError {
 // LLMError — value-style error type carried by silicon.llm Result<T>.
 // spec（llm/specs/llm.md）：`LLMError: { message }`；测试通过 r.error().message 断言。
 export struct LLMError {
-    std::string message;
+    struct P {
+      public:
+        std::string message;
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
+
+    LLMError() = default;
+    explicit LLMError(std::string msg) { m_p->message = std::move(msg); }
+    LLMError(const LLMError &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    LLMError &operator=(const LLMError &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    LLMError(LLMError &&) noexcept = default;
+    LLMError &operator=(LLMError &&) noexcept = default;
+    ~LLMError() = default;
+
+    std::string &message() { return m_p->message; }
+    const std::string &message() const { return m_p->message; }
 };
 
 } // namespace silicon::exception
@@ -87,18 +116,31 @@ namespace silicon::common {
 
 export template<typename T, typename E>
 class Result {
-    std::variant<T, E> v_;
+    struct P {
+      public:
+        std::variant<T, E> v_;
+    };
+    std::shared_ptr<P> m_p;
 
   public:
-    Result(T val): v_(std::move(val)) {}
-    Result(E err): v_(std::move(err)) {}
-    bool has_value() const { return std::holds_alternative<T>(v_); }
+    Result(T val): m_p(std::make_shared<P>(P{std::variant<T, E>(std::in_place_index<0>, std::move(val))})) {}
+    Result(E err): m_p(std::make_shared<P>(P{std::variant<T, E>(std::in_place_index<1>, std::move(err))})) {}
+    Result(const Result &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    Result &operator=(const Result &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    Result(Result &&) noexcept = default;
+    Result &operator=(Result &&) noexcept = default;
+    ~Result() = default;
+
+    bool has_value() const { return std::holds_alternative<T>(m_p->v_); }
     explicit operator bool() const { return has_value(); }
-    T &value() { return std::get<T>(v_); }
-    const T &value() const { return std::get<T>(v_); }
+    T &value() { return std::get<T>(m_p->v_); }
+    const T &value() const { return std::get<T>(m_p->v_); }
     T *operator->() { return &value(); }
     const T *operator->() const { return &value(); }
-    E error() const { return std::get<E>(v_); }
+    E error() const { return std::get<E>(m_p->v_); }
 };
 
 } // namespace silicon::common

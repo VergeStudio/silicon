@@ -17,34 +17,69 @@ export namespace silicon::fs {
 
 template<typename T>
 class Result {
-    bool ok_;
-    T value_;
-    silicon::exception::FsError error_;
+    struct P {
+      public:
+        bool ok_{false};
+        T value_{};
+        silicon::exception::FsError error_{};
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
 
   public:
-    Result(T v): ok_(true), value_(std::move(v)) {}
-    Result(silicon::exception::FsError e): ok_(false), error_(std::move(e)) {}
-    bool has_value() const { return ok_; }
-    explicit operator bool() const { return ok_; }
-    T &value() { return value_; }
-    const T &value() const { return value_; }
-    silicon::exception::FsError &error() { return error_; }
-    const silicon::exception::FsError &error() const { return error_; }
+    Result(T v) {
+        m_p->ok_ = true;
+        m_p->value_ = std::move(v);
+    }
+    Result(silicon::exception::FsError e) {
+        m_p->ok_ = false;
+        m_p->error_ = std::move(e);
+    }
+    Result(const Result &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    Result &operator=(const Result &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    Result(Result &&) noexcept = default;
+    Result &operator=(Result &&) noexcept = default;
+    ~Result() = default;
+
+    bool has_value() const { return m_p->ok_; }
+    explicit operator bool() const { return m_p->ok_; }
+    T &value() { return m_p->value_; }
+    const T &value() const { return m_p->value_; }
+    silicon::exception::FsError &error() { return m_p->error_; }
+    const silicon::exception::FsError &error() const { return m_p->error_; }
 };
 
 // 针对 void 的特化
 template<>
 class Result<void> {
-    bool ok_;
-    silicon::exception::FsError error_;
+    struct P {
+      public:
+        bool ok_{false};
+        silicon::exception::FsError error_{};
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
 
   public:
-    Result(): ok_(true) {}
-    Result(silicon::exception::FsError e): ok_(false), error_(std::move(e)) {}
-    bool has_value() const { return ok_; }
-    explicit operator bool() const { return ok_; }
-    silicon::exception::FsError &error() { return error_; }
-    const silicon::exception::FsError &error() const { return error_; }
+    Result() { m_p->ok_ = true; }
+    Result(silicon::exception::FsError e) {
+        m_p->ok_ = false;
+        m_p->error_ = std::move(e);
+    }
+    Result(const Result &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    Result &operator=(const Result &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    Result(Result &&) noexcept = default;
+    Result &operator=(Result &&) noexcept = default;
+    ~Result() = default;
+
+    bool has_value() const { return m_p->ok_; }
+    explicit operator bool() const { return m_p->ok_; }
+    silicon::exception::FsError &error() { return m_p->error_; }
+    const silicon::exception::FsError &error() const { return m_p->error_; }
 };
 
 /// 文件系统抽象（统一接口）。

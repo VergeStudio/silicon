@@ -6,7 +6,7 @@ module;
 module silicon.exception;
 
 namespace silicon::exception {
-Exception::Exception(std::string_view message): m_p(std::make_unique<P>()) {
+Exception::Exception(std::string_view message) {
     m_p->m_message = static_cast<std::string>(message);
 }
 

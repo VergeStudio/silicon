@@ -113,7 +113,7 @@ TEST_CASE("ScriptedProvider 队列耗尽返回 LLMError") {
     ScriptedProvider p;
     auto r = p.chat({}, {});
     CHECK_FALSE(r);
-    CHECK(r.error().message == "no scripted response");
+    CHECK(r.error().message() == "no scripted response");
 }
 
 // ── JsonProtocolAdapter ───────────────────────────────────────
@@ -160,5 +160,5 @@ TEST_CASE("JsonProtocolAdapter::decode_response 非法 JSON 返回 LLMError") {
     JsonProtocolAdapter adapter;
     auto r = adapter.decode_response("{not json");
     CHECK_FALSE(r);
-    CHECK(r.error().message == "invalid json response");
+    CHECK(r.error().message() == "invalid json response");
 }
