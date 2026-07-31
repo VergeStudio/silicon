@@ -18,17 +18,9 @@ export import :concepts.range_of;
 export import :condition_variable;
 export import :default_executor;
 export import :detail.awaiter_list;
-// 平台专属 io_notifier 后端：仅 import 当前平台对应分区。其余两个分区仍参与
-// 编译（其 .cpp/.cppm 内部以标准预定义宏围栏编译为空翻译单元），但此处不
-// import，从而避免消费方加载空分区的 BMI（规避 clang 模块 BMI 数量相关的
-// 内部崩溃）。空分区不贡献任何名字，暴露行为与本机平台一致。
-#if defined(_WIN32)
-export import :detail.io_notifier_iocp;
-#elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
-export import :detail.io_notifier_kqueue;
-#elif defined(__linux__)
-export import :detail.io_notifier_epoll;
-#endif
+// 平台专属 io_notifier 后端已合并进单一 :io_notifier 分区（src/io_notifier.cppm）：
+// 该分区内部按平台宏展开对应后端类声明，三个同名 .cpp 实现单元由宏开关决定是否
+// 编译。此处只需无条件 re-export 单一 :io_notifier 分区即可（见下方 export import :io_notifier）。
 export import :detail.pipe;
 export import :detail.poll_info;
 export import :detail.task_self_deleting;
