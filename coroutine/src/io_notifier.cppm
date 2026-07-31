@@ -28,24 +28,14 @@ import :detail.poll_info;
 import :fd;
 import :poll;
 
-// 始终导出的平台无关符号，确保该模块分区在所有平台上都非空
-// （clang 22 对零导出的模块分区接口单元处理有 bug，会生成损坏 BMI，
-// 进而让消费方随机 clang frontend 崩溃）。
-export namespace silicon::coroutine::detail {
-inline constexpr bool io_notifier_iocp_available = true;
-inline constexpr bool io_notifier_epoll_available = true;
-inline constexpr bool io_notifier_kqueue_available = true;
-}
-
-// io_notifier 三个平台后端（iocp / epoll / kqueue）的类声明合并到本分区：
-// 仅当前平台展开对应类声明，非目标平台编译为空分区（但仍通过上面的 constexpr
-// 标志保持非空）。各后端的成员函数定义位于同名 .cpp 实现单元
-// （io_notifier_iocp.cpp / io_notifier_epoll.cpp / io_notifier_kqueue.cpp），
-// 由宏开关决定是否参与编译。
+// 三个平台后端（iocp / epoll / kqueue）的类声明仅作为模块内部实现，不对外导出；
+// 对外统一只暴露 silicon::coroutine::io_notifier（下方的别名）。各后端的成员函数
+// 定义位于同名 .cpp 实现单元（io_notifier_iocp.cpp / io_notifier_epoll.cpp /
+// io_notifier_kqueue.cpp），由宏开关决定是否参与编译。
 #if defined(_WIN32)
-export namespace silicon::coroutine::detail {
+namespace silicon::coroutine::detail {
 
-class timer_handle;
+export class timer_handle;
 
 class io_notifier_iocp {
     /// Maximum events to batch in a single next_events call.
@@ -103,11 +93,11 @@ class io_notifier_iocp {
 
 } // namespace silicon::coroutine::detail
 #elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
-export namespace silicon::coroutine::detail {
+namespace silicon::coroutine::detail {
 
 using event_t = struct ::kevent;
 
-class timer_handle;
+export class timer_handle;
 
 class io_notifier_kqueue {
     static const constexpr std::size_t m_max_events = 16;
@@ -148,11 +138,11 @@ class io_notifier_kqueue {
 
 } // namespace silicon::coroutine::detail
 #elif defined(__linux__)
-export namespace silicon::coroutine::detail {
+namespace silicon::coroutine::detail {
 
 using event_t = struct ::epoll_event;
 
-class timer_handle;
+export class timer_handle;
 
 class io_notifier_epoll {
     static const constexpr std::size_t m_max_events = 16;
@@ -194,7 +184,8 @@ class io_notifier_epoll {
 
 export namespace silicon::coroutine {
 
-// 平台专属 io_notifier 后端的公开别名：当前平台暴露对应的 detail 后端类。
+// 统一的对外接口：当前平台暴露对应的内部后端类。消费方只使用 io_notifier，
+// 不直接接触任何平台专属后端类型。
 #if defined(_WIN32)
 using io_notifier = detail::io_notifier_iocp;
 #elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
