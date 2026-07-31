@@ -32,15 +32,16 @@ class IDateSource {
 };
 
 /// 默认日期实现（基于 IClock，返回 UTC 日期 YYYY-MM-DD）
-    class DateSource: public IDateSource {
-        struct P {
-            const IClock *m_clock{nullptr};
-        };
-        std::unique_ptr<P> m_p;
-
+class DateSource: public IDateSource {
+    struct P {
       public:
-        explicit DateSource(const IClock &clock): m_p(std::make_unique<P>()) { m_p->m_clock = &clock; }
-        std::string current_date() const override;
+        const IClock *m_clock{nullptr};
     };
+    std::unique_ptr<P> m_p{std::make_unique<P>()};
+
+  public:
+    explicit DateSource(const IClock &clock) { m_p->m_clock = &clock; }
+    std::string current_date() const override;
+};
 
 } // namespace silicon::time

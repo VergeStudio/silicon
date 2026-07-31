@@ -29,8 +29,8 @@ CONFIG_API class JsonFileConfig: public ILoader {
     std::map<std::string, ConfigValue, std::less<>> all() const;
 
   private:
-    struct Impl;
-    std::unique_ptr<Impl> m_impl;
+    struct P;
+    std::unique_ptr<P> m_p;
 };
 
 } // namespace silicon::config

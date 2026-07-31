@@ -35,13 +35,19 @@ class IPluginRegistry {
 // ── 默认实现 ─────────────────────────────────────────────────────
 
 class PluginRegistry: public IPluginRegistry {
-    std::map<std::string, std::shared_ptr<IPlugin>, std::less<>> plugins_;
+
+    struct P {
+      public:
+      std::map<std::string, std::shared_ptr<IPlugin>, std::less<>> plugins_;
+    };
+    std::unique_ptr<P> m_p{std::make_unique<P>()};
 
   public:
     bool register_plugin(std::shared_ptr<IPlugin> plugin) override;
     IPlugin *get_plugin(std::string_view name) const override;
     bool remove_plugin(std::string_view name) override;
     std::vector<std::string> list_plugins() const override;
+
 };
 
 /// 动态插件加载器（stub：完整实现需 shared_library + dlopen）
