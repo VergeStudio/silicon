@@ -20,25 +20,107 @@ export namespace silicon::llm {
 // ── 值类型 ──────────────────────────────────────────────────────
 
 struct Message {
-    std::string role; // "user" / "assistant" / "system" / "tool"
-    std::string content;
-    std::string tool_call_id;
+
+    struct P {
+      public:
+        std::string role; // "user" / "assistant" / "system" / "tool"
+        std::string content;
+        std::string tool_call_id;
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
+
+  public:
+    Message() = default;
+    /// 便利构造：保留原聚合初始化 `Message{"user", "hi"}` 的调用形态
+    Message(std::string r, std::string c, std::string tcid = {}) {
+        m_p->role = std::move(r);
+        m_p->content = std::move(c);
+        m_p->tool_call_id = std::move(tcid);
+    }
+    Message(const Message &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    Message &operator=(const Message &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    Message(Message &&) noexcept = default;
+    Message &operator=(Message &&) noexcept = default;
+
+  public:
+    std::string &role() { return m_p->role; }
+    const std::string &role() const { return m_p->role; }
+    std::string &content() { return m_p->content; }
+    const std::string &content() const { return m_p->content; }
+    std::string &tool_call_id() { return m_p->tool_call_id; }
+    const std::string &tool_call_id() const { return m_p->tool_call_id; }
+
 };
 
 using Conversation = std::vector<Message>;
 
 struct ModelRequestOptions {
-    std::string model;
-    double temperature = 0.7;
-    int32_t max_tokens = 4096;
-    std::map<std::string, std::string, std::less<>> extra;
+
+    struct P {
+      public:
+        std::string model;
+        double temperature = 0.7;
+        int32_t max_tokens = 4096;
+        std::map<std::string, std::string, std::less<>> extra;
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
+
+  public:
+    ModelRequestOptions() = default;
+    ModelRequestOptions(const ModelRequestOptions &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    ModelRequestOptions &operator=(const ModelRequestOptions &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    ModelRequestOptions(ModelRequestOptions &&) noexcept = default;
+    ModelRequestOptions &operator=(ModelRequestOptions &&) noexcept = default;
+
+  public:
+    std::string &model() { return m_p->model; }
+    const std::string &model() const { return m_p->model; }
+    double &temperature() { return m_p->temperature; }
+    const double &temperature() const { return m_p->temperature; }
+    int32_t &max_tokens() { return m_p->max_tokens; }
+    const int32_t &max_tokens() const { return m_p->max_tokens; }
+    std::map<std::string, std::string, std::less<>> &extra() { return m_p->extra; }
+    const std::map<std::string, std::string, std::less<>> &extra() const { return m_p->extra; }
+
 };
 
 struct ChatResponse {
-    std::string content;
-    std::string finish_reason; // "stop" / "length" / "tool_calls"
-    int32_t prompt_tokens = 0;
-    int32_t completion_tokens = 0;
+
+    struct P {
+      public:
+        std::string content;
+        std::string finish_reason; // "stop" / "length" / "tool_calls"
+        int32_t prompt_tokens = 0;
+        int32_t completion_tokens = 0;
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
+
+  public:
+    ChatResponse() = default;
+    ChatResponse(const ChatResponse &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    ChatResponse &operator=(const ChatResponse &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    ChatResponse(ChatResponse &&) noexcept = default;
+    ChatResponse &operator=(ChatResponse &&) noexcept = default;
+
+  public:
+    std::string &content() { return m_p->content; }
+    const std::string &content() const { return m_p->content; }
+    std::string &finish_reason() { return m_p->finish_reason; }
+    const std::string &finish_reason() const { return m_p->finish_reason; }
+    int32_t &prompt_tokens() { return m_p->prompt_tokens; }
+    const int32_t &prompt_tokens() const { return m_p->prompt_tokens; }
+    int32_t &completion_tokens() { return m_p->completion_tokens; }
+    const int32_t &completion_tokens() const { return m_p->completion_tokens; }
+
 };
 
 template<typename T>
@@ -62,15 +144,69 @@ class IProtocolAdapter {
 // ── Tool ────────────────────────────────────────────────────────
 
 struct ToolCall {
-    std::string id;
-    std::string name;
-    std::string arguments; // JSON string
+
+    struct P {
+      public:
+        std::string id;
+        std::string name;
+        std::string arguments; // JSON string
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
+
+  public:
+    ToolCall() = default;
+    /// 便利构造：保留原聚合初始化 `ToolCall{"1", "echo", "{}"}` 的调用形态
+    ToolCall(std::string i, std::string n, std::string args = {}) {
+        m_p->id = std::move(i);
+        m_p->name = std::move(n);
+        m_p->arguments = std::move(args);
+    }
+    ToolCall(const ToolCall &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    ToolCall &operator=(const ToolCall &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    ToolCall(ToolCall &&) noexcept = default;
+    ToolCall &operator=(ToolCall &&) noexcept = default;
+
+  public:
+    std::string &id() { return m_p->id; }
+    const std::string &id() const { return m_p->id; }
+    std::string &name() { return m_p->name; }
+    const std::string &name() const { return m_p->name; }
+    std::string &arguments() { return m_p->arguments; }
+    const std::string &arguments() const { return m_p->arguments; }
+
 };
 
 struct ToolOutput {
-    std::string content;
-    bool truncated = false;
-    std::string managed_output_path;
+
+    struct P {
+      public:
+        std::string content;
+        bool truncated = false;
+        std::string managed_output_path;
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
+
+  public:
+    ToolOutput() = default;
+    ToolOutput(const ToolOutput &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    ToolOutput &operator=(const ToolOutput &o) {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    ToolOutput(ToolOutput &&) noexcept = default;
+    ToolOutput &operator=(ToolOutput &&) noexcept = default;
+
+  public:
+    std::string &content() { return m_p->content; }
+    const std::string &content() const { return m_p->content; }
+    bool &truncated() { return m_p->truncated; }
+    const bool &truncated() const { return m_p->truncated; }
+    std::string &managed_output_path() { return m_p->managed_output_path; }
+    const std::string &managed_output_path() const { return m_p->managed_output_path; }
+
 };
 
 class ITool {
@@ -170,16 +306,42 @@ class ScriptedProvider: public IProvider {
 /// 配置来自环境变量（无 key 时 chat 返回 LLMError，由调用方提示用户）。
 /// 选用 OpenAI 兼容协议，可对接 OpenAI / DeepSeek / Ollama / vLLM / LM Studio 等。
 class HttpProvider: public IProvider {
-    std::string base_url_;
-    std::string api_key_;
-    std::string model_;
-    JsonProtocolAdapter adapter_;
+
+    struct P {
+      public:
+        std::string base_url_;
+        std::string api_key_;
+        std::string model_;
+        JsonProtocolAdapter adapter_;
+    };
+    std::unique_ptr<P> m_p{std::make_unique<P>()};
 
     static std::string env_or(const char *name, std::string def);
 
     struct HttpResult {
-        int status = 0;
-        std::string body;
+
+        struct P {
+          public:
+            int status = 0;
+            std::string body;
+        };
+        std::shared_ptr<P> m_p{std::make_shared<P>()};
+
+      public:
+        HttpResult() = default;
+        HttpResult(const HttpResult &o): m_p(std::make_shared<P>(*o.m_p)) {}
+        HttpResult &operator=(const HttpResult &o) {
+            if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+            return *this;
+        }
+        HttpResult(HttpResult &&) noexcept = default;
+        HttpResult &operator=(HttpResult &&) noexcept = default;
+
+      public:
+        int &status() { return m_p->status; }
+        const int &status() const { return m_p->status; }
+        std::string &body() { return m_p->body; }
+        const std::string &body() const { return m_p->body; }
     };
 
     // 用临时文件承载请求体，避开 JSON 中的引号转义问题；跨平台用 -H 传头。

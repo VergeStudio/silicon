@@ -61,17 +61,17 @@ std::string JsonProtocolAdapter::encode_request(
 ) const {
     using namespace silicon::json;
     JsonValue req = JsonValue::object();
-    req["model"] = JsonValue(opts.model);
-    req["temperature"] = JsonValue(opts.temperature);
+    req["model"] = JsonValue(opts.model());
+    req["temperature"] = JsonValue(opts.temperature());
     req["max_tokens"] =
-            JsonValue(static_cast<std::int64_t>(opts.max_tokens));
+            JsonValue(static_cast<std::int64_t>(opts.max_tokens()));
 
     JsonValue messages = JsonValue::array();
     for(const auto &m: conv) {
         JsonValue msg = JsonValue::object();
-        msg["role"] = JsonValue(m.role);
-        msg["content"] = JsonValue(m.content);
-        if(!m.tool_call_id.empty()) msg["tool_call_id"] = JsonValue(m.tool_call_id);
+        msg["role"] = JsonValue(m.role());
+        msg["content"] = JsonValue(m.content());
+        if(!m.tool_call_id().empty()) msg["tool_call_id"] = JsonValue(m.tool_call_id());
         messages.push_back(std::move(msg));
     }
     req["messages"] = std::move(messages);
@@ -106,21 +106,21 @@ Result<ChatResponse> JsonProtocolAdapter::decode_response(std::string_view raw) 
                 const auto &msg = *m;
                 if(auto cc = msg.find("content");
                    cc != msg.end() && cc->is_string())
-                    resp.content = cc->get<std::string>();
+                    resp.content() = cc->get<std::string>();
             }
             if(auto fr = choice.find("finish_reason");
                fr != choice.end() && fr->is_string())
-                resp.finish_reason = fr->get<std::string>();
+                resp.finish_reason() = fr->get<std::string>();
         }
     }
     if(auto u = v.find("usage");
        u != v.end() && u->is_object()) {
         if(auto pt = u->find("prompt_tokens");
            pt != u->end() && pt->is_number_integer())
-            resp.prompt_tokens = static_cast<int32_t>((*pt).get<std::int64_t>());
+            resp.prompt_tokens() = static_cast<int32_t>((*pt).get<std::int64_t>());
         if(auto ct = u->find("completion_tokens");
            ct != u->end() && ct->is_number_integer())
-            resp.completion_tokens = static_cast<int32_t>((*ct).get<std::int64_t>());
+            resp.completion_tokens() = static_cast<int32_t>((*ct).get<std::int64_t>());
     }
     return Result<ChatResponse>(std::move(resp));
 }
@@ -154,8 +154,8 @@ HttpProvider::HttpResult HttpProvider::post_json(const std::string &url, const s
 
     std::string cmd = "curl -s -m 60 -X POST";
     cmd += " -H \"Content-Type: application/json\"";
-    if(!api_key_.empty())
-        cmd += " -H \"Authorization: Bearer " + api_key_ + "\"";
+    if(!m_p->api_key_.empty())
+        cmd += " -H \"Authorization: Bearer " + m_p->api_key_ + "\"";
     cmd += " -d @\"" + tmp.string() + "\"";
     cmd += " -w \"\\n%{http_code}\"";
     cmd += " \"" + url + "\"";
@@ -177,10 +177,10 @@ HttpProvider::HttpResult HttpProvider::post_json(const std::string &url, const s
 #endif
         auto nl = all.rfind('\n');
         if(nl != std::string::npos && nl + 1 < all.size()) {
-            r.body = all.substr(0, nl);
-            r.status = std::atoi(all.substr(nl + 1).c_str());
+            r.body() = all.substr(0, nl);
+            r.status() = std::atoi(all.substr(nl + 1).c_str());
         } else {
-            r.body = std::move(all);
+            r.body() = std::move(all);
         }
     }
     std::error_code ec;
@@ -188,27 +188,28 @@ HttpProvider::HttpResult HttpProvider::post_json(const std::string &url, const s
     return r;
 }
 
-HttpProvider::HttpProvider()
-    : base_url_(env_or("SILICONBUDDY_LLM_BASE_URL", "https://api.openai.com/v1")),
-      api_key_(env_or("SILICONBUDDY_LLM_API_KEY", "")),
-      model_(env_or("SILICONBUDDY_LLM_MODEL", "gpt-4o-mini")) {}
+HttpProvider::HttpProvider() {
+    m_p->base_url_ = env_or("SILICONBUDDY_LLM_BASE_URL", "https://api.openai.com/v1");
+    m_p->api_key_ = env_or("SILICONBUDDY_LLM_API_KEY", "");
+    m_p->model_ = env_or("SILICONBUDDY_LLM_MODEL", "gpt-4o-mini");
+}
 
-bool HttpProvider::configured() const { return !api_key_.empty(); }
+bool HttpProvider::configured() const { return !m_p->api_key_.empty(); }
 
-std::string_view HttpProvider::model_name() const { return model_; }
+std::string_view HttpProvider::model_name() const { return m_p->model_; }
 
 Result<ChatResponse> HttpProvider::chat(const Conversation &conv, const ModelRequestOptions &opts) {
     ModelRequestOptions o = opts;
-    if(o.model.empty()) o.model = model_;
+    if(o.model().empty()) o.model() = m_p->model_;
 
-    std::string body = adapter_.encode_request(conv, o, {});
-    HttpResult r = post_json(base_url_ + "/chat/completions", body);
-    if(r.status != 200) {
+    std::string body = m_p->adapter_.encode_request(conv, o, {});
+    HttpResult r = post_json(m_p->base_url_ + "/chat/completions", body);
+    if(r.status() != 200) {
         return Result<ChatResponse>(silicon::exception::LLMError{
-                "LLM HTTP " + std::to_string(r.status) + ": " + r.body
+                "LLM HTTP " + std::to_string(r.status()) + ": " + r.body()
         });
     }
-    return adapter_.decode_response(r.body);
+    return m_p->adapter_.decode_response(r.body());
 }
 
 } // namespace silicon::llm

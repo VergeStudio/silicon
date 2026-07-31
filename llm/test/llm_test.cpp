@@ -16,7 +16,7 @@ class EchoTool: public ITool {
     std::string_view description() const override { return "echoes input"; }
     ToolOutput execute(const ToolCall &call) override {
         ToolOutput out;
-        out.content = "echo:" + call.arguments;
+        out.content() = "echo:" + call.arguments();
         return out;
     }
 };
@@ -28,10 +28,10 @@ class ConstProvider: public IProvider {
     explicit ConstProvider(std::string t): text_(std::move(t)) {}
     Result<ChatResponse> chat(const Conversation &, const ModelRequestOptions &) override {
         ChatResponse r;
-        r.content = text_;
-        r.finish_reason = "stop";
-        r.prompt_tokens = 3;
-        r.completion_tokens = 7;
+        r.content() = text_;
+        r.finish_reason() = "stop";
+        r.prompt_tokens() = 3;
+        r.completion_tokens() = 7;
         return Result<ChatResponse>(std::move(r));
     }
 };
@@ -49,7 +49,7 @@ TEST_CASE("ToolRegistry 注册并按 name 查询") {
     CHECK(t->name() == "echo");
 
     auto out = t->execute(ToolCall{"1", "echo", "\"hi\""});
-    CHECK(out.content == "echo:\"hi\"");
+    CHECK(out.content() == "echo:\"hi\"");
 }
 
 TEST_CASE("ToolRegistry 重复 name 注册返回 false") {
@@ -76,7 +76,7 @@ TEST_CASE("ProviderRegistry 注册/查询/列举") {
     CHECK(p != nullptr);
     auto r = p->chat({}, {});
     CHECK(r);
-    CHECK(r->content == "a");
+    CHECK(r->content() == "a");
 
     CHECK(reg.get_provider("missing") == nullptr);
 }
@@ -93,9 +93,9 @@ TEST_CASE("ProviderRegistry 重复 id 注册返回 false") {
 TEST_CASE("ScriptedProvider 按 FIFO 返回预置响应") {
     ScriptedProvider p;
     ChatResponse r1;
-    r1.content = "first";
+    r1.content() = "first";
     ChatResponse r2;
-    r2.content = "second";
+    r2.content() = "second";
     p.enqueue(std::move(r1));
     p.enqueue(std::move(r2));
     CHECK(p.remaining() == 2);
@@ -104,8 +104,8 @@ TEST_CASE("ScriptedProvider 按 FIFO 返回预置响应") {
     auto b = p.chat({}, {});
     CHECK(a);
     CHECK(b);
-    CHECK(a->content == "first");
-    CHECK(b->content == "second");
+    CHECK(a->content() == "first");
+    CHECK(b->content() == "second");
     CHECK(p.remaining() == 0);
 }
 
@@ -125,9 +125,9 @@ TEST_CASE("JsonProtocolAdapter::encode_request 含 model/messages/tools") {
     conv.push_back(Message{"user", "hello"});
 
     ModelRequestOptions opts;
-    opts.model = "gpt-4o";
-    opts.temperature = 0.2;
-    opts.max_tokens = 1024;
+    opts.model() = "gpt-4o";
+    opts.temperature() = 0.2;
+    opts.max_tokens() = 1024;
 
     std::vector<std::string> tools = {R"({"name":"echo","description":"e"})"};
 
@@ -150,10 +150,10 @@ TEST_CASE("JsonProtocolAdapter::decode_response 还原 content/finish_reason/usa
 
     auto r = adapter.decode_response(raw);
     CHECK(r);
-    CHECK(r->content == "hi there");
-    CHECK(r->finish_reason == "stop");
-    CHECK(r->prompt_tokens == 11);
-    CHECK(r->completion_tokens == 22);
+    CHECK(r->content() == "hi there");
+    CHECK(r->finish_reason() == "stop");
+    CHECK(r->prompt_tokens() == 11);
+    CHECK(r->completion_tokens() == 22);
 }
 
 TEST_CASE("JsonProtocolAdapter::decode_response 非法 JSON 返回 LLMError") {
