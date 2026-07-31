@@ -35,9 +35,9 @@ public:
      * @param e Tasks started in the container are scheduled onto this executor.  For tasks created
      *           from a scheduler, this would usually be that scheduler instance.
      */
-    explicit task_container(std::shared_ptr<executor_type> e) : m_executor(std::move(e))
-    {
-        if (m_executor == nullptr)
+    explicit task_container(std::shared_ptr<executor_type> e) : m_p(std::make_unique<P>()) {
+        m_p->m_executor = std::move(e);
+        if (m_p->m_executor == nullptr)
         {
             throw std::runtime_error{"task_container cannot have a nullptr executor"};
         }
@@ -64,18 +64,18 @@ public:
      */
     auto start(coroutine::task<void>&& user_task) -> bool
     {
-        m_size.fetch_add(1, std::memory_order::relaxed);
+        m_p->m_size.fetch_add(1, std::memory_order::relaxed);
 
         auto task = detail::make_task_self_deleting(std::move(user_task));
         // Hook the promise to decrement the size upon its self deletion of the coroutine frame.
-        task.promise().user_final_suspend([this]() -> void { m_size.fetch_sub(1, std::memory_order::release); });
-        return m_executor->resume(task.handle());
+        task.promise().user_final_suspend([this]() -> void { m_p->m_size.fetch_sub(1, std::memory_order::release); });
+        return m_p->m_executor->resume(task.handle());
     }
 
     /**
      * @return The number of active tasks in the container.
      */
-    auto size() const -> std::size_t { return m_size.load(std::memory_order::acquire); }
+    auto size() const -> std::size_t { return m_p->m_size.load(std::memory_order::acquire); }
 
     /**
      * @return True if there are no active tasks in the container.
@@ -93,15 +93,20 @@ public:
     {
         while (!empty())
         {
-            co_await m_executor->yield();
+            co_await m_p->m_executor->yield();
         }
     }
 
 private:
-    /// The number of alive tasks.
-    std::atomic<std::size_t> m_size{};
-    /// The executor to schedule tasks that have just started.
-    std::shared_ptr<executor_type> m_executor{nullptr};
+    class P {
+      public:
+        /// The number of alive tasks.
+        std::atomic<std::size_t> m_size{};
+        /// The executor to schedule tasks that have just started.
+        std::shared_ptr<executor_type> m_executor{nullptr};
+    };
+
+    std::unique_ptr<P> m_p;
 };
 
 } // namespace silicon::coroutine

@@ -35,11 +35,11 @@ struct shared_lock_operation {
 
         if(m_exclusive) {
             if(m_shared_mutex.try_lock_locked()) {
-                m_shared_mutex.m_mutex.unlock();
+                m_shared_mutex.m_p->m_mutex.unlock();
                 return true;
             }
         } else if(m_shared_mutex.try_lock_shared_locked()) {
-            m_shared_mutex.m_mutex.unlock();
+            m_shared_mutex.m_p->m_mutex.unlock();
             return true;
         }
 
@@ -50,24 +50,24 @@ struct shared_lock_operation {
         // For sure the lock is currently held in a manner that it cannot be acquired, suspend ourself
         // at the end of the waiter list.
 
-        auto *tail_waiter = m_shared_mutex.m_tail_waiter.load(std::memory_order::acquire);
+        auto *tail_waiter = m_shared_mutex.m_p->m_tail_waiter.load(std::memory_order::acquire);
 
         if(tail_waiter == nullptr) {
-            m_shared_mutex.m_head_waiter = this;
-            m_shared_mutex.m_tail_waiter = this;
+            m_shared_mutex.m_p->m_head_waiter = this;
+            m_shared_mutex.m_p->m_tail_waiter = this;
         } else {
             tail_waiter->m_next = this;
-            m_shared_mutex.m_tail_waiter = this;
+            m_shared_mutex.m_p->m_tail_waiter = this;
         }
 
         // If this is an exclusive lock acquire then mark it as so so that shared locks after this
         // exclusive one will also suspend so this exclusive lock doesn't get starved.
         if(m_exclusive) {
-            ++m_shared_mutex.m_exclusive_waiters;
+            ++m_shared_mutex.m_p->m_exclusive_waiters;
         }
 
         m_awaiting_coroutine = awaiting_coroutine;
-        m_shared_mutex.m_mutex.unlock();
+        m_shared_mutex.m_p->m_mutex.unlock();
         return true;
     }
 
@@ -92,8 +92,8 @@ class shared_mutex {
      *          each shared waiter will be scheduled to immediately run on this executor in
      *          parallel.
      */
-    explicit shared_mutex(std::unique_ptr<executor_type> &e): m_executor(e.get()) {
-        if(m_executor == nullptr) {
+    explicit shared_mutex(std::unique_ptr<executor_type> &e): m_p(std::make_unique<P>()) { m_p->m_executor = e.get();
+        if(m_p->m_executor == nullptr) {
             throw std::runtime_error{"silicon::coroutine::shared_mutex cannot have a nullptr executor"};
         }
     }
@@ -111,7 +111,7 @@ class shared_mutex {
      * @param scoped_task The user's scoped task to execute after acquiring the shared lock.
      */
     [[nodiscard]] auto scoped_lock_shared(silicon::coroutine::task<void> scoped_task) -> silicon::coroutine::task<void> {
-        co_await m_mutex.lock();
+        co_await m_p->m_mutex.lock();
         co_await detail::shared_lock_operation<executor_type>{*this, false};
         co_await scoped_task;
         co_await unlock_shared();
@@ -125,7 +125,7 @@ class shared_mutex {
      * @param scoped_task The user's scoped task to execute after acquiring the exclusive lock.
      */
     [[nodiscard]] auto scoped_lock(silicon::coroutine::task<void> scoped_task) -> silicon::coroutine::task<void> {
-        co_await m_mutex.lock();
+        co_await m_p->m_mutex.lock();
         co_await detail::shared_lock_operation<executor_type>{*this, true};
         co_await scoped_task;
         co_await unlock();
@@ -137,7 +137,7 @@ class shared_mutex {
      * @return task
      */
     [[nodiscard]] auto lock_shared() -> silicon::coroutine::task<void> {
-        co_await m_mutex.lock();
+        co_await m_p->m_mutex.lock();
         co_await detail::shared_lock_operation<executor_type>{*this, false};
         co_return;
     }
@@ -147,7 +147,7 @@ class shared_mutex {
      * @return task
      */
     [[nodiscard]] auto lock() -> silicon::coroutine::task<void> {
-        co_await m_mutex.lock();
+        co_await m_p->m_mutex.lock();
         co_await detail::shared_lock_operation<executor_type>{*this, true};
         co_return;
     }
@@ -162,8 +162,8 @@ class shared_mutex {
         //          Zero exclusive waiters prevents exclusive starvation if shared locks are
         //          always continuously happening.
 
-        if(m_mutex.try_lock()) {
-            silicon::coroutine::scoped_lock lk{m_mutex};
+        if(m_p->m_mutex.try_lock()) {
+            silicon::coroutine::scoped_lock lk{m_p->m_mutex};
             return try_lock_shared_locked();
         }
         return false;
@@ -174,8 +174,8 @@ class shared_mutex {
      */
     [[nodiscard]] auto try_lock() -> bool {
         // To acquire the exclusive lock the state must be unlocked.
-        if(m_mutex.try_lock()) {
-            silicon::coroutine::scoped_lock lk{m_mutex};
+        if(m_p->m_mutex.try_lock()) {
+            silicon::coroutine::scoped_lock lk{m_p->m_mutex};
             return try_lock_locked();
         }
         return false;
@@ -190,16 +190,16 @@ class shared_mutex {
      * waiter acquires the lock.
      */
     [[nodiscard]] auto unlock_shared() -> silicon::coroutine::task<void> {
-        auto lk = co_await m_mutex.scoped_lock();
-        auto users = m_shared_users.fetch_sub(1, std::memory_order::acq_rel);
+        auto lk = co_await m_p->m_mutex.scoped_lock();
+        auto users = m_p->m_shared_users.fetch_sub(1, std::memory_order::acq_rel);
 
         // If this is the final unlock_shared() see if there is anyone to wakeup.
         if(users == 1) {
-            auto *head_waiter = m_head_waiter.load(std::memory_order::acquire);
+            auto *head_waiter = m_p->m_head_waiter.load(std::memory_order::acquire);
             if(head_waiter != nullptr) {
                 wake_waiters(lk, head_waiter);
             } else {
-                m_state = state::unlocked;
+                m_p->m_state = state::unlocked;
             }
         }
 
@@ -213,12 +213,12 @@ class shared_mutex {
      * executor this shared mutex was created with.
      */
     [[nodiscard]] auto unlock() -> silicon::coroutine::task<void> {
-        auto lk = co_await m_mutex.scoped_lock();
-        auto *head_waiter = m_head_waiter.load(std::memory_order::acquire);
+        auto lk = co_await m_p->m_mutex.scoped_lock();
+        auto *head_waiter = m_p->m_head_waiter.load(std::memory_order::acquire);
         if(head_waiter != nullptr) {
             wake_waiters(lk, head_waiter);
         } else {
-            m_state = state::unlocked;
+            m_p->m_state = state::unlocked;
         }
 
         co_return;
@@ -230,7 +230,7 @@ class shared_mutex {
      * @return executor_type&
      */
     [[nodiscard]] auto executor() -> executor_type & {
-        return *m_executor;
+        return *m_p->m_executor;
     }
 
   private:
@@ -245,32 +245,36 @@ class shared_mutex {
         locked_exclusive
     };
 
-    /// @brief This executor is for resuming multiple shared waiters.
-    executor_type *m_executor{nullptr};
-    /// @brief Exclusive access for mutating the shared mutex's state.
-    silicon::coroutine::mutex m_mutex;
-    /// @brief The current state of the shared mutex.
-    std::atomic<state> m_state{state::unlocked};
+    class P {
+      public:
+        /// @brief This executor is for resuming multiple shared waiters.
+        executor_type *m_executor{nullptr};
+        /// @brief Exclusive access for mutating the shared mutex's state.
+        silicon::coroutine::mutex m_mutex;
+        /// @brief The current state of the shared mutex.
+        std::atomic<state> m_state{state::unlocked};
 
-    /// @brief The current number of shared users that have acquired the lock.
-    std::atomic<uint64_t> m_shared_users{0};
-    /// @brief The current number of exclusive waiters waiting to acquire the lock.  This is used to block
-    ///        new incoming shared lock attempts so the exclusive waiter is not starved.
-    std::atomic<uint64_t> m_exclusive_waiters{0};
+        /// @brief The current number of shared users that have acquired the lock.
+        std::atomic<uint64_t> m_shared_users{0};
+        /// @brief The current number of exclusive waiters waiting to acquire the lock.
+        std::atomic<uint64_t> m_exclusive_waiters{0};
 
-    std::atomic<detail::shared_lock_operation<executor_type> *> m_head_waiter{nullptr};
-    std::atomic<detail::shared_lock_operation<executor_type> *> m_tail_waiter{nullptr};
+        std::atomic<detail::shared_lock_operation<executor_type> *> m_head_waiter{nullptr};
+        std::atomic<detail::shared_lock_operation<executor_type> *> m_tail_waiter{nullptr};
+    };
+
+    std::unique_ptr<P> m_p;
 
     auto try_lock_shared_locked() -> bool {
-        if(m_state == state::unlocked) {
+        if(m_p->m_state == state::unlocked) {
             // If the shared mutex is unlocked put it into shared mode and add ourself as using the lock.
-            m_state = state::locked_shared;
-            ++m_shared_users;
+            m_p->m_state = state::locked_shared;
+            ++m_p->m_shared_users;
             return true;
-        } else if(m_state == state::locked_shared && m_exclusive_waiters == 0) {
+        } else if(m_p->m_state == state::locked_shared && m_p->m_exclusive_waiters == 0) {
             // If the shared mutex is in a shared locked state and there are no exclusive waiters
             // the add ourself as using the lock.
-            ++m_shared_users;
+            ++m_p->m_shared_users;
             return true;
         }
 
@@ -283,8 +287,8 @@ class shared_mutex {
     }
 
     auto try_lock_locked() -> bool {
-        if(m_state == state::unlocked) {
-            m_state = state::locked_exclusive;
+        if(m_p->m_state == state::unlocked) {
+            m_p->m_state = state::locked_exclusive;
             return true;
         }
         return false;
@@ -294,17 +298,17 @@ class shared_mutex {
         // First determine what the next lock state will be based on the first waiter.
         if(head_waiter->m_exclusive) {
             // If its exclusive then only this waiter can be woken up.
-            m_state.store(state::locked_exclusive, std::memory_order::release);
+            m_p->m_state.store(state::locked_exclusive, std::memory_order::release);
             if(head_waiter->m_next == nullptr) {
                 // This is the final waiter, set the list to null.
-                m_head_waiter.store(nullptr, std::memory_order::release);
-                m_tail_waiter.store(nullptr, std::memory_order::release);
+                m_p->m_head_waiter.store(nullptr, std::memory_order::release);
+                m_p->m_tail_waiter.store(nullptr, std::memory_order::release);
             } else {
                 // Advance the head waiter to next.
-                m_head_waiter.store(head_waiter->m_next, std::memory_order::release);
+                m_p->m_head_waiter.store(head_waiter->m_next, std::memory_order::release);
             }
 
-            m_exclusive_waiters.fetch_sub(1, std::memory_order::release);
+            m_p->m_exclusive_waiters.fetch_sub(1, std::memory_order::release);
 
             // Since this is an exclusive lock waiting we can resume it directly.
             lk.unlock();
@@ -312,23 +316,23 @@ class shared_mutex {
         } else {
             // If its shared then we will scan forward and awake all shared waiters onto the given
             // thread pool so they can run in parallel.
-            m_state.store(state::locked_shared, std::memory_order::release);
+            m_p->m_state.store(state::locked_shared, std::memory_order::release);
             while(true) {
-                auto *to_resume = m_head_waiter.load(std::memory_order::acquire);
+                auto *to_resume = m_p->m_head_waiter.load(std::memory_order::acquire);
                 if(to_resume == nullptr || to_resume->m_exclusive) {
                     break;
                 }
 
                 if(to_resume->m_next == nullptr) {
-                    m_head_waiter.store(nullptr, std::memory_order::release);
-                    m_tail_waiter.store(nullptr, std::memory_order::release);
+                    m_p->m_head_waiter.store(nullptr, std::memory_order::release);
+                    m_p->m_tail_waiter.store(nullptr, std::memory_order::release);
                 } else {
-                    m_head_waiter.store(to_resume->m_next, std::memory_order::release);
+                    m_p->m_head_waiter.store(to_resume->m_next, std::memory_order::release);
                 }
 
-                m_shared_users.fetch_add(1, std::memory_order::release);
+                m_p->m_shared_users.fetch_add(1, std::memory_order::release);
 
-                m_executor->resume(to_resume->m_awaiting_coroutine);
+                m_p->m_executor->resume(to_resume->m_awaiting_coroutine);
             }
 
             // Cannot unlock until the entire set of shared waiters has been traversed. I think this

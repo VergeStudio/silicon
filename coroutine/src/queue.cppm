@@ -74,21 +74,21 @@ class queue {
 
         auto await_ready() noexcept -> bool {
             // This awaiter is ready when it has actually acquired an element or it is shutting down.
-            if(m_queue.m_running_state.load(std::memory_order::acquire) == running_state_t::stopped) {
-                m_queue.m_mutex.unlock();
+            if(m_queue.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::stopped) {
+                m_queue.m_p->m_mutex.unlock();
                 return true; // await_resume with stopped
             }
 
             // If we have items return it.
             if(!m_queue.empty()) {
                 if constexpr(std::is_move_constructible_v<element_type>) {
-                    m_element = std::move(m_queue.m_elements.front());
+                    m_element = std::move(m_queue.m_p->m_elements.front());
                 } else {
-                    m_element = m_queue.m_elements.front();
+                    m_element = m_queue.m_p->m_elements.front();
                 }
 
-                m_queue.m_elements.pop();
-                m_queue.m_mutex.unlock();
+                m_queue.m_p->m_elements.pop();
+                m_queue.m_p->m_mutex.unlock();
                 return true;
             }
 
@@ -98,10 +98,10 @@ class queue {
 
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
             // No element is ready, put ourselves on the waiter list and suspend.
-            this->m_next = m_queue.m_waiters;
-            m_queue.m_waiters = this;
+            this->m_next = m_queue.m_p->m_waiters;
+            m_queue.m_p->m_waiters = this;
             m_awaiting_coroutine = awaiting_coroutine;
-            m_queue.m_mutex.unlock();
+            m_queue.m_p->m_mutex.unlock();
             return true;
         }
 
@@ -124,19 +124,19 @@ class queue {
         awaiter *m_next{nullptr};
     };
 
-    queue() {}
+    queue(): m_p(std::make_unique<P>()) {}
     ~queue() {
         // Synchronous, non-blocking shutdown to avoid deadlock when the
         // queue is destroyed from within a coroutine context. sync_wait()
         // would block the current thread, preventing the scheduler from
         // processing the shutdown coroutine.
-        if(m_running_state.exchange(running_state_t::stopped, std::memory_order::acq_rel) == running_state_t::stopped) {
+        if(m_p->m_running_state.exchange(running_state_t::stopped, std::memory_order::acq_rel) == running_state_t::stopped) {
             return;
         }
 
         // Wake up any waiters without acquiring the coroutine mutex.
-        auto *waiters = m_waiters;
-        m_waiters = nullptr;
+        auto *waiters = m_p->m_waiters;
+        m_p->m_waiters = nullptr;
         while(waiters != nullptr) {
             auto *next = waiters->m_next;
             waiters->m_awaiting_coroutine.resume();
@@ -165,7 +165,7 @@ class queue {
      */
     auto size() const -> std::size_t {
         std::atomic_thread_fence(std::memory_order::acquire);
-        return m_elements.size();
+        return m_p->m_elements.size();
     }
 
     /**
@@ -179,22 +179,22 @@ class queue {
     auto push(const element_type &element) -> silicon::coroutine::task<queue_produce_result> {
         // The general idea is to see if anyone is waiting, and if so directly transfer the element
         // to that waiter. If there is nobody waiting then move the element into the queue.
-        auto lock = co_await m_mutex.scoped_lock();
+        auto lock = co_await m_p->m_mutex.scoped_lock();
 
-        if(m_running_state.load(std::memory_order::acquire) != running_state_t::running) {
+        if(m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::running) {
             co_return queue_produce_result::stopped;
         }
 
         // assert(m_element.empty())
-        if(m_waiters != nullptr) {
-            auto *waiter = std::exchange(m_waiters, m_waiters->m_next);
+        if(m_p->m_waiters != nullptr) {
+            auto *waiter = std::exchange(m_p->m_waiters, m_p->m_waiters->m_next);
             lock.unlock();
 
             // Transfer the element directly to the awaiter.
             waiter->m_element = element;
             waiter->m_awaiting_coroutine.resume();
         } else {
-            m_elements.push(element);
+            m_p->m_elements.push(element);
         }
 
         co_return queue_produce_result::produced;
@@ -209,21 +209,21 @@ class queue {
      * @return silicon::coroutine::task<queue_produce_result>
      */
     auto push(element_type &&element) -> silicon::coroutine::task<queue_produce_result> {
-        auto lock = co_await m_mutex.scoped_lock();
+        auto lock = co_await m_p->m_mutex.scoped_lock();
 
-        if(m_running_state.load(std::memory_order::acquire) != running_state_t::running) {
+        if(m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::running) {
             co_return queue_produce_result::stopped;
         }
 
-        if(m_waiters != nullptr) {
-            auto *waiter = std::exchange(m_waiters, m_waiters->m_next);
+        if(m_p->m_waiters != nullptr) {
+            auto *waiter = std::exchange(m_p->m_waiters, m_p->m_waiters->m_next);
             lock.unlock();
 
             // Transfer the element directly to the awaiter.
             waiter->m_element = std::move(element);
             waiter->m_awaiting_coroutine.resume();
         } else {
-            m_elements.push(std::move(element));
+            m_p->m_elements.push(std::move(element));
         }
 
         co_return queue_produce_result::produced;
@@ -238,20 +238,20 @@ class queue {
      */
     template<typename... args_type>
     auto emplace(args_type &&...args) -> silicon::coroutine::task<queue_produce_result> {
-        auto lock = co_await m_mutex.scoped_lock();
+        auto lock = co_await m_p->m_mutex.scoped_lock();
 
-        if(m_running_state.load(std::memory_order::acquire) != running_state_t::running) {
+        if(m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::running) {
             co_return queue_produce_result::stopped;
         }
 
-        if(m_waiters != nullptr) {
-            auto *waiter = std::exchange(m_waiters, m_waiters->m_next);
+        if(m_p->m_waiters != nullptr) {
+            auto *waiter = std::exchange(m_p->m_waiters, m_p->m_waiters->m_next);
             lock.unlock();
 
             waiter->m_element.emplace(std::forward<args_type>(args)...);
             waiter->m_awaiting_coroutine.resume();
         } else {
-            m_elements.emplace(std::forward<args_type>(args)...);
+            m_p->m_elements.emplace(std::forward<args_type>(args)...);
         }
 
         co_return queue_produce_result::produced;
@@ -264,7 +264,7 @@ class queue {
      *                 status that it is shut down.
      */
     [[nodiscard]] auto pop() -> silicon::coroutine::task<expected<element_type, queue_consume_result>> {
-        co_await m_mutex.lock();
+        co_await m_p->m_mutex.lock();
         co_return co_await awaiter{*this};
     }
 
@@ -280,12 +280,12 @@ class queue {
      *         queue_consume_result::try_lock_failure if the queue is in use and the lock could not be acquired.
      */
     [[nodiscard]] auto try_pop() -> expected<element_type, queue_consume_result> {
-        if(m_mutex.try_lock()) {
+        if(m_p->m_mutex.try_lock()) {
             // Capture mutex into a scoped lock to manage unlocking correctly.
-            silicon::coroutine::scoped_lock lk{m_mutex};
+            silicon::coroutine::scoped_lock lk{m_p->m_mutex};
 
             // Return if stopped.
-            if(m_running_state.load(std::memory_order::acquire) == running_state_t::stopped) {
+            if(m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::stopped) {
                 return unexpected<queue_consume_result>(queue_consume_result::stopped);
             }
 
@@ -296,12 +296,12 @@ class queue {
 
             expected<element_type, queue_consume_result> value;
             if constexpr(std::is_move_constructible_v<element_type>) {
-                value = std::move(m_elements.front());
+                value = std::move(m_p->m_elements.front());
             } else {
-                value = m_elements.front();
+                value = m_p->m_elements.front();
             }
 
-            m_elements.pop();
+            m_p->m_elements.pop();
             return value;
         }
 
@@ -314,21 +314,21 @@ class queue {
      * @return silicon::coroutine::task<void>
      */
     auto shutdown() -> silicon::coroutine::task<void> {
-        auto expected = m_running_state.load(std::memory_order::acquire);
+        auto expected = m_p->m_running_state.load(std::memory_order::acquire);
         if(expected == running_state_t::stopped) {
             co_return;
         }
 
-        // We use the lock to guarantee the m_running_state has propagated.
-        auto lk = co_await m_mutex.scoped_lock();
-        if(!m_running_state.compare_exchange_strong(
+        // We use the lock to guarantee the m_p->m_running_state has propagated.
+        auto lk = co_await m_p->m_mutex.scoped_lock();
+        if(!m_p->m_running_state.compare_exchange_strong(
                    expected, running_state_t::stopped, std::memory_order::acq_rel, std::memory_order::relaxed
            )) {
             co_return;
         }
 
-        auto *waiters = m_waiters;
-        m_waiters = nullptr;
+        auto *waiters = m_p->m_waiters;
+        m_p->m_waiters = nullptr;
         lk.unlock();
         while(waiters != nullptr) {
             auto *next = waiters->m_next;
@@ -348,16 +348,16 @@ class queue {
      */
     template<silicon::coroutine::concepts::executor executor_type>
     auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::coroutine::task<void> {
-        auto lk = co_await m_mutex.scoped_lock();
+        auto lk = co_await m_p->m_mutex.scoped_lock();
         auto expected = running_state_t::running;
-        if(!m_running_state.compare_exchange_strong(
+        if(!m_p->m_running_state.compare_exchange_strong(
                    expected, running_state_t::draining, std::memory_order::acq_rel, std::memory_order::relaxed
            )) {
             co_return;
         }
         lk.unlock();
 
-        while(!empty() && m_running_state.load(std::memory_order::acquire) == running_state_t::draining) {
+        while(!empty() && m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::draining) {
             co_await e->yield();
         }
 
@@ -368,18 +368,24 @@ class queue {
      * Returns true if shutdown() or shutdown_drain() have been called on this silicon::coroutine::queue.
      * @return True if the silicon::coroutine::queue has been shutdown.
      */
-    [[nodiscard]] auto is_shutdown() const -> bool { return m_running_state.load(std::memory_order::acquire) != running_state_t::running; }
+    [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::running; }
 
   private:
     friend awaiter;
-    /// @brief The list of pop() awaiters.
-    awaiter *m_waiters{nullptr};
-    /// @brief Mutex for properly maintaining the queue.
-    silicon::coroutine::mutex m_mutex{};
-    /// @brief The underlying queue data structure.
-    std::queue<element_type> m_elements{};
-    /// @brief The current running state of the queue.
-    std::atomic<running_state_t> m_running_state{running_state_t::running};
+
+    class P {
+      public:
+        /// @brief The list of pop() awaiters.
+        awaiter *m_waiters{nullptr};
+        /// @brief Mutex for properly maintaining the queue.
+        silicon::coroutine::mutex m_mutex{};
+        /// @brief The underlying queue data structure.
+        std::queue<element_type> m_elements{};
+        /// @brief The current running state of the queue.
+        std::atomic<running_state_t> m_running_state{running_state_t::running};
+    };
+
+    std::unique_ptr<P> m_p;
 };
 
 } // namespace silicon::coroutine

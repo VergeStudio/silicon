@@ -1,29 +1,44 @@
 module;
 
+// 实现单元全局片段：补齐 std 头，供 sync_wait_event::P 定义与成员函数使用。
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+
 module silicon.coroutine;
 
-
 namespace silicon::coroutine::detail {
-sync_wait_event::sync_wait_event(bool initially_set): m_set(initially_set) {
+
+class sync_wait_event::P {
+  public:
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+    std::atomic<bool> m_set{false};
+};
+
+sync_wait_event::sync_wait_event(bool initially_set): m_p(std::make_unique<P>()) {
+    m_p->m_set = initially_set;
 }
+
+sync_wait_event::~sync_wait_event() = default;
 
 auto sync_wait_event::set() noexcept -> void {
     // issue-270 100~ task's on a thread_pool within sync_wait(when_all(tasks)) can cause a deadlock/hang if using
     // release/acquire or even seq_cst.
     {
-        std::unique_lock<std::mutex> lk{m_mutex};
-        m_set.exchange(true, std::memory_order::seq_cst);
-        m_cv.notify_all();
+        std::unique_lock<std::mutex> lk{m_p->m_mutex};
+        m_p->m_set.exchange(true, std::memory_order::seq_cst);
+        m_p->m_cv.notify_all();
     }
 }
 
 auto sync_wait_event::reset() noexcept -> void {
-    m_set.exchange(false, std::memory_order::seq_cst);
+    m_p->m_set.exchange(false, std::memory_order::seq_cst);
 }
 
 auto sync_wait_event::wait() noexcept -> void {
-    std::unique_lock<std::mutex> lk{m_mutex};
-    m_cv.wait(lk, [this] { return m_set.load(std::memory_order::seq_cst); });
+    std::unique_lock<std::mutex> lk{m_p->m_mutex};
+    m_p->m_cv.wait(lk, [this] { return m_p->m_set.load(std::memory_order::seq_cst); });
 }
 
 } // namespace silicon::coroutine::detail

@@ -161,18 +161,18 @@ class scheduler {
          * stores the coroutine internally for the executing thread to resume from.
          */
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> void {
-            if(m_scheduler.m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
-                m_scheduler.m_size.fetch_add(1, std::memory_order::release);
+            if(m_scheduler.m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
+                m_scheduler.m_p->m_size.fetch_add(1, std::memory_order::release);
                 m_awaiting_coroutine = awaiting_coroutine;
-                detail::awaiter_list_push(m_scheduler.m_scheduled_ops, this);
+                detail::awaiter_list_push(m_scheduler.m_p->m_scheduled_ops, this);
 
                 // Trigger the event to wake-up the scheduler if this event isn't currently triggered.
                 bool expected{false};
-                if(m_scheduler.m_schedule_pipe_triggered.compare_exchange_strong(
+                if(m_scheduler.m_p->m_schedule_pipe_triggered.compare_exchange_strong(
                            expected, true, std::memory_order::release, std::memory_order::relaxed
                    )) {
                     constexpr int control = 1;
-                    long written = m_scheduler.m_schedule_pipe.write(&control, sizeof(control));
+                    long written = m_scheduler.m_p->m_schedule_pipe.write(&control, sizeof(control));
                     if(written != sizeof(control)) {
                         std::string error_msg = std::format(
                             "silicon::coroutine::scheduler::schedule_operation failed to write to schedule pipe, bytes written={}\n",
@@ -181,7 +181,7 @@ class scheduler {
                     }
                 }
             } else {
-                m_scheduler.m_thread_pool->resume(awaiting_coroutine);
+                m_scheduler.m_p->m_thread_pool->resume(awaiting_coroutine);
             }
         }
 
@@ -416,10 +416,10 @@ class scheduler {
      * @return The number of tasks waiting in the task queue + the executing tasks.
      */
     auto size() const noexcept -> std::size_t {
-        if(m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
-            return m_size.load(std::memory_order::acquire);
+        if(m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
+            return m_p->m_size.load(std::memory_order::acquire);
         } else {
-            return m_size.load(std::memory_order::acquire) + m_thread_pool->size();
+            return m_p->m_size.load(std::memory_order::acquire) + m_p->m_thread_pool->size();
         }
     }
 
@@ -434,52 +434,57 @@ class scheduler {
      */
     auto shutdown() noexcept -> void;
 
-    [[nodiscard]] auto is_shutdown() const -> bool { return m_shutdown_requested.load(std::memory_order::acquire); }
+    [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_shutdown_requested.load(std::memory_order::acquire); }
 
-    auto io_notifier() -> io_notifier & { return m_io_notifier; }
+    auto io_notifier() -> io_notifier & { return m_p->m_io_notifier; }
 
   private:
-    /// The configuration options.
-    options m_opts;
+    class P {
+      public:
+        explicit P(options &&opts)
+            : m_opts(std::move(opts)),
+              m_io_notifier(),
+              m_timer(static_cast<const void *>(&scheduler::m_timer_object), m_io_notifier) {}
 
-    /// The io event notifier.
-    ::silicon::coroutine::io_notifier m_io_notifier;
-    /// The timer handle for timed events, e.g. yield_for() or scheduler_after().
-    detail::timer_handle m_timer;
-    /// The event loop pipe to trigger a shutdown.
-    detail::pipe_t m_shutdown_pipe{};
-    /// The event loop schedule task pipe.
-    detail::pipe_t m_schedule_pipe{};
-    /// @brief Scheduled operations waiting tasks has entries.
-    std::atomic<bool> m_schedule_pipe_triggered{false};
-    /// @brief Scheduled operations waiting to be resumed.
-    std::atomic<schedule_operation *> m_scheduled_ops{nullptr};
+        /// The configuration options.
+        options m_opts;
 
-    /// The number of tasks executing or awaiting events in this io scheduler.
-    std::atomic<std::size_t> m_size{0};
+        /// The io event notifier.
+        ::silicon::coroutine::io_notifier m_io_notifier;
+        /// The timer handle for timed events, e.g. yield_for() or scheduler_after().
+        detail::timer_handle m_timer;
+        /// The event loop pipe to trigger a shutdown.
+        detail::pipe_t m_shutdown_pipe{};
+        /// The event loop schedule task pipe.
+        detail::pipe_t m_schedule_pipe{};
+        /// @brief Scheduled operations waiting tasks has entries.
+        std::atomic<bool> m_schedule_pipe_triggered{false};
+        /// @brief Scheduled operations waiting to be resumed.
+        std::atomic<schedule_operation *> m_scheduled_ops{nullptr};
 
-    /// The background io worker threads.
-    std::thread m_io_thread;
-    /// Thread pool for executing tasks when not in inline mode.
-    std::unique_ptr<pool> m_thread_pool{nullptr};
+        /// The number of tasks executing or awaiting events in this io scheduler.
+        std::atomic<std::size_t> m_size{0};
 
-    std::mutex m_timed_events_mutex{};
-    /// The map of time point's to poll infos for tasks that are yielding for a period of time
-    /// or for tasks that are polling with timeouts.
-    timed_events m_timed_events{};
+        /// The background io worker threads.
+        std::thread m_io_thread;
+        /// Thread pool for executing tasks when not in inline mode.
+        std::unique_ptr<pool> m_thread_pool{nullptr};
 
-    /// Has the scheduler been requested to shut down?
-    std::atomic<bool> m_shutdown_requested{false};
+        std::mutex m_timed_events_mutex{};
+        /// The map of time point's to poll infos for tasks that are yielding for a period of time
+        /// or for tasks that are polling with timeouts.
+        timed_events m_timed_events{};
 
-    auto yield_for_internal(std::chrono::nanoseconds amount) -> silicon::coroutine::task<void>;
+        /// Has the scheduler been requested to shut down?
+        std::atomic<bool> m_shutdown_requested{false};
 
-    std::atomic<bool> m_io_processing{false};
-    auto process_events_manual(std::chrono::milliseconds timeout) -> void;
-    auto process_events_dedicated_thread() -> void;
-    auto process_events_execute(std::chrono::milliseconds timeout) -> void;
-    static auto event_to_poll_status(uint32_t events) -> poll_status;
+        std::atomic<bool> m_io_processing{false};
 
-    auto process_scheduled_execute_inline() -> void;
+        std::vector<std::pair<detail::poll_info *, silicon::coroutine::poll_status>> m_recent_events{};
+        std::vector<std::coroutine_handle<>> m_handles_to_resume{};
+    };
+
+    std::unique_ptr<P> m_p;
 
     static constexpr const int m_shutdown_object{0};
     static constexpr const void *m_shutdown_ptr = &m_shutdown_object;
@@ -493,8 +498,14 @@ class scheduler {
     static const constexpr std::chrono::milliseconds m_default_timeout{1000};
     static const constexpr std::chrono::milliseconds m_no_timeout{0};
     static const constexpr std::size_t m_max_events = 16;
-    std::vector<std::pair<detail::poll_info *, silicon::coroutine::poll_status>> m_recent_events{};
-    std::vector<std::coroutine_handle<>> m_handles_to_resume{};
+
+    auto yield_for_internal(std::chrono::nanoseconds amount) -> silicon::coroutine::task<void>;
+    auto process_events_manual(std::chrono::milliseconds timeout) -> void;
+    auto process_events_dedicated_thread() -> void;
+    auto process_events_execute(std::chrono::milliseconds timeout) -> void;
+    static auto event_to_poll_status(uint32_t events) -> poll_status;
+
+    auto process_scheduled_execute_inline() -> void;
 
     auto process_event_execute(detail::poll_info *pi, poll_status status) -> void;
     auto process_timeout_execute() -> void;
@@ -507,6 +518,7 @@ class scheduler {
         co_await schedule_after(timeout);
         co_return timeout_status::timeout;
     }
+
 };
 
 // silicon::network 公共 API（tcp/tls/udp client/server）以 IScheduler 命名引用调度器
