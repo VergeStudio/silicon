@@ -1,4 +1,5 @@
 module;
+#include <memory>
 
 #include <stdexcept>
 #include <string>
@@ -13,16 +14,22 @@ export module silicon.exception;
 
 namespace silicon::exception {
 export class CORE_API Exception: public std::exception {
+
   public:
     explicit Exception(std::string_view);
 
     template<typename... SV>
-    Exception(const SV &...args): m_message(silicon::util::StrCat(args...)) {}
+    Exception(const SV &...args): m_p(std::make_unique<P>()) { m_p->m_message = silicon::util::StrCat(args...); }
 
     const char *what() const noexcept;
 
   private:
-    std::string m_message;
+    struct P {
+      public:
+      std::string m_message;
+    };
+    std::unique_ptr<P> m_p;
+
 };
 
 // This errors are usually related to problems which "probably" require code refactoring

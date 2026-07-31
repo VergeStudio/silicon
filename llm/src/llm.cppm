@@ -103,22 +103,36 @@ class IProviderRegistry {
 
 /// 内存工具注册表：重复 name 注册返回 false（不替换）。
 class ToolRegistry: public IToolRegistry {
-    std::map<std::string, std::unique_ptr<ITool>, std::less<>> tools_;
+
+    struct P {
+      public:
+      std::map<std::string, std::unique_ptr<ITool>, std::less<>> tools_;
+    };
+    std::unique_ptr<P> m_p;
 
   public:
+    ToolRegistry();
     bool register_tool(std::unique_ptr<ITool> tool) override;
     ITool *get_tool(std::string_view name) const override;
     std::size_t tool_count() const override;
+
 };
 
 /// 内存提供方注册表：重复 id 注册返回 false。
 class ProviderRegistry: public IProviderRegistry {
-    std::map<std::string, std::unique_ptr<IProvider>, std::less<>> providers_;
+
+    struct P {
+      public:
+      std::map<std::string, std::unique_ptr<IProvider>, std::less<>> providers_;
+    };
+    std::unique_ptr<P> m_p;
 
   public:
+    ProviderRegistry();
     bool register_provider(std::string id, std::unique_ptr<IProvider> provider) override;
     IProvider *get_provider(std::string_view id) const override;
     std::vector<std::string> list_providers() const override;
+
 };
 
 /// OpenAI 风格 JSON 协议适配器：Conversation/Options -> 请求 JSON；
@@ -136,13 +150,20 @@ class JsonProtocolAdapter: public IProtocolAdapter {
 /// 脚本化提供方：FIFO 返回预置响应，用于确定性 TDD。
 /// 队列耗尽返回 LLMError，绝不抛异常。
 class ScriptedProvider: public IProvider {
-    std::queue<ChatResponse> queue_;
+
+    struct P {
+      public:
+      std::queue<ChatResponse> queue_;
+    };
+    std::unique_ptr<P> m_p;
 
   public:
+    ScriptedProvider();
     void enqueue(ChatResponse r);
     std::size_t remaining() const;
 
     Result<ChatResponse> chat(const Conversation &, const ModelRequestOptions &) override;
+
 };
 
 /// OpenAI 兼容 HTTP Provider：通过本地 curl 调用 {base_url}/chat/completions。

@@ -1,4 +1,5 @@
 //module;
+#include <memory>
 //
 //module common.shared_library;
 //

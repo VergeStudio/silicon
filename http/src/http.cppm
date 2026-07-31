@@ -42,13 +42,19 @@ class CurlHttpClient: public IHttpClient {
 
 /// 打桩实现（返回预设响应，用于 TDD）
 class FakeHttpClient: public IHttpClient {
-    HttpResponse response_;
-    mutable std::size_t call_count_ = 0;
+
+    struct P {
+      public:
+      HttpResponse response_;
+      mutable std::size_t call_count_ = 0;
+    };
+    std::unique_ptr<P> m_p;
 
   public:
     explicit FakeHttpClient(HttpResponse response = {200, "{}"});
     HttpResponse request(const HttpRequest &) const override;
     std::size_t call_count() const;
+
 };
 
 } // namespace silicon::http

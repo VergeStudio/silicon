@@ -1,15 +1,17 @@
 module;
+#include <memory>
 
 #include <string>
 
 module silicon.exception;
 
 namespace silicon::exception {
-Exception::Exception(std::string_view message): m_message(static_cast<std::string>(message)) {
+Exception::Exception(std::string_view message): m_p(std::make_unique<P>()) {
+    m_p->m_message = static_cast<std::string>(message);
 }
 
 const char *Exception::what() const noexcept {
-    return m_message.c_str();
+    return m_p->m_message.c_str();
 }
 
 LogicError::LogicError(std::string_view message): Exception(message) {

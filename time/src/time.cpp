@@ -4,6 +4,7 @@ module;
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
+#include <memory>
 #include <string>
 
 module silicon.time;
@@ -20,7 +21,7 @@ std::int64_t SystemClock::now_ms() const {
 }
 
 std::string DateSource::current_date() const {
-    auto tp = clock_.now();
+    auto tp = m_p->m_clock->now();
     auto tt = std::chrono::system_clock::to_time_t(tp);
     std::tm gmt{};
 #ifdef _WIN32

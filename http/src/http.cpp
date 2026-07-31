@@ -1,4 +1,5 @@
 module;
+#include <memory>
 
 #include <cstddef>
 #include <cstdio>
@@ -11,15 +12,15 @@ module silicon.http;
 namespace silicon::http {
 
 FakeHttpClient::FakeHttpClient(HttpResponse response)
-    : response_(std::move(response)) {}
+    : m_p(std::make_unique<P>()) { m_p->response_ = std::move(response); }
 
 HttpResponse FakeHttpClient::request(const HttpRequest &) const {
-    ++call_count_;
-    return response_;
+    ++m_p->call_count_;
+    return m_p->response_;
 }
 
 std::size_t FakeHttpClient::call_count() const {
-    return call_count_;
+    return m_p->call_count_;
 }
 
 HttpResponse CurlHttpClient::request(const HttpRequest &req) const {

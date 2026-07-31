@@ -1,4 +1,5 @@
 module;
+#include <memory>
 
 #include <mutex>
 #include <string>
@@ -7,6 +8,7 @@ export module silicon.library;
 
 namespace silicon::library {
 export class SharedLibrary final {
+
     /// The SharedLibrary class dynamically
     /// loads shared libraries at Run-time.
 
@@ -92,9 +94,14 @@ export class SharedLibrary final {
     void *findSymbol(const std::string &);
 
   private:
-    std::string m_path;
-    void *m_pHandle{nullptr};
-    std::mutex m_mutex;
+    struct P {
+      public:
+      std::string m_path;
+      void *m_pHandle{nullptr};
+      std::mutex m_mutex;
+    };
+    std::unique_ptr<P> m_p;
+
 };
 
 } // namespace silicon::library

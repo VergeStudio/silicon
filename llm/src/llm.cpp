@@ -23,30 +23,34 @@ import silicon.exception;
 
 namespace silicon::llm {
 
+ToolRegistry::ToolRegistry() : m_p(std::make_unique<P>()) {}
+ProviderRegistry::ProviderRegistry() : m_p(std::make_unique<P>()) {}
+ScriptedProvider::ScriptedProvider() : m_p(std::make_unique<P>()) {}
+
 bool ToolRegistry::register_tool(std::unique_ptr<ITool> tool) {
     auto name = std::string(tool->name());
-    return tools_.emplace(std::move(name), std::move(tool)).second;
+    return m_p->tools_.emplace(std::move(name), std::move(tool)).second;
 }
 
 ITool *ToolRegistry::get_tool(std::string_view name) const {
-    auto it = tools_.find(name);
-    return it != tools_.end() ? it->second.get() : nullptr;
+    auto it = m_p->tools_.find(name);
+    return it != m_p->tools_.end() ? it->second.get() : nullptr;
 }
 
-std::size_t ToolRegistry::tool_count() const { return tools_.size(); }
+std::size_t ToolRegistry::tool_count() const { return m_p->tools_.size(); }
 
 bool ProviderRegistry::register_provider(std::string id, std::unique_ptr<IProvider> provider) {
-    return providers_.emplace(std::move(id), std::move(provider)).second;
+    return m_p->providers_.emplace(std::move(id), std::move(provider)).second;
 }
 
 IProvider *ProviderRegistry::get_provider(std::string_view id) const {
-    auto it = providers_.find(id);
-    return it != providers_.end() ? it->second.get() : nullptr;
+    auto it = m_p->providers_.find(id);
+    return it != m_p->providers_.end() ? it->second.get() : nullptr;
 }
 
 std::vector<std::string> ProviderRegistry::list_providers() const {
     std::vector<std::string> ids;
-    for(const auto &[k, v]: providers_) ids.push_back(k);
+    for(const auto &[k, v]: m_p->providers_) ids.push_back(k);
     return ids;
 }
 
@@ -121,15 +125,15 @@ Result<ChatResponse> JsonProtocolAdapter::decode_response(std::string_view raw) 
     return Result<ChatResponse>(std::move(resp));
 }
 
-void ScriptedProvider::enqueue(ChatResponse r) { queue_.push(std::move(r)); }
+void ScriptedProvider::enqueue(ChatResponse r) { m_p->queue_.push(std::move(r)); }
 
-std::size_t ScriptedProvider::remaining() const { return queue_.size(); }
+std::size_t ScriptedProvider::remaining() const { return m_p->queue_.size(); }
 
 Result<ChatResponse> ScriptedProvider::chat(const Conversation &, const ModelRequestOptions &) {
-    if(queue_.empty())
+    if(m_p->queue_.empty())
         return Result<ChatResponse>(silicon::exception::LLMError{"no scripted response"});
-    ChatResponse r = std::move(queue_.front());
-    queue_.pop();
+    ChatResponse r = std::move(m_p->queue_.front());
+    m_p->queue_.pop();
     return Result<ChatResponse>(std::move(r));
 }
 

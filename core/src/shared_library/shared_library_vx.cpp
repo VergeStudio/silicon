@@ -1,4 +1,5 @@
 //module;
+#include <memory>
 //
 //#include "Poco/SharedLibrary_VX.h"
 //#include "Poco/Exception.h"

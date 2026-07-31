@@ -1,4 +1,5 @@
 module;
+#include <memory>
 
 #if defined(_WIN32) || defined(_WIN64)
 #    include <Windows.h>
@@ -19,35 +20,35 @@ import silicon.exception;
 
 namespace silicon::library {
 
-SharedLibrary::SharedLibrary() {
+SharedLibrary::SharedLibrary() : m_p(std::make_unique<P>()) {
 }
 
 void SharedLibrary::Load(const std::string &rPath, int32_t flags) {
-    std::scoped_lock<std::mutex> const lock(m_mutex);
+    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
 
-    m_pHandle = LoadLibrary(rPath.c_str());
-    if (m_pHandle == nullptr) {
+    m_p->m_pHandle = LoadLibrary(rPath.c_str());
+    if (m_p->m_pHandle == nullptr) {
         throw silicon::exception::RuntimeError("Could not load library: " + rPath);
     }
-    m_path = rPath;
+    m_p->m_path = rPath;
 }
 
 void SharedLibrary::Unload() {
-    std::scoped_lock<std::mutex> const lock(m_mutex);
+    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
 
-    if (m_pHandle != nullptr) {
-        FreeLibrary(static_cast<HMODULE>(m_pHandle));
-        m_pHandle = nullptr;
+    if (m_p->m_pHandle != nullptr) {
+        FreeLibrary(static_cast<HMODULE>(m_p->m_pHandle));
+        m_p->m_pHandle = nullptr;
     }
-    m_path.clear();
+    m_p->m_path.clear();
 }
 
 bool SharedLibrary::IsLoaded() const {
-    return m_pHandle != nullptr;
+    return m_p->m_pHandle != nullptr;
 }
 
 const std::string &SharedLibrary::GetPath() const {
-    return m_path;
+    return m_p->m_path;
 }
 
 std::string SharedLibrary::Prefix() {
@@ -63,17 +64,17 @@ std::string SharedLibrary::Suffix() {
 }
 
 void *SharedLibrary::findSymbol(const std::string &rName) {
-    std::scoped_lock<std::mutex> const lock(m_mutex);
+    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
 
-    if (m_pHandle != nullptr) {
+    if (m_p->m_pHandle != nullptr) {
 #if defined(_WIN32_WCE)
         std::wstring uname;
         UnicodeConverter::toUTF16(rName, uname);
-        return static_cast<void *>(GetProcAddressW(static_cast<HMODULE>(m_pHandle), uname.c_str()));
+        return static_cast<void *>(GetProcAddressW(static_cast<HMODULE>(m_p->m_pHandle), uname.c_str()));
 #else
         // 函数指针 → 对象指针的 static_cast 是 MS 扩展（-Wmicrosoft-cast），
         // 标准写法需经 reinterpret_cast。
-        return reinterpret_cast<void *>(GetProcAddress(static_cast<HMODULE>(m_pHandle), rName.data()));
+        return reinterpret_cast<void *>(GetProcAddress(static_cast<HMODULE>(m_p->m_pHandle), rName.data()));
 #endif
     }
 
