@@ -9,6 +9,7 @@ module;
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <system_error>
@@ -19,6 +20,29 @@ module silicon.coroutine;
 using namespace std::chrono_literals;
 
 namespace silicon::coroutine::detail {
+
+// ---------------------------------------------------------------------------
+// PIMPL: platform-specific implementation state for io_notifier_iocp.
+// Defined here (where it is complete) so the unique_ptr destructor and every
+// method that touches these members can be compiled.
+// ---------------------------------------------------------------------------
+class io_notifier_iocp::P {
+  public:
+    /// The IOCP handle.
+    HANDLE m_iocp{};
+
+    /// Mutex protecting the watched-fds tracking structures.
+    std::mutex m_mutex;
+
+    /// Currently watched socket file descriptors and their watch mode.
+    struct watch_entry {
+        poll_op op;
+        void *data;
+        bool keep;
+        bool is_cancel_event;
+    };
+    std::unordered_map<fd_t, watch_entry> m_watched_fds;
+};
 
 // ---------------------------------------------------------------------------
 // Timer callback — posted to the IOCP when a timer fires
@@ -47,28 +71,24 @@ static void CALLBACK timer_callback(PTP_CALLBACK_INSTANCE, void *ctx, PTP_TIMER 
 // ---------------------------------------------------------------------------
 
 io_notifier_iocp::io_notifier_iocp()
-    : m_iocp(CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0)) {
-    if (!m_iocp) {
+    : m_p(std::make_unique<P>()) {
+    m_p->m_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
+    if (!m_p->m_iocp) {
         throw std::system_error(GetLastError(), std::system_category(),
                                 "io_notifier_iocp: CreateIoCompletionPort failed");
     }
 }
 
-io_notifier_iocp::~io_notifier_iocp() {
-    if (m_iocp) {
-        CloseHandle(m_iocp);
-        m_iocp = nullptr;
-    }
-}
+io_notifier_iocp::~io_notifier_iocp() = default;
 
 auto io_notifier_iocp::remove_fd(fd_t fd) -> void {
-    std::lock_guard lock(m_mutex);
-    m_watched_fds.erase(fd);
+    std::lock_guard lock(m_p->m_mutex);
+    m_p->m_watched_fds.erase(fd);
 }
 
 auto io_notifier_iocp::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) -> bool {
-    std::lock_guard lock(m_mutex);
-    m_watched_fds[fd] = {op, data, keep, is_cancel_event};
+    std::lock_guard lock(m_p->m_mutex);
+    m_p->m_watched_fds[fd] = {op, data, keep, is_cancel_event};
     return true;
 }
 
@@ -130,7 +150,7 @@ auto io_notifier_iocp::watch_timer(const timer_handle &timer, std::chrono::nanos
     }
 
     // Associate the waitable timer with the IOCP
-    if (!CreateIoCompletionPort(hTimer, m_iocp, reinterpret_cast<ULONG_PTR>(pi), 0)) {
+    if (!CreateIoCompletionPort(hTimer, m_p->m_iocp, reinterpret_cast<ULONG_PTR>(pi), 0)) {
         // If IOCP association fails, fall back: spawn a thread to WaitForSingleObject + PostQueuedCompletionStatus
         // For now, just close and return false
         CloseHandle(hTimer);
@@ -189,7 +209,7 @@ auto io_notifier_iocp::next_events(
     // Check for IOCP completions (from timers)
     while (true) {
         BOOL ok = GetQueuedCompletionStatus(
-                m_iocp, &bytes_transferred, &completion_key, &overlapped, 0);
+                m_p->m_iocp, &bytes_transferred, &completion_key, &overlapped, 0);
         if (!ok) {
             DWORD err = GetLastError();
             if (err == WAIT_TIMEOUT) {
@@ -216,8 +236,8 @@ auto io_notifier_iocp::next_events(
     std::vector<poll_info *> poll_info_map; // parallel to poll_fds
 
     {
-        std::lock_guard lock(m_mutex);
-        for (auto &[fd, entry] : m_watched_fds) {
+        std::lock_guard lock(m_p->m_mutex);
+        for (auto &[fd, entry] : m_p->m_watched_fds) {
             if (fd < 0) continue;
             if (entry.is_cancel_event) continue; // skip cancel pipe fds; they can't be WSAPoll'd
 
@@ -272,6 +292,10 @@ auto io_notifier_iocp::next_events(
             }
         }
     }
+}
+
+auto io_notifier_iocp::native_handle() const -> HANDLE {
+    return m_p->m_iocp;
 }
 
 } // namespace silicon::coroutine::detail

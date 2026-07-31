@@ -9,6 +9,7 @@ module;
 
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 
 module silicon.coroutine;
@@ -17,6 +18,14 @@ module silicon.coroutine;
 using namespace std::chrono_literals;
 
 namespace silicon::coroutine::detail {
+
+// ---------------------------------------------------------------------------
+// PIMPL: platform-specific implementation state for io_notifier_epoll.
+// ---------------------------------------------------------------------------
+class io_notifier_epoll::P {
+  public:
+    fd_t m_fd{-1};
+};
 
 /**
  * Encode the state needed to rewind the correct poll info after an event occured into the user data of an epoll event.
@@ -44,15 +53,11 @@ auto decode_udata(uint64_t encoded) -> std::tuple<bool, bool, void *> {
     return std::make_tuple(keep_registered, is_cancel_event, udata);
 }
 
-io_notifier_epoll::io_notifier_epoll(): m_fd{::epoll_create1(EPOLL_CLOEXEC)} {
+io_notifier_epoll::io_notifier_epoll(): m_p(std::make_unique<P>()) {
+    m_p->m_fd = ::epoll_create1(EPOLL_CLOEXEC);
 }
 
-io_notifier_epoll::~io_notifier_epoll() {
-    if(m_fd != -1) {
-        ::close(m_fd);
-        m_fd = -1;
-    }
-}
+io_notifier_epoll::~io_notifier_epoll() = default;
 
 auto io_notifier_epoll::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
     auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
@@ -88,7 +93,7 @@ auto io_notifier_epoll::watch(fd_t fd, poll_op op, void *data, bool keep, bool i
         event_data.events |= EPOLLET;
     }
 
-    return ::epoll_ctl(m_fd, EPOLL_CTL_ADD, fd, &event_data) != -1;
+    return ::epoll_ctl(m_p->m_fd, EPOLL_CTL_ADD, fd, &event_data) != -1;
 }
 
 auto io_notifier_epoll::watch(poll_info &pi) -> bool {
@@ -102,10 +107,10 @@ auto io_notifier_epoll::watch(poll_info &pi) -> bool {
 }
 
 auto io_notifier_epoll::unwatch(fd_t fd, poll_op) -> bool {
-    return ::epoll_ctl(m_fd, EPOLL_CTL_DEL, fd, nullptr) != -1;
+    return ::epoll_ctl(m_p->m_fd, EPOLL_CTL_DEL, fd, nullptr) != -1;
 }
 
-auto io_notifier_epoll::unwatch(poll_info &pi) -> bool {
+auto io_notifier_epoll::unwatch(detail::poll_info &pi) -> bool {
     return unwatch(pi.m_fd, pi.m_op);
 }
 
@@ -121,7 +126,7 @@ auto io_notifier_epoll::next_events(
         std::vector<std::pair<poll_info *, poll_status>> &ready_events, std::chrono::milliseconds timeout
 ) -> void {
     auto ready_set = std::array<event_t, m_max_events>{};
-    int num_ready = ::epoll_wait(m_fd, ready_set.data(), ready_set.size(), timeout.count());
+    int num_ready = ::epoll_wait(m_p->m_fd, ready_set.data(), ready_set.size(), timeout.count());
     for(int i = 0; i < num_ready; ++i) {
         auto [keep_registered, is_cancel_event, udata] = decode_udata(ready_set[i].data.u64);
         auto *pi = static_cast<poll_info *>(udata);
@@ -154,6 +159,10 @@ auto io_notifier_epoll::event_to_poll_status(const event_t &event) -> poll_statu
         return poll_status::closed;
     }
     throw std::runtime_error{"invalid epoll state"};
+}
+
+auto io_notifier_epoll::native_handle() const -> fd_t {
+    return m_p->m_fd;
 }
 
 } // namespace silicon::coroutine::detail

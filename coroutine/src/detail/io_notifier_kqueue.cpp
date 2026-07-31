@@ -11,6 +11,7 @@ module;
 #include <array>
 #include <chrono>
 #include <cstdint>
+#include <memory>
 #include <stdexcept>
 
 module silicon.coroutine;
@@ -20,15 +21,19 @@ using namespace std::chrono_literals;
 
 namespace silicon::coroutine::detail {
 
-io_notifier_kqueue::io_notifier_kqueue(): m_fd{::kqueue()} {
+// ---------------------------------------------------------------------------
+// PIMPL: platform-specific implementation state for io_notifier_kqueue.
+// ---------------------------------------------------------------------------
+class io_notifier_kqueue::P {
+  public:
+    fd_t m_fd{-1};
+};
+
+io_notifier_kqueue::io_notifier_kqueue(): m_p(std::make_unique<P>()) {
+    m_p->m_fd = ::kqueue();
 }
 
-io_notifier_kqueue::~io_notifier_kqueue() {
-    if(m_fd != -1) {
-        ::close(m_fd);
-        m_fd = -1;
-    }
-}
+io_notifier_kqueue::~io_notifier_kqueue() = default;
 
 auto io_notifier_kqueue::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
     // Prevent negative durations for the timeout as they will result in an error. 0 will fire in the next instance
@@ -48,7 +53,7 @@ auto io_notifier_kqueue::watch_timer(const timer_handle &timer, std::chrono::nan
             const_cast<void *>(timer.get_inner())
     );
 
-    return ::kevent(m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
+    return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
 auto io_notifier_kqueue::watch(fd_t fd, poll_op op, void *data, bool keep) -> bool {
@@ -59,7 +64,7 @@ auto io_notifier_kqueue::watch(fd_t fd, poll_op op, void *data, bool keep) -> bo
     }
 
     EV_SET(&event_data, fd, static_cast<int16_t>(op), mode, 0, 0, data);
-    return ::kevent(m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
+    return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
 auto io_notifier_kqueue::watch(poll_info &pi) -> bool {
@@ -88,16 +93,16 @@ auto io_notifier_kqueue::unwatch(fd_t fd, poll_op op) -> bool {
         auto event_data = event_t{};
 
         EV_SET(&event_data, fd, static_cast<int16_t>(silicon::coroutine::poll_op::read), EV_DELETE, 0, 0, nullptr);
-        ::kevent(m_fd, &event_data, 1, nullptr, 0, nullptr);
+        ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr);
 
         EV_SET(&event_data, fd, static_cast<int16_t>(silicon::coroutine::poll_op::write), EV_DELETE, 0, 0, nullptr);
-        ::kevent(m_fd, &event_data, 1, nullptr, 0, nullptr);
+        ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr);
 
         return true;
     } else {
         auto event_data = event_t{};
         EV_SET(&event_data, fd, static_cast<int16_t>(op), EV_DELETE, 0, 0, nullptr);
-        return ::kevent(m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
+        return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
     }
 }
 
@@ -108,7 +113,7 @@ auto io_notifier_kqueue::unwatch(poll_info &pi) -> bool {
 auto io_notifier_kqueue::unwatch_timer(const timer_handle &timer) -> bool {
     auto event_data = event_t{};
     EV_SET(&event_data, timer.get_fd(), EVFILT_TIMER, EV_DELETE, 0, 0, nullptr);
-    return ::kevent(m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
+    return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
 auto io_notifier_kqueue::next_events(
@@ -121,7 +126,7 @@ auto io_notifier_kqueue::next_events(
             .tv_nsec = std::chrono::duration_cast<std::chrono::nanoseconds>(timeout - timeout_as_secs).count(),
     };
     const int num_ready = ::kevent(
-            m_fd, nullptr, 0, ready_set.data(), std::min(ready_set.size(), ready_events.capacity()), &timeout_spec
+            m_p->m_fd, nullptr, 0, ready_set.data(), std::min(ready_set.size(), ready_events.capacity()), &timeout_spec
     );
     for(int i = 0; i < num_ready; i++) {
         auto *pi = static_cast<poll_info *>(ready_set[i].udata);
@@ -164,6 +169,10 @@ auto io_notifier_kqueue::event_to_poll_status(const event_t &event) -> poll_stat
     }
 
     throw std::runtime_error{"invalid kqueue state"};
+}
+
+auto io_notifier_kqueue::native_handle() const -> fd_t {
+    return m_p->m_fd;
 }
 
 } // namespace silicon::coroutine::detail
