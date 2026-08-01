@@ -29,19 +29,29 @@ using ConfigValueData = std::variant<
     std::shared_ptr<std::map<std::string, ConfigValue>>>;
 
 class CONFIG_API ConfigValue {
+    struct P {
+      public:
+        ConfigValueData m_data{nullptr};
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
+
   public:
-    ConfigValue() noexcept = default;
+    ConfigValue() = default;
     ~ConfigValue() = default;
 
-    ConfigValue(std::nullptr_t) noexcept;
-    ConfigValue(bool v) noexcept;
-    ConfigValue(int64_t v) noexcept;
-    ConfigValue(double v) noexcept;
-    ConfigValue(std::string v) noexcept;
+    ConfigValue(std::nullptr_t);
+    ConfigValue(bool v);
+    ConfigValue(int64_t v);
+    ConfigValue(double v);
+    ConfigValue(std::string v);
 
-    ConfigValue(const ConfigValue &) = default;
+    // 值类型语义：拷贝做深拷贝，不与源对象共享实现
+    ConfigValue(const ConfigValue &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    auto operator=(const ConfigValue &o) -> ConfigValue & {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
     ConfigValue(ConfigValue &&) noexcept = default;
-    auto operator=(const ConfigValue &) -> ConfigValue & = default;
     auto operator=(ConfigValue &&) noexcept -> ConfigValue & = default;
 
     [[nodiscard]] auto is_null() const noexcept -> bool;
@@ -57,7 +67,6 @@ class CONFIG_API ConfigValue {
     [[nodiscard]] auto as_string_opt() const noexcept -> const std::string *;
 
   private:
-    ConfigValueData m_data{nullptr};
 };
 
 } // namespace silicon::config
