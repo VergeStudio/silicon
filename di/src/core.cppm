@@ -42,34 +42,34 @@ export module silicon.di:core;
 
 // --- core/config.h ---
 
-#if !defined(DINGO_CONSTRUCTOR_DETECTION_ARGS)
-#define DINGO_CONSTRUCTOR_DETECTION_ARGS 32
+#if !defined(SILICON_DI_CONSTRUCTOR_DETECTION_ARGS)
+#define SILICON_DI_CONSTRUCTOR_DETECTION_ARGS 32
 #endif
 
-#if !defined(DINGO_CLOSURE_ARENA_BUFFER_SIZE)
-#define DINGO_CLOSURE_ARENA_BUFFER_SIZE 128
+#if !defined(SILICON_DI_CLOSURE_ARENA_BUFFER_SIZE)
+#define SILICON_DI_CLOSURE_ARENA_BUFFER_SIZE 128
 #endif
 
-#if !defined(DINGO_CONTEXT_ARENA_BUFFER_SIZE)
-#define DINGO_CONTEXT_ARENA_BUFFER_SIZE 128
+#if !defined(SILICON_DI_CONTEXT_ARENA_BUFFER_SIZE)
+#define SILICON_DI_CONTEXT_ARENA_BUFFER_SIZE 128
 #endif
 
-#if !defined(DINGO_ALWAYS_INLINE)
+#if !defined(SILICON_DI_ALWAYS_INLINE)
 #if defined(_MSC_VER)
-#define DINGO_ALWAYS_INLINE __forceinline
+#define SILICON_DI_ALWAYS_INLINE __forceinline
 #elif defined(__GNUC__) || defined(__clang__)
-#define DINGO_ALWAYS_INLINE inline __attribute__((always_inline))
+#define SILICON_DI_ALWAYS_INLINE inline __attribute__((always_inline))
 #else
-#define DINGO_ALWAYS_INLINE inline
+#define SILICON_DI_ALWAYS_INLINE inline
 #endif
 #endif
 
 #if __cplusplus > 202002L || (defined(_MSVC_LANG) && _MSVC_LANG > 202002L)
-#define DINGO_CXX_STANDARD 23
+#define SILICON_DI_CXX_STANDARD 23
 #elif (__cplusplus > 201703L && __cplusplus <= 202002L) || (defined(_MSVC_LANG) && _MSVC_LANG == 202002L)
-#define DINGO_CXX_STANDARD 20
+#define SILICON_DI_CXX_STANDARD 20
 #elif __cplusplus <= 201703L || (defined(_MSVC_LANG) && _MSVC_LANG == 201703L)
-#define DINGO_CXX_STANDARD 17
+#define SILICON_DI_CXX_STANDARD 17
 #endif
 
 
@@ -2395,7 +2395,7 @@ struct constructor_typedef : detail::constructor_typedef_impl<T> {
 export namespace silicon::di {
 
 template <typename T> struct constructor_detection_traits {
-    static constexpr size_t max_arity = DINGO_CONSTRUCTOR_DETECTION_ARGS;
+    static constexpr size_t max_arity = SILICON_DI_CONSTRUCTOR_DETECTION_ARGS;
 };
 
 namespace detail {
@@ -2691,7 +2691,7 @@ using constructor_arity_detector =
 
 // Searches constructor arity in the inclusive range [0, N].
 template <typename T, typename Tag, template <typename...> typename IsConstructible,
-          size_t N = DINGO_CONSTRUCTOR_DETECTION_ARGS>
+          size_t N = SILICON_DI_CONSTRUCTOR_DETECTION_ARGS>
 struct constructor_detection;
 
 template <typename T, typename Tag = automatic>
@@ -3163,7 +3163,7 @@ struct callable_signature<R(Args...) noexcept, void> {
     using type = R(Args...) noexcept;
 };
 
-#define DINGO_CALLABLE_SIGNATURE_VARIANTS(APPLY)                               \
+#define SILICON_DI_CALLABLE_SIGNATURE_VARIANTS(APPLY)                               \
     APPLY(, &, )                                                               \
     APPLY(, &, noexcept)                                                       \
     APPLY(, &&, )                                                              \
@@ -3187,16 +3187,16 @@ struct callable_signature<R(Args...) noexcept, void> {
     APPLY(const volatile, &&, )                                                \
     APPLY(const volatile, &&, noexcept)
 
-#define DINGO_DEFINE_CALLABLE_SIGNATURE(cv_qualifier, ref_qualifier,           \
+#define SILICON_DI_DEFINE_CALLABLE_SIGNATURE(cv_qualifier, ref_qualifier,           \
                                         noexcept_qualifier)                    \
     template <typename R, typename... Args>                                    \
     struct callable_signature<                                                 \
         R(Args...) cv_qualifier ref_qualifier noexcept_qualifier, void>        \
         : callable_signature<R(Args...) noexcept_qualifier> {};
 
-DINGO_CALLABLE_SIGNATURE_VARIANTS(DINGO_DEFINE_CALLABLE_SIGNATURE)
+DI_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_CALLABLE_SIGNATURE)
 
-#undef DINGO_DEFINE_CALLABLE_SIGNATURE
+#undef SILICON_DI_DEFINE_CALLABLE_SIGNATURE
 
 template <typename T>
 struct callable_signature<T*, std::enable_if_t<std::is_function_v<T>>>
@@ -3236,7 +3236,7 @@ template <typename Class, typename R, typename... Args>
 struct callable_operator_signature<R (Class::*)(Args...) noexcept>
     : callable_signature<R(Args...) noexcept> {};
 
-#define DINGO_MEMBER_CALLABLE_SIGNATURE_VARIANTS(APPLY)                        \
+#define SILICON_DI_MEMBER_CALLABLE_SIGNATURE_VARIANTS(APPLY)                        \
     APPLY(, &, Class&, )                                                       \
     APPLY(, &, Class&, noexcept)                                               \
     APPLY(, &&, Class&&, )                                                     \
@@ -3260,7 +3260,7 @@ struct callable_operator_signature<R (Class::*)(Args...) noexcept>
     APPLY(const volatile, &&, const volatile Class&&, )                        \
     APPLY(const volatile, &&, const volatile Class&&, noexcept)
 
-#define DINGO_DEFINE_MEMBER_CALLABLE_SIGNATURE(cv_qualifier, ref_qualifier,    \
+#define SILICON_DI_DEFINE_MEMBER_CALLABLE_SIGNATURE(cv_qualifier, ref_qualifier,    \
                                                object_type,                    \
                                                noexcept_qualifier)             \
     template <typename Class, typename R, typename... Args>                    \
@@ -3268,22 +3268,22 @@ struct callable_operator_signature<R (Class::*)(Args...) noexcept>
         R (Class::*)(Args...) cv_qualifier ref_qualifier noexcept_qualifier,   \
         void> : callable_signature<R(object_type, Args...) noexcept_qualifier> {};
 
-DINGO_MEMBER_CALLABLE_SIGNATURE_VARIANTS(DINGO_DEFINE_MEMBER_CALLABLE_SIGNATURE)
+DI_MEMBER_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_MEMBER_CALLABLE_SIGNATURE)
 
-#undef DINGO_DEFINE_MEMBER_CALLABLE_SIGNATURE
-#undef DINGO_MEMBER_CALLABLE_SIGNATURE_VARIANTS
+#undef SILICON_DI_DEFINE_MEMBER_CALLABLE_SIGNATURE
+#undef SILICON_DI_MEMBER_CALLABLE_SIGNATURE_VARIANTS
 
-#define DINGO_DEFINE_CALLABLE_OPERATOR_SIGNATURE(cv_qualifier, ref_qualifier,  \
+#define SILICON_DI_DEFINE_CALLABLE_OPERATOR_SIGNATURE(cv_qualifier, ref_qualifier,  \
                                                 noexcept_qualifier)            \
     template <typename Class, typename R, typename... Args>                    \
     struct callable_operator_signature<                                        \
         R (Class::*)(Args...) cv_qualifier ref_qualifier noexcept_qualifier>   \
         : callable_signature<R(Args...) noexcept_qualifier> {};
 
-DINGO_CALLABLE_SIGNATURE_VARIANTS(DINGO_DEFINE_CALLABLE_OPERATOR_SIGNATURE)
+DI_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_CALLABLE_OPERATOR_SIGNATURE)
 
-#undef DINGO_DEFINE_CALLABLE_OPERATOR_SIGNATURE
-#undef DINGO_CALLABLE_SIGNATURE_VARIANTS
+#undef SILICON_DI_DEFINE_CALLABLE_OPERATOR_SIGNATURE
+#undef SILICON_DI_CALLABLE_SIGNATURE_VARIANTS
 
 template <typename T>
 struct callable_signature<T,
@@ -4993,7 +4993,7 @@ struct context_closure : context_closure_base {
         new (&destructibles_) destructibles_type(arena_);
     }
 
-    aligned_storage_t<DINGO_CLOSURE_ARENA_BUFFER_SIZE,
+    aligned_storage_t<SILICON_DI_CLOSURE_ARENA_BUFFER_SIZE,
                       alignof(std::max_align_t)>
         arena_buffer_;
     arena<> arena_;
@@ -5109,7 +5109,7 @@ struct fixed_context_closure : context_closure_base {
         }
     }
 
-    aligned_storage_t<DINGO_CLOSURE_ARENA_BUFFER_SIZE,
+    aligned_storage_t<SILICON_DI_CLOSURE_ARENA_BUFFER_SIZE,
                       alignof(std::max_align_t)>
         arena_buffer_;
     arena<> arena_;
@@ -5205,7 +5205,7 @@ class context_state : public context_path_state {
         reinterpret_cast<T*>(ptr)->~T();
     }
 
-    aligned_storage_t<DINGO_CONTEXT_ARENA_BUFFER_SIZE,
+    aligned_storage_t<SILICON_DI_CONTEXT_ARENA_BUFFER_SIZE,
                       alignof(std::max_align_t)>
         arena_buffer_;
     arena<> arena_;
@@ -15405,20 +15405,20 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     template <typename T, bool RemoveRvalueReferences, typename Key = void,
               typename R = request_result_t<T>,
               std::enable_if_t<std::is_rvalue_reference_v<T>, int> = 0>
-    DINGO_ALWAYS_INLINE R resolve_static() {
+    SILICON_DI_ALWAYS_INLINE R resolve_static() {
         static_context_type static_context;
         return resolve_static<T, RemoveRvalueReferences, Key>(static_context);
     }
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void,
               std::enable_if_t<!std::is_rvalue_reference_v<T>, int> = 0>
-    DINGO_ALWAYS_INLINE decltype(auto) resolve_static() {
+    SILICON_DI_ALWAYS_INLINE decltype(auto) resolve_static() {
         static_context_type static_context;
         return resolve_static<T, RemoveRvalueReferences, Key>(static_context);
     }
 
     template <typename T, typename R = request_result_t<T>>
-    DINGO_ALWAYS_INLINE R construct_static() {
+    SILICON_DI_ALWAYS_INLINE R construct_static() {
         using request_type = request_interface_t<T>;
         using normalized_request_type = request_value_t<T>;
         constexpr bool has_exact_static_binding =
@@ -15521,7 +15521,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     template <typename LookupRequest, typename Request, typename Key,
               typename Context>
-    DINGO_ALWAYS_INLINE request_interface_t<Request>
+    SILICON_DI_ALWAYS_INLINE request_interface_t<Request>
     resolve_static_selection(Context& context) {
         using selection = static_selection_t<LookupRequest, Key>;
         using binding = typename selection::binding_type;
@@ -15570,7 +15570,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     template <typename T, bool RemoveRvalueReferences, typename Key = void,
               typename Context,
               typename R = resolve_result_t<T, RemoveRvalueReferences>>
-    DINGO_ALWAYS_INLINE R resolve_static(Context& context) {
+    SILICON_DI_ALWAYS_INLINE R resolve_static(Context& context) {
         if constexpr (collection_traits<R>::is_collection) {
             return construct_static_collection<R>(context,
                                                   collection_key<Key>());
@@ -15818,7 +15818,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     template <typename T, typename IdType = none_t,
               typename R = request_result_t<T>>
-    DINGO_ALWAYS_INLINE R resolve(IdType&& id = IdType()) {
+    SILICON_DI_ALWAYS_INLINE R resolve(IdType&& id = IdType()) {
         if constexpr (detail::is_typed_key_v<IdType>) {
             using key_type = typename std::decay_t<IdType>::type;
             if constexpr (collection_traits<R>::is_collection) {
@@ -15908,7 +15908,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     template <typename T, typename Factory = constructor<normalized_type_t<T>>,
               typename R = request_result_t<T>>
-    DINGO_ALWAYS_INLINE R construct(Factory factory = Factory()) {
+    SILICON_DI_ALWAYS_INLINE R construct(Factory factory = Factory()) {
         using request_type = request_interface_t<T>;
         using normalized_request_type = request_value_t<T>;
         if constexpr (std::is_same_v<Factory,
@@ -16521,7 +16521,7 @@ struct index_collection<Key, Value, Allocator, index_type::unordered_map> {
 export namespace silicon::di {
 
 template <typename...> struct constructor;
-#define DINGO_CONSTRUCTOR(...)                                                 \
+#define SILICON_DI_CONSTRUCTOR(...)                                                 \
     using di_constructor_type [[maybe_unused]] =                            \
         ::silicon::di::constructor<__VA_ARGS__>;                                     \
     __VA_ARGS__

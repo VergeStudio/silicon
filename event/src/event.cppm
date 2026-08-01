@@ -15,7 +15,7 @@ enum class EventStatus { Success, Failure, Timeout };
 
 class EVENT_API Event {
   public:
-    Event() noexcept = default;
+    Event() = default;
     explicit Event(std::string name) noexcept;
     virtual ~Event() = default;
 
@@ -29,8 +29,14 @@ class EVENT_API Event {
     void set_status(EventStatus s) noexcept;
 
   private:
-    std::string m_name;
-    EventStatus m_status{EventStatus::Success};
+    // PIMPL：私有状态移入不透明 P，稳定 ABI、隐藏实现。
+    struct P {
+      public:
+        std::string m_name;
+        EventStatus m_status{EventStatus::Success};
+    };
+
+    std::unique_ptr<P> m_p{std::make_unique<P>()};
 };
 
 } // namespace silicon::event
