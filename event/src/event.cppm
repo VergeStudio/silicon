@@ -15,7 +15,7 @@ enum class EventStatus { kSuccess, kFailure, kTimeout };
 
 class EVENT_API Event {
   public:
-    Event() noexcept = default;
+    Event() = default;
     explicit Event(std::string name) noexcept;
     virtual ~Event() = default;
 
@@ -29,8 +29,13 @@ class EVENT_API Event {
     void SetStatus(EventStatus s) noexcept;
 
   private:
-    std::string name_;
-    EventStatus status_{EventStatus::kSuccess};
+    // PIMPL：私有状态移入不透明 Impl，稳定 ABI、隐藏实现。
+    struct Impl {
+        std::string name_;
+        EventStatus status_{EventStatus::kSuccess};
+    };
+
+    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 };
 
 } // namespace silicon::event

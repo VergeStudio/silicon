@@ -29,19 +29,28 @@ using ConfigValueData = std::variant<
     std::shared_ptr<std::map<std::string, ConfigValue>>>;
 
 class CONFIG_API ConfigValue {
+    struct Impl {
+        ConfigValueData data_{nullptr};
+    };
+    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+
   public:
-    ConfigValue() noexcept = default;
+    ConfigValue() = default;
     ~ConfigValue() = default;
 
-    ConfigValue(std::nullptr_t) noexcept;
-    ConfigValue(bool v) noexcept;
-    ConfigValue(int64_t v) noexcept;
-    ConfigValue(double v) noexcept;
-    ConfigValue(std::string v) noexcept;
+    ConfigValue(std::nullptr_t);
+    ConfigValue(bool v);
+    ConfigValue(int64_t v);
+    ConfigValue(double v);
+    ConfigValue(std::string v);
 
-    ConfigValue(const ConfigValue &) = default;
+    // 值类型语义：拷贝做深拷贝，不与源对象共享实现
+    ConfigValue(const ConfigValue &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    auto operator=(const ConfigValue &o) -> ConfigValue & {
+        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        return *this;
+    }
     ConfigValue(ConfigValue &&) noexcept = default;
-    auto operator=(const ConfigValue &) -> ConfigValue & = default;
     auto operator=(ConfigValue &&) noexcept -> ConfigValue & = default;
 
     [[nodiscard]] auto IsNull() const noexcept -> bool;
@@ -55,9 +64,6 @@ class CONFIG_API ConfigValue {
     [[nodiscard]] auto AsDouble() const -> double;
     [[nodiscard]] auto AsString() const -> const std::string &;
     [[nodiscard]] auto AsStringOpt() const noexcept -> const std::string *;
-
-  private:
-    ConfigValueData data_{nullptr};
 };
 
 } // namespace silicon::config

@@ -9,6 +9,8 @@
 
 #include <cstdint>
 #include <cstring>
+#include <memory>
+#include <utility>
 
 #include "ip_address.hpp"
 namespace silicon::network {
@@ -16,41 +18,60 @@ namespace silicon::network {
  * Represents IP address and port.
  */
 class socket_address {
+    struct P {
+      public:
+        sockaddr_storage m_storage{};
+        socklen_t m_len = sizeof(sockaddr_storage);
+    };
+    std::shared_ptr<P> m_p{std::make_shared<P>()};
+
   public:
     socket_address(std::string_view ip, std::uint16_t port, domain_t domain = domain_t::ipv4)
         : socket_address(ip_address::from_string(ip, domain), port) {
     }
 
     socket_address(const ip_address &ip, std::uint16_t port) {
+        auto &storage = m_p->m_storage;
+        auto &len = m_p->m_len;
         if(ip.domain() == domain_t::ipv4) {
-            auto *sin = reinterpret_cast<sockaddr_in *>(&m_storage);
+            auto *sin = reinterpret_cast<sockaddr_in *>(&storage);
             sin->sin_family = AF_INET;
             sin->sin_port = htons(port);
 
             // BSD-specific field, redundant for input
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#    if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
             sin->sin_len = sizeof(sockaddr_in);
-#endif
+#    endif
 
             std::memcpy(&sin->sin_addr, ip.data().data(), sizeof(in_addr));
-            m_len = sizeof(sockaddr_in);
+            len = sizeof(sockaddr_in);
         } else if(ip.domain() == domain_t::ipv6) {
-            auto *sin6 = reinterpret_cast<sockaddr_in6 *>(&m_storage);
+            auto *sin6 = reinterpret_cast<sockaddr_in6 *>(&storage);
             sin6->sin6_family = AF_INET6;
             sin6->sin6_port = htons(port);
 
             // BSD-specific field
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#    if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
             sin6->sin6_len = sizeof(sockaddr_in6);
-#endif
+#    endif
 
             std::memcpy(&sin6->sin6_addr, ip.data().data(), sizeof(in6_addr));
-            m_len = sizeof(sockaddr_in6);
+            len = sizeof(sockaddr_in6);
 
             // TODO: link-local addresses
             // sin6->sin6_scope_id = ip.scope_id();
         }
     }
+
+    // 值类型语义：拷贝做深拷贝，不与源对象共享实现
+    socket_address(const socket_address &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    socket_address(socket_address &&) noexcept = default;
+    auto operator=(const socket_address &o) -> socket_address & {
+        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        return *this;
+    }
+    auto operator=(socket_address &&) noexcept -> socket_address & = default;
+    ~socket_address() = default;
 
     /**
      * @brief Gets a pointer to underlying sockaddr structure.
@@ -58,7 +79,7 @@ class socket_address {
      * @return A pair containing the const sockaddr pointer and its length.
      */
     [[nodiscard]] auto data() const & -> std::pair<const sockaddr *, socklen_t> {
-        return {reinterpret_cast<const sockaddr *>(&m_storage), m_len};
+        return {reinterpret_cast<const sockaddr *>(&m_p->m_storage), m_p->m_len};
     }
 
     /// Prevent usage on temporary objects to avoid dangling pointers.
@@ -71,7 +92,7 @@ class socket_address {
      * @see make_unitialised()
      */
     [[nodiscard]] auto native_mutable_data() & -> std::pair<sockaddr *, socklen_t *> {
-        return {reinterpret_cast<sockaddr *>(&m_storage), &m_len};
+        return {reinterpret_cast<sockaddr *>(&m_p->m_storage), &m_p->m_len};
     }
 
     /**
@@ -81,13 +102,13 @@ class socket_address {
      */
     [[nodiscard]] auto ip() const -> ip_address {
         if(domain() == domain_t::ipv4) {
-            auto *sin = reinterpret_cast<const sockaddr_in *>(&m_storage);
+            auto *sin = reinterpret_cast<const sockaddr_in *>(&m_p->m_storage);
             return ip_address{
                     {reinterpret_cast<const uint8_t *>(&sin->sin_addr), sizeof(sin->sin_addr)}, domain_t::ipv4
             };
         }
         if(domain() == domain_t::ipv6) {
-            auto *sin6 = reinterpret_cast<const sockaddr_in6 *>(&m_storage);
+            auto *sin6 = reinterpret_cast<const sockaddr_in6 *>(&m_p->m_storage);
             return ip_address{
                     {reinterpret_cast<const uint8_t *>(&sin6->sin6_addr), sizeof(sin6->sin6_addr)}, domain_t::ipv6
             };
@@ -101,10 +122,10 @@ class socket_address {
      * @throws std::runtime_error If the address family is not supported
      */
     [[nodiscard]] auto domain() const -> domain_t {
-        if(m_storage.ss_family == AF_INET) {
+        if(m_p->m_storage.ss_family == AF_INET) {
             return domain_t::ipv4;
         }
-        if(m_storage.ss_family == AF_INET6) {
+        if(m_p->m_storage.ss_family == AF_INET6) {
             return domain_t::ipv6;
         }
         throw std::runtime_error{"silicon::network::socket_address::domain() Invalid domain"};
@@ -116,17 +137,18 @@ class socket_address {
      * @throws std::runtime_error If the address family is not supported
      */
     [[nodiscard]] auto port() const -> std::uint16_t {
-        if(m_storage.ss_family == AF_INET) {
-            return ntohs(reinterpret_cast<const sockaddr_in *>(&m_storage)->sin_port);
+        if(m_p->m_storage.ss_family == AF_INET) {
+            return ntohs(reinterpret_cast<const sockaddr_in *>(&m_p->m_storage)->sin_port);
         }
-        if(m_storage.ss_family == AF_INET6) {
-            return ntohs(reinterpret_cast<const sockaddr_in6 *>(&m_storage)->sin6_port);
+        if(m_p->m_storage.ss_family == AF_INET6) {
+            return ntohs(reinterpret_cast<const sockaddr_in6 *>(&m_p->m_storage)->sin6_port);
         }
         throw std::runtime_error{"silicon::network::socket_address::port() Invalid domain"};
     }
 
     auto operator==(const socket_address &other) const -> bool {
-        return m_len == other.m_len && domain() == other.domain() && port() == other.port() && ip() == other.ip();
+        return m_p->m_len == other.m_p->m_len && domain() == other.domain() && port() == other.port() &&
+               ip() == other.ip();
     }
 
     /**
@@ -138,10 +160,7 @@ class socket_address {
 
   private:
     // It's private to avoid default empty initialisation and to make use more explicit make_uninitialised
-    socket_address() {}
-
-    sockaddr_storage m_storage{};
-    socklen_t m_len = sizeof(sockaddr_storage);
+    socket_address() = default;
 };
 
 inline auto operator<<(std::ostream &os, const socket_address &ep) -> std::ostream & {

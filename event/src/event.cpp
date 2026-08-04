@@ -8,18 +8,20 @@ module silicon.event;
 
 namespace silicon::event {
 
-Event::Event(std::string name) noexcept: name_(std::move(name)) {}
+Event::Event(std::string name) noexcept {
+    impl_->name_ = std::move(name);
+}
 
 auto Event::name() const noexcept -> const std::string & {
-    return name_;
+    return impl_->name_;
 }
 
 auto Event::status() const noexcept -> EventStatus {
-    return status_;
+    return impl_->status_;
 }
 
 void Event::SetStatus(EventStatus s) noexcept {
-    status_ = s;
+    impl_->status_ = s;
 }
 
 } // namespace silicon::event
