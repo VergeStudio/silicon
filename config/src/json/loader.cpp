@@ -19,8 +19,8 @@ JsonFileConfig::JsonFileConfig(): m_p(std::make_unique<P>()) {}
 JsonFileConfig::~JsonFileConfig() = default;
 
 // ── JsonFileConfig methods ────────────────────────────────────────────────
-bool JsonFileConfig::load(const std::string &path, const fs::IFileSystem &filesystem) {
-    auto content = filesystem.read(path);
+bool JsonFileConfig::load(const std::string &path, const fs::FileSystem &filesystem) {
+    auto content = filesystem.Read(path);
     if(!content) return false;
 
     auto parsed = silicon::json::parse(content.value());

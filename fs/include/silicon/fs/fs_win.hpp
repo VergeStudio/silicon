@@ -11,7 +11,7 @@ export namespace silicon::fs {
 /// 文本写入按 Windows 约定归一化为 CRLF；目录创建使用系统默认权限。
 class Win32FileSystem: public FileSystemBase {
   public:
-    std::string normalize_text(const std::string &content) const override {
+    std::string NormalizeText(const std::string &content) const override {
         std::string out;
         out.reserve(content.size() + content.size() / 8 + 1);
         for(char c: content) {
@@ -20,7 +20,7 @@ class Win32FileSystem: public FileSystemBase {
         }
         return out;
     }
-    // create_directories 复用基类默认实现（std::filesystem 在 Windows 上行为正确）
+    // CreateDirectories 复用基类默认实现（std::filesystem 在 Windows 上行为正确）
 };
 
 } // namespace silicon::fs

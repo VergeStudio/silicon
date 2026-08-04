@@ -13,15 +13,15 @@ export namespace silicon::fs {
 /// 文本保持 LF；目录创建后显式设置 0755 权限。
 class PosixFileSystem: public FileSystemBase {
   public:
-    bool create_directories(const std::string &path) const override {
+    bool CreateDirectories(const std::string &path) const override {
         std::error_code ec;
-        auto p = to_path(path);
+        auto p = ToPath(path);
         bool made = std::filesystem::create_directories(p, ec);
         if(ec) return false;
         std::filesystem::permissions(p, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write | std::filesystem::perms::owner_exec | std::filesystem::perms::group_read | std::filesystem::perms::group_exec | std::filesystem::perms::others_read | std::filesystem::perms::others_exec, std::filesystem::perm_options::replace, ec);
         return made;
     }
-    // normalize_text 复用基类默认实现（保持 LF）
+    // NormalizeText 复用基类默认实现（保持 LF）
 };
 
 } // namespace silicon::fs

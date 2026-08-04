@@ -22,7 +22,7 @@ CONFIG_API class JsonFileConfig: public ILoader {
   public:
     JsonFileConfig();
     ~JsonFileConfig();
-    bool load(const std::string &path, const fs::IFileSystem &fs);
+    bool load(const std::string &path, const fs::FileSystem &fs);
 
     // 注意：基类 ILoader 仅声明 virtual load()；get/all 并非虚函数覆写。
     std::optional<ConfigValue> get(std::string_view key) const;

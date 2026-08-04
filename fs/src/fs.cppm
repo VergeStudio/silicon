@@ -17,91 +17,91 @@ export namespace silicon::fs {
 
 template<typename T>
 class Result {
-    struct P {
+    struct Impl {
       public:
         bool ok_{false};
         T value_{};
         silicon::exception::FsError error_{};
     };
-    std::shared_ptr<P> m_p{std::make_shared<P>()};
+    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
     Result(T v) {
-        m_p->ok_ = true;
-        m_p->value_ = std::move(v);
+        impl_->ok_ = true;
+        impl_->value_ = std::move(v);
     }
     Result(silicon::exception::FsError e) {
-        m_p->ok_ = false;
-        m_p->error_ = std::move(e);
+        impl_->ok_ = false;
+        impl_->error_ = std::move(e);
     }
-    Result(const Result &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    Result(const Result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
     Result &operator=(const Result &o) {
-        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
     Result(Result &&) noexcept = default;
     Result &operator=(Result &&) noexcept = default;
     ~Result() = default;
 
-    bool has_value() const { return m_p->ok_; }
-    explicit operator bool() const { return m_p->ok_; }
-    T &value() { return m_p->value_; }
-    const T &value() const { return m_p->value_; }
-    silicon::exception::FsError &error() { return m_p->error_; }
-    const silicon::exception::FsError &error() const { return m_p->error_; }
+    bool has_value() const { return impl_->ok_; }
+    explicit operator bool() const { return impl_->ok_; }
+    T &value() { return impl_->value_; }
+    const T &value() const { return impl_->value_; }
+    silicon::exception::FsError &error() { return impl_->error_; }
+    const silicon::exception::FsError &error() const { return impl_->error_; }
 };
 
 // 针对 void 的特化
 template<>
 class Result<void> {
-    struct P {
+    struct Impl {
       public:
         bool ok_{false};
         silicon::exception::FsError error_{};
     };
-    std::shared_ptr<P> m_p{std::make_shared<P>()};
+    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
-    Result() { m_p->ok_ = true; }
+    Result() { impl_->ok_ = true; }
     Result(silicon::exception::FsError e) {
-        m_p->ok_ = false;
-        m_p->error_ = std::move(e);
+        impl_->ok_ = false;
+        impl_->error_ = std::move(e);
     }
-    Result(const Result &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    Result(const Result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
     Result &operator=(const Result &o) {
-        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
     Result(Result &&) noexcept = default;
     Result &operator=(Result &&) noexcept = default;
     ~Result() = default;
 
-    bool has_value() const { return m_p->ok_; }
-    explicit operator bool() const { return m_p->ok_; }
-    silicon::exception::FsError &error() { return m_p->error_; }
-    const silicon::exception::FsError &error() const { return m_p->error_; }
+    bool has_value() const { return impl_->ok_; }
+    explicit operator bool() const { return impl_->ok_; }
+    silicon::exception::FsError &error() { return impl_->error_; }
+    const silicon::exception::FsError &error() const { return impl_->error_; }
 };
 
 /// 文件系统抽象（统一接口）。
 /// 文本 read/write 平台无关地以 UTF-8 表达；平台相关细节
 /// （Windows 文本 CRLF 归一化、POSIX 目录默认权限）由具体实现处理。
-class IFileSystem {
+class FileSystem {
   public:
-    virtual ~IFileSystem() = default;
+    virtual ~FileSystem() = default;
 
     /// 文本读取，返回 UTF-8 内容
-    virtual Result<std::string> read(const std::string &path) const = 0;
+    virtual Result<std::string> Read(const std::string &path) const = 0;
     /// 文本写入（平台相关：Windows 归一化为 CRLF，POSIX 保持 LF）
-    virtual Result<void> write(const std::string &path, const std::string &content) const = 0;
+    virtual Result<void> Write(const std::string &path, const std::string &content) const = 0;
 
     /// 二进制读取
-    virtual Result<std::vector<std::byte>> read_binary(const std::string &path) const = 0;
+    virtual Result<std::vector<std::byte>> ReadBinary(const std::string &path) const = 0;
     /// 二进制写入
-    virtual Result<void> write_binary(const std::string &path, const std::vector<std::byte> &data) const = 0;
+    virtual Result<void> WriteBinary(const std::string &path, const std::vector<std::byte> &data) const = 0;
 
-    virtual bool exists(const std::string &path) const = 0;
-    virtual Result<std::vector<std::string>> list_dir(const std::string &path) const = 0;
-    virtual bool create_directories(const std::string &path) const = 0;
+    virtual bool Exists(const std::string &path) const = 0;
+    virtual Result<std::vector<std::string>> ListDir(const std::string &path) const = 0;
+    virtual bool CreateDirectories(const std::string &path) const = 0;
 };
 
 } // namespace silicon::fs
@@ -118,6 +118,6 @@ class IFileSystem {
 export namespace silicon::fs {
 
 /// 工厂：返回当前平台的文件系统实现（具体类型由上面选中的头文件提供）。
-std::unique_ptr<IFileSystem> create_file_system();
+std::unique_ptr<FileSystem> CreateFileSystem();
 
 } // namespace silicon::fs
