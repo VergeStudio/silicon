@@ -2,8 +2,8 @@
 /// @brief Platform detection — C++23 modules + constexpr.
 /// @usage
 ///   import silicon.platform;
-///   if constexpr (os == os_id::windows_nt) { /* Windows */ }
-///   if constexpr (os == os_id::linux_os)    { /* Linux  */ }
+///   if constexpr (os == OsId::kWindowsNt) { /* Windows */ }
+///   if constexpr (os == OsId::kLinuxOs)    { /* Linux  */ }
 ///   // Endianness: use std::endian::native (C++20)
 
 module;
@@ -16,112 +16,112 @@ export module silicon.platform;
 export namespace silicon::platform {
 
     // ── OS identity ──────────────────────────────────────────────────────
-    enum class os_id : unsigned {
-        free_bsd    = 0x0001,
-        aix          = 0x0002,
-        hpux         = 0x0003,
-        tru64        = 0x0004,
-        linux_os     = 0x0005,
-        mac_os_x     = 0x0006,
-        net_bsd      = 0x0007,
-        open_bsd     = 0x0008,
-        irix         = 0x0009,
-        solaris      = 0x000a,
-        qnx_os       = 0x000b,
-        vxworks      = 0x000c,
-        cygwin       = 0x000d,
-        nacl         = 0x000e,
-        android      = 0x000f,
-        gnu_hurd     = 0x0010,
-        unknown_unix = 0x00ff,
-        windows_nt   = 0x1001,
-        vms          = 0x2001,
+    enum class OsId : unsigned {
+        kFreeBsd    = 0x0001,
+        kAix          = 0x0002,
+        kHpux         = 0x0003,
+        kTru64        = 0x0004,
+        kLinuxOs     = 0x0005,
+        kMacOsX     = 0x0006,
+        kNetBsd      = 0x0007,
+        kOpenBsd     = 0x0008,
+        kIrix         = 0x0009,
+        kSolaris      = 0x000a,
+        kQnxOs       = 0x000b,
+        kVxWorks      = 0x000c,
+        kCygwin       = 0x000d,
+        kNacl         = 0x000e,
+        kAndroid      = 0x000f,
+        kGnuHurd     = 0x0010,
+        kUnknownUnix = 0x00ff,
+        kWindowsNt   = 0x1001,
+        kVms          = 0x2001,
     };
 
     // ── Architecture identity ──────────────────────────────────────────────
-    enum class arch_id : unsigned {
-        alpha       = 0x01,
-        ia32        = 0x02,
-        ia64        = 0x03,
-        mips        = 0x04,
-        hppa        = 0x05,
-        ppc         = 0x06,
-        power       = 0x07,
-        sparc       = 0x08,
-        amd64       = 0x09,
-        arm         = 0x0a,
-        m68k        = 0x0b,
-        s390        = 0x0c,
-        sh          = 0x0d,
-        nios2       = 0x0e,
-        aarch64     = 0x0f,
-        arm64       = 0x0f,
-        riscv64     = 0x10,
-        riscv32     = 0x11,
-        loongarch64 = 0x12,
+    enum class ArchId : unsigned {
+        kAlpha       = 0x01,
+        kIa32        = 0x02,
+        kIa64        = 0x03,
+        kMips        = 0x04,
+        kHppa        = 0x05,
+        kPpc         = 0x06,
+        kPower       = 0x07,
+        kSparc       = 0x08,
+        kAmd64       = 0x09,
+        kArm         = 0x0a,
+        kM68k        = 0x0b,
+        kS390        = 0x0c,
+        kSh          = 0x0d,
+        kNios2       = 0x0e,
+        kAarch64     = 0x0f,
+        kArm64       = 0x0f,
+        kRiscv64     = 0x10,
+        kRiscv32     = 0x11,
+        kLoongarch64 = 0x12,
     };
 
     // ── Compile-time detected values ─────────────────────────────────────
     // Exactly one branch is active per compilation.
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-    constexpr os_id   os   = os_id::free_bsd;
+    constexpr OsId   os   = OsId::kFreeBsd;
 #elif defined(_AIX) || defined(__TOS_AIX__)
-    constexpr os_id   os   = os_id::aix;
+    constexpr OsId   os   = OsId::kAix;
 #elif defined(hpux) || defined(_hpux) || defined(__hpux)
-    constexpr os_id   os   = os_id::hpux;
+    constexpr OsId   os   = OsId::kHpux;
 #elif defined(__digital__) || defined(__osf__)
-    constexpr os_id   os   = os_id::tru64;
+    constexpr OsId   os   = OsId::kTru64;
 #elif defined(__NACL__)
-    constexpr os_id   os   = os_id::nacl;
+    constexpr OsId   os   = OsId::kNacl;
 #elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__TOS_LINUX__) || defined(__EMSCRIPTEN__)
     #if defined(__ANDROID__)
-        constexpr os_id os = os_id::android;
+        constexpr OsId os = OsId::kAndroid;
     #else
-        constexpr os_id os = os_id::linux_os;
+        constexpr OsId os = OsId::kLinuxOs;
     #endif
 #elif defined(__APPLE__) || defined(__TOS_MACOS__)
-    constexpr os_id   os   = os_id::mac_os_x;
+    constexpr OsId   os   = OsId::kMacOsX;
 #elif defined(__NetBSD__)
-    constexpr os_id   os   = os_id::net_bsd;
+    constexpr OsId   os   = OsId::kNetBsd;
 #elif defined(__OpenBSD__)
-    constexpr os_id   os   = os_id::open_bsd;
+    constexpr OsId   os   = OsId::kOpenBsd;
 #elif defined(sgi) || defined(__sgi)
-    constexpr os_id   os   = os_id::irix;
+    constexpr OsId   os   = OsId::kIrix;
 #elif defined(sun) || defined(__sun)
-    constexpr os_id   os   = os_id::solaris;
+    constexpr OsId   os   = OsId::kSolaris;
 #elif defined(__QNX__)
-    constexpr os_id   os   = os_id::qnx_os;
+    constexpr OsId   os   = OsId::kQnxOs;
 #elif defined(__CYGWIN__)
-    constexpr os_id   os   = os_id::cygwin;
+    constexpr OsId   os   = OsId::kCygwin;
 #elif defined(__VMS)
-    constexpr os_id   os   = os_id::vms;
+    constexpr OsId   os   = OsId::kVms;
 #elif defined(unix) || defined(__unix) || defined(__unix__)
-    constexpr os_id   os   = os_id::unknown_unix;
+    constexpr OsId   os   = OsId::kUnknownUnix;
 #elif defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
-    constexpr os_id   os   = os_id::windows_nt;
+    constexpr OsId   os   = OsId::kWindowsNt;
 #else
     #error "Unknown platform — cannot detect OS."
 #endif
 
 #if defined(__ALPHA) || defined(__alpha) || defined(__alpha__) || defined(_M_ALPHA)
-    constexpr arch_id arch = arch_id::alpha;
+    constexpr ArchId arch = ArchId::kAlpha;
 #elif defined(i386) || defined(__i386) || defined(__i386__) || defined(_M_IX86) || defined(__EMSCRIPTEN__)
-    constexpr arch_id arch = arch_id::ia32;
+    constexpr ArchId arch = ArchId::kIa32;
 #elif defined(_IA64) || defined(__IA64__) || defined(__ia64__) || defined(_M_IA64)
-    constexpr arch_id arch = arch_id::ia64;
+    constexpr ArchId arch = ArchId::kIa64;
 #elif defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
-    constexpr arch_id arch = arch_id::amd64;
+    constexpr ArchId arch = ArchId::kAmd64;
 #elif defined(__aarch64__) || defined(__arm64) || defined(_M_ARM64)
-    constexpr arch_id arch = arch_id::aarch64;
+    constexpr ArchId arch = ArchId::kAarch64;
 #elif defined(__riscv)
     #if __riscv_xlen == 64
-        constexpr arch_id arch = arch_id::riscv64;
+        constexpr ArchId arch = ArchId::kRiscv64;
     #elif __riscv_xlen == 32
-        constexpr arch_id arch = arch_id::riscv32;
+        constexpr ArchId arch = ArchId::kRiscv32;
     #endif
 #elif defined(__loongarch64)
-    constexpr arch_id arch = arch_id::loongarch64;
+    constexpr ArchId arch = ArchId::kLoongarch64;
 #else
     #error "Unknown hardware architecture."
 #endif
@@ -129,111 +129,111 @@ export namespace silicon::platform {
     // ── Helper functions ─────────────────────────────────────────────────
     // Family checks (compile-time)
 
-    constexpr bool is_unix_family(os_id o) {
-        return o == os_id::free_bsd  || o == os_id::aix        ||
-               o == os_id::hpux      || o == os_id::tru64      ||
-               o == os_id::nacl      || o == os_id::linux_os   ||
-               o == os_id::mac_os_x  || o == os_id::net_bsd    ||
-               o == os_id::open_bsd  || o == os_id::irix       ||
-               o == os_id::solaris   || o == os_id::qnx_os     ||
-               o == os_id::cygwin    || o == os_id::nacl       ||
-               o == os_id::android   || o == os_id::gnu_hurd   ||
-               o == os_id::unknown_unix;
+    constexpr bool IsUnixFamily(OsId o) {
+        return o == OsId::kFreeBsd  || o == OsId::kAix        ||
+               o == OsId::kHpux      || o == OsId::kTru64      ||
+               o == OsId::kNacl      || o == OsId::kLinuxOs   ||
+               o == OsId::kMacOsX  || o == OsId::kNetBsd    ||
+               o == OsId::kOpenBsd  || o == OsId::kIrix       ||
+               o == OsId::kSolaris   || o == OsId::kQnxOs     ||
+               o == OsId::kCygwin    || o == OsId::kNacl       ||
+               o == OsId::kAndroid   || o == OsId::kGnuHurd   ||
+               o == OsId::kUnknownUnix;
     }
 
-    constexpr bool is_bsd_family(os_id o) {
-        return o == os_id::free_bsd || o == os_id::net_bsd ||
-               o == os_id::open_bsd || o == os_id::mac_os_x;
+    constexpr bool IsBsdFamily(OsId o) {
+        return o == OsId::kFreeBsd || o == OsId::kNetBsd ||
+               o == OsId::kOpenBsd || o == OsId::kMacOsX;
     }
 
-    constexpr bool is_windows_family(os_id o) {
-        return o == os_id::windows_nt;
+    constexpr bool IsWindowsFamily(OsId o) {
+        return o == OsId::kWindowsNt;
     }
 
     // ── Platform properties (compile-time) ──────────────────────────────
 
-    constexpr auto native_newline() {
-        if constexpr (os == os_id::windows_nt)
+    constexpr auto NativeNewline() {
+        if constexpr (os == OsId::kWindowsNt)
             return "\r\n";
         else
             return "\n";
     }
 
-    constexpr auto path_separator() {
-        if constexpr (os == os_id::windows_nt)
+    constexpr auto PathSeparator() {
+        if constexpr (os == OsId::kWindowsNt)
             return "\\";
         else
             return "/";
     }
 
-    constexpr char path_separator_char() {
-        if constexpr (os == os_id::windows_nt)
+    constexpr char PathSeparatorChar() {
+        if constexpr (os == OsId::kWindowsNt)
             return ';';
         else
             return ':';
     }
 
-    constexpr auto shared_lib_prefix() {
-        if constexpr (os == os_id::windows_nt)
+    constexpr auto SharedLibPrefix() {
+        if constexpr (os == OsId::kWindowsNt)
             return "";
         else
             return "lib";
     }
 
-    constexpr auto shared_lib_suffix() {
-        if constexpr (os == os_id::windows_nt)
+    constexpr auto SharedLibSuffix() {
+        if constexpr (os == OsId::kWindowsNt)
             return ".dll";
-        else if constexpr (os == os_id::mac_os_x)
+        else if constexpr (os == OsId::kMacOsX)
             return ".dylib";
-        else if constexpr (os == os_id::hpux)
+        else if constexpr (os == OsId::kHpux)
             return ".sl";
         else
             return ".so";
     }
 
-    constexpr auto executable_suffix() {
-        if constexpr (os == os_id::windows_nt)
+    constexpr auto ExecutableSuffix() {
+        if constexpr (os == OsId::kWindowsNt)
             return ".exe";
         else
             return "";
     }
 
-    // ── Runtime abstraction（spec：IPlatform / 各平台实现 / create_platform） ──
+    // ── Runtime abstraction（spec：Platform / 各平台实现 / CreatePlatform） ──
 
-    class IPlatform {
+    class Platform {
       public:
-        virtual ~IPlatform() = default;
-        virtual std::string os_name() const = 0;
-        virtual char path_separator() const = 0;
-        virtual std::string line_ending() const = 0;
+        virtual ~Platform() = default;
+        virtual std::string OsName() const = 0;
+        virtual char PathSeparator() const = 0;
+        virtual std::string LineEnding() const = 0;
     };
 
-    class WindowsPlatform: public IPlatform {
+    class WindowsPlatform: public Platform {
       public:
-        std::string os_name() const override { return "windows"; }
-        char path_separator() const override { return '\\'; }
-        std::string line_ending() const override { return "\r\n"; }
+        std::string OsName() const override { return "windows"; }
+        char PathSeparator() const override { return '\\'; }
+        std::string LineEnding() const override { return "\r\n"; }
     };
 
-    class LinuxPlatform: public IPlatform {
+    class LinuxPlatform: public Platform {
       public:
-        std::string os_name() const override { return "linux"; }
-        char path_separator() const override { return '/'; }
-        std::string line_ending() const override { return "\n"; }
+        std::string OsName() const override { return "linux"; }
+        char PathSeparator() const override { return '/'; }
+        std::string LineEnding() const override { return "\n"; }
     };
 
-    class UnixPlatform: public IPlatform {
+    class UnixPlatform: public Platform {
       public:
-        std::string os_name() const override { return "unix"; }
-        char path_separator() const override { return '/'; }
-        std::string line_ending() const override { return "\n"; }
+        std::string OsName() const override { return "unix"; }
+        char PathSeparator() const override { return '/'; }
+        std::string LineEnding() const override { return "\n"; }
     };
 
     // 编译期选中当前平台实现（互斥，仅一个分支参与重载决议）。
-    inline std::unique_ptr<IPlatform> create_platform() {
-        if constexpr (os == os_id::windows_nt) {
+    inline std::unique_ptr<Platform> CreatePlatform() {
+        if constexpr (os == OsId::kWindowsNt) {
             return std::make_unique<WindowsPlatform>();
-        } else if constexpr (os == os_id::linux_os) {
+        } else if constexpr (os == OsId::kLinuxOs) {
             return std::make_unique<LinuxPlatform>();
         } else {
             return std::make_unique<UnixPlatform>();

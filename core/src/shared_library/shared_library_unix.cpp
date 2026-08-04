@@ -51,7 +51,7 @@ const std::string &SharedLibrary::GetPath() const {
 }
 
 std::string SharedLibrary::Prefix() {
-    if constexpr (os == os_id::cygwin) {
+    if constexpr (os == OsId::kCygwin) {
         return "cyg";
     } else {
         return "lib";
@@ -59,19 +59,19 @@ std::string SharedLibrary::Prefix() {
 }
 
 std::string SharedLibrary::Suffix() {
-    if constexpr (os == os_id::mac_os_x) {
+    if constexpr (os == OsId::kMacOsX) {
 #if defined(_DEBUG) && !defined(CL_NO_SHARED_LIBRARY_DEBUG_SUFFIX)
         return "d.dylib";
 #else
         return ".dylib";
 #endif
-    } else if constexpr (os == os_id::hpux) {
+    } else if constexpr (os == OsId::kHpux) {
 #if defined(_DEBUG) && !defined(CL_NO_SHARED_LIBRARY_DEBUG_SUFFIX)
         return "d.sl";
 #else
         return ".sl";
 #endif
-    } else if constexpr (os == os_id::cygwin) {
+    } else if constexpr (os == OsId::kCygwin) {
 #if defined(_DEBUG) && !defined(CL_NO_SHARED_LIBRARY_DEBUG_SUFFIX)
         return "d.dll";
 #else
