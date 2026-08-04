@@ -62,7 +62,7 @@ enum class queue_consume_result {
 template<typename element_type>
 class queue {
   private:
-    enum running_state_t {
+    enum class running_state_t {
         running,
         draining,
         stopped,

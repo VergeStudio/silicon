@@ -48,7 +48,7 @@ import :when_any; // scheduler::schedule 超时重载使用
 import :concepts.range_of; // sized_range_of
 
 export namespace silicon::coroutine {
-enum timeout_status {
+enum class timeout_status {
     no_timeout,
     timeout,
 };

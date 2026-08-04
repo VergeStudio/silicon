@@ -686,7 +686,7 @@ DOCTEST_INTERFACE bool operator!=(const String &lhs, const Contains &rhs);
 DOCTEST_INTERFACE bool operator!=(const Contains &lhs, const String &rhs);
 
 namespace Color {
-enum Enum {
+enum class Enum {
     None = 0,
     White,
     Red,
@@ -704,11 +704,28 @@ enum Enum {
     BrightWhite = Bright | White
 };
 
+inline constexpr auto operator|(Enum a, Enum b) noexcept -> Enum {
+    return static_cast<Enum>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
+}
+inline constexpr auto operator&(Enum a, Enum b) noexcept -> unsigned int {
+    return static_cast<unsigned int>(a) & static_cast<unsigned int>(b);
+}
+inline constexpr auto operator^(Enum a, Enum b) noexcept -> unsigned int {
+    return static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b);
+}
+inline constexpr auto operator~(Enum a) noexcept -> Enum {
+    return static_cast<Enum>(~static_cast<unsigned int>(a));
+}
+inline constexpr auto operator|=(Enum& a, Enum b) noexcept -> Enum& { return a = a | b; }
+inline constexpr auto operator&=(Enum& a, Enum b) noexcept -> Enum& { return a = static_cast<Enum>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); }
+inline constexpr auto operator^=(Enum& a, Enum b) noexcept -> Enum& { return a = static_cast<Enum>(static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b)); }
+
+
 DOCTEST_INTERFACE std::ostream &operator<<(std::ostream &s, Color::Enum code);
 } // namespace Color
 
 namespace assertType {
-enum Enum {
+enum class Enum {
     // macro traits
 
     is_warn = 1,
@@ -795,6 +812,23 @@ enum Enum {
     DT_CHECK_UNARY_FALSE = is_normal | is_false | is_unary | is_check,
     DT_REQUIRE_UNARY_FALSE = is_normal | is_false | is_unary | is_require,
 };
+
+inline constexpr auto operator|(Enum a, Enum b) noexcept -> Enum {
+    return static_cast<Enum>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
+}
+inline constexpr auto operator&(Enum a, Enum b) noexcept -> unsigned int {
+    return static_cast<unsigned int>(a) & static_cast<unsigned int>(b);
+}
+inline constexpr auto operator^(Enum a, Enum b) noexcept -> unsigned int {
+    return static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b);
+}
+inline constexpr auto operator~(Enum a) noexcept -> Enum {
+    return static_cast<Enum>(~static_cast<unsigned int>(a));
+}
+inline constexpr auto operator|=(Enum& a, Enum b) noexcept -> Enum& { return a = a | b; }
+inline constexpr auto operator&=(Enum& a, Enum b) noexcept -> Enum& { return a = static_cast<Enum>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); }
+inline constexpr auto operator^=(Enum& a, Enum b) noexcept -> Enum& { return a = static_cast<Enum>(static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b)); }
+
 } // namespace assertType
 
 DOCTEST_INTERFACE const char *assertString(assertType::Enum at);
@@ -1393,7 +1427,7 @@ DOCTEST_CLANG_SUPPRESS_WARNING_WITH_PUSH("-Wunused-comparison")
         template<typename R>                                                                               \
         DOCTEST_NOINLINE SFINAE_OP(Result, op) operator op(R &&rhs) {                                      \
             bool res = op_macro(doctest::detail::forward<const L>(lhs), doctest::detail::forward<R>(rhs)); \
-            if(m_at & assertType::is_false)                                                                \
+            if(m_at & assertType::Enum::is_false)                                                                \
                 res = !res;                                                                                \
             if(!res || doctest::getContextOptions()->success)                                              \
                 return Result(res, stringifyBinaryExpr(lhs, op_str, rhs));                                 \
@@ -1525,7 +1559,7 @@ struct Expression_lhs {
         DOCTEST_MSVC_SUPPRESS_WARNING_WITH_PUSH(4800) // 'int': forcing value to bool
         bool res = static_cast<bool>(lhs);
         DOCTEST_MSVC_SUPPRESS_WARNING_POP
-        if(m_at & assertType::is_false) { //!OCLINT bitwise operator in conditional
+        if(m_at & assertType::Enum::is_false) { //!OCLINT bitwise operator in conditional
             res = !res;
         }
 
@@ -1664,7 +1698,7 @@ template<typename T>
 int instantiationHelper(const T &) { return 0; }
 
 namespace binaryAssertComparison {
-enum Enum {
+enum class Enum {
     eq = 0,
     ne,
     gt,
@@ -1708,7 +1742,7 @@ struct DOCTEST_INTERFACE ResultBuilder: public AssertData {
     DOCTEST_NOINLINE bool unary_assert(const DOCTEST_REF_WRAP(L) val) {
         m_failed = !val;
 
-        if(m_at & assertType::is_false) { //!OCLINT bitwise operator in conditional
+        if(m_at & assertType::Enum::is_false) { //!OCLINT bitwise operator in conditional
             m_failed = !m_failed;
         }
 
@@ -1726,11 +1760,28 @@ struct DOCTEST_INTERFACE ResultBuilder: public AssertData {
 };
 
 namespace assertAction {
-enum Enum {
+enum class Enum {
     nothing = 0,
     dbgbreak = 1,
     shouldthrow = 2
 };
+
+inline constexpr auto operator|(Enum a, Enum b) noexcept -> Enum {
+    return static_cast<Enum>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
+}
+inline constexpr auto operator&(Enum a, Enum b) noexcept -> unsigned int {
+    return static_cast<unsigned int>(a) & static_cast<unsigned int>(b);
+}
+inline constexpr auto operator^(Enum a, Enum b) noexcept -> unsigned int {
+    return static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b);
+}
+inline constexpr auto operator~(Enum a) noexcept -> Enum {
+    return static_cast<Enum>(~static_cast<unsigned int>(a));
+}
+inline constexpr auto operator|=(Enum& a, Enum b) noexcept -> Enum& { return a = a | b; }
+inline constexpr auto operator&=(Enum& a, Enum b) noexcept -> Enum& { return a = static_cast<Enum>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); }
+inline constexpr auto operator^=(Enum& a, Enum b) noexcept -> Enum& { return a = static_cast<Enum>(static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b)); }
+
 } // namespace assertAction
 
 DOCTEST_INTERFACE void failed_out_of_a_testing_context(const AssertData &ad);
@@ -1781,7 +1832,7 @@ template<typename L>
 DOCTEST_NOINLINE bool unary_assert(assertType::Enum at, const char *file, int line, const char *expr, const DOCTEST_REF_WRAP(L) val) {
     bool failed = !val;
 
-    if(at & assertType::is_false) //!OCLINT bitwise operator in conditional
+    if(at & assertType::Enum::is_false) //!OCLINT bitwise operator in conditional
         failed = !failed;
 
     // ###################################################################################
@@ -1995,7 +2046,7 @@ class DOCTEST_INTERFACE Context {
 };
 
 namespace TestCaseFailureReason {
-enum Enum {
+enum class Enum {
     None = 0,
     AssertFailure = 1,              // an assertion has failed in the test case
     Exception = 2,                  // test case threw an exception
@@ -2008,6 +2059,26 @@ enum Enum {
     FailedExactlyNumTimes = 256,    // see the expected_failures decorator
     CouldHaveFailedAndDid = 512     // see the may_fail decorator
 };
+
+inline constexpr auto operator|(Enum a, Enum b) noexcept -> Enum {
+    return static_cast<Enum>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
+}
+inline constexpr auto operator&(Enum a, Enum b) noexcept -> unsigned int {
+    return static_cast<unsigned int>(a) & static_cast<unsigned int>(b);
+}
+inline constexpr auto operator^(Enum a, Enum b) noexcept -> unsigned int {
+    return static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b);
+}
+inline constexpr auto operator~(Enum a) noexcept -> Enum {
+    return static_cast<Enum>(~static_cast<unsigned int>(a));
+}
+inline constexpr auto operator|=(Enum& a, Enum b) noexcept -> Enum& { return a = a | b; }
+inline constexpr auto operator&=(Enum& a, Enum b) noexcept -> Enum& { return a = static_cast<Enum>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); }
+inline constexpr auto operator^=(Enum& a, Enum b) noexcept -> Enum& { return a = static_cast<Enum>(static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b)); }
+inline int& operator|=(int& a, Enum b) noexcept { a = static_cast<int>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b)); return a; }
+inline constexpr auto operator&(Enum a, int b) noexcept -> int { return static_cast<int>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); }
+inline constexpr auto operator&(int a, Enum b) noexcept -> int { return static_cast<int>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b)); }
+
 } // namespace TestCaseFailureReason
 
 struct DOCTEST_INTERFACE CurrentTestCaseStats {
@@ -2325,7 +2396,7 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 #    define DOCTEST_INFO_IMPL(mb_name, s_name, ...)                                                            \
         auto DOCTEST_ANONYMOUS(DOCTEST_CAPTURE_) = doctest::detail::MakeContextScope(                          \
                 [&](std::ostream *s_name) {                                                                    \
-                    doctest::detail::MessageBuilder mb_name(__FILE__, __LINE__, doctest::assertType::is_warn); \
+                    doctest::detail::MessageBuilder mb_name(__FILE__, __LINE__, doctest::assertType::Enum::is_warn); \
                     mb_name.m_stream = s_name;                                                                 \
                     mb_name *__VA_ARGS__;                                                                      \
                 }                                                                                              \
@@ -2335,7 +2406,7 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 
 #    define DOCTEST_ADD_AT_IMPL(type, file, line, mb, ...)                             \
         DOCTEST_FUNC_SCOPE_BEGIN {                                                     \
-            doctest::detail::MessageBuilder mb(file, line, doctest::assertType::type); \
+            doctest::detail::MessageBuilder mb(file, line, doctest::assertType::Enum::type); \
             mb *__VA_ARGS__;                                                           \
             if(mb.log())                                                               \
                 DOCTEST_BREAK_INTO_DEBUGGER();                                         \
@@ -2360,9 +2431,9 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 #        define DOCTEST_ASSERT_IMPLEMENT_2(assert_type, ...)                                                               \
             DOCTEST_CLANG_SUPPRESS_WARNING_WITH_PUSH("-Woverloaded-shift-op-parentheses")                                  \
             /* NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks) */                                                  \
-            doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::assert_type, __FILE__, __LINE__, #__VA_ARGS__); \
+            doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::Enum::assert_type, __FILE__, __LINE__, #__VA_ARGS__); \
             DOCTEST_WRAP_IN_TRY(DOCTEST_RB.setResult(                                                                      \
-                    doctest::detail::ExpressionDecomposer(doctest::assertType::assert_type)                                \
+                    doctest::detail::ExpressionDecomposer(doctest::assertType::Enum::assert_type)                                \
                     << __VA_ARGS__                                                                                         \
             )) /* NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks) */                                               \
             DOCTEST_ASSERT_LOG_REACT_RETURN(DOCTEST_RB)                                                                    \
@@ -2376,7 +2447,7 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 
 #        define DOCTEST_BINARY_ASSERT(assert_type, comp, ...)                                                                  \
             DOCTEST_FUNC_SCOPE_BEGIN {                                                                                         \
-                doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::assert_type, __FILE__, __LINE__, #__VA_ARGS__); \
+                doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::Enum::assert_type, __FILE__, __LINE__, #__VA_ARGS__); \
                 DOCTEST_WRAP_IN_TRY(                                                                                           \
                         DOCTEST_RB.binary_assert<doctest::detail::binaryAssertComparison::comp>(                               \
                                 __VA_ARGS__                                                                                    \
@@ -2388,7 +2459,7 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 
 #        define DOCTEST_UNARY_ASSERT(assert_type, ...)                                                                         \
             DOCTEST_FUNC_SCOPE_BEGIN {                                                                                         \
-                doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::assert_type, __FILE__, __LINE__, #__VA_ARGS__); \
+                doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::Enum::assert_type, __FILE__, __LINE__, #__VA_ARGS__); \
                 DOCTEST_WRAP_IN_TRY(DOCTEST_RB.unary_assert(__VA_ARGS__))                                                      \
                 DOCTEST_ASSERT_LOG_REACT_RETURN(DOCTEST_RB);                                                                   \
             }                                                                                                                  \
@@ -2402,18 +2473,18 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 #        define DOCTEST_ASSERT_IMPLEMENT_1(assert_type, ...)                                \
             DOCTEST_CLANG_SUPPRESS_WARNING_WITH_PUSH("-Woverloaded-shift-op-parentheses")   \
             doctest::detail::decomp_assert(                                                 \
-                    doctest::assertType::assert_type, __FILE__, __LINE__, #__VA_ARGS__,     \
-                    doctest::detail::ExpressionDecomposer(doctest::assertType::assert_type) \
+                    doctest::assertType::Enum::assert_type, __FILE__, __LINE__, #__VA_ARGS__,     \
+                    doctest::detail::ExpressionDecomposer(doctest::assertType::Enum::assert_type) \
                             << __VA_ARGS__                                                  \
             ) DOCTEST_CLANG_SUPPRESS_WARNING_POP
 
 #        define DOCTEST_BINARY_ASSERT(assert_type, comparison, ...)                                 \
             doctest::detail::binary_assert<doctest::detail::binaryAssertComparison::comparison>(    \
-                    doctest::assertType::assert_type, __FILE__, __LINE__, #__VA_ARGS__, __VA_ARGS__ \
+                    doctest::assertType::Enum::assert_type, __FILE__, __LINE__, #__VA_ARGS__, __VA_ARGS__ \
             )
 
 #        define DOCTEST_UNARY_ASSERT(assert_type, ...) \
-            doctest::detail::unary_assert(doctest::assertType::assert_type, __FILE__, __LINE__, #__VA_ARGS__, __VA_ARGS__)
+            doctest::detail::unary_assert(doctest::assertType::Enum::assert_type, __FILE__, __LINE__, #__VA_ARGS__, __VA_ARGS__)
 
 #    endif // DOCTEST_CONFIG_SUPER_FAST_ASSERTS
 
@@ -2464,7 +2535,7 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 #        define DOCTEST_ASSERT_THROWS_AS(expr, assert_type, message, ...)                                                                          \
             DOCTEST_FUNC_SCOPE_BEGIN {                                                                                                             \
                 if(!doctest::getContextOptions()->no_throw) {                                                                                      \
-                    doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::assert_type, __FILE__, __LINE__, #expr, #__VA_ARGS__, message); \
+                    doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::Enum::assert_type, __FILE__, __LINE__, #expr, #__VA_ARGS__, message); \
                     try {                                                                                                                          \
                         DOCTEST_CAST_TO_VOID(expr)                                                                                                 \
                     } catch(const typename doctest::detail::types::remove_const<                                                                   \
@@ -2482,7 +2553,7 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 #        define DOCTEST_ASSERT_THROWS_WITH(expr, expr_str, assert_type, ...)                                                                    \
             DOCTEST_FUNC_SCOPE_BEGIN {                                                                                                          \
                 if(!doctest::getContextOptions()->no_throw) {                                                                                   \
-                    doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::assert_type, __FILE__, __LINE__, expr_str, "", __VA_ARGS__); \
+                    doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::Enum::assert_type, __FILE__, __LINE__, expr_str, "", __VA_ARGS__); \
                     try {                                                                                                                       \
                         DOCTEST_CAST_TO_VOID(expr)                                                                                              \
                     } catch(...) { DOCTEST_RB.translateException(); }                                                                           \
@@ -2495,7 +2566,7 @@ int registerReporter(const char *name, int priority, bool isReporter) {
 
 #        define DOCTEST_ASSERT_NOTHROW(assert_type, ...)                                                                       \
             DOCTEST_FUNC_SCOPE_BEGIN {                                                                                         \
-                doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::assert_type, __FILE__, __LINE__, #__VA_ARGS__); \
+                doctest::detail::ResultBuilder DOCTEST_RB(doctest::assertType::Enum::assert_type, __FILE__, __LINE__, #__VA_ARGS__); \
                 try {                                                                                                          \
                     DOCTEST_CAST_TO_VOID(__VA_ARGS__)                                                                          \
                 } catch(...) { DOCTEST_RB.translateException(); }                                                              \
@@ -3292,7 +3363,7 @@ int stricmp(const char *a, const char *b) {
 }
 
 struct Endianness {
-    enum Arch {
+    enum class Arch {
         Big,
         Little
     };
@@ -3302,8 +3373,8 @@ struct Endianness {
         // casting any data pointer to char* is allowed
         auto ptr = reinterpret_cast<char *>(&x);
         if(*ptr)
-            return Little;
-        return Big;
+            return Arch::Little;
+        return Arch::Big;
     }
 };
 } // namespace
@@ -3523,31 +3594,31 @@ struct ContextState: ContextOptions, TestRunStats, CurrentTestCaseStats {
         numAssertsFailedCurrentTest = numAssertsFailedCurrentTest_atomic;
 
         if(numAssertsFailedCurrentTest)
-            failure_flags |= TestCaseFailureReason::AssertFailure;
+            failure_flags |= TestCaseFailureReason::Enum::AssertFailure;
 
         if(Approx(currentTest->m_timeout).epsilon(DBL_EPSILON) != 0 &&
            Approx(seconds).epsilon(DBL_EPSILON) > currentTest->m_timeout)
-            failure_flags |= TestCaseFailureReason::Timeout;
+            failure_flags |= TestCaseFailureReason::Enum::Timeout;
 
         if(currentTest->m_should_fail) {
             if(failure_flags) {
-                failure_flags |= TestCaseFailureReason::ShouldHaveFailedAndDid;
+                failure_flags |= TestCaseFailureReason::Enum::ShouldHaveFailedAndDid;
             } else {
-                failure_flags |= TestCaseFailureReason::ShouldHaveFailedButDidnt;
+                failure_flags |= TestCaseFailureReason::Enum::ShouldHaveFailedButDidnt;
             }
         } else if(failure_flags && currentTest->m_may_fail) {
-            failure_flags |= TestCaseFailureReason::CouldHaveFailedAndDid;
+            failure_flags |= TestCaseFailureReason::Enum::CouldHaveFailedAndDid;
         } else if(currentTest->m_expected_failures > 0) {
             if(numAssertsFailedCurrentTest == currentTest->m_expected_failures) {
-                failure_flags |= TestCaseFailureReason::FailedExactlyNumTimes;
+                failure_flags |= TestCaseFailureReason::Enum::FailedExactlyNumTimes;
             } else {
-                failure_flags |= TestCaseFailureReason::DidntFailExactlyNumTimes;
+                failure_flags |= TestCaseFailureReason::Enum::DidntFailExactlyNumTimes;
             }
         }
 
-        bool ok_to_fail = (TestCaseFailureReason::ShouldHaveFailedAndDid & failure_flags) ||
-                          (TestCaseFailureReason::CouldHaveFailedAndDid & failure_flags) ||
-                          (TestCaseFailureReason::FailedExactlyNumTimes & failure_flags);
+        bool ok_to_fail = (TestCaseFailureReason::Enum::ShouldHaveFailedAndDid & failure_flags) ||
+                          (TestCaseFailureReason::Enum::CouldHaveFailedAndDid & failure_flags) ||
+                          (TestCaseFailureReason::Enum::FailedExactlyNumTimes & failure_flags);
 
         // if any subcase has failed - the whole test case has failed
         testCaseSuccess = !(failure_flags && !ok_to_fail);
@@ -3812,7 +3883,7 @@ std::ostream &operator<<(std::ostream &s, Color::Enum code) {
 // clang-format off
 const char* assertString(assertType::Enum at) {
     DOCTEST_MSVC_SUPPRESS_WARNING_WITH_PUSH(4061) // enum 'x' in switch of enum 'y' is not explicitly handled
-    #define DOCTEST_GENERATE_ASSERT_TYPE_CASE(assert_type) case assertType::DT_ ## assert_type: return #assert_type
+    #define DOCTEST_GENERATE_ASSERT_TYPE_CASE(assert_type) case assertType::Enum::DT_ ## assert_type: return #assert_type
     #define DOCTEST_GENERATE_ASSERT_TYPE_CASES(assert_type) \
         DOCTEST_GENERATE_ASSERT_TYPE_CASE(WARN_ ## assert_type); \
         DOCTEST_GENERATE_ASSERT_TYPE_CASE(CHECK_ ## assert_type); \
@@ -3851,11 +3922,11 @@ const char* assertString(assertType::Enum at) {
 // clang-format on
 
 const char *failureString(assertType::Enum at) {
-    if(at & assertType::is_warn) //!OCLINT bitwise operator in conditional
+    if(at & assertType::Enum::is_warn) //!OCLINT bitwise operator in conditional
         return "WARNING";
-    if(at & assertType::is_check) //!OCLINT bitwise operator in conditional
+    if(at & assertType::Enum::is_check) //!OCLINT bitwise operator in conditional
         return "ERROR";
-    if(at & assertType::is_require) //!OCLINT bitwise operator in conditional
+    if(at & assertType::Enum::is_require) //!OCLINT bitwise operator in conditional
         return "FATAL ERROR";
     return "";
 }
@@ -4065,10 +4136,10 @@ namespace detail {
             curr_rep->function(__VA_ARGS__)
 
 bool checkIfShouldThrow(assertType::Enum at) {
-    if(at & assertType::is_require) //!OCLINT bitwise operator in conditional
+    if(at & assertType::Enum::is_require) //!OCLINT bitwise operator in conditional
         return true;
 
-    if((at & assertType::is_check) //!OCLINT bitwise operator in conditional
+    if((at & assertType::Enum::is_check) //!OCLINT bitwise operator in conditional
        && getContextOptions()->abort_after > 0 &&
        (g_cs->numAssertsFailed + g_cs->numAssertsFailedCurrentTest_atomic) >=
                getContextOptions()->abort_after)
@@ -4375,19 +4446,19 @@ void color_to_stream(std::ostream &s, Color::Enum code) {
     auto col = "";
     // clang-format off
             switch(code) { //!OCLINT missing break in switch statement / unnecessary default statement in covered switch statement
-                case Color::Red:         col = "[0;31m"; break;
-                case Color::Green:       col = "[0;32m"; break;
-                case Color::Blue:        col = "[0;34m"; break;
-                case Color::Cyan:        col = "[0;36m"; break;
-                case Color::Yellow:      col = "[0;33m"; break;
-                case Color::Grey:        col = "[1;30m"; break;
-                case Color::LightGrey:   col = "[0;37m"; break;
-                case Color::BrightRed:   col = "[1;31m"; break;
-                case Color::BrightGreen: col = "[1;32m"; break;
-                case Color::BrightWhite: col = "[1;37m"; break;
-                case Color::Bright: // invalid
-                case Color::None:
-                case Color::White:
+                case Color::Enum::Red:         col = "[0;31m"; break;
+                case Color::Enum::Green:       col = "[0;32m"; break;
+                case Color::Enum::Blue:        col = "[0;34m"; break;
+                case Color::Enum::Cyan:        col = "[0;36m"; break;
+                case Color::Enum::Yellow:      col = "[0;33m"; break;
+                case Color::Enum::Grey:        col = "[1;30m"; break;
+                case Color::Enum::LightGrey:   col = "[0;37m"; break;
+                case Color::Enum::BrightRed:   col = "[1;31m"; break;
+                case Color::Enum::BrightGreen: col = "[1;32m"; break;
+                case Color::Enum::BrightWhite: col = "[1;37m"; break;
+                case Color::Enum::Bright: // invalid
+                case Color::Enum::None:
+                case Color::Enum::White:
                 default:                 col = "[0m";
             }
     // clang-format on
@@ -4419,19 +4490,19 @@ void color_to_stream(std::ostream &s, Color::Enum code) {
 
     // clang-format off
         switch (code) {
-            case Color::White:       DOCTEST_SET_ATTR(FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE); break;
-            case Color::Red:         DOCTEST_SET_ATTR(FOREGROUND_RED);                                      break;
-            case Color::Green:       DOCTEST_SET_ATTR(FOREGROUND_GREEN);                                    break;
-            case Color::Blue:        DOCTEST_SET_ATTR(FOREGROUND_BLUE);                                     break;
-            case Color::Cyan:        DOCTEST_SET_ATTR(FOREGROUND_BLUE | FOREGROUND_GREEN);                  break;
-            case Color::Yellow:      DOCTEST_SET_ATTR(FOREGROUND_RED | FOREGROUND_GREEN);                   break;
-            case Color::Grey:        DOCTEST_SET_ATTR(0);                                                   break;
-            case Color::LightGrey:   DOCTEST_SET_ATTR(FOREGROUND_INTENSITY);                                break;
-            case Color::BrightRed:   DOCTEST_SET_ATTR(FOREGROUND_INTENSITY | FOREGROUND_RED);               break;
-            case Color::BrightGreen: DOCTEST_SET_ATTR(FOREGROUND_INTENSITY | FOREGROUND_GREEN);             break;
-            case Color::BrightWhite: DOCTEST_SET_ATTR(FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE); break;
-            case Color::None:
-            case Color::Bright: // invalid
+            case Color::Enum::White:       DOCTEST_SET_ATTR(FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE); break;
+            case Color::Enum::Red:         DOCTEST_SET_ATTR(FOREGROUND_RED);                                      break;
+            case Color::Enum::Green:       DOCTEST_SET_ATTR(FOREGROUND_GREEN);                                    break;
+            case Color::Enum::Blue:        DOCTEST_SET_ATTR(FOREGROUND_BLUE);                                     break;
+            case Color::Enum::Cyan:        DOCTEST_SET_ATTR(FOREGROUND_BLUE | FOREGROUND_GREEN);                  break;
+            case Color::Enum::Yellow:      DOCTEST_SET_ATTR(FOREGROUND_RED | FOREGROUND_GREEN);                   break;
+            case Color::Enum::Grey:        DOCTEST_SET_ATTR(0);                                                   break;
+            case Color::Enum::LightGrey:   DOCTEST_SET_ATTR(FOREGROUND_INTENSITY);                                break;
+            case Color::Enum::BrightRed:   DOCTEST_SET_ATTR(FOREGROUND_INTENSITY | FOREGROUND_RED);               break;
+            case Color::Enum::BrightGreen: DOCTEST_SET_ATTR(FOREGROUND_INTENSITY | FOREGROUND_GREEN);             break;
+            case Color::Enum::BrightWhite: DOCTEST_SET_ATTR(FOREGROUND_INTENSITY | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_BLUE); break;
+            case Color::Enum::None:
+            case Color::Enum::Bright: // invalid
             default:                 DOCTEST_SET_ATTR(ch.origFgAttrs);
         }
         // clang-format on
@@ -4834,18 +4905,18 @@ using namespace detail;
 #        endif // Platform
 
 void addAssert(assertType::Enum at) {
-    if((at & assertType::is_warn) == 0) //!OCLINT bitwise operator in conditional
+    if((at & assertType::Enum::is_warn) == 0) //!OCLINT bitwise operator in conditional
         g_cs->numAssertsCurrentTest_atomic++;
 }
 
 void addFailedAssert(assertType::Enum at) {
-    if((at & assertType::is_warn) == 0) //!OCLINT bitwise operator in conditional
+    if((at & assertType::Enum::is_warn) == 0) //!OCLINT bitwise operator in conditional
         g_cs->numAssertsFailedCurrentTest_atomic++;
 }
 
 #        if defined(DOCTEST_CONFIG_POSIX_SIGNALS) || defined(DOCTEST_CONFIG_WINDOWS_SEH)
 void reportFatal(const std::string &message) {
-    g_cs->failure_flags |= TestCaseFailureReason::Crash;
+    g_cs->failure_flags |= TestCaseFailureReason::Enum::Crash;
 
     DOCTEST_ITERATE_THROUGH_REPORTERS(test_case_exception, {message.c_str(), true});
 
@@ -4889,15 +4960,15 @@ void ResultBuilder::translateException() {
 }
 
 bool ResultBuilder::log() {
-    if(m_at & assertType::is_throws) { //!OCLINT bitwise operator in conditional
+    if(m_at & assertType::Enum::is_throws) { //!OCLINT bitwise operator in conditional
         m_failed = !m_threw;
-    } else if((m_at & assertType::is_throws_as) && (m_at & assertType::is_throws_with)) { //!OCLINT
+    } else if((m_at & assertType::Enum::is_throws_as) && (m_at & assertType::Enum::is_throws_with)) { //!OCLINT
         m_failed = !m_threw_as || !m_exception_string.check(m_exception);
-    } else if(m_at & assertType::is_throws_as) { //!OCLINT bitwise operator in conditional
+    } else if(m_at & assertType::Enum::is_throws_as) { //!OCLINT bitwise operator in conditional
         m_failed = !m_threw_as;
-    } else if(m_at & assertType::is_throws_with) { //!OCLINT bitwise operator in conditional
+    } else if(m_at & assertType::Enum::is_throws_with) { //!OCLINT bitwise operator in conditional
         m_failed = !m_exception_string.check(m_exception);
-    } else if(m_at & assertType::is_nothrow) { //!OCLINT bitwise operator in conditional
+    } else if(m_at & assertType::Enum::is_nothrow) { //!OCLINT bitwise operator in conditional
         m_failed = m_threw;
     }
 
@@ -4964,7 +5035,7 @@ bool MessageBuilder::log() {
 
     DOCTEST_ITERATE_THROUGH_REPORTERS(log_message, *this);
 
-    const bool isWarn = m_severity & assertType::is_warn;
+    const bool isWarn = m_severity & assertType::Enum::is_warn;
 
     // warn is just a message in this context so we don't treat it as an assert
     if(!isWarn) {
@@ -4977,7 +5048,7 @@ bool MessageBuilder::log() {
 }
 
 void MessageBuilder::react() {
-    if(m_severity & assertType::is_require) //!OCLINT bitwise operator in conditional
+    if(m_severity & assertType::Enum::is_require) //!OCLINT bitwise operator in conditional
         throwException();
 }
 } // namespace detail
@@ -4993,9 +5064,9 @@ using namespace detail;
 
     class XmlEncode {
     public:
-        enum ForWhat { ForTextNodes, ForAttributes };
+        enum class ForWhat { ForTextNodes, ForAttributes };
 
-        XmlEncode( std::string const& str, ForWhat forWhat = ForTextNodes );
+        XmlEncode( std::string const& str, ForWhat forWhat = ForWhat::ForTextNodes );
 
         void encodeTo( std::ostream& os ) const;
 
@@ -5151,7 +5222,7 @@ namespace {
                 break;
 
             case '\"':
-                if (m_forWhat == ForAttributes)
+                if (m_forWhat == ForWhat::ForAttributes)
                     os << "&quot;";
                 else
                     os << c;
@@ -5302,13 +5373,13 @@ namespace {
 
     XmlWriter& XmlWriter::writeAttribute( std::string const& name, std::string const& attribute ) {
         if( !name.empty() && !attribute.empty() )
-            m_os << ' ' << name << "=\"" << XmlEncode( attribute, XmlEncode::ForAttributes ) << '"';
+            m_os << ' ' << name << "=\"" << XmlEncode( attribute, XmlEncode::ForWhat::ForAttributes ) << '"';
         return *this;
     }
 
     XmlWriter& XmlWriter::writeAttribute( std::string const& name, const char* attribute ) {
         if( !name.empty() && attribute && attribute[0] != '\0' )
-            m_os << ' ' << name << "=\"" << XmlEncode( attribute, XmlEncode::ForAttributes ) << '"';
+            m_os << ' ' << name << "=\"" << XmlEncode( attribute, XmlEncode::ForWhat::ForAttributes ) << '"';
         return *this;
     }
 
@@ -5560,11 +5631,11 @@ struct XmlReporter: public IReporter {
         if(rb.m_threw)
             xml.scopedElement("Exception").writeText(rb.m_exception.c_str());
 
-        if(rb.m_at & assertType::is_throws_as)
+        if(rb.m_at & assertType::Enum::is_throws_as)
             xml.scopedElement("ExpectedException").writeText(rb.m_exception_type);
-        if(rb.m_at & assertType::is_throws_with)
+        if(rb.m_at & assertType::Enum::is_throws_with)
             xml.scopedElement("ExpectedExceptionString").writeText(rb.m_exception_string.c_str());
-        if((rb.m_at & assertType::is_normal) && !rb.m_threw)
+        if((rb.m_at & assertType::Enum::is_normal) && !rb.m_threw)
             xml.scopedElement("Expanded").writeText(rb.m_decomp.c_str());
 
         log_contexts();
@@ -5599,17 +5670,17 @@ struct XmlReporter: public IReporter {
 DOCTEST_REGISTER_REPORTER("xml", 0, XmlReporter);
 
 void fulltext_log_assert_to_stream(std::ostream &s, const AssertData &rb) {
-    if((rb.m_at & (assertType::is_throws_as | assertType::is_throws_with)) ==
+    if((rb.m_at & (assertType::Enum::is_throws_as | assertType::Enum::is_throws_with)) ==
        0) //!OCLINT bitwise operator in conditional
-        s << Color::Cyan << assertString(rb.m_at) << "( " << rb.m_expr << " ) "
-          << Color::None;
+        s << Color::Enum::Cyan << assertString(rb.m_at) << "( " << rb.m_expr << " ) "
+          << Color::Enum::None;
 
-    if(rb.m_at & assertType::is_throws) { //!OCLINT bitwise operator in conditional
+    if(rb.m_at & assertType::Enum::is_throws) { //!OCLINT bitwise operator in conditional
         s << (rb.m_threw ? "threw as expected!" : "did NOT throw at all!") << "\n";
-    } else if((rb.m_at & assertType::is_throws_as) && (rb.m_at & assertType::is_throws_with)) { //!OCLINT
-        s << Color::Cyan << assertString(rb.m_at) << "( " << rb.m_expr << ", \""
+    } else if((rb.m_at & assertType::Enum::is_throws_as) && (rb.m_at & assertType::Enum::is_throws_with)) { //!OCLINT
+        s << Color::Enum::Cyan << assertString(rb.m_at) << "( " << rb.m_expr << ", \""
           << rb.m_exception_string.c_str()
-          << "\", " << rb.m_exception_type << " ) " << Color::None;
+          << "\", " << rb.m_exception_type << " ) " << Color::Enum::None;
         if(rb.m_threw) {
             if(!rb.m_failed) {
                 s << "threw as expected!\n";
@@ -5619,19 +5690,19 @@ void fulltext_log_assert_to_stream(std::ostream &s, const AssertData &rb) {
         } else {
             s << "did NOT throw at all!\n";
         }
-    } else if(rb.m_at & assertType::is_throws_as) { //!OCLINT bitwise operator in conditional
-        s << Color::Cyan << assertString(rb.m_at) << "( " << rb.m_expr << ", "
-          << rb.m_exception_type << " ) " << Color::None
+    } else if(rb.m_at & assertType::Enum::is_throws_as) { //!OCLINT bitwise operator in conditional
+        s << Color::Enum::Cyan << assertString(rb.m_at) << "( " << rb.m_expr << ", "
+          << rb.m_exception_type << " ) " << Color::Enum::None
           << (rb.m_threw ? (rb.m_threw_as ? "threw as expected!" : "threw a DIFFERENT exception: ") : "did NOT throw at all!")
-          << Color::Cyan << rb.m_exception << "\n";
-    } else if(rb.m_at & assertType::is_throws_with) { //!OCLINT bitwise operator in conditional
-        s << Color::Cyan << assertString(rb.m_at) << "( " << rb.m_expr << ", \""
+          << Color::Enum::Cyan << rb.m_exception << "\n";
+    } else if(rb.m_at & assertType::Enum::is_throws_with) { //!OCLINT bitwise operator in conditional
+        s << Color::Enum::Cyan << assertString(rb.m_at) << "( " << rb.m_expr << ", \""
           << rb.m_exception_string.c_str()
-          << "\" ) " << Color::None
+          << "\" ) " << Color::Enum::None
           << (rb.m_threw ? (!rb.m_failed ? "threw as expected!" : "threw a DIFFERENT exception: ") : "did NOT throw at all!")
-          << Color::Cyan << rb.m_exception << "\n";
-    } else if(rb.m_at & assertType::is_nothrow) { //!OCLINT bitwise operator in conditional
-        s << (rb.m_threw ? "THREW exception: " : "didn't throw!") << Color::Cyan
+          << Color::Enum::Cyan << rb.m_exception << "\n";
+    } else if(rb.m_at & assertType::Enum::is_nothrow) { //!OCLINT bitwise operator in conditional
+        s << (rb.m_threw ? "THREW exception: " : "didn't throw!") << Color::Enum::Cyan
           << rb.m_exception << "\n";
     } else {
         s << (rb.m_threw ? "THREW exception: " : (!rb.m_failed ? "is correct!\n" : "is NOT correct!\n"));
@@ -5840,7 +5911,7 @@ struct JUnitReporter: public IReporter {
     }
 
     void log_message(const MessageData &mb) override {
-        if(mb.m_severity & assertType::is_warn) // report only failures
+        if(mb.m_severity & assertType::Enum::is_warn) // report only failures
             return;
 
         DOCTEST_LOCK_MUTEX(mutex)
@@ -5852,7 +5923,7 @@ struct JUnitReporter: public IReporter {
         os << mb.m_string.c_str() << "\n";
         log_contexts(os);
 
-        testCaseData.addFailure(mb.m_string.c_str(), mb.m_severity & assertType::is_check ? "FAIL_CHECK" : "FAIL", os.str());
+        testCaseData.addFailure(mb.m_string.c_str(), mb.m_severity & assertType::Enum::is_check ? "FAIL_CHECK" : "FAIL", os.str());
     }
 
     void test_case_skipped(const TestCaseData &) override {}
@@ -5908,7 +5979,7 @@ struct ConsoleReporter: public IReporter {
     // =========================================================================================
 
     void separator_to_stream() {
-        s << Color::Yellow
+        s << Color::Enum::Yellow
           << "==============================================================================="
              "\n";
     }
@@ -5920,8 +5991,8 @@ struct ConsoleReporter: public IReporter {
     }
 
     Color::Enum getSuccessOrFailColor(bool success, assertType::Enum at) {
-        return success ? Color::BrightGreen : (at & assertType::is_warn) ? Color::Yellow
-                                                                         : Color::Red;
+        return success ? Color::Enum::BrightGreen : (at & assertType::Enum::is_warn) ? Color::Enum::Yellow
+                                                                         : Color::Enum::Red;
     }
 
     void successOrFailColoredStringToStream(bool success, assertType::Enum at, const char *success_str = "SUCCESS") {
@@ -5934,7 +6005,7 @@ struct ConsoleReporter: public IReporter {
         if(num_contexts) {
             auto contexts = get_active_contexts();
 
-            s << Color::None << "  logged: ";
+            s << Color::Enum::None << "  logged: ";
             for(int i = 0; i < num_contexts; ++i) {
                 s << (i == 0 ? "" : "          ");
                 contexts[i]->stringify(&s);
@@ -5947,7 +6018,7 @@ struct ConsoleReporter: public IReporter {
 
     // this was requested to be made virtual so users could override it
     virtual void file_line_to_stream(const char *file, int line, const char *tail = "") {
-        s << Color::LightGrey << skipPathFromFilename(file) << (opt.gnu_file_line ? ":" : "(")
+        s << Color::Enum::LightGrey << skipPathFromFilename(file) << (opt.gnu_file_line ? ":" : "(")
           << (opt.no_line_numbers ? 0 : line) // 0 or the real num depending on the option
           << (opt.gnu_file_line ? ":" : "):") << tail;
     }
@@ -5959,12 +6030,12 @@ struct ConsoleReporter: public IReporter {
         separator_to_stream();
         file_line_to_stream(tc->m_file.c_str(), tc->m_line, "\n");
         if(tc->m_description)
-            s << Color::Yellow << "DESCRIPTION: " << Color::None << tc->m_description << "\n";
+            s << Color::Enum::Yellow << "DESCRIPTION: " << Color::Enum::None << tc->m_description << "\n";
         if(tc->m_test_suite && tc->m_test_suite[0] != '\0')
-            s << Color::Yellow << "TEST SUITE: " << Color::None << tc->m_test_suite << "\n";
+            s << Color::Enum::Yellow << "TEST SUITE: " << Color::Enum::None << tc->m_test_suite << "\n";
         if(strncmp(tc->m_name, "  Scenario:", 11) != 0)
-            s << Color::Yellow << "TEST CASE:  ";
-        s << Color::None << tc->m_name << "\n";
+            s << Color::Enum::Yellow << "TEST CASE:  ";
+        s << Color::Enum::None << tc->m_name << "\n";
 
         for(size_t i = 0; i < currentSubcaseLevel; ++i) {
             if(subcasesStack[i].m_name[0] != '\0')
@@ -5972,8 +6043,8 @@ struct ConsoleReporter: public IReporter {
         }
 
         if(currentSubcaseLevel != subcasesStack.size()) {
-            s << Color::Yellow << "\nDEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):\n"
-              << Color::None;
+            s << Color::Enum::Yellow << "\nDEEPEST SUBCASE STACK REACHED (DIFFERENT FROM THE CURRENT ONE):\n"
+              << Color::Enum::None;
             for(size_t i = 0; i < subcasesStack.size(); ++i) {
                 if(subcasesStack[i].m_name[0] != '\0')
                     s << "  " << subcasesStack[i].m_name << "\n";
@@ -5987,14 +6058,14 @@ struct ConsoleReporter: public IReporter {
 
     void printVersion() {
         if(opt.no_version == false)
-            s << Color::Cyan << "[doctest] " << Color::None << "doctest version is \""
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None << "doctest version is \""
               << DOCTEST_VERSION_STR << "\"\n";
     }
 
     void printIntro() {
         if(opt.no_intro == false) {
             printVersion();
-            s << Color::Cyan << "[doctest] " << Color::None
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None
               << "run with \"--" DOCTEST_OPTIONS_PREFIX_DISPLAY "help\" for options\n";
         }
     }
@@ -6003,23 +6074,23 @@ struct ConsoleReporter: public IReporter {
         int sizePrefixDisplay = static_cast<int>(strlen(DOCTEST_OPTIONS_PREFIX_DISPLAY));
         printVersion();
         // clang-format off
-            s << Color::Cyan << "[doctest]\n" << Color::None;
-            s << Color::Cyan << "[doctest] " << Color::None;
+            s << Color::Enum::Cyan << "[doctest]\n" << Color::Enum::None;
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None;
             s << "boolean values: \"1/on/yes/true\" or \"0/off/no/false\"\n";
-            s << Color::Cyan << "[doctest] " << Color::None;
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None;
             s << "filter  values: \"str1,str2,str3\" (comma separated strings)\n";
-            s << Color::Cyan << "[doctest]\n" << Color::None;
-            s << Color::Cyan << "[doctest] " << Color::None;
+            s << Color::Enum::Cyan << "[doctest]\n" << Color::Enum::None;
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None;
             s << "filters use wildcards for matching strings\n";
-            s << Color::Cyan << "[doctest] " << Color::None;
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None;
             s << "something passes a filter if any of the strings in a filter matches\n";
 #ifndef DOCTEST_CONFIG_NO_UNPREFIXED_OPTIONS
-            s << Color::Cyan << "[doctest]\n" << Color::None;
-            s << Color::Cyan << "[doctest] " << Color::None;
+            s << Color::Enum::Cyan << "[doctest]\n" << Color::Enum::None;
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None;
             s << "ALL FLAGS, OPTIONS AND FILTERS ALSO AVAILABLE WITH A \"" DOCTEST_CONFIG_OPTIONS_PREFIX "\" PREFIX!!!\n";
 #endif
-            s << Color::Cyan << "[doctest]\n" << Color::None;
-            s << Color::Cyan << "[doctest] " << Color::None;
+            s << Color::Enum::Cyan << "[doctest]\n" << Color::Enum::None;
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None;
             s << "Query flags - the program quits after them. Available:\n\n";
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "?,   --" DOCTEST_OPTIONS_PREFIX_DISPLAY "help, -" DOCTEST_OPTIONS_PREFIX_DISPLAY "h                      "
               << Whitespace(sizePrefixDisplay*0) <<  "prints this message\n";
@@ -6034,7 +6105,7 @@ struct ConsoleReporter: public IReporter {
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "lr,  --" DOCTEST_OPTIONS_PREFIX_DISPLAY "list-reporters                "
               << Whitespace(sizePrefixDisplay*1) << "lists all registered reporters\n\n";
             // ================================================================================== << 79
-            s << Color::Cyan << "[doctest] " << Color::None;
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None;
             s << "The available <int>/<string> options/filters are:\n\n";
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "tc,  --" DOCTEST_OPTIONS_PREFIX_DISPLAY "test-case=<filters>           "
               << Whitespace(sizePrefixDisplay*1) << "filters     tests by their name\n";
@@ -6071,7 +6142,7 @@ struct ConsoleReporter: public IReporter {
               << Whitespace(sizePrefixDisplay*1) << "stop after <int> failed assertions\n";
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "scfl,--" DOCTEST_OPTIONS_PREFIX_DISPLAY "subcase-filter-levels=<int>   "
               << Whitespace(sizePrefixDisplay*1) << "apply filters for the first <int> levels\n";
-            s << Color::Cyan << "\n[doctest] " << Color::None;
+            s << Color::Enum::Cyan << "\n[doctest] " << Color::Enum::None;
             s << "Bool options - can be used like flags and true is assumed. Available:\n\n";
             s << " -" DOCTEST_OPTIONS_PREFIX_DISPLAY "s,   --" DOCTEST_OPTIONS_PREFIX_DISPLAY "success=<bool>                "
               << Whitespace(sizePrefixDisplay*1) << "include successful assertions in output\n";
@@ -6112,7 +6183,7 @@ struct ConsoleReporter: public IReporter {
             // ================================================================================== << 79
         // clang-format on
 
-        s << Color::Cyan << "\n[doctest] " << Color::None;
+        s << Color::Enum::Cyan << "\n[doctest] " << Color::Enum::None;
         s << "for more information visit the project documentation\n\n";
     }
 
@@ -6120,7 +6191,7 @@ struct ConsoleReporter: public IReporter {
         printVersion();
         auto printReporters = [this](const reporterMap &reporters, const char *type) {
             if(reporters.size()) {
-                s << Color::Cyan << "[doctest] " << Color::None << "listing all registered " << type << "\n";
+                s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None << "listing all registered " << type << "\n";
                 for(auto &curr: reporters)
                     s << "priority: " << std::setw(5) << curr.first.first
                       << " name: " << curr.first.second << "\n";
@@ -6143,33 +6214,33 @@ struct ConsoleReporter: public IReporter {
             printRegisteredReporters();
         } else if(opt.count || opt.list_test_cases) {
             if(opt.list_test_cases) {
-                s << Color::Cyan << "[doctest] " << Color::None
+                s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None
                   << "listing all test case names\n";
                 separator_to_stream();
             }
 
             for(unsigned i = 0; i < in.num_data; ++i)
-                s << Color::None << in.data[i]->m_name << "\n";
+                s << Color::Enum::None << in.data[i]->m_name << "\n";
 
             separator_to_stream();
 
-            s << Color::Cyan << "[doctest] " << Color::None
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None
               << "unskipped test cases passing the current filters: "
               << g_cs->numTestCasesPassingFilters << "\n";
 
         } else if(opt.list_test_suites) {
-            s << Color::Cyan << "[doctest] " << Color::None << "listing all test suites\n";
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None << "listing all test suites\n";
             separator_to_stream();
 
             for(unsigned i = 0; i < in.num_data; ++i)
-                s << Color::None << in.data[i]->m_test_suite << "\n";
+                s << Color::Enum::None << in.data[i]->m_test_suite << "\n";
 
             separator_to_stream();
 
-            s << Color::Cyan << "[doctest] " << Color::None
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None
               << "unskipped test cases passing the current filters: "
               << g_cs->numTestCasesPassingFilters << "\n";
-            s << Color::Cyan << "[doctest] " << Color::None
+            s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None
               << "test suites with unskipped test cases passing the current filters: "
               << g_cs->numTestSuitesPassingFilters << "\n";
         }
@@ -6191,27 +6262,27 @@ struct ConsoleReporter: public IReporter {
         auto passwidth = int(std::ceil(log10(static_cast<double>(std::max(p.numTestCasesPassingFilters - p.numTestCasesFailed, static_cast<unsigned>(p.numAsserts - p.numAssertsFailed))) + 1)));
         auto failwidth = int(std::ceil(log10(static_cast<double>(std::max(p.numTestCasesFailed, static_cast<unsigned>(p.numAssertsFailed))) + 1)));
         const bool anythingFailed = p.numTestCasesFailed > 0 || p.numAssertsFailed > 0;
-        s << Color::Cyan << "[doctest] " << Color::None << "test cases: " << std::setw(totwidth)
+        s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None << "test cases: " << std::setw(totwidth)
           << p.numTestCasesPassingFilters << " | "
-          << ((p.numTestCasesPassingFilters == 0 || anythingFailed) ? Color::None : Color::Green)
+          << ((p.numTestCasesPassingFilters == 0 || anythingFailed) ? Color::Enum::None : Color::Enum::Green)
           << std::setw(passwidth) << p.numTestCasesPassingFilters - p.numTestCasesFailed << " passed"
-          << Color::None << " | " << (p.numTestCasesFailed > 0 ? Color::Red : Color::None)
-          << std::setw(failwidth) << p.numTestCasesFailed << " failed" << Color::None << " |";
+          << Color::Enum::None << " | " << (p.numTestCasesFailed > 0 ? Color::Enum::Red : Color::Enum::None)
+          << std::setw(failwidth) << p.numTestCasesFailed << " failed" << Color::Enum::None << " |";
         if(opt.no_skipped_summary == false) {
             const int numSkipped = p.numTestCases - p.numTestCasesPassingFilters;
-            s << " " << (numSkipped == 0 ? Color::None : Color::Yellow) << numSkipped
-              << " skipped" << Color::None;
+            s << " " << (numSkipped == 0 ? Color::Enum::None : Color::Enum::Yellow) << numSkipped
+              << " skipped" << Color::Enum::None;
         }
         s << "\n";
-        s << Color::Cyan << "[doctest] " << Color::None << "assertions: " << std::setw(totwidth)
+        s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None << "assertions: " << std::setw(totwidth)
           << p.numAsserts << " | "
-          << ((p.numAsserts == 0 || anythingFailed) ? Color::None : Color::Green)
-          << std::setw(passwidth) << (p.numAsserts - p.numAssertsFailed) << " passed" << Color::None
-          << " | " << (p.numAssertsFailed > 0 ? Color::Red : Color::None) << std::setw(failwidth)
-          << p.numAssertsFailed << " failed" << Color::None << " |\n";
-        s << Color::Cyan << "[doctest] " << Color::None
-          << "Status: " << (p.numTestCasesFailed > 0 ? Color::Red : Color::Green)
-          << ((p.numTestCasesFailed > 0) ? "FAILURE!" : "SUCCESS!") << Color::None << std::endl;
+          << ((p.numAsserts == 0 || anythingFailed) ? Color::Enum::None : Color::Enum::Green)
+          << std::setw(passwidth) << (p.numAsserts - p.numAssertsFailed) << " passed" << Color::Enum::None
+          << " | " << (p.numAssertsFailed > 0 ? Color::Enum::Red : Color::Enum::None) << std::setw(failwidth)
+          << p.numAssertsFailed << " failed" << Color::Enum::None << " |\n";
+        s << Color::Enum::Cyan << "[doctest] " << Color::Enum::None
+          << "Status: " << (p.numTestCasesFailed > 0 ? Color::Enum::Red : Color::Enum::Green)
+          << ((p.numTestCasesFailed > 0) ? "FAILURE!" : "SUCCESS!") << Color::Enum::None << std::endl;
     }
 
     void test_case_start(const TestCaseData &in) override {
@@ -6232,34 +6303,34 @@ struct ConsoleReporter: public IReporter {
         // log the preamble of the test case only if there is something
         // else to print - something other than that an assert has failed
         if(opt.duration ||
-           (st.failure_flags && st.failure_flags != static_cast<int>(TestCaseFailureReason::AssertFailure)))
+           (st.failure_flags && static_cast<int>(st.failure_flags) != static_cast<int>(TestCaseFailureReason::Enum::AssertFailure)))
             logTestStart();
 
         if(opt.duration)
-            s << Color::None << std::setprecision(6) << std::fixed << st.seconds
+            s << Color::Enum::None << std::setprecision(6) << std::fixed << st.seconds
               << " s: " << tc->m_name << "\n";
 
-        if(st.failure_flags & TestCaseFailureReason::Timeout)
-            s << Color::Red << "Test case exceeded time limit of " << std::setprecision(6)
+        if(st.failure_flags & TestCaseFailureReason::Enum::Timeout)
+            s << Color::Enum::Red << "Test case exceeded time limit of " << std::setprecision(6)
               << std::fixed << tc->m_timeout << "!\n";
 
-        if(st.failure_flags & TestCaseFailureReason::ShouldHaveFailedButDidnt) {
-            s << Color::Red << "Should have failed but didn't! Marking it as failed!\n";
-        } else if(st.failure_flags & TestCaseFailureReason::ShouldHaveFailedAndDid) {
-            s << Color::Yellow << "Failed as expected so marking it as not failed\n";
-        } else if(st.failure_flags & TestCaseFailureReason::CouldHaveFailedAndDid) {
-            s << Color::Yellow << "Allowed to fail so marking it as not failed\n";
-        } else if(st.failure_flags & TestCaseFailureReason::DidntFailExactlyNumTimes) {
-            s << Color::Red << "Didn't fail exactly " << tc->m_expected_failures
+        if(st.failure_flags & TestCaseFailureReason::Enum::ShouldHaveFailedButDidnt) {
+            s << Color::Enum::Red << "Should have failed but didn't! Marking it as failed!\n";
+        } else if(st.failure_flags & TestCaseFailureReason::Enum::ShouldHaveFailedAndDid) {
+            s << Color::Enum::Yellow << "Failed as expected so marking it as not failed\n";
+        } else if(st.failure_flags & TestCaseFailureReason::Enum::CouldHaveFailedAndDid) {
+            s << Color::Enum::Yellow << "Allowed to fail so marking it as not failed\n";
+        } else if(st.failure_flags & TestCaseFailureReason::Enum::DidntFailExactlyNumTimes) {
+            s << Color::Enum::Red << "Didn't fail exactly " << tc->m_expected_failures
               << " times so marking it as failed!\n";
-        } else if(st.failure_flags & TestCaseFailureReason::FailedExactlyNumTimes) {
-            s << Color::Yellow << "Failed exactly " << tc->m_expected_failures
+        } else if(st.failure_flags & TestCaseFailureReason::Enum::FailedExactlyNumTimes) {
+            s << Color::Enum::Yellow << "Failed exactly " << tc->m_expected_failures
               << " times as expected so marking it as not failed!\n";
         }
-        if(st.failure_flags & TestCaseFailureReason::TooManyFailedAsserts) {
-            s << Color::Red << "Aborting - too many failed asserts!\n";
+        if(st.failure_flags & TestCaseFailureReason::Enum::TooManyFailedAsserts) {
+            s << Color::Enum::Red << "Aborting - too many failed asserts!\n";
         }
-        s << Color::None; // lgtm [cpp/useless-expression]
+        s << Color::Enum::None; // lgtm [cpp/useless-expression]
     }
 
     void test_case_exception(const TestCaseException &e) override {
@@ -6270,21 +6341,21 @@ struct ConsoleReporter: public IReporter {
         logTestStart();
 
         file_line_to_stream(tc->m_file.c_str(), tc->m_line, " ");
-        successOrFailColoredStringToStream(false, e.is_crash ? assertType::is_require : assertType::is_check);
-        s << Color::Red << (e.is_crash ? "test case CRASHED: " : "test case THREW exception: ")
-          << Color::Cyan << e.error_string << "\n";
+        successOrFailColoredStringToStream(false, e.is_crash ? assertType::Enum::is_require : assertType::Enum::is_check);
+        s << Color::Enum::Red << (e.is_crash ? "test case CRASHED: " : "test case THREW exception: ")
+          << Color::Enum::Cyan << e.error_string << "\n";
 
         int num_stringified_contexts = get_num_stringified_contexts();
         if(num_stringified_contexts) {
             auto stringified_contexts = get_stringified_contexts();
-            s << Color::None << "  logged: ";
+            s << Color::Enum::None << "  logged: ";
             for(int i = num_stringified_contexts; i > 0; --i) {
                 s << (i == num_stringified_contexts ? "" : "          ")
                   << stringified_contexts[i - 1] << "\n";
             }
         }
         s << "\n"
-          << Color::None;
+          << Color::Enum::None;
     }
 
     void subcase_start(const SubcaseSignature &subc) override {
@@ -6324,8 +6395,8 @@ struct ConsoleReporter: public IReporter {
 
         file_line_to_stream(mb.m_file, mb.m_line, " ");
         s << getSuccessOrFailColor(false, mb.m_severity)
-          << getSuccessOrFailString(mb.m_severity & assertType::is_warn, mb.m_severity, "MESSAGE") << ": ";
-        s << Color::None << mb.m_string << "\n";
+          << getSuccessOrFailString(mb.m_severity & assertType::Enum::is_warn, mb.m_severity, "MESSAGE") << ": ";
+        s << Color::Enum::None << mb.m_string << "\n";
         log_contexts();
     }
 
@@ -6466,7 +6537,7 @@ bool parseCommaSepArgs(int argc, const char *const *argv, const char *pattern, s
     return false;
 }
 
-enum optionType {
+enum class optionType {
     option_bool,
     option_int
 };
@@ -6477,7 +6548,7 @@ bool parseIntOption(int argc, const char *const *argv, const char *pattern, opti
     if(!parseOption(argc, argv, pattern, &parsedValue))
         return false;
 
-    if(type) {
+    if(type != optionType::option_bool) {
         // integer
         // TODO: change this to use std::stoi or something else! currently it uses undefined behavior - assumes '0' on failed parse...
         int theInt = std::atoi(parsedValue.c_str());
@@ -6554,8 +6625,8 @@ void Context::parseArgs(int argc, const char *const *argv, bool withDefaults) {
     String strRes;
 
 #        define DOCTEST_PARSE_AS_BOOL_OR_FLAG(name, sname, var, default)                                  \
-            if(parseIntOption(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX name "=", option_bool, intRes) || \
-               parseIntOption(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX sname "=", option_bool, intRes))  \
+            if(parseIntOption(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX name "=", optionType::option_bool, intRes) || \
+               parseIntOption(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX sname "=", optionType::option_bool, intRes))  \
                 p->var = static_cast<bool>(intRes);                                                       \
             else if(parseFlag(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX name) ||                          \
                     parseFlag(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX sname))                           \
@@ -6564,8 +6635,8 @@ void Context::parseArgs(int argc, const char *const *argv, bool withDefaults) {
             p->var = default
 
 #        define DOCTEST_PARSE_INT_OPTION(name, sname, var, default)                                      \
-            if(parseIntOption(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX name "=", option_int, intRes) || \
-               parseIntOption(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX sname "=", option_int, intRes))  \
+            if(parseIntOption(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX name "=", optionType::option_int, intRes) || \
+               parseIntOption(argc, argv, DOCTEST_CONFIG_OPTIONS_PREFIX sname "=", optionType::option_int, intRes))  \
                 p->var = intRes;                                                                         \
             else if(withDefaults)                                                                        \
             p->var = default
@@ -6887,7 +6958,7 @@ int Context::run() {
         {
             p->currentTest = &tc;
 
-            p->failure_flags = TestCaseFailureReason::None;
+            p->failure_flags = static_cast<int>(TestCaseFailureReason::Enum::None);
             p->seconds = 0;
 
             // reset atomic counters
@@ -6926,10 +6997,10 @@ int Context::run() {
                     DOCTEST_MSVC_SUPPRESS_WARNING_POP
 #        ifndef DOCTEST_CONFIG_NO_EXCEPTIONS
                 } catch(const TestFailureException &) {
-                    p->failure_flags |= TestCaseFailureReason::AssertFailure;
+                    p->failure_flags |= TestCaseFailureReason::Enum::AssertFailure;
                 } catch(...) {
                     DOCTEST_ITERATE_THROUGH_REPORTERS(test_case_exception, {translateActiveException(), false});
-                    p->failure_flags |= TestCaseFailureReason::Exception;
+                    p->failure_flags |= TestCaseFailureReason::Enum::Exception;
                 }
 #        endif // DOCTEST_CONFIG_NO_EXCEPTIONS
 
@@ -6937,7 +7008,7 @@ int Context::run() {
                 if(p->abort_after > 0 &&
                    p->numAssertsFailed + p->numAssertsFailedCurrentTest_atomic >= p->abort_after) {
                     run_test = false;
-                    p->failure_flags |= TestCaseFailureReason::TooManyFailedAsserts;
+                    p->failure_flags |= TestCaseFailureReason::Enum::TooManyFailedAsserts;
                 }
 
                 if(!p->nextSubcaseStack.empty() && run_test)

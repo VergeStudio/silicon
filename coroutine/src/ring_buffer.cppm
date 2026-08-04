@@ -44,7 +44,7 @@ enum class consume {
 template<typename element, size_t num_elements>
 class ring_buffer {
   private:
-    enum running_state_t {
+    enum class running_state_t {
         /// @brief The ring buffer is still running.
         running,
         /// @brief The ring buffer is draining all elements, produce is no longer allowed.

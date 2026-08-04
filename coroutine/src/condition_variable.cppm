@@ -43,7 +43,7 @@ class condition_variable {
     using predicate_type = std::function<bool()>;
 
   private:
-    enum notify_status_t {
+    enum class notify_status_t {
         /// @brief The waiter is ready to be resumed, either the predicate passed or its been requested to stop.
         ready,
         /// @brief The waiter is not ready to be resumed
