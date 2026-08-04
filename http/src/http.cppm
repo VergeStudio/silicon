@@ -14,104 +14,104 @@ export namespace silicon::http {
 
 struct HttpResponse {
 
-    struct P {
+    struct Impl {
       public:
-        int status_code = 0;
-        std::string body;
-        std::map<std::string, std::string> headers;
+        int status_code_ = 0;
+        std::string body_;
+        std::map<std::string, std::string> headers_;
     };
-    std::shared_ptr<P> m_p{std::make_shared<P>()};
+    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
     HttpResponse() = default;
     /// 便利构造：保留原聚合初始化 `HttpResponse{200, "{}"}` 的调用形态
     HttpResponse(int status, std::string b = {}, std::map<std::string, std::string> h = {}) {
-        m_p->status_code = status;
-        m_p->body = std::move(b);
-        m_p->headers = std::move(h);
+        impl_->status_code_ = status;
+        impl_->body_ = std::move(b);
+        impl_->headers_ = std::move(h);
     }
-    HttpResponse(const HttpResponse &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    HttpResponse(const HttpResponse &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
     HttpResponse &operator=(const HttpResponse &o) {
-        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
     HttpResponse(HttpResponse &&) noexcept = default;
     HttpResponse &operator=(HttpResponse &&) noexcept = default;
 
   public:
-    int &status_code() { return m_p->status_code; }
-    const int &status_code() const { return m_p->status_code; }
-    std::string &body() { return m_p->body; }
-    const std::string &body() const { return m_p->body; }
-    std::map<std::string, std::string> &headers() { return m_p->headers; }
-    const std::map<std::string, std::string> &headers() const { return m_p->headers; }
+    int &StatusCode() { return impl_->status_code_; }
+    const int &StatusCode() const { return impl_->status_code_; }
+    std::string &Body() { return impl_->body_; }
+    const std::string &Body() const { return impl_->body_; }
+    std::map<std::string, std::string> &Headers() { return impl_->headers_; }
+    const std::map<std::string, std::string> &Headers() const { return impl_->headers_; }
 
 };
 
 struct HttpRequest {
 
-    struct P {
+    struct Impl {
       public:
-        std::string url;
-        std::string method = "GET";
-        std::string body;
-        std::map<std::string, std::string> headers;
-        int timeout_ms = 30000;
+        std::string url_;
+        std::string method_ = "GET";
+        std::string body_;
+        std::map<std::string, std::string> headers_;
+        int timeout_ms_ = 30000;
     };
-    std::shared_ptr<P> m_p{std::make_shared<P>()};
+    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
     HttpRequest() = default;
-    HttpRequest(const HttpRequest &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    HttpRequest(const HttpRequest &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
     HttpRequest &operator=(const HttpRequest &o) {
-        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
     HttpRequest(HttpRequest &&) noexcept = default;
     HttpRequest &operator=(HttpRequest &&) noexcept = default;
 
   public:
-    std::string &url() { return m_p->url; }
-    const std::string &url() const { return m_p->url; }
-    std::string &method() { return m_p->method; }
-    const std::string &method() const { return m_p->method; }
-    std::string &body() { return m_p->body; }
-    const std::string &body() const { return m_p->body; }
-    std::map<std::string, std::string> &headers() { return m_p->headers; }
-    const std::map<std::string, std::string> &headers() const { return m_p->headers; }
-    int &timeout_ms() { return m_p->timeout_ms; }
-    const int &timeout_ms() const { return m_p->timeout_ms; }
+    std::string &Url() { return impl_->url_; }
+    const std::string &Url() const { return impl_->url_; }
+    std::string &Method() { return impl_->method_; }
+    const std::string &Method() const { return impl_->method_; }
+    std::string &Body() { return impl_->body_; }
+    const std::string &Body() const { return impl_->body_; }
+    std::map<std::string, std::string> &Headers() { return impl_->headers_; }
+    const std::map<std::string, std::string> &Headers() const { return impl_->headers_; }
+    int &TimeoutMs() { return impl_->timeout_ms_; }
+    const int &TimeoutMs() const { return impl_->timeout_ms_; }
 
 };
 
 /// HTTP 客户端抽象（可注入，TDD 使用 FakeHttpClient）
-class IHttpClient {
+class HttpClient {
   public:
-    virtual ~IHttpClient() = default;
+    virtual ~HttpClient() = default;
     virtual HttpResponse request(const HttpRequest &req) const = 0;
-    HttpResponse get(const std::string &url) const;
+    HttpResponse Get(const std::string &url) const;
 };
 
 /// 基于 shell curl 的实现（沙箱内网络受限时可用本地模拟）
-class CurlHttpClient: public IHttpClient {
+class CurlHttpClient: public HttpClient {
   public:
     HttpResponse request(const HttpRequest &req) const override;
 };
 
 /// 打桩实现（返回预设响应，用于 TDD）
-class FakeHttpClient: public IHttpClient {
+class FakeHttpClient: public HttpClient {
 
-    struct P {
+    struct Impl {
       public:
         HttpResponse response_;
         mutable std::size_t call_count_ = 0;
     };
-    std::unique_ptr<P> m_p{std::make_unique<P>()};
+    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 
   public:
     explicit FakeHttpClient(HttpResponse response = {200, "{}"});
     HttpResponse request(const HttpRequest &) const override;
-    std::size_t call_count() const;
+    std::size_t CallCount() const;
 };
 
 } // namespace silicon::http
