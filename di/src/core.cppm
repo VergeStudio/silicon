@@ -3194,7 +3194,7 @@ struct callable_signature<R(Args...) noexcept, void> {
         R(Args...) cv_qualifier ref_qualifier noexcept_qualifier, void>        \
         : callable_signature<R(Args...) noexcept_qualifier> {};
 
-DI_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_CALLABLE_SIGNATURE)
+SILICON_DI_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_CALLABLE_SIGNATURE)
 
 #undef SILICON_DI_DEFINE_CALLABLE_SIGNATURE
 
@@ -3268,7 +3268,7 @@ struct callable_operator_signature<R (Class::*)(Args...) noexcept>
         R (Class::*)(Args...) cv_qualifier ref_qualifier noexcept_qualifier,   \
         void> : callable_signature<R(object_type, Args...) noexcept_qualifier> {};
 
-DI_MEMBER_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_MEMBER_CALLABLE_SIGNATURE)
+SILICON_DI_MEMBER_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_MEMBER_CALLABLE_SIGNATURE)
 
 #undef SILICON_DI_DEFINE_MEMBER_CALLABLE_SIGNATURE
 #undef SILICON_DI_MEMBER_CALLABLE_SIGNATURE_VARIANTS
@@ -3280,7 +3280,7 @@ DI_MEMBER_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_MEMBER_CALLABLE_SIGNATUR
         R (Class::*)(Args...) cv_qualifier ref_qualifier noexcept_qualifier>   \
         : callable_signature<R(Args...) noexcept_qualifier> {};
 
-DI_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_CALLABLE_OPERATOR_SIGNATURE)
+SILICON_DI_CALLABLE_SIGNATURE_VARIANTS(SILICON_DI_DEFINE_CALLABLE_OPERATOR_SIGNATURE)
 
 #undef SILICON_DI_DEFINE_CALLABLE_OPERATOR_SIGNATURE
 #undef SILICON_DI_CALLABLE_SIGNATURE_VARIANTS
