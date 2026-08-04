@@ -11,7 +11,7 @@ export import :config;
 
 export namespace silicon::event {
 
-enum class EventStatus { Success, Failure, Timeout };
+enum class EventStatus { kSuccess, kFailure, kTimeout };
 
 class EVENT_API Event {
   public:
@@ -26,11 +26,11 @@ class EVENT_API Event {
 
     [[nodiscard]] auto name() const noexcept -> const std::string &;
     [[nodiscard]] auto status() const noexcept -> EventStatus;
-    void set_status(EventStatus s) noexcept;
+    void SetStatus(EventStatus s) noexcept;
 
   private:
-    std::string m_name;
-    EventStatus m_status{EventStatus::Success};
+    std::string name_;
+    EventStatus status_{EventStatus::kSuccess};
 };
 
 } // namespace silicon::event
