@@ -88,14 +88,14 @@ struct HttpRequest {
 class IHttpClient {
   public:
     virtual ~IHttpClient() = default;
-    virtual HttpResponse request(const HttpRequest &req) const = 0;
+    virtual HttpResponse Request(const HttpRequest &req) const = 0;
     HttpResponse Get(const std::string &url) const;
 };
 
 /// 基于 shell curl 的实现（沙箱内网络受限时可用本地模拟）
 class CurlHttpClient: public IHttpClient {
   public:
-    HttpResponse request(const HttpRequest &req) const override;
+    HttpResponse Request(const HttpRequest &req) const override;
 };
 
 /// 打桩实现（返回预设响应，用于 TDD）
@@ -110,7 +110,7 @@ class FakeHttpClient: public IHttpClient {
 
   public:
     explicit FakeHttpClient(HttpResponse response = {200, "{}"});
-    HttpResponse request(const HttpRequest &) const override;
+    HttpResponse Request(const HttpRequest &) const override;
     std::size_t CallCount() const;
 };
 

@@ -14,7 +14,7 @@ namespace silicon::http {
 FakeHttpClient::FakeHttpClient(HttpResponse response)
     : impl_(std::make_unique<Impl>()) { impl_->response_ = std::move(response); }
 
-HttpResponse FakeHttpClient::request(const HttpRequest &) const {
+HttpResponse FakeHttpClient::Request(const HttpRequest &) const {
     ++impl_->call_count_;
     return impl_->response_;
 }
@@ -23,7 +23,7 @@ std::size_t FakeHttpClient::CallCount() const {
     return impl_->call_count_;
 }
 
-HttpResponse CurlHttpClient::request(const HttpRequest &req) const {
+HttpResponse CurlHttpClient::Request(const HttpRequest &req) const {
     // 构建 curl 命令（简略版，仅支持 GET/POST）
     std::string cmd = "curl -s -w '\\n%{http_code}' -m " + std::to_string(req.TimeoutMs() / 1000);
     if(req.Method() == "POST") {
@@ -67,7 +67,7 @@ HttpResponse CurlHttpClient::request(const HttpRequest &req) const {
 HttpResponse IHttpClient::Get(const std::string &url) const {
     HttpRequest req;
     req.Url() = url;
-    return request(req);
+    return Request(req);
 }
 
 } // namespace silicon::http
