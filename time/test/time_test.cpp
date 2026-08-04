@@ -13,7 +13,7 @@ TEST_CASE("SystemClock 返回非零时间戳") {
 
 TEST_CASE("DateSource 返回 YYYY-MM-DD 格式") {
     SystemClock clock;
-    DateSource src(clock);
+    DefaultDateSource src(clock);
     auto date = src.current_date();
     CHECK(date.size() == 10);
     CHECK(date[4] == '-');
