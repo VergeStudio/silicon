@@ -1,5 +1,5 @@
 /// @file platform.cppm
-/// @brief Platform detection — C++23 modules + constexpr.
+/// @brief IPlatform detection — C++23 modules + constexpr.
 /// @usage
 ///   import silicon.platform;
 ///   if constexpr (os == OsId::kWindowsNt) { /* Windows */ }
@@ -150,7 +150,7 @@ export namespace silicon::platform {
         return o == OsId::kWindowsNt;
     }
 
-    // ── Platform properties (compile-time) ──────────────────────────────
+    // ── IPlatform properties (compile-time) ──────────────────────────────
 
     constexpr auto NativeNewline() {
         if constexpr (os == OsId::kWindowsNt)
@@ -198,31 +198,31 @@ export namespace silicon::platform {
             return "";
     }
 
-    // ── Runtime abstraction（spec：Platform / 各平台实现 / CreatePlatform） ──
+    // ── Runtime abstraction（spec：IPlatform / 各平台实现 / CreatePlatform） ──
 
-    class Platform {
+    class IPlatform {
       public:
-        virtual ~Platform() = default;
+        virtual ~IPlatform() = default;
         virtual std::string OsName() const = 0;
         virtual char PathSeparator() const = 0;
         virtual std::string LineEnding() const = 0;
     };
 
-    class WindowsPlatform: public Platform {
+    class WindowsPlatform: public IPlatform {
       public:
         std::string OsName() const override { return "windows"; }
         char PathSeparator() const override { return '\\'; }
         std::string LineEnding() const override { return "\r\n"; }
     };
 
-    class LinuxPlatform: public Platform {
+    class LinuxPlatform: public IPlatform {
       public:
         std::string OsName() const override { return "linux"; }
         char PathSeparator() const override { return '/'; }
         std::string LineEnding() const override { return "\n"; }
     };
 
-    class UnixPlatform: public Platform {
+    class UnixPlatform: public IPlatform {
       public:
         std::string OsName() const override { return "unix"; }
         char PathSeparator() const override { return '/'; }
@@ -230,7 +230,7 @@ export namespace silicon::platform {
     };
 
     // 编译期选中当前平台实现（互斥，仅一个分支参与重载决议）。
-    inline std::unique_ptr<Platform> CreatePlatform() {
+    inline std::unique_ptr<IPlatform> CreatePlatform() {
         if constexpr (os == OsId::kWindowsNt) {
             return std::make_unique<WindowsPlatform>();
         } else if constexpr (os == OsId::kLinuxOs) {

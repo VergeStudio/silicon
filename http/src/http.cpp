@@ -64,7 +64,7 @@ HttpResponse CurlHttpClient::request(const HttpRequest &req) const {
     return resp;
 }
 
-HttpResponse HttpClient::Get(const std::string &url) const {
+HttpResponse IHttpClient::Get(const std::string &url) const {
     HttpRequest req;
     req.Url() = url;
     return request(req);

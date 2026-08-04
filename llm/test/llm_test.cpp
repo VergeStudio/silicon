@@ -10,7 +10,7 @@ using namespace silicon::llm;
 
 // ── 测试夹具：具体 ITool / IProvider ───────────────────────────
 
-class EchoTool: public Tool {
+class EchoTool: public ITool {
   public:
     std::string_view Name() const override { return "echo"; }
     std::string_view Description() const override { return "echoes input"; }
@@ -21,7 +21,7 @@ class EchoTool: public Tool {
     }
 };
 
-class ConstProvider: public Provider {
+class ConstProvider: public IProvider {
     std::string text_;
 
   public:
@@ -36,10 +36,10 @@ class ConstProvider: public Provider {
     }
 };
 
-// ── ToolRegistry ──────────────────────────────────────────────
+// ── IToolRegistry ──────────────────────────────────────────────
 
-TEST_CASE("ToolRegistry 注册并按 name 查询") {
-    DefaultToolRegistry reg;
+TEST_CASE("IToolRegistry 注册并按 name 查询") {
+    ToolRegistry reg;
     CHECK(reg.ToolCount() == 0);
     CHECK(reg.RegisterTool(std::make_unique<EchoTool>()));
     CHECK(reg.ToolCount() == 1);
@@ -52,22 +52,22 @@ TEST_CASE("ToolRegistry 注册并按 name 查询") {
     CHECK(out.Content() == "echo:\"hi\"");
 }
 
-TEST_CASE("ToolRegistry 重复 name 注册返回 false") {
-    DefaultToolRegistry reg;
+TEST_CASE("IToolRegistry 重复 name 注册返回 false") {
+    ToolRegistry reg;
     CHECK(reg.RegisterTool(std::make_unique<EchoTool>()));
     CHECK_FALSE(reg.RegisterTool(std::make_unique<EchoTool>()));
     CHECK(reg.ToolCount() == 1);
 }
 
-TEST_CASE("ToolRegistry get_tool 未知 name 返回 nullptr") {
-    DefaultToolRegistry reg;
+TEST_CASE("IToolRegistry get_tool 未知 name 返回 nullptr") {
+    ToolRegistry reg;
     CHECK(reg.GetTool("missing") == nullptr);
 }
 
-// ── ProviderRegistry ──────────────────────────────────────────
+// ── IProviderRegistry ──────────────────────────────────────────
 
-TEST_CASE("ProviderRegistry 注册/查询/列举") {
-    DefaultProviderRegistry reg;
+TEST_CASE("IProviderRegistry 注册/查询/列举") {
+    ProviderRegistry reg;
     CHECK(reg.RegisterProvider("openai", std::make_unique<ConstProvider>("a")));
     CHECK(reg.RegisterProvider("anthropic", std::make_unique<ConstProvider>("b")));
     CHECK(reg.ListProviders().size() == 2);
@@ -81,8 +81,8 @@ TEST_CASE("ProviderRegistry 注册/查询/列举") {
     CHECK(reg.GetProvider("missing") == nullptr);
 }
 
-TEST_CASE("ProviderRegistry 重复 id 注册返回 false") {
-    DefaultProviderRegistry reg;
+TEST_CASE("IProviderRegistry 重复 id 注册返回 false") {
+    ProviderRegistry reg;
     CHECK(reg.RegisterProvider("openai", std::make_unique<ConstProvider>("a")));
     CHECK_FALSE(reg.RegisterProvider("openai", std::make_unique<ConstProvider>("b")));
     CHECK(reg.ListProviders().size() == 1);

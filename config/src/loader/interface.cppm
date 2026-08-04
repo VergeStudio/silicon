@@ -9,9 +9,9 @@ export module silicon.config.loader.interface;
 
 export namespace silicon::config {
 
-class CONFIG_API Loader {
+class CONFIG_API ILoader {
   public:
-    virtual ~Loader() = default;
+    virtual ~ILoader() = default;
     [[nodiscard]] virtual auto Load(const std::string &path) -> bool = 0;
 };
 

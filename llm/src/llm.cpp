@@ -23,32 +23,32 @@ import silicon.exception;
 
 namespace silicon::llm {
 
-DefaultToolRegistry::DefaultToolRegistry() : impl_(std::make_unique<Impl>()) {}
-DefaultProviderRegistry::DefaultProviderRegistry() : impl_(std::make_unique<Impl>()) {}
+ToolRegistry::ToolRegistry() : impl_(std::make_unique<Impl>()) {}
+ProviderRegistry::ProviderRegistry() : impl_(std::make_unique<Impl>()) {}
 ScriptedProvider::ScriptedProvider() : impl_(std::make_unique<Impl>()) {}
 
-bool DefaultToolRegistry::RegisterTool(std::unique_ptr<Tool> tool) {
+bool ToolRegistry::RegisterTool(std::unique_ptr<ITool> tool) {
     auto name = std::string(tool->Name());
     return impl_->tools_.emplace(std::move(name), std::move(tool)).second;
 }
 
-Tool *DefaultToolRegistry::GetTool(std::string_view name) const {
+ITool *ToolRegistry::GetTool(std::string_view name) const {
     auto it = impl_->tools_.find(name);
     return it != impl_->tools_.end() ? it->second.get() : nullptr;
 }
 
-std::size_t DefaultToolRegistry::ToolCount() const { return impl_->tools_.size(); }
+std::size_t ToolRegistry::ToolCount() const { return impl_->tools_.size(); }
 
-bool DefaultProviderRegistry::RegisterProvider(std::string id, std::unique_ptr<Provider> provider) {
+bool ProviderRegistry::RegisterProvider(std::string id, std::unique_ptr<IProvider> provider) {
     return impl_->providers_.emplace(std::move(id), std::move(provider)).second;
 }
 
-Provider *DefaultProviderRegistry::GetProvider(std::string_view id) const {
+IProvider *ProviderRegistry::GetProvider(std::string_view id) const {
     auto it = impl_->providers_.find(id);
     return it != impl_->providers_.end() ? it->second.get() : nullptr;
 }
 
-std::vector<std::string> DefaultProviderRegistry::ListProviders() const {
+std::vector<std::string> ProviderRegistry::ListProviders() const {
     std::vector<std::string> ids;
     for(const auto &[k, v]: impl_->providers_) ids.push_back(k);
     return ids;

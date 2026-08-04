@@ -11,9 +11,9 @@ TEST_CASE("SystemClock 返回非零时间戳") {
     CHECK(ms > 1'600'000'000'000LL);
 }
 
-TEST_CASE("DateSource 返回 YYYY-MM-DD 格式") {
+TEST_CASE("IDateSource 返回 YYYY-MM-DD 格式") {
     SystemClock clock;
-    DefaultDateSource src(clock);
+    DateSource src(clock);
     auto date = src.current_date();
     CHECK(date.size() == 10);
     CHECK(date[4] == '-');

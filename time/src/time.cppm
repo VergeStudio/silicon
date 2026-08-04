@@ -10,37 +10,37 @@ export module silicon.time;
 export namespace silicon::time {
 
 /// 时钟抽象（可注入，便于测试）
-class Clock {
+class IClock {
   public:
-    virtual ~Clock() = default;
+    virtual ~IClock() = default;
     virtual std::chrono::system_clock::time_point now() const = 0;
     virtual std::int64_t now_ms() const = 0;
 };
 
 /// 默认系统时钟（包装 std::chrono::system_clock）
-class SystemClock : public Clock {
+class SystemClock : public IClock {
   public:
     std::chrono::system_clock::time_point now() const override;
     std::int64_t now_ms() const override;
 };
 
-/// 日期源抽象：提供当前日期字符串（供 System Context 的 DefaultDateSource 使用）
-class DateSource {
+/// 日期源抽象：提供当前日期字符串（供 System Context 的 DateSource 使用）
+class IDateSource {
   public:
-    virtual ~DateSource() = default;
+    virtual ~IDateSource() = default;
     virtual std::string current_date() const = 0;
 };
 
-/// 默认日期实现（基于 Clock，返回 UTC 日期 YYYY-MM-DD）
-class DefaultDateSource : public DateSource {
+/// 默认日期实现（基于 IClock，返回 UTC 日期 YYYY-MM-DD）
+class DateSource : public IDateSource {
     struct Impl {
       public:
-        const Clock* clock_{nullptr};
+        const IClock* clock_{nullptr};
     };
     std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 
   public:
-    explicit DefaultDateSource(const Clock& clock) { impl_->clock_ = &clock; }
+    explicit DateSource(const IClock& clock) { impl_->clock_ = &clock; }
     std::string current_date() const override;
 };
 

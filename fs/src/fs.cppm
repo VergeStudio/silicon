@@ -85,9 +85,9 @@ class Result<void> {
 /// 文件系统抽象（统一接口）。
 /// 文本 read/write 平台无关地以 UTF-8 表达；平台相关细节
 /// （Windows 文本 CRLF 归一化、POSIX 目录默认权限）由具体实现处理。
-class FileSystem {
+class IFileSystem {
   public:
-    virtual ~FileSystem() = default;
+    virtual ~IFileSystem() = default;
 
     /// 文本读取，返回 UTF-8 内容
     virtual Result<std::string> Read(const std::string &path) const = 0;
@@ -118,6 +118,6 @@ class FileSystem {
 export namespace silicon::fs {
 
 /// 工厂：返回当前平台的文件系统实现（具体类型由上面选中的头文件提供）。
-std::unique_ptr<FileSystem> CreateFileSystem();
+std::unique_ptr<IFileSystem> CreateFileSystem();
 
 } // namespace silicon::fs

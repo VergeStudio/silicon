@@ -128,20 +128,20 @@ using Result = silicon::common::Result<T, silicon::exception::LLMError>;
 
 // ── 接口 ─────────────────────────────────────────────────────────
 
-class Provider {
+class IProvider {
   public:
-    virtual ~Provider() = default;
+    virtual ~IProvider() = default;
     virtual Result<ChatResponse> Chat(const Conversation &conv, const ModelRequestOptions &opts) = 0;
 };
 
-class ProtocolAdapter {
+class IProtocolAdapter {
   public:
-    virtual ~ProtocolAdapter() = default;
+    virtual ~IProtocolAdapter() = default;
     virtual std::string EncodeRequest(const Conversation &conv, const ModelRequestOptions &opts, const std::vector<std::string> &tool_defs) const = 0;
     virtual Result<ChatResponse> DecodeResponse(std::string_view raw) const = 0;
 };
 
-// ── Tool ────────────────────────────────────────────────────────
+// ── ITool ────────────────────────────────────────────────────────
 
 struct ToolCall {
 
@@ -209,71 +209,71 @@ struct ToolOutput {
 
 };
 
-class Tool {
+class ITool {
   public:
-    virtual ~Tool() = default;
+    virtual ~ITool() = default;
     virtual std::string_view Name() const = 0;
     virtual std::string_view Description() const = 0;
     virtual ToolOutput Execute(const ToolCall &call) = 0;
 };
 
-class ToolRegistry {
+class IToolRegistry {
   public:
-    virtual ~ToolRegistry() = default;
-    virtual bool RegisterTool(std::unique_ptr<Tool> tool) = 0;
-    virtual Tool *GetTool(std::string_view name) const = 0;
+    virtual ~IToolRegistry() = default;
+    virtual bool RegisterTool(std::unique_ptr<ITool> tool) = 0;
+    virtual ITool *GetTool(std::string_view name) const = 0;
     virtual std::size_t ToolCount() const = 0;
 };
 
-// ── Provider 注册表接口 ───────────────────────────────────────
+// ── IProvider 注册表接口 ───────────────────────────────────────
 
-class ProviderRegistry {
+class IProviderRegistry {
   public:
-    virtual ~ProviderRegistry() = default;
-    virtual bool RegisterProvider(std::string id, std::unique_ptr<Provider> provider) = 0;
-    virtual Provider *GetProvider(std::string_view id) const = 0;
+    virtual ~IProviderRegistry() = default;
+    virtual bool RegisterProvider(std::string id, std::unique_ptr<IProvider> provider) = 0;
+    virtual IProvider *GetProvider(std::string_view id) const = 0;
     virtual std::vector<std::string> ListProviders() const = 0;
 };
 
 // ── 具体实现（DI 就绪，仅依赖接口） ─────────────────────────────
 
 /// 内存工具注册表：重复 name 注册返回 false（不替换）。
-class DefaultToolRegistry: public ToolRegistry {
+class ToolRegistry: public IToolRegistry {
 
     struct Impl {
       public:
-      std::map<std::string, std::unique_ptr<Tool>, std::less<>> tools_;
+      std::map<std::string, std::unique_ptr<ITool>, std::less<>> tools_;
     };
     std::unique_ptr<Impl> impl_;
 
   public:
-    DefaultToolRegistry();
-    bool RegisterTool(std::unique_ptr<Tool> tool) override;
-    Tool *GetTool(std::string_view name) const override;
+    ToolRegistry();
+    bool RegisterTool(std::unique_ptr<ITool> tool) override;
+    ITool *GetTool(std::string_view name) const override;
     std::size_t ToolCount() const override;
 
 };
 
 /// 内存提供方注册表：重复 id 注册返回 false。
-class DefaultProviderRegistry: public ProviderRegistry {
+class ProviderRegistry: public IProviderRegistry {
 
     struct Impl {
       public:
-      std::map<std::string, std::unique_ptr<Provider>, std::less<>> providers_;
+      std::map<std::string, std::unique_ptr<IProvider>, std::less<>> providers_;
     };
     std::unique_ptr<Impl> impl_;
 
   public:
-    DefaultProviderRegistry();
-    bool RegisterProvider(std::string id, std::unique_ptr<Provider> provider) override;
-    Provider *GetProvider(std::string_view id) const override;
+    ProviderRegistry();
+    bool RegisterProvider(std::string id, std::unique_ptr<IProvider> provider) override;
+    IProvider *GetProvider(std::string_view id) const override;
     std::vector<std::string> ListProviders() const override;
 
 };
 
 /// OpenAI 风格 JSON 协议适配器：Conversation/Options -> 请求 JSON；
 /// 线路 JSON -> ChatResponse（choices[0].message.content 等）。
-class JsonProtocolAdapter: public ProtocolAdapter {
+class JsonProtocolAdapter: public IProtocolAdapter {
   public:
     std::string EncodeRequest(
             const Conversation &conv,
@@ -285,7 +285,7 @@ class JsonProtocolAdapter: public ProtocolAdapter {
 
 /// 脚本化提供方：FIFO 返回预置响应，用于确定性 TDD。
 /// 队列耗尽返回 LLMError，绝不抛异常。
-class ScriptedProvider: public Provider {
+class ScriptedProvider: public IProvider {
 
     struct Impl {
       public:
@@ -302,10 +302,10 @@ class ScriptedProvider: public Provider {
 
 };
 
-/// OpenAI 兼容 HTTP Provider：通过本地 curl 调用 {base_url}/chat/completions。
+/// OpenAI 兼容 HTTP IProvider：通过本地 curl 调用 {base_url}/chat/completions。
 /// 配置来自环境变量（无 key 时 chat 返回 LLMError，由调用方提示用户）。
 /// 选用 OpenAI 兼容协议，可对接 OpenAI / DeepSeek / Ollama / vLLM / LM Studio 等。
-class HttpProvider: public Provider {
+class HttpProvider: public IProvider {
 
     struct Impl {
       public:

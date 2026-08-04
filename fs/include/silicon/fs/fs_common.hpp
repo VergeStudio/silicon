@@ -3,7 +3,7 @@
 // 平台无关的文件系统实现基类，被 Win32FileSystem / PosixFileSystem 继承。
 // 本文件经 fs.cppm 按 SILICON_PLATFORM_* 宏选中对应平台头文件后，
 // 间接 #include 进 silicon.fs 模块翻译单元，故可直接使用模块内已导出的
-// FileSystem / Result / FsError 等类型。
+// IFileSystem / Result / FsError 等类型。
 
 #include <cstddef>
 #include <filesystem>
@@ -17,7 +17,7 @@ namespace silicon::fs {
 /// 共享逻辑基于 std::filesystem；平台相关差异通过两个钩子下放：
 ///  - NormalizeText()：文本写入前的换行符规范化（Windows 覆写为 CRLF）
 ///  - CreateDirectories()：目录创建（POSIX 覆写以设置默认权限）
-class FileSystemBase: public FileSystem {
+class FileSystemBase: public IFileSystem {
   public:
     Result<std::string> Read(const std::string &path) const override {
         std::ifstream f(ToPath(path), std::ios::in | std::ios::binary);

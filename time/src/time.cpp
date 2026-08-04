@@ -20,7 +20,7 @@ std::int64_t SystemClock::now_ms() const {
     return duration_cast<milliseconds>(now().time_since_epoch()).count();
 }
 
-std::string DefaultDateSource::current_date() const {
+std::string DateSource::current_date() const {
     auto tp = impl_->clock_->now();
     auto tt = std::chrono::system_clock::to_time_t(tp);
     std::tm gmt{};

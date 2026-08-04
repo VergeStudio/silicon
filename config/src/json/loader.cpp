@@ -19,7 +19,7 @@ JsonFileConfig::JsonFileConfig(): impl_(std::make_unique<Impl>()) {}
 JsonFileConfig::~JsonFileConfig() = default;
 
 // ── JsonFileConfig methods ────────────────────────────────────────────────
-bool JsonFileConfig::Load(const std::string &path, const fs::FileSystem &filesystem) {
+bool JsonFileConfig::Load(const std::string &path, const fs::IFileSystem &filesystem) {
     auto content = filesystem.Read(path);
     if(!content) return false;
 
