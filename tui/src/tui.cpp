@@ -19,7 +19,7 @@ namespace silicon::tui {
 
 std::string_view UnixTerminal::terminal_type() const {
     static std::string t = [] {
-        std::string v = silicon::os::get_env("TERM");
+        std::string v = silicon::os::GetEnv("TERM");
         return v.empty() ? "xterm-256color" : v;
     }();
     return t;

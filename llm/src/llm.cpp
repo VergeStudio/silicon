@@ -138,7 +138,7 @@ Result<ChatResponse> ScriptedProvider::chat(const Conversation &, const ModelReq
 }
 
 std::string HttpProvider::env_or(const char *name, std::string def) {
-    std::string v = silicon::os::get_env(name);
+    std::string v = silicon::os::GetEnv(name);
     return v.empty() ? def : v;
 }
 

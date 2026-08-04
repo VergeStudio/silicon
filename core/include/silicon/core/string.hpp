@@ -15,14 +15,14 @@ namespace silicon::util {
 
 namespace strings_internal {
 
-inline void AppendPieces(std::string *pDest, std::initializer_list<std::string_view> pieces) {
+inline void AppendPieces(std::string *dest, std::initializer_list<std::string_view> pieces) {
     size_t size = 0;
-    for (const auto &rPiece : pieces) {
-        size += rPiece.size();
+    for (const auto &piece : pieces) {
+        size += piece.size();
     }
-    pDest->reserve(pDest->size() + size);
-    for (const auto &rPiece : pieces) {
-        pDest->append(rPiece.data(), rPiece.size());
+    dest->reserve(dest->size() + size);
+    for (const auto &piece : pieces) {
+        dest->append(piece.data(), piece.size());
     }
 }
 
@@ -44,8 +44,8 @@ inline std::string StrCat(const Args &...args) {
 // Unified variadic StrAppend — handles 1 to N arguments
 template <typename... Args>
     requires (std::convertible_to<Args, std::string_view> && ...) && (sizeof...(Args) >= 1)
-inline void StrAppend(std::string *pDestination, const Args &...args) {
-    strings_internal::AppendPieces(pDestination, {static_cast<std::string_view>(args)...});
+inline void StrAppend(std::string *destination, const Args &...args) {
+    strings_internal::AppendPieces(destination, {static_cast<std::string_view>(args)...});
 }
 
 } // namespace silicon::util

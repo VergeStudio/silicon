@@ -7,11 +7,11 @@ module silicon.exception;
 
 namespace silicon::exception {
 Exception::Exception(std::string_view message) {
-    m_p->m_message = static_cast<std::string>(message);
+    impl_->message_ = static_cast<std::string>(message);
 }
 
 const char *Exception::what() const noexcept {
-    return m_p->m_message.c_str();
+    return impl_->message_.c_str();
 }
 
 LogicError::LogicError(std::string_view message): Exception(message) {

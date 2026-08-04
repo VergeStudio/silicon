@@ -8,21 +8,21 @@ module silicon.library;
 import silicon.exception;
 
 namespace silicon::library {
-void *SharedLibrary::GetSymbol(const std::string &rSymbolName) {
-    void *pResult = findSymbol(rSymbolName);
-    if(pResult != nullptr) {
-        return pResult;
+void *SharedLibrary::GetSymbol(const std::string &symbol_name) {
+    void *result = FindSymbol(symbol_name);
+    if(result != nullptr) {
+        return result;
     }
 
-    throw silicon::exception::RuntimeError("[SharedLibrary::GetSymbol]: can't find symbol ", rSymbolName);
+    throw silicon::exception::RuntimeError("[SharedLibrary::GetSymbol]: can't find symbol ", symbol_name);
 }
 
-bool SharedLibrary::HasSymbol(const std::string &rSymbolName) {
-    return findSymbol(rSymbolName) != nullptr;
+bool SharedLibrary::HasSymbol(const std::string &symbol_name) {
+    return FindSymbol(symbol_name) != nullptr;
 }
 
-std::string SharedLibrary::GetOSName(const std::string &rName) {
-    return Prefix() + rName + Suffix();
+std::string SharedLibrary::GetOSName(const std::string &name) {
+    return Prefix() + name + Suffix();
 }
 } // namespace silicon::library
 

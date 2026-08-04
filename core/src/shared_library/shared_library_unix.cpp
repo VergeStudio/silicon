@@ -15,39 +15,39 @@ import silicon.exception;
 
 namespace silicon::library {
 
-SharedLibrary::SharedLibrary() : m_p(std::make_unique<P>()) {
+SharedLibrary::SharedLibrary() : impl_(std::make_unique<Impl>()) {
 }
 
-void SharedLibrary::Load(const std::string &rPath, int32_t flags) {
-    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
+void SharedLibrary::Load(const std::string &path, int32_t flags) {
+    std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
-    if (m_p->m_pHandle != nullptr) {
-        throw RuntimeError("Library already loaded: " + rPath);
+    if (impl_->handle_ != nullptr) {
+        throw RuntimeError("Library already loaded: " + path);
     }
 
-    m_p->m_pHandle = dlopen(rPath.c_str(), RTLD_NOW | RTLD_GLOBAL);
-    if (m_p->m_pHandle == nullptr) {
+    impl_->handle_ = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    if (impl_->handle_ == nullptr) {
         const char *err = dlerror();
-        throw RuntimeError("Could not load library: " + (err ? std::string(err) : rPath));
+        throw RuntimeError("Could not load library: " + (err ? std::string(err) : path));
     }
-    m_p->m_path = rPath;
+    impl_->path_ = path;
 }
 
 void SharedLibrary::Unload() {
-    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
+    std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
-    if (m_p->m_pHandle != nullptr) {
-        dlclose(m_p->m_pHandle);
-        m_p->m_pHandle = nullptr;
+    if (impl_->handle_ != nullptr) {
+        dlclose(impl_->handle_);
+        impl_->handle_ = nullptr;
     }
 }
 
 bool SharedLibrary::IsLoaded() const {
-    return m_p->m_pHandle != nullptr;
+    return impl_->handle_ != nullptr;
 }
 
 const std::string &SharedLibrary::GetPath() const {
-    return m_p->m_path;
+    return impl_->path_;
 }
 
 std::string SharedLibrary::Prefix() {
@@ -86,12 +86,12 @@ std::string SharedLibrary::Suffix() {
     }
 }
 
-void *SharedLibrary::findSymbol(const std::string &rName) {
-    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
+void *SharedLibrary::FindSymbol(const std::string &name) {
+    std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     void *result = nullptr;
-    if (m_p->m_pHandle) {
-        result = dlsym(m_p->m_pHandle, rName.c_str());
+    if (impl_->handle_) {
+        result = dlsym(impl_->handle_, name.c_str());
     }
     return result;
 }

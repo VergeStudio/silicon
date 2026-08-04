@@ -20,35 +20,35 @@ import silicon.exception;
 
 namespace silicon::library {
 
-SharedLibrary::SharedLibrary() : m_p(std::make_unique<P>()) {
+SharedLibrary::SharedLibrary() : impl_(std::make_unique<Impl>()) {
 }
 
-void SharedLibrary::Load(const std::string &rPath, int32_t flags) {
-    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
+void SharedLibrary::Load(const std::string &path, int32_t flags) {
+    std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
-    m_p->m_pHandle = LoadLibrary(rPath.c_str());
-    if (m_p->m_pHandle == nullptr) {
-        throw silicon::exception::RuntimeError("Could not load library: " + rPath);
+    impl_->handle_ = LoadLibrary(path.c_str());
+    if (impl_->handle_ == nullptr) {
+        throw silicon::exception::RuntimeError("Could not load library: " + path);
     }
-    m_p->m_path = rPath;
+    impl_->path_ = path;
 }
 
 void SharedLibrary::Unload() {
-    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
+    std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
-    if (m_p->m_pHandle != nullptr) {
-        FreeLibrary(static_cast<HMODULE>(m_p->m_pHandle));
-        m_p->m_pHandle = nullptr;
+    if (impl_->handle_ != nullptr) {
+        FreeLibrary(static_cast<HMODULE>(impl_->handle_));
+        impl_->handle_ = nullptr;
     }
-    m_p->m_path.clear();
+    impl_->path_.clear();
 }
 
 bool SharedLibrary::IsLoaded() const {
-    return m_p->m_pHandle != nullptr;
+    return impl_->handle_ != nullptr;
 }
 
 const std::string &SharedLibrary::GetPath() const {
-    return m_p->m_path;
+    return impl_->path_;
 }
 
 std::string SharedLibrary::Prefix() {
@@ -63,18 +63,18 @@ std::string SharedLibrary::Suffix() {
 #endif
 }
 
-void *SharedLibrary::findSymbol(const std::string &rName) {
-    std::scoped_lock<std::mutex> const lock(m_p->m_mutex);
+void *SharedLibrary::FindSymbol(const std::string &name) {
+    std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
-    if (m_p->m_pHandle != nullptr) {
+    if (impl_->handle_ != nullptr) {
 #if defined(_WIN32_WCE)
         std::wstring uname;
-        UnicodeConverter::toUTF16(rName, uname);
-        return static_cast<void *>(GetProcAddressW(static_cast<HMODULE>(m_p->m_pHandle), uname.c_str()));
+        UnicodeConverter::toUTF16(name, uname);
+        return static_cast<void *>(GetProcAddressW(static_cast<HMODULE>(impl_->handle_), uname.c_str()));
 #else
         // 函数指针 → 对象指针的 static_cast 是 MS 扩展（-Wmicrosoft-cast），
         // 标准写法需经 reinterpret_cast。
-        return reinterpret_cast<void *>(GetProcAddress(static_cast<HMODULE>(m_p->m_pHandle), rName.data()));
+        return reinterpret_cast<void *>(GetProcAddress(static_cast<HMODULE>(impl_->handle_), name.data()));
 #endif
     }
 

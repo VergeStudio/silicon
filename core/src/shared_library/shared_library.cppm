@@ -18,7 +18,7 @@ export class SharedLibrary final {
         /// if no flags are given.
         ///
         /// This flag is ignored on platforms that do not use dlopen().
-        ShLibGlobal = 1,
+        kShLibGlobal = 1,
 
         /// On platforms that use dlopen(), use RTLD_LOCAL instead of RTLD_GLOBAL.
         ///
@@ -27,7 +27,7 @@ export class SharedLibrary final {
         /// compilers as well. See http://gcc.gnu.org/faq.html#dso for more information.
         ///
         /// This flag is ignored on platforms that do not use dlopen().
-        ShLibLocal = 2
+        kShLibLocal = 2
     };
 
   public:
@@ -91,16 +91,16 @@ export class SharedLibrary final {
     SharedLibrary(const SharedLibrary &) = delete;
     SharedLibrary &operator=(const SharedLibrary &) = delete;
 
-    void *findSymbol(const std::string &);
+    void *FindSymbol(const std::string &);
 
   private:
-    struct P {
+    struct Impl {
       public:
-      std::string m_path;
-      void *m_pHandle{nullptr};
-      std::mutex m_mutex;
+      std::string path_;
+      void *handle_{nullptr};
+      std::mutex mutex_;
     };
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> impl_;
 
 };
 

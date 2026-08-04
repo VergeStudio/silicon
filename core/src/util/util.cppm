@@ -2,7 +2,7 @@ module;
 
 #include <atomic>
 #include <cstdio>
-#include <cstdlib> // silicon::os::get_env（_dupenv_s / std::getenv / std::free）
+#include <cstdlib> // silicon::os::GetEnv（_dupenv_s / std::getenv / std::free）
 #include <cstring>
 #include <mutex>
 #include <queue>
@@ -26,14 +26,14 @@ std::uint64_t GenerateUniqueId();
 
 namespace strings_internal {
 
-inline void AppendPieces(std::string *pDest, std::initializer_list<std::string_view> pieces) {
+inline void AppendPieces(std::string *dest, std::initializer_list<std::string_view> pieces) {
     size_t size = 0;
-    for(const auto &rPiece: pieces) {
-        size += rPiece.size();
+    for(const auto &piece: pieces) {
+        size += piece.size();
     }
-    pDest->reserve(pDest->size() + size);
-    for(const auto &rPiece: pieces) {
-        pDest->append(rPiece.data(), rPiece.size());
+    dest->reserve(dest->size() + size);
+    for(const auto &piece: pieces) {
+        dest->append(piece.data(), piece.size());
     }
 }
 
@@ -55,8 +55,8 @@ inline std::string StrCat(const Args &...args) {
 // Unified variadic StrAppend — handles 1 to N arguments
 template <typename... Args>
     requires (std::convertible_to<Args, std::string_view> && ...) && (sizeof...(Args) >= 1)
-inline void StrAppend(std::string *pDestination, const Args &...args) {
-    strings_internal::AppendPieces(pDestination, {static_cast<std::string_view>(args)...});
+inline void StrAppend(std::string *destination, const Args &...args) {
+    strings_internal::AppendPieces(destination, {static_cast<std::string_view>(args)...});
 }
 
 } // namespace silicon::util
@@ -67,7 +67,7 @@ inline void StrAppend(std::string *pDestination, const Args &...args) {
 export namespace silicon::os {
 
 // 读取环境变量。未设置或为空时返回空字符串。
-inline std::string get_env(const char *name) {
+inline std::string GetEnv(const char *name) {
 #ifdef _WIN32
     char *buf = nullptr;
     size_t len = 0;
