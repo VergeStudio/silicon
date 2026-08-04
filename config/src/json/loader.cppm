@@ -18,19 +18,19 @@ export import silicon.config.config_value;
 
 export namespace silicon::config {
 /// 基于 JSON 文件的配置加载器（平坦 key=value 映射）
-CONFIG_API class JsonFileConfig: public ILoader {
+CONFIG_API class JsonFileConfig: public Loader {
   public:
     JsonFileConfig();
     ~JsonFileConfig();
-    bool load(const std::string &path, const fs::FileSystem &fs);
+    bool Load(const std::string &path, const fs::FileSystem &fs);
 
-    // 注意：基类 ILoader 仅声明 virtual load()；get/all 并非虚函数覆写。
-    std::optional<ConfigValue> get(std::string_view key) const;
-    std::map<std::string, ConfigValue, std::less<>> all() const;
+    // 注意：基类 Loader 仅声明 virtual Load()；get/all 并非虚函数覆写。
+    std::optional<ConfigValue> Get(std::string_view key) const;
+    std::map<std::string, ConfigValue, std::less<>> All() const;
 
   private:
-    struct P;
-    std::unique_ptr<P> m_p;
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
 };
 
 } // namespace silicon::config

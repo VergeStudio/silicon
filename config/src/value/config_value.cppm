@@ -44,20 +44,20 @@ class CONFIG_API ConfigValue {
     auto operator=(const ConfigValue &) -> ConfigValue & = default;
     auto operator=(ConfigValue &&) noexcept -> ConfigValue & = default;
 
-    [[nodiscard]] auto is_null() const noexcept -> bool;
-    [[nodiscard]] auto is_bool() const noexcept -> bool;
-    [[nodiscard]] auto is_int() const noexcept -> bool;
-    [[nodiscard]] auto is_double() const noexcept -> bool;
-    [[nodiscard]] auto is_string() const noexcept -> bool;
+    [[nodiscard]] auto IsNull() const noexcept -> bool;
+    [[nodiscard]] auto IsBool() const noexcept -> bool;
+    [[nodiscard]] auto IsInt() const noexcept -> bool;
+    [[nodiscard]] auto IsDouble() const noexcept -> bool;
+    [[nodiscard]] auto IsString() const noexcept -> bool;
 
-    [[nodiscard]] auto as_bool() const -> bool;
-    [[nodiscard]] auto as_int() const -> int64_t;
-    [[nodiscard]] auto as_double() const -> double;
-    [[nodiscard]] auto as_string() const -> const std::string &;
-    [[nodiscard]] auto as_string_opt() const noexcept -> const std::string *;
+    [[nodiscard]] auto AsBool() const -> bool;
+    [[nodiscard]] auto AsInt() const -> int64_t;
+    [[nodiscard]] auto AsDouble() const -> double;
+    [[nodiscard]] auto AsString() const -> const std::string &;
+    [[nodiscard]] auto AsStringOpt() const noexcept -> const std::string *;
 
   private:
-    ConfigValueData m_data{nullptr};
+    ConfigValueData data_{nullptr};
 };
 
 } // namespace silicon::config

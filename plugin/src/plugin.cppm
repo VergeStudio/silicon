@@ -13,48 +13,48 @@ export module silicon.plugin;
 export namespace silicon::plugin {
 
 /// 插件生命周期
-class IPlugin {
+class Plugin {
   public:
-    virtual ~IPlugin() = default;
-    virtual std::string_view name() const = 0;
-    virtual bool on_load() { return true; }
-    virtual bool on_unload() { return true; }
-    virtual bool on_reload() { return true; }
+    virtual ~Plugin() = default;
+    virtual std::string_view Name() const = 0;
+    virtual bool OnLoad() { return true; }
+    virtual bool OnUnload() { return true; }
+    virtual bool OnReload() { return true; }
 };
 
 /// 插件注册表
-class IPluginRegistry {
+class PluginRegistry {
   public:
-    virtual ~IPluginRegistry() = default;
-    virtual bool register_plugin(std::shared_ptr<IPlugin> plugin) = 0;
-    virtual IPlugin *get_plugin(std::string_view name) const = 0;
-    virtual bool remove_plugin(std::string_view name) = 0;
-    virtual std::vector<std::string> list_plugins() const = 0;
+    virtual ~PluginRegistry() = default;
+    virtual bool RegisterPlugin(std::shared_ptr<Plugin> plugin) = 0;
+    virtual Plugin *GetPlugin(std::string_view name) const = 0;
+    virtual bool RemovePlugin(std::string_view name) = 0;
+    virtual std::vector<std::string> ListPlugins() const = 0;
 };
 
 // ── 默认实现 ─────────────────────────────────────────────────────
 
-class PluginRegistry: public IPluginRegistry {
+class DefaultPluginRegistry: public PluginRegistry {
 
-    struct P {
+    struct Impl {
       public:
-      std::map<std::string, std::shared_ptr<IPlugin>, std::less<>> plugins_;
+      std::map<std::string, std::shared_ptr<Plugin>, std::less<>> plugins_;
     };
-    std::unique_ptr<P> m_p{std::make_unique<P>()};
+    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 
   public:
-    bool register_plugin(std::shared_ptr<IPlugin> plugin) override;
-    IPlugin *get_plugin(std::string_view name) const override;
-    bool remove_plugin(std::string_view name) override;
-    std::vector<std::string> list_plugins() const override;
+    bool RegisterPlugin(std::shared_ptr<Plugin> plugin) override;
+    Plugin *GetPlugin(std::string_view name) const override;
+    bool RemovePlugin(std::string_view name) override;
+    std::vector<std::string> ListPlugins() const override;
 
 };
 
 /// 动态插件加载器（stub：完整实现需 shared_library + dlopen）
-class IPluginLoader {
+class PluginLoader {
   public:
-    virtual ~IPluginLoader() = default;
-    virtual std::shared_ptr<IPlugin> load(const std::string &path) = 0;
+    virtual ~PluginLoader() = default;
+    virtual std::shared_ptr<Plugin> Load(const std::string &path) = 0;
 };
 
 } // namespace silicon::plugin

@@ -1,5 +1,5 @@
-#ifndef SILICON_LOGGER_MANAGER_H
-#define SILICON_LOGGER_MANAGER_H
+#ifndef SILICON_LOGGER_DEFAULT_LOGGER_H
+#define SILICON_LOGGER_DEFAULT_LOGGER_H
 
 #include <atomic>
 #include <memory>
@@ -11,9 +11,9 @@
 
 namespace silicon::logger {
 
-// 单一定义源：与模块接口 silicon.logger 导出的类保持一致（继承 ILogger、虚方法 override），
+// 单一定义源：与模块接口 silicon.logger 导出的类保持一致（继承 Logger、虚方法 override），
 // 避免 module 声明与 header 声明产生 ODR 双定义、导致跨 DLL 虚函数修饰名不匹配。
-class DefaultLogger: public ILogger {
+class DefaultLogger: public Logger {
   public:
     DefaultLogger();
     ~DefaultLogger() noexcept override;
@@ -35,11 +35,11 @@ class DefaultLogger: public ILogger {
   private:
     // Pimpl: hides spdlog types from the public interface
     struct Impl;
-    std::unique_ptr<Impl> m_impl;
-    std::mutex m_mutex;
-    std::atomic<bool> m_isInitialized{false};
+    std::unique_ptr<Impl> impl_;
+    std::mutex mutex_;
+    std::atomic<bool> is_initialized_{false};
 };
 
 } // namespace silicon::logger
 
-#endif // SILICON_LOGGER_MANAGER_H
+#endif // SILICON_LOGGER_DEFAULT_LOGGER_H

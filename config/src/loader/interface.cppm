@@ -9,10 +9,10 @@ export module silicon.config.loader.interface;
 
 export namespace silicon::config {
 
-class CONFIG_API ILoader {
+class CONFIG_API Loader {
   public:
-    virtual ~ILoader() = default;
-    [[nodiscard]] virtual auto load(const std::string &path) -> bool = 0;
+    virtual ~Loader() = default;
+    [[nodiscard]] virtual auto Load(const std::string &path) -> bool = 0;
 };
 
 } // namespace silicon::config

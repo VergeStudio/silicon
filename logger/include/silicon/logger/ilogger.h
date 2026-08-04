@@ -7,26 +7,26 @@
 namespace silicon::logger {
 
 enum class LogLevel : std::uint8_t {
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    Error,
-    Critical,
-    Off,
+    kTrace,
+    kDebug,
+    kInfo,
+    kWarn,
+    kError,
+    kCritical,
+    kOff,
 };
 
 /// @brief Abstract interface for a logger.
 ///
 /// The concrete DefaultLogger implements this interface.
-class ILogger {
+class Logger {
   public:
-    ILogger() = default;
-    ILogger(const ILogger &) = delete;
-    ILogger(ILogger &&) = delete;
-    auto operator=(const ILogger &) -> ILogger & = delete;
-    auto operator=(ILogger &&) -> ILogger & = delete;
-    virtual ~ILogger() = default;
+    Logger() = default;
+    Logger(const Logger &) = delete;
+    Logger(Logger &&) = delete;
+    auto operator=(const Logger &) -> Logger & = delete;
+    auto operator=(Logger &&) -> Logger & = delete;
+    virtual ~Logger() = default;
 
     virtual void Trace(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
     virtual void Debug(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;

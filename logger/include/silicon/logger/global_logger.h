@@ -1,5 +1,5 @@
-#ifndef SILICON_LOGGER_MANAGER_H
-#define SILICON_LOGGER_MANAGER_H
+#ifndef SILICON_LOGGER_GLOBAL_LOGGER_H
+#define SILICON_LOGGER_GLOBAL_LOGGER_H
 
 #include <source_location>
 #include <string_view>
@@ -33,11 +33,11 @@ class GlobalLogger {
  private:
     // Pimpl: hides spdlog types from the public interface
     struct Impl;
-    std::unique_ptr<Impl> m_impl;
-    std::mutex m_mutex;
-    std::atomic<bool> m_isInitialized{false};
+    std::unique_ptr<Impl> impl_;
+    std::mutex mutex_;
+    std::atomic<bool> is_initialized_{false};
 };
 
 } // namespace silicon::logger
 
-#endif // SILICON_LOGGER_MANAGER_H
+#endif // SILICON_LOGGER_GLOBAL_LOGGER_H
