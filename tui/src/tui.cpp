@@ -17,7 +17,7 @@ namespace silicon::tui {
 
 #if defined(SILICON_PLATFORM_UNIX)
 
-std::string_view UnixTerminal::terminal_type() const {
+std::string_view UnixTerminal::TerminalType() const {
     static std::string t = [] {
         std::string v = silicon::os::GetEnv("TERM");
         return v.empty() ? "xterm-256color" : v;
@@ -25,13 +25,13 @@ std::string_view UnixTerminal::terminal_type() const {
     return t;
 }
 
-int32_t UnixTerminal::width() const {
+int32_t UnixTerminal::Width() const {
     struct winsize w;
     if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) return w.ws_col;
     return 80;
 }
 
-int32_t UnixTerminal::height() const {
+int32_t UnixTerminal::Height() const {
     struct winsize w;
     if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) return w.ws_row;
     return 24;
@@ -39,9 +39,9 @@ int32_t UnixTerminal::height() const {
 
 #else
 
-std::string_view DefaultTerminal::terminal_type() const { return "unknown"; }
-int32_t DefaultTerminal::width() const { return 80; }
-int32_t DefaultTerminal::height() const { return 24; }
+std::string_view DefaultTerminal::TerminalType() const { return "unknown"; }
+int32_t DefaultTerminal::Width() const { return 80; }
+int32_t DefaultTerminal::Height() const { return 24; }
 
 #endif
 
