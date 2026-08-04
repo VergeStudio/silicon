@@ -2,7 +2,7 @@
 /// @brief XDG Base Directory 规范的跨平台实现。
 /// @usage
 ///   import silicon.xdg;
-///   auto cfg = silicon::xdg::config_home();   // 用户配置目录
+///   auto cfg = silicon::xdg::ConfigHome();   // 用户配置目录
 ///
 /// 语义遵循 freedesktop XDG Base Directory Specification：
 ///   - 优先读取对应环境变量（XDG_CONFIG_HOME 等）
@@ -20,28 +20,28 @@ export module silicon.xdg;
 export namespace silicon::xdg {
 
 /// 当前用户主目录（POSIX: $HOME / getpwuid；Windows: %USERPROFILE%）。
-std::string home_dir();
+std::string HomeDir();
 
 /// XDG_DATA_HOME：用户级数据目录。
-std::string data_home();
+std::string DataHome();
 
 /// XDG_CONFIG_HOME：用户级配置目录。
-std::string config_home();
+std::string ConfigHome();
 
 /// XDG_CACHE_HOME：用户级缓存目录。
-std::string cache_home();
+std::string CacheHome();
 
 /// XDG_STATE_HOME：用户级状态目录。
-std::string state_home();
+std::string StateHome();
 
 /// XDG_RUNTIME_DIR：用户级运行时目录（无默认值则返回空串）。
-std::string runtime_dir();
+std::string RuntimeDir();
 
 /// XDG_DATA_DIRS：系统级数据目录集合（有序）。
-std::vector<std::string> data_dirs();
+std::vector<std::string> DataDirs();
 
 /// XDG_CONFIG_DIRS：系统级配置目录集合（有序）。
-std::vector<std::string> config_dirs();
+std::vector<std::string> ConfigDirs();
 
 } // namespace silicon::xdg
 

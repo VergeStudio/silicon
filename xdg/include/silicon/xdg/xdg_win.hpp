@@ -38,38 +38,38 @@ inline std::string local_app_data() {
     return env_or("LOCALAPPDATA", join(home(), "AppData\\Local"));
 }
 
-inline std::string config_home() { return local_app_data(); }
+inline std::string ConfigHome() { return local_app_data(); }
 
-inline std::string data_home() { return local_app_data(); }
+inline std::string DataHome() { return local_app_data(); }
 
-inline std::string cache_home() { return join(local_app_data(), "cache"); }
+inline std::string CacheHome() { return join(local_app_data(), "cache"); }
 
-inline std::string state_home() { return join(local_app_data(), "state"); }
+inline std::string StateHome() { return join(local_app_data(), "state"); }
 
-inline std::string runtime_dir() { return ""; }
+inline std::string RuntimeDir() { return ""; }
 
-inline std::vector<std::string> config_dirs() { return {}; }
+inline std::vector<std::string> ConfigDirs() { return {}; }
 
-inline std::vector<std::string> data_dirs() { return {}; }
+inline std::vector<std::string> DataDirs() { return {}; }
 
 } // namespace silicon::xdg::detail
 
 export namespace silicon::xdg {
 
-inline std::string home_dir() { return detail::home(); }
+inline std::string HomeDir() { return detail::home(); }
 
-inline std::string config_home() { return detail::config_home(); }
+inline std::string ConfigHome() { return detail::ConfigHome(); }
 
-inline std::string data_home() { return detail::data_home(); }
+inline std::string DataHome() { return detail::DataHome(); }
 
-inline std::string cache_home() { return detail::cache_home(); }
+inline std::string CacheHome() { return detail::CacheHome(); }
 
-inline std::string state_home() { return detail::state_home(); }
+inline std::string StateHome() { return detail::StateHome(); }
 
-inline std::string runtime_dir() { return detail::runtime_dir(); }
+inline std::string RuntimeDir() { return detail::RuntimeDir(); }
 
-inline std::vector<std::string> config_dirs() { return detail::config_dirs(); }
+inline std::vector<std::string> ConfigDirs() { return detail::ConfigDirs(); }
 
-inline std::vector<std::string> data_dirs() { return detail::data_dirs(); }
+inline std::vector<std::string> DataDirs() { return detail::DataDirs(); }
 
 } // namespace silicon::xdg

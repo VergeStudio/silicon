@@ -38,7 +38,7 @@ inline std::string join(const std::string &base, const std::string &name) {
     return base + "/" + name;
 }
 
-inline std::string config_home() {
+inline std::string ConfigHome() {
     if(const char *e = std::getenv("XDG_CONFIG_HOME"); e && *e)
         return e;
 #if defined(__APPLE__)
@@ -48,7 +48,7 @@ inline std::string config_home() {
 #endif
 }
 
-inline std::string data_home() {
+inline std::string DataHome() {
     if(const char *e = std::getenv("XDG_DATA_HOME"); e && *e)
         return e;
 #if defined(__APPLE__)
@@ -58,7 +58,7 @@ inline std::string data_home() {
 #endif
 }
 
-inline std::string cache_home() {
+inline std::string CacheHome() {
     if(const char *e = std::getenv("XDG_CACHE_HOME"); e && *e)
         return e;
 #if defined(__APPLE__)
@@ -68,7 +68,7 @@ inline std::string cache_home() {
 #endif
 }
 
-inline std::string state_home() {
+inline std::string StateHome() {
     if(const char *e = std::getenv("XDG_STATE_HOME"); e && *e)
         return e;
 #if defined(__APPLE__)
@@ -78,7 +78,7 @@ inline std::string state_home() {
 #endif
 }
 
-inline std::string runtime_dir() {
+inline std::string RuntimeDir() {
     if(const char *e = std::getenv("XDG_RUNTIME_DIR"); e && *e)
         return e;
     return "";
@@ -96,11 +96,11 @@ inline std::vector<std::string> split_paths(const char *env, const char *def) {
     return out;
 }
 
-inline std::vector<std::string> config_dirs() {
+inline std::vector<std::string> ConfigDirs() {
     return split_paths("XDG_CONFIG_DIRS", "/etc/xdg");
 }
 
-inline std::vector<std::string> data_dirs() {
+inline std::vector<std::string> DataDirs() {
     return split_paths("XDG_DATA_DIRS", "/usr/local/share:/usr/share");
 }
 
@@ -108,20 +108,20 @@ inline std::vector<std::string> data_dirs() {
 
 export namespace silicon::xdg {
 
-inline std::string home_dir() { return detail::home(); }
+inline std::string HomeDir() { return detail::home(); }
 
-inline std::string config_home() { return detail::config_home(); }
+inline std::string ConfigHome() { return detail::ConfigHome(); }
 
-inline std::string data_home() { return detail::data_home(); }
+inline std::string DataHome() { return detail::DataHome(); }
 
-inline std::string cache_home() { return detail::cache_home(); }
+inline std::string CacheHome() { return detail::CacheHome(); }
 
-inline std::string state_home() { return detail::state_home(); }
+inline std::string StateHome() { return detail::StateHome(); }
 
-inline std::string runtime_dir() { return detail::runtime_dir(); }
+inline std::string RuntimeDir() { return detail::RuntimeDir(); }
 
-inline std::vector<std::string> config_dirs() { return detail::config_dirs(); }
+inline std::vector<std::string> ConfigDirs() { return detail::ConfigDirs(); }
 
-inline std::vector<std::string> data_dirs() { return detail::data_dirs(); }
+inline std::vector<std::string> DataDirs() { return detail::DataDirs(); }
 
 } // namespace silicon::xdg
