@@ -23,55 +23,55 @@ import silicon.exception;
 
 namespace silicon::llm {
 
-ToolRegistry::ToolRegistry() : m_p(std::make_unique<P>()) {}
-ProviderRegistry::ProviderRegistry() : m_p(std::make_unique<P>()) {}
-ScriptedProvider::ScriptedProvider() : m_p(std::make_unique<P>()) {}
+DefaultToolRegistry::DefaultToolRegistry() : impl_(std::make_unique<Impl>()) {}
+DefaultProviderRegistry::DefaultProviderRegistry() : impl_(std::make_unique<Impl>()) {}
+ScriptedProvider::ScriptedProvider() : impl_(std::make_unique<Impl>()) {}
 
-bool ToolRegistry::register_tool(std::unique_ptr<ITool> tool) {
-    auto name = std::string(tool->name());
-    return m_p->tools_.emplace(std::move(name), std::move(tool)).second;
+bool DefaultToolRegistry::RegisterTool(std::unique_ptr<Tool> tool) {
+    auto name = std::string(tool->Name());
+    return impl_->tools_.emplace(std::move(name), std::move(tool)).second;
 }
 
-ITool *ToolRegistry::get_tool(std::string_view name) const {
-    auto it = m_p->tools_.find(name);
-    return it != m_p->tools_.end() ? it->second.get() : nullptr;
+Tool *DefaultToolRegistry::GetTool(std::string_view name) const {
+    auto it = impl_->tools_.find(name);
+    return it != impl_->tools_.end() ? it->second.get() : nullptr;
 }
 
-std::size_t ToolRegistry::tool_count() const { return m_p->tools_.size(); }
+std::size_t DefaultToolRegistry::ToolCount() const { return impl_->tools_.size(); }
 
-bool ProviderRegistry::register_provider(std::string id, std::unique_ptr<IProvider> provider) {
-    return m_p->providers_.emplace(std::move(id), std::move(provider)).second;
+bool DefaultProviderRegistry::RegisterProvider(std::string id, std::unique_ptr<Provider> provider) {
+    return impl_->providers_.emplace(std::move(id), std::move(provider)).second;
 }
 
-IProvider *ProviderRegistry::get_provider(std::string_view id) const {
-    auto it = m_p->providers_.find(id);
-    return it != m_p->providers_.end() ? it->second.get() : nullptr;
+Provider *DefaultProviderRegistry::GetProvider(std::string_view id) const {
+    auto it = impl_->providers_.find(id);
+    return it != impl_->providers_.end() ? it->second.get() : nullptr;
 }
 
-std::vector<std::string> ProviderRegistry::list_providers() const {
+std::vector<std::string> DefaultProviderRegistry::ListProviders() const {
     std::vector<std::string> ids;
-    for(const auto &[k, v]: m_p->providers_) ids.push_back(k);
+    for(const auto &[k, v]: impl_->providers_) ids.push_back(k);
     return ids;
 }
 
-std::string JsonProtocolAdapter::encode_request(
+std::string JsonProtocolAdapter::EncodeRequest(
         const Conversation &conv,
         const ModelRequestOptions &opts,
         const std::vector<std::string> &tool_defs
 ) const {
     using namespace silicon::json;
     JsonValue req = JsonValue::object();
-    req["model"] = JsonValue(opts.model());
-    req["temperature"] = JsonValue(opts.temperature());
+    req["model"] = JsonValue(opts.Model());
+    req["temperature"] = JsonValue(opts.Temperature());
     req["max_tokens"] =
-            JsonValue(static_cast<std::int64_t>(opts.max_tokens()));
+            JsonValue(static_cast<std::int64_t>(opts.MaxTokens()));
 
     JsonValue messages = JsonValue::array();
     for(const auto &m: conv) {
         JsonValue msg = JsonValue::object();
-        msg["role"] = JsonValue(m.role());
-        msg["content"] = JsonValue(m.content());
-        if(!m.tool_call_id().empty()) msg["tool_call_id"] = JsonValue(m.tool_call_id());
+        msg["role"] = JsonValue(m.Role());
+        msg["content"] = JsonValue(m.Content());
+        if(!m.ToolCallId().empty()) msg["tool_call_id"] = JsonValue(m.ToolCallId());
         messages.push_back(std::move(msg));
     }
     req["messages"] = std::move(messages);
@@ -87,7 +87,7 @@ std::string JsonProtocolAdapter::encode_request(
     return req.dump();
 }
 
-Result<ChatResponse> JsonProtocolAdapter::decode_response(std::string_view raw) const {
+Result<ChatResponse> JsonProtocolAdapter::DecodeResponse(std::string_view raw) const {
     using namespace silicon::json;
     auto v = parse(raw);
     if(v.is_discarded()) return Result<ChatResponse>(silicon::exception::LLMError{"invalid json response"});
@@ -106,43 +106,43 @@ Result<ChatResponse> JsonProtocolAdapter::decode_response(std::string_view raw) 
                 const auto &msg = *m;
                 if(auto cc = msg.find("content");
                    cc != msg.end() && cc->is_string())
-                    resp.content() = cc->get<std::string>();
+                    resp.Content() = cc->get<std::string>();
             }
             if(auto fr = choice.find("finish_reason");
                fr != choice.end() && fr->is_string())
-                resp.finish_reason() = fr->get<std::string>();
+                resp.FinishReason() = fr->get<std::string>();
         }
     }
     if(auto u = v.find("usage");
        u != v.end() && u->is_object()) {
         if(auto pt = u->find("prompt_tokens");
            pt != u->end() && pt->is_number_integer())
-            resp.prompt_tokens() = static_cast<int32_t>((*pt).get<std::int64_t>());
+            resp.PromptTokens() = static_cast<int32_t>((*pt).get<std::int64_t>());
         if(auto ct = u->find("completion_tokens");
            ct != u->end() && ct->is_number_integer())
-            resp.completion_tokens() = static_cast<int32_t>((*ct).get<std::int64_t>());
+            resp.CompletionTokens() = static_cast<int32_t>((*ct).get<std::int64_t>());
     }
     return Result<ChatResponse>(std::move(resp));
 }
 
-void ScriptedProvider::enqueue(ChatResponse r) { m_p->queue_.push(std::move(r)); }
+void ScriptedProvider::Enqueue(ChatResponse r) { impl_->queue_.push(std::move(r)); }
 
-std::size_t ScriptedProvider::remaining() const { return m_p->queue_.size(); }
+std::size_t ScriptedProvider::Remaining() const { return impl_->queue_.size(); }
 
-Result<ChatResponse> ScriptedProvider::chat(const Conversation &, const ModelRequestOptions &) {
-    if(m_p->queue_.empty())
+Result<ChatResponse> ScriptedProvider::Chat(const Conversation &, const ModelRequestOptions &) {
+    if(impl_->queue_.empty())
         return Result<ChatResponse>(silicon::exception::LLMError{"no scripted response"});
-    ChatResponse r = std::move(m_p->queue_.front());
-    m_p->queue_.pop();
+    ChatResponse r = std::move(impl_->queue_.front());
+    impl_->queue_.pop();
     return Result<ChatResponse>(std::move(r));
 }
 
-std::string HttpProvider::env_or(const char *name, std::string def) {
+std::string HttpProvider::EnvOr(const char *name, std::string def) {
     std::string v = silicon::os::GetEnv(name);
     return v.empty() ? def : v;
 }
 
-HttpProvider::HttpResult HttpProvider::post_json(const std::string &url, const std::string &body) const {
+HttpProvider::HttpResult HttpProvider::PostJson(const std::string &url, const std::string &body) const {
     namespace fs = std::filesystem;
     fs::path tmp = fs::temp_directory_path() /
                    ("sb_req_" + std::to_string(static_cast<long long>(std::time(nullptr))) + ".json");
@@ -154,8 +154,8 @@ HttpProvider::HttpResult HttpProvider::post_json(const std::string &url, const s
 
     std::string cmd = "curl -s -m 60 -X POST";
     cmd += " -H \"Content-Type: application/json\"";
-    if(!m_p->api_key_.empty())
-        cmd += " -H \"Authorization: Bearer " + m_p->api_key_ + "\"";
+    if(!impl_->api_key_.empty())
+        cmd += " -H \"Authorization: Bearer " + impl_->api_key_ + "\"";
     cmd += " -d @\"" + tmp.string() + "\"";
     cmd += " -w \"\\n%{http_code}\"";
     cmd += " \"" + url + "\"";
@@ -177,10 +177,10 @@ HttpProvider::HttpResult HttpProvider::post_json(const std::string &url, const s
 #endif
         auto nl = all.rfind('\n');
         if(nl != std::string::npos && nl + 1 < all.size()) {
-            r.body() = all.substr(0, nl);
-            r.status() = std::atoi(all.substr(nl + 1).c_str());
+            r.Body() = all.substr(0, nl);
+            r.Status() = std::atoi(all.substr(nl + 1).c_str());
         } else {
-            r.body() = std::move(all);
+            r.Body() = std::move(all);
         }
     }
     std::error_code ec;
@@ -189,27 +189,27 @@ HttpProvider::HttpResult HttpProvider::post_json(const std::string &url, const s
 }
 
 HttpProvider::HttpProvider() {
-    m_p->base_url_ = env_or("SILICONBUDDY_LLM_BASE_URL", "https://api.openai.com/v1");
-    m_p->api_key_ = env_or("SILICONBUDDY_LLM_API_KEY", "");
-    m_p->model_ = env_or("SILICONBUDDY_LLM_MODEL", "gpt-4o-mini");
+    impl_->base_url_ = EnvOr("SILICONBUDDY_LLM_BASE_URL", "https://api.openai.com/v1");
+    impl_->api_key_ = EnvOr("SILICONBUDDY_LLM_API_KEY", "");
+    impl_->model_ = EnvOr("SILICONBUDDY_LLM_MODEL", "gpt-4o-mini");
 }
 
-bool HttpProvider::configured() const { return !m_p->api_key_.empty(); }
+bool HttpProvider::Configured() const { return !impl_->api_key_.empty(); }
 
-std::string_view HttpProvider::model_name() const { return m_p->model_; }
+std::string_view HttpProvider::ModelName() const { return impl_->model_; }
 
-Result<ChatResponse> HttpProvider::chat(const Conversation &conv, const ModelRequestOptions &opts) {
+Result<ChatResponse> HttpProvider::Chat(const Conversation &conv, const ModelRequestOptions &opts) {
     ModelRequestOptions o = opts;
-    if(o.model().empty()) o.model() = m_p->model_;
+    if(o.Model().empty()) o.Model() = impl_->model_;
 
-    std::string body = m_p->adapter_.encode_request(conv, o, {});
-    HttpResult r = post_json(m_p->base_url_ + "/chat/completions", body);
-    if(r.status() != 200) {
+    std::string body = impl_->adapter_.EncodeRequest(conv, o, {});
+    HttpResult r = PostJson(impl_->base_url_ + "/chat/completions", body);
+    if(r.Status() != 200) {
         return Result<ChatResponse>(silicon::exception::LLMError{
-                "LLM HTTP " + std::to_string(r.status()) + ": " + r.body()
+                "LLM HTTP " + std::to_string(r.Status()) + ": " + r.Body()
         });
     }
-    return m_p->adapter_.decode_response(r.body());
+    return impl_->adapter_.DecodeResponse(r.Body());
 }
 
 } // namespace silicon::llm

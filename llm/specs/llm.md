@@ -19,57 +19,60 @@ LLM 子系统是 siliconbuddy 与模型提供方（Provider）之间的协议边
 - `LLMError`：`{ message }`
 - `Result<T>`：`std::variant<T, LLMError>` 的轻量结果包装
 
+> 值类型采用 PIMPL（`Impl` 持有私有数据，成员名带尾下划线 `role_`/`content_`/`tool_call_id_`），
+> 对外访问器为 PascalCase（`Role()` / `Content()` / `ToolCallId()` 等）。
+
 ## 接口
 ```cpp
 // 提供方：一次对话补全
-class IProvider {
-  virtual ~IProvider() = default;
-  virtual Result<ChatResponse> chat(const Conversation&,
+class Provider {
+  virtual ~Provider() = default;
+  virtual Result<ChatResponse> Chat(const Conversation&,
                                     const ModelRequestOptions&) = 0;
 };
 
 // 协议适配器：内部规整 <-> 提供方线路格式
-class IProtocolAdapter {
-  virtual ~IProtocolAdapter() = default;
-  virtual std::string encode_request(const Conversation&,
+class ProtocolAdapter {
+  virtual ~ProtocolAdapter() = default;
+  virtual std::string EncodeRequest(const Conversation&,
                                      const ModelRequestOptions&,
                                      const std::vector<std::string>& tool_defs) const = 0;
-  virtual Result<ChatResponse> decode_response(std::string_view raw) const = 0;
+  virtual Result<ChatResponse> DecodeResponse(std::string_view raw) const = 0;
 };
 
 // 工具
-class ITool {
-  virtual ~ITool() = default;
-  virtual std::string_view name() const = 0;
-  virtual std::string_view description() const = 0;
-  virtual ToolOutput execute(const ToolCall&) = 0;
+class Tool {
+  virtual ~Tool() = default;
+  virtual std::string_view Name() const = 0;
+  virtual std::string_view Description() const = 0;
+  virtual ToolOutput Execute(const ToolCall&) = 0;
 };
 
-class IToolRegistry {
-  virtual ~IToolRegistry() = default;
-  virtual bool register_tool(std::unique_ptr<ITool>) = 0;
-  virtual ITool* get_tool(std::string_view name) const = 0;
-  virtual std::size_t tool_count() const = 0;
+class ToolRegistry {
+  virtual ~ToolRegistry() = default;
+  virtual bool RegisterTool(std::unique_ptr<Tool>) = 0;
+  virtual Tool* GetTool(std::string_view name) const = 0;
+  virtual std::size_t ToolCount() const = 0;
 };
 
 // 提供方注册表
-class IProviderRegistry {
-  virtual ~IProviderRegistry() = default;
-  virtual bool register_provider(std::string id, std::unique_ptr<IProvider>) = 0;
-  virtual IProvider* get_provider(std::string_view id) const = 0;
-  virtual std::vector<std::string> list_providers() const = 0;
+class ProviderRegistry {
+  virtual ~ProviderRegistry() = default;
+  virtual bool RegisterProvider(std::string id, std::unique_ptr<Provider>) = 0;
+  virtual Provider* GetProvider(std::string_view id) const = 0;
+  virtual std::vector<std::string> ListProviders() const = 0;
 };
 ```
 
 ## 具体实现
-- `ToolRegistry : public IToolRegistry` —— 内存注册表，重复 name 注册返回 false（覆盖式由调用方决定，默认拒绝重复）。
-- `ProviderRegistry : public IProviderRegistry` —— 内存注册表，重复 id 注册返回 false。
-- `JsonProtocolAdapter : public IProtocolAdapter` —— 编码为 OpenAI 风格 JSON（`messages`/`model`/`temperature`/`max_tokens`/`tools`）；解码从 `choices[0].message.content` 与 `finish_reason`、`usage` 字段还原 `ChatResponse`。
-- `ScriptedProvider : public IProvider` —— 持有 `ChatResponse` 队列，按 `chat()` 调用顺序弹出；队列耗尽返回 `LLMError{ "no scripted response" }`。用于确定性 TDD。
+- `DefaultToolRegistry : public ToolRegistry` —— 内存注册表，重复 name 注册返回 false（覆盖式由调用方决定，默认拒绝重复）。
+- `DefaultProviderRegistry : public ProviderRegistry` —— 内存注册表，重复 id 注册返回 false。
+- `JsonProtocolAdapter : public ProtocolAdapter` —— 编码为 OpenAI 风格 JSON（`messages`/`model`/`temperature`/`max_tokens`/`tools`）；解码从 `choices[0].message.content` 与 `finish_reason`、`usage` 字段还原 `ChatResponse`。
+- `ScriptedProvider : public Provider` —— 持有 `ChatResponse` 队列，按 `Chat()` 调用顺序弹出；队列耗尽返回 `LLMError{ "no scripted response" }`。用于确定性 TDD。
 
 ## 不变式
-1. `ToolRegistry::register_tool` 遇重复 name 返回 false，不替换既有工具。
-2. `ProviderRegistry::register_provider` 遇重复 id 返回 false。
-3. `JsonProtocolAdapter::encode_request` 产出合法请求 JSON（含 `model`/`messages`/`tools`）；`decode_response` 能从响应形态 JSON（含 `choices[0].message.content`/`finish_reason`/`usage`）正确还原 `content`、`finish_reason` 与 token 用量。
-4. `ScriptedProvider::chat` 严格 FIFO；空队列返回 `LLMError`，不抛异常。
+1. `DefaultToolRegistry::RegisterTool` 遇重复 name 返回 false，不替换既有工具。
+2. `DefaultProviderRegistry::RegisterProvider` 遇重复 id 返回 false。
+3. `JsonProtocolAdapter::EncodeRequest` 产出合法请求 JSON（含 `model`/`messages`/`tools`）；`DecodeResponse` 能从响应形态 JSON（含 `choices[0].message.content`/`finish_reason`/`usage`）正确还原 `Content()`、`FinishReason()` 与 token 用量（`PromptTokens()` / `CompletionTokens()`）。
+4. `ScriptedProvider::Chat` 严格 FIFO；空队列返回 `LLMError`，不抛异常。
 5. 所有具体类仅依赖接口，可被 `silicon::di` 以 `scope<shared>` 装配并递归注入。
