@@ -24,17 +24,17 @@ auto silicon::network::make_io_status_from_poll_status(silicon::coroutine::poll_
     switch(status) {
         case silicon::coroutine::poll_status::read:
         case silicon::coroutine::poll_status::write:
-            return io_status{io_status::kind::ok};
+            return io_status{io_status::kind::kOk};
         case silicon::coroutine::poll_status::timeout:
-            return io_status{io_status::kind::timeout};
+            return io_status{io_status::kind::kTimeout};
         case silicon::coroutine::poll_status::error:
-            return io_status{io_status::kind::polling_error};
+            return io_status{io_status::kind::kPollingError};
         case silicon::coroutine::poll_status::closed:
-            return io_status{io_status::kind::closed};
+            return io_status{io_status::kind::kClosed};
         case silicon::coroutine::poll_status::cancelled:
-            return io_status{io_status::kind::cancelled};
+            return io_status{io_status::kind::kCancelled};
         default:
-            return io_status{io_status::kind::unknown};
+            return io_status{io_status::kind::kUnknown};
     }
 }
 
@@ -42,29 +42,29 @@ auto silicon::network::make_io_status_from_poll_status(silicon::coroutine::poll_
 auto silicon::network::to_string(silicon::network::io_status::kind k) -> std::string_view {
     using kind = io_status::kind;
     switch(k) {
-        case kind::ok:
+        case kind::kOk:
             return "Success";
-        case kind::closed:
+        case kind::kClosed:
             return "Connection closed by peer";
-        case kind::connection_reset:
+        case kind::kConnectionReset:
             return "Connection reset by peer";
-        case kind::connection_refused:
+        case kind::kConnectionRefused:
             return "Connection refused by target host";
-        case kind::timeout:
+        case kind::kTimeout:
             return "Operation timed out";
-        case kind::would_block_or_try_again:
+        case kind::kWouldBlockOrTryAgain:
             return "Operation would block or try again";
-        case kind::polling_error:
+        case kind::kPollingError:
             return "Polling error";
-        case kind::cancelled:
+        case kind::kCancelled:
             return "Operation cancelled";
-        case kind::udp_not_bound:
+        case kind::kUdpNotBound:
             return "Udp socket is not bound";
-        case kind::native:
+        case kind::kNative:
             return "Native error code";
-        case kind::message_too_big:
+        case kind::kMessageTooBig:
             return "Message is too big";
-        case kind::unknown:
+        case kind::kUnknown:
         default:
             return "unknown";
     }

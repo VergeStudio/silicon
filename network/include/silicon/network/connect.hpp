@@ -5,13 +5,13 @@
 namespace silicon::network {
 enum class connect_status {
     /// The connection has been established.
-    connected,
+    kConnected,
     /// The given ip address could not be parsed or is invalid.
-    invalid_ip_address,
+    kInvalidIpAddress,
     /// The connection operation timed out.
-    timeout,
+    kTimeout,
     /// There was an error, use errno to get more information on the specific error.
-    error
+    kError
 };
 
 /**

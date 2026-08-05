@@ -34,7 +34,7 @@ auto condition_variable::awaiter::on_notify() -> silicon::coroutine::task<condit
     // Re-lock, the waiter is now responsible for unlocking.
     co_await m_lock.m_p->m_mutex->lock();
     m_awaiting_coroutine.resume();
-    co_return notify_status_t::ready;
+    co_return notify_status_t::kReady;
 }
 
 condition_variable::awaiter_with_predicate::awaiter_with_predicate(
@@ -60,11 +60,11 @@ auto condition_variable::awaiter_with_predicate::on_notify() -> silicon::corouti
     co_await m_lock.m_p->m_mutex->lock();
     if(m_predicate()) {
         m_awaiting_coroutine.resume();
-        co_return notify_status_t::ready;
+        co_return notify_status_t::kReady;
     }
 
     m_lock.m_p->m_mutex->unlock();
-    co_return notify_status_t::not_ready;
+    co_return notify_status_t::kNotReady;
 }
 
 #ifndef EMSCRIPTEN
@@ -99,11 +99,11 @@ auto condition_variable::awaiter_with_predicate_stop_token::on_notify() -> silic
     // If the predicate is ready or a stop has been requested resume.
     if(m_predicate_result || m_stop_token.stop_requested()) {
         m_awaiting_coroutine.resume();
-        co_return notify_status_t::ready;
+        co_return notify_status_t::kReady;
     }
 
     m_lock.m_p->m_mutex->unlock();
-    co_return notify_status_t::not_ready;
+    co_return notify_status_t::kNotReady;
 }
 
 #endif
@@ -139,7 +139,7 @@ auto condition_variable::awaiter_with_wait_hook::on_notify() -> silicon::corouti
         // This awaiter timed out, report as dead after killing/resuming the on notify callback task.
         event_lock.unlock();
         m_data.m_notify_callback.set();
-        co_return notify_status_t::awaiter_dead;
+        co_return notify_status_t::kAwaiterDead;
     }
 
     auto *waiter_mutex = m_lock.m_p->m_mutex;
@@ -151,7 +151,7 @@ auto condition_variable::awaiter_with_wait_hook::on_notify() -> silicon::corouti
         m_data.m_status = {std::cv_status::no_timeout};
         event_lock.unlock();
         m_data.m_notify_callback.set();
-        co_return notify_status_t::ready;
+        co_return notify_status_t::kReady;
     }
 
     m_data.m_predicate_result = m_data.m_predicate.value()();
@@ -162,11 +162,11 @@ auto condition_variable::awaiter_with_wait_hook::on_notify() -> silicon::corouti
         m_data.m_status = {std::cv_status::no_timeout};
         event_lock.unlock();
         m_data.m_notify_callback.set();
-        co_return notify_status_t::ready;
+        co_return notify_status_t::kReady;
     }
 
     waiter_mutex->unlock();
-    co_return notify_status_t::not_ready;
+    co_return notify_status_t::kNotReady;
 }
 
 #endif
@@ -180,14 +180,14 @@ auto condition_variable::notify_one() -> silicon::coroutine::task<void> {
         }
 
         switch(co_await waiter->on_notify()) {
-            case notify_status_t::ready:
+            case notify_status_t::kReady:
                 // The predicate was ready and the awaiter is resumed.
                 co_return;
-            case notify_status_t::not_ready:
+            case notify_status_t::kNotReady:
                 // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
                 silicon::coroutine::detail::awaiter_list_push(m_p->m_awaiters, waiter);
                 co_return;
-            case notify_status_t::awaiter_dead:
+            case notify_status_t::kAwaiterDead:
                 // This is an awaiter_with_wait_hook that timed out, try the next awaiter.
                 break;
         }
@@ -202,12 +202,12 @@ auto condition_variable::notify_all() -> silicon::coroutine::task<void> {
         awaiter_base *next = waiter->m_next;
 
         switch(co_await waiter->on_notify()) {
-            case notify_status_t::not_ready:
+            case notify_status_t::kNotReady:
                 // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
                 silicon::coroutine::detail::awaiter_list_push(m_p->m_awaiters, waiter);
                 break;
-            case notify_status_t::ready:
-            case notify_status_t::awaiter_dead:
+            case notify_status_t::kReady:
+            case notify_status_t::kAwaiterDead:
                 // Don't re-enqueue any awaiters that are ready or dead.
                 break;
         }

@@ -33,7 +33,7 @@ context::context(verify_peer_t verify_peer) {
     // Disable SSLv3
     SSL_CTX_set_options(m_ssl_ctx, SSL_OP_ALL | SSL_OP_NO_SSLv3);
     // Abort handshake if certificate verification fails.
-    if(verify_peer == verify_peer_t::yes) {
+    if(verify_peer == verify_peer_t::kYes) {
         SSL_CTX_set_verify(m_ssl_ctx, SSL_VERIFY_PEER, NULL);
     }
     // Set the minimum TLS version, as of this TLSv1.1 or earlier are deprecated.

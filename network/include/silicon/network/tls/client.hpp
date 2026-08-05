@@ -72,7 +72,7 @@ class client final: public ITlsClient {
     auto recv(buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt)
             -> silicon::coroutine::task<std::pair<recv_status, std::span<element_type>>> {
         if(buffer.empty()) {
-            co_return {recv_status::buffer_is_empty, std::span<element_type>{}};
+            co_return {recv_status::kBufferIsEmpty, std::span<element_type>{}};
         }
 
         auto *tls = m_tls_info.m_tls_ptr.get();
@@ -90,7 +90,7 @@ class client final: public ITlsClient {
                     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
                     t -= duration;
                     if(t <= std::chrono::microseconds{0}) {
-                        co_return {recv_status::timeout, std::span<element_type>{}};
+                        co_return {recv_status::kTimeout, std::span<element_type>{}};
                     }
                 }
 
@@ -105,13 +105,13 @@ class client final: public ITlsClient {
                 case poll_status::write:
                     continue;
                 case poll_status::timeout:
-                    co_return {recv_status::timeout, std::span<element_type>{}};
+                    co_return {recv_status::kTimeout, std::span<element_type>{}};
                 case poll_status::error:
-                    co_return {recv_status::error, std::span<element_type>{}};
+                    co_return {recv_status::kError, std::span<element_type>{}};
                 case poll_status::closed:
-                    co_return {recv_status::closed, std::span<element_type>{}};
+                    co_return {recv_status::kClosed, std::span<element_type>{}};
                 case poll_status::cancelled:
-                    co_return {recv_status::cancelled, std::span<element_type>{}};
+                    co_return {recv_status::kCancelled, std::span<element_type>{}};
             }
 
             size_t bytes_recv{0};
@@ -132,7 +132,7 @@ class client final: public ITlsClient {
                     co_return {static_cast<recv_status>(err), std::span<element_type>{}};
                 }
             } else {
-                co_return {recv_status::ok, std::span<element_type>{buffer.data(), static_cast<size_t>(bytes_recv)}};
+                co_return {recv_status::kOk, std::span<element_type>{buffer.data(), static_cast<size_t>(bytes_recv)}};
             }
         }
     }
@@ -152,7 +152,7 @@ class client final: public ITlsClient {
             -> silicon::coroutine::task<std::pair<send_status, std::span<element_type>>> {
         // Make sure there is data to send.
         if(buffer.empty()) {
-            co_return {send_status::buffer_is_empty, std::span<element_type>{buffer.data(), buffer.size()}};
+            co_return {send_status::kBufferIsEmpty, std::span<element_type>{buffer.data(), buffer.size()}};
         }
 
         auto *tls = m_tls_info.m_tls_ptr.get();
@@ -170,7 +170,7 @@ class client final: public ITlsClient {
                     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
                     t -= duration;
                     if(t <= std::chrono::microseconds{0}) {
-                        co_return {send_status::timeout, std::span<element_type>{}};
+                        co_return {send_status::kTimeout, std::span<element_type>{}};
                     }
                 }
 
@@ -185,13 +185,13 @@ class client final: public ITlsClient {
                 case poll_status::read:
                     continue;
                 case poll_status::timeout:
-                    co_return {send_status::timeout, std::span<element_type>{}};
+                    co_return {send_status::kTimeout, std::span<element_type>{}};
                 case poll_status::error:
-                    co_return {send_status::error, std::span<element_type>{}};
+                    co_return {send_status::kError, std::span<element_type>{}};
                 case poll_status::closed:
-                    co_return {send_status::closed, std::span<element_type>{}};
+                    co_return {send_status::kClosed, std::span<element_type>{}};
                 case poll_status::cancelled:
-                    co_return {send_status::cancelled, std::span<element_type>{}};
+                    co_return {send_status::kCancelled, std::span<element_type>{}};
             }
 
             size_t bytes_sent{0};
@@ -214,7 +214,7 @@ class client final: public ITlsClient {
                 }
             } else {
                 co_return {
-                        send_status::ok, std::span<element_type>{buffer.data() + bytes_sent, buffer.size() - bytes_sent}
+                        send_status::kOk, std::span<element_type>{buffer.data() + bytes_sent, buffer.size() - bytes_sent}
                 };
             }
         }

@@ -21,7 +21,7 @@ client::client(silicon::coroutine::IScheduler *scheduler, network::socket socket
     : m_scheduler(scheduler),
       m_endpoint(std::move(endpoint)),
       m_socket(std::move(socket)),
-      m_connect_status(connect_status::connected) {
+      m_connect_status(connect_status::kConnected) {
     // scheduler is assumed good since it comes from a tcp::server.
 
     // Force the socket to be non-blocking.
@@ -80,7 +80,7 @@ auto client::connect(std::chrono::milliseconds timeout) -> silicon::coroutine::t
 
     auto cret = m_socket.connect(m_endpoint);
     if(cret == 0) {
-        co_return return_value(connect_status::connected);
+        co_return return_value(connect_status::kConnected);
     } else {
         // If the connect is happening in the background poll for write on the socket to trigger
         // when the connection is established.
@@ -94,15 +94,15 @@ auto client::connect(std::chrono::milliseconds timeout) -> silicon::coroutine::t
                 }
 
                 if(result == 0) {
-                    co_return return_value(connect_status::connected);
+                    co_return return_value(connect_status::kConnected);
                 }
             } else if(pstatus == silicon::coroutine::poll_status::timeout) {
-                co_return return_value(connect_status::timeout);
+                co_return return_value(connect_status::kTimeout);
             }
         }
     }
 
-    co_return return_value(connect_status::error);
+    co_return return_value(connect_status::kError);
 }
 
 } // namespace silicon::network::tcp

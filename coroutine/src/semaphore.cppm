@@ -20,9 +20,9 @@ export namespace silicon::coroutine {
 
 enum class semaphore_acquire_result {
     /// @brief The semaphore was acquired.
-    acquired,
+    kAcquired,
     /// @brief The semaphore is shutting down, it has not been acquired.
-    shutdown
+    kShutdown
 };
 
 extern COROUTINE_API std::string semaphore_acquire_result_acquired;
@@ -65,9 +65,9 @@ class acquire_operation {
 
     [[nodiscard]] auto await_resume() const -> semaphore_acquire_result {
         if(m_semaphore.m_p->m_shutdown.load(std::memory_order::acquire)) {
-            return semaphore_acquire_result::shutdown;
+            return semaphore_acquire_result::kShutdown;
         }
-        return semaphore_acquire_result::acquired;
+        return semaphore_acquire_result::kAcquired;
     }
 
     acquire_operation<max_value> *m_next{nullptr};

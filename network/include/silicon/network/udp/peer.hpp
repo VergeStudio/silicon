@@ -19,7 +19,7 @@ class peer final: public IUdpPeer {
      * Creates a udp peer that can send packets but not receive them.  This udp peer will not explicitly
      * bind to a local ip+port.
      */
-    explicit peer(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, network::domain_t domain = network::domain_t::ipv4);
+    explicit peer(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, network::domain_t domain = network::domain_t::kIpv4);
 
     /**
      * Creates a udp peer that can send and receive packets.  This peer will bind to the given ip_port.
@@ -76,7 +76,7 @@ class peer final: public IUdpPeer {
             std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
     ) -> silicon::coroutine::task<io_status> {
         if(buffer.empty()) {
-            co_return io_status{io_status::kind::ok};
+            co_return io_status{io_status::kind::kOk};
         }
 
         // Fast path
@@ -104,11 +104,11 @@ class peer final: public IUdpPeer {
             -> silicon::coroutine::task<std::tuple<io_status, socket_address, std::span<std::byte>>> {
         // The user must bind locally to be able to receive packets.
         if(!m_bound) {
-            co_return {io_status{io_status::kind::udp_not_bound}, network::socket_address::make_uninitialised(), {}};
+            co_return {io_status{io_status::kind::kUdpNotBound}, network::socket_address::make_uninitialised(), {}};
         }
 
         if(buffer.empty()) {
-            co_return {io_status{io_status::kind::ok}, network::socket_address::make_uninitialised(), {}};
+            co_return {io_status{io_status::kind::kOk}, network::socket_address::make_uninitialised(), {}};
         }
 
         // Fast path
@@ -157,7 +157,7 @@ class peer final: public IUdpPeer {
         auto bytes_sent = ::sendto(m_socket.native_handle(), reinterpret_cast<const char *>(buffer.data()), buffer.size(), 0, sockaddr, socklen);
 
         if(bytes_sent != -1) {
-            return io_status{io_status::kind::ok};
+            return io_status{io_status::kind::kOk};
         } else {
             return make_io_status_from_native(errno);
         }
@@ -188,7 +188,7 @@ class peer final: public IUdpPeer {
         }
 
         return {
-                io_status{io_status::kind::ok},
+                io_status{io_status::kind::kOk},
                 endpoint,
                 std::span<element_type>{buffer.data(), static_cast<size_t>(bytes_read)}
         };

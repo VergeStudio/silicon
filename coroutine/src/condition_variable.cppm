@@ -45,11 +45,11 @@ class condition_variable {
   private:
     enum class notify_status_t {
         /// @brief The waiter is ready to be resumed, either the predicate passed or its been requested to stop.
-        ready,
+        kReady,
         /// @brief The waiter is not ready to be resumed
-        not_ready,
+        kNotReady,
         /// @brief The waiter is a hook and has timed out and is dead.
-        awaiter_dead,
+        kAwaiterDead,
     };
 
     struct awaiter_base {
@@ -535,12 +535,12 @@ class condition_variable {
 
     auto make_notify_all_executor_individual_task(awaiter_base *waiter) -> silicon::coroutine::task<void> {
         switch(co_await waiter->on_notify()) {
-            case notify_status_t::not_ready:
+            case notify_status_t::kNotReady:
                 // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
                 detail::awaiter_list_push(m_p->m_awaiters, waiter);
                 break;
-            case notify_status_t::ready:
-            case notify_status_t::awaiter_dead:
+            case notify_status_t::kReady:
+            case notify_status_t::kAwaiterDead:
                 // Don't re-enqueue any awaiters that are ready or dead.
                 break;
         }

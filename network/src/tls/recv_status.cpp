@@ -22,29 +22,29 @@ static std::string recv_status_unknown{"unknown"};
 
 auto to_string(recv_status status) -> const std::string & {
     switch(status) {
-        case recv_status::ok:
+        case recv_status::kOk:
             return recv_status_ok;
-        case recv_status::buffer_is_empty:
+        case recv_status::kBufferIsEmpty:
             return recv_status_buffer_is_empty;
-        case recv_status::timeout:
+        case recv_status::kTimeout:
             return recv_status_timeout;
-        case recv_status::closed:
+        case recv_status::kClosed:
             return recv_status_closed;
-        case recv_status::error:
+        case recv_status::kError:
             return recv_status_error;
-        case recv_status::cancelled:
+        case recv_status::kCancelled:
             return recv_status_cancelled;
-        case recv_status::want_read:
+        case recv_status::kWantRead:
             return recv_status_want_read;
-        case recv_status::want_write:
+        case recv_status::kWantWrite:
             return recv_status_want_write;
-        case recv_status::want_connect:
+        case recv_status::kWantConnect:
             return recv_status_want_connect;
-        case recv_status::want_accept:
+        case recv_status::kWantAccept:
             return recv_status_want_accept;
-        case recv_status::want_x509_lookup:
+        case recv_status::kWantX509Lookup:
             return recv_status_want_x509_lookup;
-        case recv_status::error_syscall:
+        case recv_status::kErrorSyscall:
             return recv_status_error_syscall;
     }
 

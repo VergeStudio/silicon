@@ -11,22 +11,22 @@
 namespace silicon::network::tls {
 
 enum class send_status : int64_t {
-    ok = SSL_ERROR_NONE,
+    kOk = SSL_ERROR_NONE,
     // The user provided an 0 length buffer.
-    buffer_is_empty = -3,
+    kBufferIsEmpty = -3,
     // The operation timed out.
-    timeout = -4,
+    kTimeout = -4,
     /// The operation was cancelled.
-    cancelled = -5,
+    kCancelled = -5,
     /// The peer closed the socket.
-    closed = SSL_ERROR_ZERO_RETURN,
-    error = SSL_ERROR_SSL,
-    want_read = SSL_ERROR_WANT_READ,
-    want_write = SSL_ERROR_WANT_WRITE,
-    want_connect = SSL_ERROR_WANT_CONNECT,
-    want_accept = SSL_ERROR_WANT_ACCEPT,
-    want_x509_lookup = SSL_ERROR_WANT_X509_LOOKUP,
-    error_syscall = SSL_ERROR_SYSCALL,
+    kClosed = SSL_ERROR_ZERO_RETURN,
+    kError = SSL_ERROR_SSL,
+    kWantRead = SSL_ERROR_WANT_READ,
+    kWantWrite = SSL_ERROR_WANT_WRITE,
+    kWantConnect = SSL_ERROR_WANT_CONNECT,
+    kWantAccept = SSL_ERROR_WANT_ACCEPT,
+    kWantX509Lookup = SSL_ERROR_WANT_X509_LOOKUP,
+    kErrorSyscall = SSL_ERROR_SYSCALL,
 
 };
 

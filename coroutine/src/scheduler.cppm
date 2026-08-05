@@ -49,8 +49,8 @@ import :concepts.range_of; // sized_range_of
 
 export namespace silicon::coroutine {
 enum class timeout_status {
-    no_timeout,
-    timeout,
+    kNoTimeout,
+    kTimeout,
 };
 
 class scheduler {
@@ -516,7 +516,7 @@ class scheduler {
 
     auto make_timeout_task(std::chrono::milliseconds timeout) -> silicon::coroutine::task<timeout_status> {
         co_await schedule_after(timeout);
-        co_return timeout_status::timeout;
+        co_return timeout_status::kTimeout;
     }
 
 };

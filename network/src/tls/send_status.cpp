@@ -22,29 +22,29 @@ static std::string send_status_unknown{"unknown"};
 
 auto to_string(send_status status) -> const std::string & {
     switch(status) {
-        case send_status::ok:
+        case send_status::kOk:
             return send_status_ok;
-        case send_status::buffer_is_empty:
+        case send_status::kBufferIsEmpty:
             return send_status_buffer_is_empty;
-        case send_status::timeout:
+        case send_status::kTimeout:
             return send_status_timeout;
-        case send_status::closed:
+        case send_status::kClosed:
             return send_status_closed;
-        case send_status::error:
+        case send_status::kError:
             return send_status_error;
-        case send_status::cancelled:
+        case send_status::kCancelled:
             return send_status_cancelled;
-        case send_status::want_read:
+        case send_status::kWantRead:
             return send_status_want_read;
-        case send_status::want_write:
+        case send_status::kWantWrite:
             return send_status_want_write;
-        case send_status::want_connect:
+        case send_status::kWantConnect:
             return send_status_want_connect;
-        case send_status::want_accept:
+        case send_status::kWantAccept:
             return send_status_want_accept;
-        case send_status::want_x509_lookup:
+        case send_status::kWantX509Lookup:
             return send_status_want_x509_lookup;
-        case send_status::error_syscall:
+        case send_status::kErrorSyscall:
             return send_status_error_syscall;
     }
 

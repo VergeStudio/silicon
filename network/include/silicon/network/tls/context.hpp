@@ -21,8 +21,8 @@ enum class tls_file_type : int {
 };
 
 enum class verify_peer_t : int {
-    yes,
-    no
+    kYes,
+    kNo
 };
 
 /**
@@ -34,7 +34,7 @@ class context {
      * Creates a context with no certificate and no private key, maybe useful for testing.
      * @param verify_peer Should the peer be verified? Defaults to true.
      */
-    explicit context(verify_peer_t verify_peer = verify_peer_t::yes);
+    explicit context(verify_peer_t verify_peer = verify_peer_t::kYes);
 
     /**
      * Creates a context with the given certificate and the given private key.
@@ -49,7 +49,7 @@ class context {
             tls_file_type certificate_type,
             std::filesystem::path private_key,
             tls_file_type private_key_type,
-            verify_peer_t verify_peer = verify_peer_t::yes
+            verify_peer_t verify_peer = verify_peer_t::kYes
     );
     ~context();
 

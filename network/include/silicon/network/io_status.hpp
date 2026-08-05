@@ -9,34 +9,34 @@ namespace silicon::network {
 
 struct io_status {
     enum class kind {
-        ok,
-        closed,
-        connection_reset,
-        connection_refused,
-        timeout,
+        kOk,
+        kClosed,
+        kConnectionReset,
+        kConnectionRefused,
+        kTimeout,
 
-        would_block_or_try_again,
-        polling_error,
-        cancelled,
+        kWouldBlockOrTryAgain,
+        kPollingError,
+        kCancelled,
 
-        udp_not_bound,
-        message_too_big,
+        kUdpNotBound,
+        kMessageTooBig,
 
-        native,
+        kNative,
 
-        unknown
+        kUnknown
     };
 
     kind type{};
     [[maybe_unused]] int native_code{};
 
-    [[nodiscard]] auto is_ok() const -> bool { return type == kind::ok; }
-    [[nodiscard]] auto is_timeout() const -> bool { return type == kind::timeout; }
-    [[nodiscard]] auto is_closed() const -> bool { return type == kind::closed; }
-    [[nodiscard]] auto would_block() const -> bool { return type == kind::would_block_or_try_again; }
-    [[nodiscard]] auto try_again() const -> bool { return type == kind::would_block_or_try_again; }
+    [[nodiscard]] auto is_ok() const -> bool { return type == kind::kOk; }
+    [[nodiscard]] auto is_timeout() const -> bool { return type == kind::kTimeout; }
+    [[nodiscard]] auto is_closed() const -> bool { return type == kind::kClosed; }
+    [[nodiscard]] auto would_block() const -> bool { return type == kind::kWouldBlockOrTryAgain; }
+    [[nodiscard]] auto try_again() const -> bool { return type == kind::kWouldBlockOrTryAgain; }
 
-    [[nodiscard]] auto is_native() const -> bool { return type == kind::native; }
+    [[nodiscard]] auto is_native() const -> bool { return type == kind::kNative; }
 
     explicit operator bool() const { return is_ok(); }
 

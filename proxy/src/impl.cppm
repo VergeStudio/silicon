@@ -60,10 +60,10 @@ struct basic_facade_traits;
 
 } // namespace details
 
-enum class constraint_level { none,
-                              nontrivial,
-                              nothrow,
-                              trivial };
+enum class constraint_level { kNone,
+                              kNontrivial,
+                              kNothrow,
+                              kTrivial };
 
 template<template<class> class O>
 struct facade_aware_overload_t {
@@ -164,21 +164,21 @@ template<template<class...> class T, class TL, class... Args>
 using instantiated_t =
         typename instantiated_traits_helper<T, TL, Args...>::type;
 
-enum class qualifier_type { lv,
-                            const_lv,
-                            rv,
-                            const_rv };
+enum class qualifier_type { kLv,
+                            kConstLv,
+                            kRv,
+                            kConstRv };
 template<class T, qualifier_type Q>
 struct add_qualifier_traits;
 template<class T>
-struct add_qualifier_traits<T, qualifier_type::lv>: std::type_identity<T &> {};
+struct add_qualifier_traits<T, qualifier_type::kLv>: std::type_identity<T &> {};
 template<class T>
-struct add_qualifier_traits<T, qualifier_type::const_lv>
+struct add_qualifier_traits<T, qualifier_type::kConstLv>
     : std::type_identity<const T &> {};
 template<class T>
-struct add_qualifier_traits<T, qualifier_type::rv>: std::type_identity<T &&> {};
+struct add_qualifier_traits<T, qualifier_type::kRv>: std::type_identity<T &&> {};
 template<class T>
-struct add_qualifier_traits<T, qualifier_type::const_rv>
+struct add_qualifier_traits<T, qualifier_type::kConstRv>
     : std::type_identity<const T &&> {};
 template<class T, qualifier_type Q>
 using add_qualifier_t = typename add_qualifier_traits<T, Q>::type;
@@ -188,50 +188,50 @@ using add_qualifier_ptr_t = std::remove_reference_t<add_qualifier_t<T, Q>> *;
 template<class T, constraint_level CL>
 struct copyability_traits: inapplicable_traits {};
 template<class T>
-struct copyability_traits<T, constraint_level::none>: applicable_traits {};
+struct copyability_traits<T, constraint_level::kNone>: applicable_traits {};
 template<class T>
     requires(std::is_copy_constructible_v<T>)
-struct copyability_traits<T, constraint_level::nontrivial>: applicable_traits {
+struct copyability_traits<T, constraint_level::kNontrivial>: applicable_traits {
 };
 template<class T>
     requires(std::is_nothrow_copy_constructible_v<T>)
-struct copyability_traits<T, constraint_level::nothrow>: applicable_traits {};
+struct copyability_traits<T, constraint_level::kNothrow>: applicable_traits {};
 template<class T>
     requires(std::is_trivially_copy_constructible_v<T>)
-struct copyability_traits<T, constraint_level::trivial>: applicable_traits {};
+struct copyability_traits<T, constraint_level::kTrivial>: applicable_traits {};
 
 template<class T, constraint_level CL>
 struct relocatability_traits: inapplicable_traits {};
 template<class T>
-struct relocatability_traits<T, constraint_level::none>: applicable_traits {};
+struct relocatability_traits<T, constraint_level::kNone>: applicable_traits {};
 template<class T>
     requires((std::is_move_constructible_v<T> && std::is_destructible_v<T>) || is_bitwise_trivially_relocatable_v<T>)
-struct relocatability_traits<T, constraint_level::nontrivial>
+struct relocatability_traits<T, constraint_level::kNontrivial>
     : applicable_traits {};
 template<class T>
     requires((std::is_nothrow_move_constructible_v<T> && std::is_nothrow_destructible_v<T>) || is_bitwise_trivially_relocatable_v<T>)
-struct relocatability_traits<T, constraint_level::nothrow>: applicable_traits {
+struct relocatability_traits<T, constraint_level::kNothrow>: applicable_traits {
 };
 template<class T>
     requires(is_bitwise_trivially_relocatable_v<T>)
-struct relocatability_traits<T, constraint_level::trivial>: applicable_traits {
+struct relocatability_traits<T, constraint_level::kTrivial>: applicable_traits {
 };
 
 template<class T, constraint_level CL>
 struct destructibility_traits: inapplicable_traits {};
 template<class T>
-struct destructibility_traits<T, constraint_level::none>: applicable_traits {};
+struct destructibility_traits<T, constraint_level::kNone>: applicable_traits {};
 template<class T>
     requires(std::is_destructible_v<T>)
-struct destructibility_traits<T, constraint_level::nontrivial>
+struct destructibility_traits<T, constraint_level::kNontrivial>
     : applicable_traits {};
 template<class T>
     requires(std::is_nothrow_destructible_v<T>)
-struct destructibility_traits<T, constraint_level::nothrow>
+struct destructibility_traits<T, constraint_level::kNothrow>
     : applicable_traits {};
 template<class T>
     requires(std::is_trivially_destructible_v<T>)
-struct destructibility_traits<T, constraint_level::trivial>
+struct destructibility_traits<T, constraint_level::kTrivial>
     : applicable_traits {};
 
 template<class F, bool IsDirect, qualifier_type Q>
@@ -247,9 +247,9 @@ struct proxy_helper {
     struct resetting_guard {
         explicit resetting_guard(proxy<F> &p) noexcept: p_(p) {}
         explicit resetting_guard(proxy_indirect_accessor<F> &p) noexcept
-            : p_(as_proxy<F, qualifier_type::lv>(p)) {}
+            : p_(as_proxy<F, qualifier_type::kLv>(p)) {}
         ~resetting_guard() noexcept(std::is_nothrow_destructible_v<P>) {
-            std::destroy_at(std::addressof(get_ptr<P, F, qualifier_type::lv>(p_)));
+            std::destroy_at(std::addressof(get_ptr<P, F, qualifier_type::kLv>(p_)));
             p_.meta_.reset();
         }
 
@@ -264,7 +264,7 @@ struct proxy_helper {
     }
     template<class M, class F>
     static const M &get_meta(const proxy_indirect_accessor<F> &p) noexcept {
-        return get_meta<M>(as_proxy<F, qualifier_type::const_lv>(p));
+        return get_meta<M>(as_proxy<F, qualifier_type::kConstLv>(p));
     }
     template<class P, class F, qualifier_type Q>
     static add_qualifier_t<P, Q> get_ptr(add_qualifier_t<proxy<F>, Q> p) {
@@ -294,7 +294,7 @@ concept invocable_dispatch =
         ((NE && std::is_nothrow_invocable_r_v<R, D, operand_t<P, IsDirect, Q>, Args...>) ||
          (!NE &&
           std::is_invocable_r_v<R, D, operand_t<P, IsDirect, Q>, Args...>)) &&
-        (Q != qualifier_type::rv || (NE && std::is_nothrow_destructible_v<P>) ||
+        (Q != qualifier_type::kRv || (NE && std::is_nothrow_destructible_v<P>) ||
          (!NE && std::is_destructible_v<P>));
 
 struct internal_dispatch {};
@@ -311,40 +311,40 @@ struct overload_traits_impl: applicable_traits {
 };
 template<class R, class... Args>
 struct overload_traits<R(Args...)>
-    : overload_traits_impl<qualifier_type::lv, false, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kLv, false, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) noexcept>
-    : overload_traits_impl<qualifier_type::lv, true, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kLv, true, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) &>
-    : overload_traits_impl<qualifier_type::lv, false, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kLv, false, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) & noexcept>
-    : overload_traits_impl<qualifier_type::lv, true, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kLv, true, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) &&>
-    : overload_traits_impl<qualifier_type::rv, false, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kRv, false, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) && noexcept>
-    : overload_traits_impl<qualifier_type::rv, true, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kRv, true, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) const>
-    : overload_traits_impl<qualifier_type::const_lv, false, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kConstLv, false, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) const noexcept>
-    : overload_traits_impl<qualifier_type::const_lv, true, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kConstLv, true, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) const &>
-    : overload_traits_impl<qualifier_type::const_lv, false, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kConstLv, false, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) const & noexcept>
-    : overload_traits_impl<qualifier_type::const_lv, true, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kConstLv, true, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) const &&>
-    : overload_traits_impl<qualifier_type::const_rv, false, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kConstRv, false, R, Args...> {};
 template<class R, class... Args>
 struct overload_traits<R(Args...) const && noexcept>
-    : overload_traits_impl<qualifier_type::const_rv, true, R, Args...> {};
+    : overload_traits_impl<qualifier_type::kConstRv, true, R, Args...> {};
 template<class O>
 using ret_t = typename overload_traits<O>::return_type;
 
@@ -517,7 +517,7 @@ struct relocate_dispatch: internal_dispatch {
     }
     template<class T, class F>
     PRO4D_STATIC_CALL(void, T &&self, proxy<F> &rhs) noexcept(
-            relocatability_traits<T, constraint_level::nothrow>::applicable
+            relocatability_traits<T, constraint_level::kNothrow>::applicable
     ) {
         std::construct_at(std::addressof(rhs), std::forward<T>(self));
     }
@@ -531,10 +531,10 @@ struct destroy_dispatch {
 template<class F, class D, class ONE, class OE, constraint_level C>
 struct lifetime_meta_traits: std::type_identity<void> {};
 template<class F, class D, class ONE, class OE>
-struct lifetime_meta_traits<F, D, ONE, OE, constraint_level::nothrow>
+struct lifetime_meta_traits<F, D, ONE, OE, constraint_level::kNothrow>
     : std::type_identity<conv_meta<proxy<F>, D, ONE>> {};
 template<class F, class D, class ONE, class OE>
-struct lifetime_meta_traits<F, D, ONE, OE, constraint_level::nontrivial>
+struct lifetime_meta_traits<F, D, ONE, OE, constraint_level::kNontrivial>
     : std::type_identity<conv_meta<proxy<F>, D, OE>> {};
 template<class F, class D, class ONE, class OE, constraint_level C>
 using lifetime_meta_t = typename lifetime_meta_traits<F, D, ONE, OE, C>::type;
@@ -606,7 +606,7 @@ consteval bool is_layout_well_formed(std::size_t size, std::size_t align) {
     return size > 0u && std::has_single_bit(align) && size % align == 0u;
 }
 consteval bool is_cl_well_formed(constraint_level cl) {
-    return cl >= constraint_level::none && cl <= constraint_level::trivial;
+    return cl >= constraint_level::kNone && cl <= constraint_level::kTrivial;
 }
 template<class F>
 consteval bool is_facade_constraints_well_formed() {
@@ -829,7 +829,7 @@ R invoke_dispatch(Args &&...args) {
 }
 template<class P, class F, bool IsDirect, qualifier_type Q, class D, class R, class... Args>
 R reinterpret_invoke(proxy_accessor<F, IsDirect, Q> self, Args &&...args) {
-    if constexpr(Q == qualifier_type::rv) {
+    if constexpr(Q == qualifier_type::kRv) {
         if constexpr(std::is_base_of_v<internal_dispatch, D> && is_bitwise_trivially_relocatable_v<P>) {
             return D()(std::in_place_type<P>, std::move(self), std::forward<Args>(args)...);
         } else {
@@ -882,21 +882,21 @@ class proxy_indirect_accessor
     }
     template<class P, class D, class R, class... Args>
     friend R reinterpret_invoke(proxy_indirect_accessor &p, Args &&...args) {
-        return details::reinterpret_invoke<P, F, false, details::qualifier_type::lv, D, R>(p, std::forward<Args>(args)...);
+        return details::reinterpret_invoke<P, F, false, details::qualifier_type::kLv, D, R>(p, std::forward<Args>(args)...);
     }
     template<class P, class D, class R, class... Args>
     friend R reinterpret_invoke(const proxy_indirect_accessor &p, Args &&...args) {
-        return details::reinterpret_invoke<P, F, false, details::qualifier_type::const_lv, D, R>(
+        return details::reinterpret_invoke<P, F, false, details::qualifier_type::kConstLv, D, R>(
                 p, std::forward<Args>(args)...
         );
     }
     template<class P, class D, class R, class... Args>
     friend R reinterpret_invoke(proxy_indirect_accessor &&p, Args &&...args) {
-        return details::reinterpret_invoke<P, F, false, details::qualifier_type::rv, D, R>(std::move(p), std::forward<Args>(args)...);
+        return details::reinterpret_invoke<P, F, false, details::qualifier_type::kRv, D, R>(std::move(p), std::forward<Args>(args)...);
     }
     template<class P, class D, class R, class... Args>
     friend R reinterpret_invoke(const proxy_indirect_accessor &&p, Args &&...args) {
-        return details::reinterpret_invoke<P, F, false, details::qualifier_type::const_rv, D, R>(
+        return details::reinterpret_invoke<P, F, false, details::qualifier_type::kConstRv, D, R>(
                 std::move(p), std::forward<Args>(args)...
         );
     }
@@ -920,16 +920,16 @@ class proxy: public details::facade_traits<F>::direct_accessor,
     proxy() noexcept { initialize(); }
     proxy(std::nullptr_t) noexcept: proxy() {}
     proxy(const proxy &) noexcept
-        requires(F::copyability == constraint_level::trivial)
+        requires(F::copyability == constraint_level::kTrivial)
     = default;
-    proxy(const proxy &rhs) noexcept(F::copyability == constraint_level::nothrow)
-        requires(F::copyability == constraint_level::nontrivial || F::copyability == constraint_level::nothrow)
+    proxy(const proxy &rhs) noexcept(F::copyability == constraint_level::kNothrow)
+        requires(F::copyability == constraint_level::kNontrivial || F::copyability == constraint_level::kNothrow)
         : details::inplace_ptr<
                   proxy_indirect_accessor<F>>() /* Make GCC happy */ {
         initialize(rhs);
     }
-    proxy(proxy &&rhs) noexcept(F::relocatability >= constraint_level::nothrow)
-        requires(F::relocatability >= constraint_level::nontrivial && F::copyability != constraint_level::trivial)
+    proxy(proxy &&rhs) noexcept(F::relocatability >= constraint_level::kNothrow)
+        requires(F::relocatability >= constraint_level::kNontrivial && F::copyability != constraint_level::kTrivial)
     {
         initialize(std::move(rhs));
     }
@@ -963,20 +963,20 @@ class proxy: public details::facade_traits<F>::direct_accessor,
     {
         initialize<P>(il, std::forward<Args>(args)...);
     }
-    proxy &operator=(std::nullptr_t) noexcept(F::destructibility >= constraint_level::nothrow)
-        requires(F::destructibility >= constraint_level::nontrivial)
+    proxy &operator=(std::nullptr_t) noexcept(F::destructibility >= constraint_level::kNothrow)
+        requires(F::destructibility >= constraint_level::kNontrivial)
     {
         reset();
         return *this;
     }
     proxy &operator=(const proxy &) noexcept
-        requires(F::copyability == constraint_level::trivial)
+        requires(F::copyability == constraint_level::kTrivial)
     = default;
-    proxy &operator=(const proxy &rhs) noexcept(F::copyability >= constraint_level::nothrow && F::destructibility >= constraint_level::nothrow)
-        requires((F::copyability == constraint_level::nontrivial || F::copyability == constraint_level::nothrow) && F::destructibility >= constraint_level::nontrivial)
+    proxy &operator=(const proxy &rhs) noexcept(F::copyability >= constraint_level::kNothrow && F::destructibility >= constraint_level::kNothrow)
+        requires((F::copyability == constraint_level::kNontrivial || F::copyability == constraint_level::kNothrow) && F::destructibility >= constraint_level::kNontrivial)
     {
         if(this != std::addressof(rhs)) [[likely]] {
-            if constexpr(F::copyability == constraint_level::nothrow) {
+            if constexpr(F::copyability == constraint_level::kNothrow) {
                 destroy();
                 initialize(rhs);
             } else {
@@ -985,8 +985,8 @@ class proxy: public details::facade_traits<F>::direct_accessor,
         }
         return *this;
     }
-    proxy &operator=(proxy &&rhs) noexcept(F::relocatability >= constraint_level::nothrow && F::destructibility >= constraint_level::nothrow)
-        requires(F::relocatability >= constraint_level::nontrivial && F::destructibility >= constraint_level::nontrivial && F::copyability != constraint_level::trivial)
+    proxy &operator=(proxy &&rhs) noexcept(F::relocatability >= constraint_level::kNothrow && F::destructibility >= constraint_level::kNothrow)
+        requires(F::relocatability >= constraint_level::kNontrivial && F::destructibility >= constraint_level::kNontrivial && F::copyability != constraint_level::kTrivial)
     {
         if(this != std::addressof(rhs)) [[likely]] {
             reset();
@@ -997,9 +997,9 @@ class proxy: public details::facade_traits<F>::direct_accessor,
     template<class P>
     constexpr proxy &operator=(P &&ptr) noexcept(
             std::is_nothrow_constructible_v<std::decay_t<P>, P> &&
-            F::destructibility >= constraint_level::nothrow
+            F::destructibility >= constraint_level::kNothrow
     )
-        requires(!details::specialization_of<std::decay_t<P>, proxy> && details::pointer_like<std::decay_t<P>> && std::is_constructible_v<std::decay_t<P>, P> && F::destructibility >= constraint_level::nontrivial)
+        requires(!details::specialization_of<std::decay_t<P>, proxy> && details::pointer_like<std::decay_t<P>> && std::is_constructible_v<std::decay_t<P>, P> && F::destructibility >= constraint_level::kNontrivial)
     {
         if constexpr(std::is_nothrow_constructible_v<std::decay_t<P>, P>) {
             destroy();
@@ -1010,26 +1010,26 @@ class proxy: public details::facade_traits<F>::direct_accessor,
         return *this;
     }
     ~proxy()
-        requires(F::destructibility == constraint_level::trivial)
+        requires(F::destructibility == constraint_level::kTrivial)
     = default;
-    ~proxy() noexcept(F::destructibility == constraint_level::nothrow)
-        requires(F::destructibility == constraint_level::nontrivial || F::destructibility == constraint_level::nothrow)
+    ~proxy() noexcept(F::destructibility == constraint_level::kNothrow)
+        requires(F::destructibility == constraint_level::kNontrivial || F::destructibility == constraint_level::kNothrow)
     {
         destroy();
     }
 
     bool has_value() const noexcept { return meta_.has_value(); }
     explicit operator bool() const noexcept { return meta_.has_value(); }
-    void reset() noexcept(F::destructibility >= constraint_level::nothrow)
-        requires(F::destructibility >= constraint_level::nontrivial)
+    void reset() noexcept(F::destructibility >= constraint_level::kNothrow)
+        requires(F::destructibility >= constraint_level::kNontrivial)
     {
         destroy();
         initialize();
     }
-    void swap(proxy &rhs) noexcept(F::relocatability >= constraint_level::nothrow || F::copyability == constraint_level::trivial)
-        requires(F::relocatability >= constraint_level::nontrivial || F::copyability == constraint_level::trivial)
+    void swap(proxy &rhs) noexcept(F::relocatability >= constraint_level::kNothrow || F::copyability == constraint_level::kTrivial)
+        requires(F::relocatability >= constraint_level::kNontrivial || F::copyability == constraint_level::kTrivial)
     {
-        if constexpr(F::relocatability == constraint_level::trivial || F::copyability == constraint_level::trivial) {
+        if constexpr(F::relocatability == constraint_level::kTrivial || F::copyability == constraint_level::kTrivial) {
             std::swap(meta_, rhs.meta_);
 #ifdef __INTEL_LLVM_COMPILER
             // Workaround: Intel oneAPI compiler (as of 2025.2.0) may over-optimize
@@ -1058,9 +1058,9 @@ class proxy: public details::facade_traits<F>::direct_accessor,
     template<class P, class... Args>
     constexpr P &emplace(Args &&...args) noexcept(
             std::is_nothrow_constructible_v<P, Args...> &&
-            F::destructibility >= constraint_level::nothrow
+            F::destructibility >= constraint_level::kNothrow
     )
-        requires(details::pointer_like<P> && std::is_constructible_v<P, Args...> && F::destructibility >= constraint_level::nontrivial)
+        requires(details::pointer_like<P> && std::is_constructible_v<P, Args...> && F::destructibility >= constraint_level::kNontrivial)
     {
         reset();
         return initialize<P>(std::forward<Args>(args)...);
@@ -1068,9 +1068,9 @@ class proxy: public details::facade_traits<F>::direct_accessor,
     template<class P, class U, class... Args>
     constexpr P &emplace(std::initializer_list<U> il, Args &&...args) noexcept(
             std::is_nothrow_constructible_v<P, std::initializer_list<U> &, Args...> &&
-            F::destructibility >= constraint_level::nothrow
+            F::destructibility >= constraint_level::kNothrow
     )
-        requires(details::pointer_like<P> && std::is_constructible_v<P, std::initializer_list<U> &, Args...> && F::destructibility >= constraint_level::nontrivial)
+        requires(details::pointer_like<P> && std::is_constructible_v<P, std::initializer_list<U> &, Args...> && F::destructibility >= constraint_level::kNontrivial)
     {
         reset();
         return initialize<P>(il, std::forward<Args>(args)...);
@@ -1102,21 +1102,21 @@ class proxy: public details::facade_traits<F>::direct_accessor,
     }
     template<class P, class D, class R, class... Args>
     friend R reinterpret_invoke(proxy &p, Args &&...args) {
-        return details::reinterpret_invoke<P, F, true, details::qualifier_type::lv, D, R>(p, std::forward<Args>(args)...);
+        return details::reinterpret_invoke<P, F, true, details::qualifier_type::kLv, D, R>(p, std::forward<Args>(args)...);
     }
     template<class P, class D, class R, class... Args>
     friend R reinterpret_invoke(const proxy &p, Args &&...args) {
-        return details::reinterpret_invoke<P, F, true, details::qualifier_type::const_lv, D, R>(
+        return details::reinterpret_invoke<P, F, true, details::qualifier_type::kConstLv, D, R>(
                 p, std::forward<Args>(args)...
         );
     }
     template<class P, class D, class R, class... Args>
     friend R reinterpret_invoke(proxy &&p, Args &&...args) {
-        return details::reinterpret_invoke<P, F, true, details::qualifier_type::rv, D, R>(std::move(p), std::forward<Args>(args)...);
+        return details::reinterpret_invoke<P, F, true, details::qualifier_type::kRv, D, R>(std::move(p), std::forward<Args>(args)...);
     }
     template<class P, class D, class R, class... Args>
     friend R reinterpret_invoke(const proxy &&p, Args &&...args) {
-        return details::reinterpret_invoke<P, F, true, details::qualifier_type::const_rv, D, R>(
+        return details::reinterpret_invoke<P, F, true, details::qualifier_type::kConstRv, D, R>(
                 std::move(p), std::forward<Args>(args)...
         );
     }
@@ -1132,17 +1132,17 @@ class proxy: public details::facade_traits<F>::direct_accessor,
         meta_.reset();
     }
     void initialize(const proxy &rhs)
-        requires(F::copyability != constraint_level::none)
+        requires(F::copyability != constraint_level::kNone)
     {
         PRO4D_DEBUG(std::ignore = &pro_symbol_guard;)
         if(rhs.meta_.has_value()) {
-            if constexpr(F::copyability == constraint_level::trivial) {
+            if constexpr(F::copyability == constraint_level::kTrivial) {
                 std::ranges::uninitialized_copy(rhs.ptr_, ptr_);
                 meta_ = rhs.meta_;
             } else {
                 invoke<details::copy_dispatch,
                        void(proxy &) const noexcept(
-                               F::copyability == constraint_level::nothrow
+                               F::copyability == constraint_level::kNothrow
                        )>(rhs, *this);
             }
         } else {
@@ -1150,18 +1150,18 @@ class proxy: public details::facade_traits<F>::direct_accessor,
         }
     }
     void initialize(proxy &&rhs)
-        requires(F::relocatability != constraint_level::none)
+        requires(F::relocatability != constraint_level::kNone)
     {
         PRO4D_DEBUG(std::ignore = &pro_symbol_guard;)
         if(rhs.meta_.has_value()) {
-            if constexpr(F::relocatability == constraint_level::trivial) {
+            if constexpr(F::relocatability == constraint_level::kTrivial) {
                 std::ranges::uninitialized_copy(rhs.ptr_, ptr_);
                 meta_ = rhs.meta_;
                 rhs.meta_.reset();
             } else {
                 invoke<details::relocate_dispatch,
                        void(proxy &) &&
-                               noexcept(F::relocatability == constraint_level::nothrow)>(
+                               noexcept(F::relocatability == constraint_level::kNothrow)>(
                         std::move(rhs), *this
                 );
             }
@@ -1183,12 +1183,12 @@ class proxy: public details::facade_traits<F>::direct_accessor,
         return result;
     }
     void destroy()
-        requires(F::destructibility != constraint_level::none)
+        requires(F::destructibility != constraint_level::kNone)
     {
-        if constexpr(F::destructibility != constraint_level::trivial) {
+        if constexpr(F::destructibility != constraint_level::kTrivial) {
             if(meta_.has_value()) {
                 invoke<details::destroy_dispatch,
-                       void() noexcept(F::destructibility == constraint_level::nothrow)>(*this);
+                       void() noexcept(F::destructibility == constraint_level::kNothrow)>(*this);
             }
         }
     }
@@ -1480,9 +1480,9 @@ struct observer_facade
               details::instantiated_t<details::observer_refl_types, typename F::reflection_types>,
               sizeof(void *),
               alignof(void *),
-              constraint_level::trivial,
-              constraint_level::trivial,
-              constraint_level::trivial> {};
+              constraint_level::kTrivial,
+              constraint_level::kTrivial,
+              constraint_level::kTrivial> {};
 
 template<facade F>
 struct weak_facade
@@ -1979,10 +1979,10 @@ using add_conv_t = typename add_conv_reduction<std::tuple<>, Cs, C>::type;
 
 template<class F, constraint_level CL>
 using copy_conversion_overload =
-        proxy<F>() const & noexcept(CL >= constraint_level::nothrow);
+        proxy<F>() const & noexcept(CL >= constraint_level::kNothrow);
 template<class F, constraint_level CL>
 using move_conversion_overload =
-        proxy<F>() && noexcept(CL >= constraint_level::nothrow);
+        proxy<F>() && noexcept(CL >= constraint_level::kNothrow);
 template<class Cs, class F, constraint_level CCL, constraint_level RCL>
 struct add_substitution_conv
     : std::type_identity<add_conv_t<
@@ -1992,11 +1992,11 @@ struct add_substitution_conv
                       substitution_dispatch,
                       composite_t<
                               std::tuple<>,
-                              std::conditional_t<CCL == constraint_level::none, void, copy_conversion_overload<F, CCL>>,
-                              std::conditional_t<RCL == constraint_level::none, void, move_conversion_overload<F, RCL>>>>>> {
+                              std::conditional_t<CCL == constraint_level::kNone, void, copy_conversion_overload<F, CCL>>,
+                              std::conditional_t<RCL == constraint_level::kNone, void, move_conversion_overload<F, RCL>>>>>> {
 };
 template<class Cs, class F>
-struct add_substitution_conv<Cs, F, constraint_level::none, constraint_level::none>: std::type_identity<Cs> {
+struct add_substitution_conv<Cs, F, constraint_level::kNone, constraint_level::kNone>: std::type_identity<Cs> {
 };
 
 template<class Cs1, class... Cs2>
@@ -2005,10 +2005,10 @@ template<class Cs, class F, bool WithSubstitution>
 using merge_facade_conv_t = typename add_substitution_conv<
         instantiated_t<merge_conv_tuple_t, typename F::convention_types, Cs>,
         F,
-        WithSubstitution ? F::copyability : constraint_level::none,
-        (WithSubstitution && F::copyability != constraint_level::trivial)
+        WithSubstitution ? F::copyability : constraint_level::kNone,
+        (WithSubstitution && F::copyability != constraint_level::kTrivial)
                 ? F::relocatability
-                : constraint_level::none>::type;
+                : constraint_level::kNone>::type;
 
 template<bool WithSubstitution>
 struct add_facade_deprecation_traits: std::bool_constant<WithSubstitution> {};
@@ -2112,10 +2112,10 @@ struct basic_facade_builder {
                                              : MaxSize,
             MaxAlign == details::invalid_size ? alignof(details::ptr_prototype)
                                               : MaxAlign,
-            Copyability == details::invalid_cl ? constraint_level::none : Copyability,
-            Relocatability == details::invalid_cl ? constraint_level::trivial
+            Copyability == details::invalid_cl ? constraint_level::kNone : Copyability,
+            Relocatability == details::invalid_cl ? constraint_level::kTrivial
                                                   : Relocatability,
-            Destructibility == details::invalid_cl ? constraint_level::nothrow
+            Destructibility == details::invalid_cl ? constraint_level::kNothrow
                                                    : Destructibility>;
     basic_facade_builder() = delete;
 };

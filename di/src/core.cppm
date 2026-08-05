@@ -83,21 +83,21 @@ export module silicon.di:core;
 
 export namespace silicon::di {
 enum class type_cv_flags : std::uint8_t {
-    none = 0,
-    is_const = 1 << 0,
-    is_volatile = 1 << 1,
+    kNone = 0,
+    kIsConst = 1 << 0,
+    kIsVolatile = 1 << 1,
 };
 
 enum class type_reference_kind : std::uint8_t {
-    none = 0,
-    lvalue = 1,
-    rvalue = 2,
+    kNone = 0,
+    kLvalue = 1,
+    kRvalue = 2,
 };
 
 struct type_descriptor {
     std::string_view raw_name;
-    type_cv_flags cv = type_cv_flags::none;
-    type_reference_kind reference = type_reference_kind::none;
+    type_cv_flags cv = type_cv_flags::kNone;
+    type_reference_kind reference = type_reference_kind::kNone;
     type_descriptor (*pointee)() = nullptr;
 };
 
@@ -207,14 +207,14 @@ constexpr bool has_cv_flag(type_cv_flags flags, type_cv_flags flag) {
 }
 
 template <typename T> constexpr type_cv_flags make_type_cv_flags() {
-    type_cv_flags flags = type_cv_flags::none;
+    type_cv_flags flags = type_cv_flags::kNone;
 
     if constexpr (std::is_const_v<T>) {
-        flags = flags | type_cv_flags::is_const;
+        flags = flags | type_cv_flags::kIsConst;
     }
 
     if constexpr (std::is_volatile_v<T>) {
-        flags = flags | type_cv_flags::is_volatile;
+        flags = flags | type_cv_flags::kIsVolatile;
     }
 
     return flags;
@@ -222,33 +222,33 @@ template <typename T> constexpr type_cv_flags make_type_cv_flags() {
 
 template <typename T> constexpr type_reference_kind make_type_reference_kind() {
     if constexpr (std::is_lvalue_reference_v<T>) {
-        return type_reference_kind::lvalue;
+        return type_reference_kind::kLvalue;
     } else if constexpr (std::is_rvalue_reference_v<T>) {
-        return type_reference_kind::rvalue;
+        return type_reference_kind::kRvalue;
     } else {
-        return type_reference_kind::none;
+        return type_reference_kind::kNone;
     }
 }
 
 template <typename T> constexpr type_descriptor make_type_descriptor() {
     if constexpr (std::is_pointer_v<T>) {
-        return {{}, make_type_cv_flags<T>(), type_reference_kind::none,
+        return {{}, make_type_cv_flags<T>(), type_reference_kind::kNone,
                 &make_type_descriptor<std::remove_pointer_t<T>>};
     } else {
         return {raw_type_name<std::remove_cv_t<T>>(), make_type_cv_flags<T>(),
-                type_reference_kind::none, nullptr};
+                type_reference_kind::kNone, nullptr};
     }
 }
 
 inline void append_type_cv(std::string& name, type_cv_flags flags,
                            std::string_view separator = " ") {
-    if (has_cv_flag(flags, type_cv_flags::is_const)) {
+    if (has_cv_flag(flags, type_cv_flags::kIsConst)) {
         name += separator;
         name += "const";
         separator = " ";
     }
 
-    if (has_cv_flag(flags, type_cv_flags::is_volatile)) {
+    if (has_cv_flag(flags, type_cv_flags::kIsVolatile)) {
         name += separator;
         name += "volatile";
     }
@@ -261,20 +261,20 @@ inline void append_described_type_name(std::string& name,
         name += "*";
         append_type_cv(name, descriptor.cv);
     } else {
-        if (has_cv_flag(descriptor.cv, type_cv_flags::is_const)) {
+        if (has_cv_flag(descriptor.cv, type_cv_flags::kIsConst)) {
             name += "const ";
         }
 
-        if (has_cv_flag(descriptor.cv, type_cv_flags::is_volatile)) {
+        if (has_cv_flag(descriptor.cv, type_cv_flags::kIsVolatile)) {
             name += "volatile ";
         }
 
         name += descriptor.raw_name;
     }
 
-    if (descriptor.reference == type_reference_kind::lvalue) {
+    if (descriptor.reference == type_reference_kind::kLvalue) {
         name += "&";
-    } else if (descriptor.reference == type_reference_kind::rvalue) {
+    } else if (descriptor.reference == type_reference_kind::kRvalue) {
         name += "&&";
     }
 }
@@ -2371,7 +2371,7 @@ inline constexpr bool has_constructor_typedef_v =
     has_constructor_typedef<T>{};
 
 namespace detail {
-enum class constructor_kind { concrete, generic, invalid };
+enum class constructor_kind { kConcrete, kGeneric, kInvalid };
 
 template <typename T, bool = has_constructor_typedef_v<T>>
 struct constructor_typedef_impl : T::di_constructor_type {};
@@ -2382,7 +2382,7 @@ template <typename T> struct constructor_typedef_impl<T, false> {};
 template <typename T>
 struct constructor_typedef : detail::constructor_typedef_impl<T> {
     static constexpr detail::constructor_kind kind =
-        detail::constructor_kind::concrete;
+        detail::constructor_kind::kConcrete;
 };
 
 } // export namespace silicon::di
@@ -2404,7 +2404,7 @@ struct automatic {};
 template <typename Detection, typename = void>
 struct constructor_detection_arguments {
     using type = std::conditional_t<
-        Detection::kind == constructor_kind::concrete && Detection::arity == 0,
+        Detection::kind == constructor_kind::kConcrete && Detection::arity == 0,
         type_list<>, void>;
 };
 
@@ -2741,7 +2741,7 @@ struct constructor_detection_dispatch;
 
 template <typename T, typename Tag, size_t Arity>
 struct constructor_detection_dispatch<T, Tag, Arity,
-                                      constructor_kind::concrete> {
+                                      constructor_kind::kConcrete> {
     template <typename Type, typename Context, typename Container>
     static auto construct(Context& ctx, Container& container) {
         return constructor_methods<T, Tag, Arity>::template construct<Type>(
@@ -2757,7 +2757,7 @@ struct constructor_detection_dispatch<T, Tag, Arity,
 
 template <typename T, typename Tag, size_t Arity>
 struct constructor_detection_dispatch<T, Tag, Arity,
-                                      constructor_kind::generic> {
+                                      constructor_kind::kGeneric> {
     template <typename Type, typename Context, typename Container>
     static Type construct(Context&, Container&) {
         static_assert(
@@ -2777,7 +2777,7 @@ struct constructor_detection_dispatch<T, Tag, Arity,
 
 template <typename T, typename Tag, size_t Arity>
 struct constructor_detection_dispatch<T, Tag, Arity,
-                                      constructor_kind::invalid> {
+                                      constructor_kind::kInvalid> {
     template <typename Type, typename Context, typename Container>
     static Type construct(Context&, Container&) {
         static_assert(always_false_v<Type>,
@@ -2811,9 +2811,9 @@ struct constructor_detection {
         }
     }();
     static constexpr constructor_kind kind =
-        !detected ? constructor_kind::invalid
-                  : requires_explicit_factory ? constructor_kind::generic
-                                              : constructor_kind::concrete;
+        !detected ? constructor_kind::kInvalid
+                  : requires_explicit_factory ? constructor_kind::kGeneric
+                                              : constructor_kind::kConcrete;
     static constexpr size_t arity = detected ? detected_arity : 0;
     using dispatch = constructor_detection_dispatch<T, Tag, arity, kind>;
 
@@ -3438,7 +3438,7 @@ struct factory_traits<constructor<T>, std::enable_if_t<!std::is_function_v<T>>> 
     using dependencies = detail::factory_arguments_or_void_t<constructor<T>>;
     static constexpr bool has_explicit_dependencies = false;
     static constexpr bool is_compile_time_bindable =
-        constructor<T>::kind == detail::constructor_kind::concrete;
+        constructor<T>::kind == detail::constructor_kind::kConcrete;
 };
 
 template <typename T, T fn>
@@ -4012,27 +4012,27 @@ export namespace silicon::di {
 namespace detail {
 
 enum class binding_selection_status {
-    found,
-    not_found,
-    ambiguous,
+    kFound,
+    kNotFound,
+    kAmbiguous,
 };
 
 template <binding_selection_status Status, typename Binding = void>
 struct binding_choice {
     static constexpr binding_selection_status status = Status;
-    static constexpr bool found = Status == binding_selection_status::found;
+    static constexpr bool found = Status == binding_selection_status::kFound;
     using binding_type = Binding;
 };
 
 template <typename Binding>
 using found_binding_choice_t =
-    binding_choice<binding_selection_status::found, Binding>;
+    binding_choice<binding_selection_status::kFound, Binding>;
 
 using missing_binding_choice_t =
-    binding_choice<binding_selection_status::not_found>;
+    binding_choice<binding_selection_status::kNotFound>;
 
 using ambiguous_binding_choice_t =
-    binding_choice<binding_selection_status::ambiguous>;
+    binding_choice<binding_selection_status::kAmbiguous>;
 
 template <typename Bindings> struct static_binding;
 
@@ -4054,27 +4054,27 @@ using static_binding_t = typename static_binding<Bindings>::type;
 
 template <typename Binding, typename State = std::nullptr_t>
 struct runtime_binding_selection {
-    binding_selection_status status = binding_selection_status::not_found;
+    binding_selection_status status = binding_selection_status::kNotFound;
     Binding* binding = nullptr;
     State state = nullptr;
 
     constexpr bool found() const {
-        return status == binding_selection_status::found;
+        return status == binding_selection_status::kFound;
     }
 
     constexpr bool ambiguous() const {
-        return status == binding_selection_status::ambiguous;
+        return status == binding_selection_status::kAmbiguous;
     }
 
     static constexpr runtime_binding_selection found(Binding& binding,
                                                      State state = nullptr) {
-        return {binding_selection_status::found, &binding, state};
+        return {binding_selection_status::kFound, &binding, state};
     }
 
     static constexpr runtime_binding_selection miss() { return {}; }
 
     static constexpr runtime_binding_selection ambiguity() {
-        return {binding_selection_status::ambiguous, nullptr, nullptr};
+        return {binding_selection_status::kAmbiguous, nullptr, nullptr};
     }
 };
 
@@ -4128,35 +4128,35 @@ make_runtime_selection(Visitor&& visit_candidates) {
 export namespace silicon::di::detail {
 
 enum class binding_resolution_policy {
-    prefer_primary,
-    ambiguous_on_conflict,
+    kPreferPrimary,
+    kAmbiguousOnConflict,
 };
 
 enum class binding_result {
-    primary,
-    secondary,
-    missing,
-    ambiguous,
+    kPrimary,
+    kSecondary,
+    kMissing,
+    kAmbiguous,
 };
 
 struct binding_source_selection {
     binding_result result;
 
     constexpr bool found() const {
-        return result == binding_result::primary ||
-               result == binding_result::secondary;
+        return result == binding_result::kPrimary ||
+               result == binding_result::kSecondary;
     }
 
     constexpr bool ambiguous() const {
-        return result == binding_result::ambiguous;
+        return result == binding_result::kAmbiguous;
     }
 
     constexpr bool primary() const {
-        return result == binding_result::primary;
+        return result == binding_result::kPrimary;
     }
 
     constexpr bool secondary() const {
-        return result == binding_result::secondary;
+        return result == binding_result::kSecondary;
     }
 };
 
@@ -4164,58 +4164,58 @@ constexpr binding_result resolve_binding(binding_selection_status primary,
                                          binding_selection_status secondary,
                                          binding_resolution_policy policy) {
     const bool primary_ambiguous =
-        primary == binding_selection_status::ambiguous;
+        primary == binding_selection_status::kAmbiguous;
     const bool secondary_ambiguous =
-        secondary == binding_selection_status::ambiguous;
-    const bool primary_found = primary == binding_selection_status::found;
-    const bool secondary_found = secondary == binding_selection_status::found;
+        secondary == binding_selection_status::kAmbiguous;
+    const bool primary_found = primary == binding_selection_status::kFound;
+    const bool secondary_found = secondary == binding_selection_status::kFound;
 
-    if (policy == binding_resolution_policy::prefer_primary) {
+    if (policy == binding_resolution_policy::kPreferPrimary) {
         if (primary_ambiguous) {
-            return binding_result::ambiguous;
+            return binding_result::kAmbiguous;
         }
 
         if (primary_found) {
-            return binding_result::primary;
+            return binding_result::kPrimary;
         }
 
         if (secondary_ambiguous) {
-            return binding_result::ambiguous;
+            return binding_result::kAmbiguous;
         }
 
         if (secondary_found) {
-            return binding_result::secondary;
+            return binding_result::kSecondary;
         }
 
-        return binding_result::missing;
+        return binding_result::kMissing;
     }
 
     if (primary_ambiguous || secondary_ambiguous ||
         (primary_found && secondary_found)) {
-        return binding_result::ambiguous;
+        return binding_result::kAmbiguous;
     }
 
     if (primary_found) {
-        return binding_result::primary;
+        return binding_result::kPrimary;
     }
 
     if (secondary_found) {
-        return binding_result::secondary;
+        return binding_result::kSecondary;
     }
 
-    return binding_result::missing;
+    return binding_result::kMissing;
 }
 
 constexpr binding_selection_status binding_status(binding_result resolution) {
     switch (resolution) {
-    case binding_result::primary:
-    case binding_result::secondary:
-        return binding_selection_status::found;
-    case binding_result::ambiguous:
-        return binding_selection_status::ambiguous;
-    case binding_result::missing:
+    case binding_result::kPrimary:
+    case binding_result::kSecondary:
+        return binding_selection_status::kFound;
+    case binding_result::kAmbiguous:
+        return binding_selection_status::kAmbiguous;
+    case binding_result::kMissing:
     default:
-        return binding_selection_status::not_found;
+        return binding_selection_status::kNotFound;
     }
 }
 
@@ -4294,13 +4294,13 @@ template <typename Source, typename MissingSource> struct one_binding_source {
 
     binding_source_selection select() {
         const auto status = source.status();
-        if (status == binding_selection_status::ambiguous) {
-            return {binding_result::ambiguous};
+        if (status == binding_selection_status::kAmbiguous) {
+            return {binding_result::kAmbiguous};
         }
-        if (status == binding_selection_status::found) {
-            return {binding_result::primary};
+        if (status == binding_selection_status::kFound) {
+            return {binding_result::kPrimary};
         }
-        return {binding_result::missing};
+        return {binding_result::kMissing};
     }
 
     template <typename Request, typename Context>
@@ -7229,10 +7229,10 @@ template <typename Context> struct preserve_closure_scope {
 };
 
 enum class binding_request_kind {
-    value,
-    lvalue_reference,
-    rvalue_reference,
-    pointer,
+    kValue,
+    kLvalueReference,
+    kRvalueReference,
+    kPointer,
 };
 
 template <typename RTTI> struct binding_request {
@@ -7248,10 +7248,10 @@ make_binding_request(instance_cache_sink cache = {}) {
         {RTTI::template get_type_index<request_lookup_type_t<T>>(),
          describe_type<T>()},
         cache,
-        std::is_pointer_v<T>            ? binding_request_kind::pointer
-        : std::is_lvalue_reference_v<T> ? binding_request_kind::lvalue_reference
-        : std::is_rvalue_reference_v<T> ? binding_request_kind::rvalue_reference
-                                        : binding_request_kind::value};
+        std::is_pointer_v<T>            ? binding_request_kind::kPointer
+        : std::is_lvalue_reference_v<T> ? binding_request_kind::kLvalueReference
+        : std::is_rvalue_reference_v<T> ? binding_request_kind::kRvalueReference
+                                        : binding_request_kind::kValue};
 }
 
 template <typename T> T convert_resolved_binding(void* ptr) {
@@ -7553,15 +7553,15 @@ template <typename RTTI, typename Binding, typename Context>
 void* dispatch_binding_request(Binding& binding, Context& context,
                                const binding_request<RTTI>& request) {
     switch (request.kind) {
-    case binding_request_kind::pointer:
+    case binding_request_kind::kPointer:
         return binding.get_pointer(context, request.request, request.cache);
-    case binding_request_kind::lvalue_reference:
+    case binding_request_kind::kLvalueReference:
         return binding.get_lvalue_reference(context, request.request,
                                             request.cache);
-    case binding_request_kind::rvalue_reference:
+    case binding_request_kind::kRvalueReference:
         return binding.get_rvalue_reference(context, request.request,
                                             request.cache);
-    case binding_request_kind::value:
+    case binding_request_kind::kValue:
         return binding.get_value(context, request.request, request.cache);
     }
 
@@ -8615,9 +8615,9 @@ template <typename... Args> using bind = type_registration<Args...>;
 namespace detail {
 
 enum class dependency_resolution_status {
-    resolved,
-    missing,
-    ambiguous,
+    kResolved,
+    kMissing,
+    kAmbiguous,
 };
 
 template <typename BindingModel>
@@ -8849,7 +8849,7 @@ template <typename BindingModel, typename InterfaceBindings, typename = void>
 struct inferred_binding_dependencies {
     using type = void;
     static constexpr dependency_resolution_status status =
-        dependency_resolution_status::missing;
+        dependency_resolution_status::kMissing;
 };
 
 template <typename BindingModel, typename InterfaceBindings>
@@ -8874,11 +8874,11 @@ struct inferred_binding_dependencies<
                                     typename selection::type>;
     static constexpr dependency_resolution_status status =
         factory_type::arity == 0
-            ? dependency_resolution_status::resolved
-            : (selection::count == 0 ? dependency_resolution_status::missing
+            ? dependency_resolution_status::kResolved
+            : (selection::count == 0 ? dependency_resolution_status::kMissing
                : selection::count == 1
-                   ? dependency_resolution_status::resolved
-                   : dependency_resolution_status::ambiguous);
+                   ? dependency_resolution_status::kResolved
+                   : dependency_resolution_status::kAmbiguous);
 };
 
 template <typename DependencyList, typename InterfaceBindings>
@@ -8898,8 +8898,8 @@ struct binding_dependency_resolution<BindingModel, InterfaceBindings, true> {
                                      InterfaceBindings>::type;
     static constexpr dependency_resolution_status status =
         dependency_bindings_are_resolved<type>::value
-            ? dependency_resolution_status::resolved
-            : dependency_resolution_status::missing;
+            ? dependency_resolution_status::kResolved
+            : dependency_resolution_status::kMissing;
 };
 
 template <typename BindingModel, typename InterfaceBindings>
@@ -9221,7 +9221,7 @@ template <typename BindingModel>
 struct inferred_dependency_problem_type<
     BindingModel,
     std::integral_constant<dependency_resolution_status,
-                           dependency_resolution_status::missing>,
+                           dependency_resolution_status::kMissing>,
     std::enable_if_t<is_plain_constructor_factory<
         typename BindingModel::factory_type>::value>> {
     using type = typename constructor_factory_target<
@@ -9232,7 +9232,7 @@ template <typename BindingModel>
 struct inferred_dependency_problem_type<
     BindingModel,
     std::integral_constant<dependency_resolution_status,
-                           dependency_resolution_status::ambiguous>,
+                           dependency_resolution_status::kAmbiguous>,
     std::enable_if_t<is_plain_constructor_factory<
         typename BindingModel::factory_type>::value>> {
     using type = typename constructor_factory_target<
@@ -9244,14 +9244,14 @@ using inferred_missing_problem_type_t =
     typename inferred_dependency_problem_type<
         BindingModel,
         std::integral_constant<dependency_resolution_status,
-                               dependency_resolution_status::missing>>::type;
+                               dependency_resolution_status::kMissing>>::type;
 
 template <typename BindingModel>
 using inferred_ambiguous_problem_type_t =
     typename inferred_dependency_problem_type<
         BindingModel,
         std::integral_constant<dependency_resolution_status,
-                               dependency_resolution_status::ambiguous>>::type;
+                               dependency_resolution_status::kAmbiguous>>::type;
 
 template <typename BindingModel, typename MissingDependency,
           bool Valid = std::is_void_v<MissingDependency>>
@@ -9336,7 +9336,7 @@ struct binding_inferred_dependencies_resolved<BindingModel, InterfaceBindings,
                                               false>
     : std::bool_constant<binding_dependency_resolution_status_v<
                              BindingModel, InterfaceBindings> !=
-                         dependency_resolution_status::missing> {};
+                         dependency_resolution_status::kMissing> {};
 
 template <typename BindingModel, typename InterfaceBindings,
           bool DependenciesResolved = binding_inferred_dependencies_resolved<
@@ -9354,7 +9354,7 @@ struct binding_inferred_dependency_diagnostic<BindingModel, InterfaceBindings,
           BindingModel,
           std::conditional_t<binding_dependency_resolution_status_v<
                                  BindingModel, InterfaceBindings> ==
-                                 dependency_resolution_status::missing,
+                                 dependency_resolution_status::kMissing,
                              inferred_missing_problem_type_t<BindingModel>,
                              void>> {};
 
@@ -9389,7 +9389,7 @@ struct binding_inferred_dependencies_unambiguous<BindingModel,
                                                  InterfaceBindings, false>
     : std::bool_constant<binding_dependency_resolution_status_v<
                              BindingModel, InterfaceBindings> !=
-                         dependency_resolution_status::ambiguous> {};
+                         dependency_resolution_status::kAmbiguous> {};
 
 template <typename BindingModel, typename InterfaceBindings,
           bool DependenciesUnambiguous =
@@ -9408,7 +9408,7 @@ struct binding_inferred_ambiguity_diagnostic<BindingModel, InterfaceBindings,
           BindingModel,
           std::conditional_t<binding_dependency_resolution_status_v<
                                  BindingModel, InterfaceBindings> ==
-                                 dependency_resolution_status::ambiguous,
+                                 dependency_resolution_status::kAmbiguous,
                              inferred_ambiguous_problem_type_t<BindingModel>,
                              void>> {};
 
@@ -11494,7 +11494,7 @@ class basic_static_activation_set_base
             using selection = detail::static_binding_t<
                 typename LocalRegistry::template bindings<R, Key>>;
             if constexpr (selection::status ==
-                          detail::binding_selection_status::found) {
+                          detail::binding_selection_status::kFound) {
                 using binding = typename selection::binding_type;
                 auto& local_scope =
                     derived()
@@ -11641,7 +11641,7 @@ class binding_resolution<Host, static_registry<Registrations...>>
     struct local_binding_source {
         using binding = binding_t<Request, Key>;
         static constexpr bool can_resolve =
-            binding::status == binding_selection_status::found;
+            binding::status == binding_selection_status::kFound;
 
         self_type& self;
 
@@ -11745,7 +11745,7 @@ class binding_resolution<Host, static_registry<Registrations...>>
                 host{*host_};
             auto sources = detail::make_two_binding_sources(
                 local, host, host,
-                detail::binding_resolution_policy::prefer_primary);
+                detail::binding_resolution_policy::kPreferPrimary);
             return detail::resolve_from_binding_sources<T, request_type>(
                 context, sources);
         }
@@ -12056,7 +12056,7 @@ class runtime_registry : public allocator_base<Allocator> {
         if constexpr (std::is_same_v<Factory,
                                      constructor<normalized_type_t<T>>>) {
             if (binding_status<T>() !=
-                detail::binding_selection_status::not_found) {
+                detail::binding_selection_status::kNotFound) {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
@@ -12072,7 +12072,7 @@ class runtime_registry : public allocator_base<Allocator> {
                     return resolve<T, false>(context, none_t{});
                 }
             } else if (binding_status<normalized_type_t<T>>() !=
-                       detail::binding_selection_status::not_found) {
+                       detail::binding_selection_status::kNotFound) {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
@@ -12408,7 +12408,7 @@ class runtime_registry : public allocator_base<Allocator> {
         } else if constexpr (MayAutoConstruct &&
                              is_auto_constructible<std::decay_t<T>>::value) {
             if constexpr (constructor<Type>::kind ==
-                          detail::constructor_kind::concrete) {
+                          detail::constructor_kind::kConcrete) {
                 return auto_construct<T>(context);
             } else if constexpr (is_none_v<std::decay_t<IdType>>) {
                 throw detail::make_type_not_found_exception<T>(context);
@@ -12955,7 +12955,7 @@ class runtime_container
     R resolve(IdType&& id = IdType()) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(id) ==
-                detail::binding_selection_status::not_found) {
+                detail::binding_selection_status::kNotFound) {
             if constexpr (is_none_v<std::decay_t<IdType>>) {
                 return parent_->template resolve<T>();
             } else if constexpr (detail::is_typed_key_v<IdType>) {
@@ -12973,7 +12973,7 @@ class runtime_container
     R resolve(runtime_context& context) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(none_t{}) ==
-                detail::binding_selection_status::not_found) {
+                detail::binding_selection_status::kNotFound) {
             return parent_->template resolve<T, RemoveRvalueReferences,
                                              CheckCache>(context);
         }
@@ -12994,7 +12994,7 @@ class runtime_container
     R resolve(runtime_context& context, key<Key>) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(key<Key>{}) ==
-                detail::binding_selection_status::not_found) {
+                detail::binding_selection_status::kNotFound) {
             return parent_->template resolve<T, RemoveRvalueReferences,
                                              CheckCache>(context, key<Key>{});
         }
@@ -13362,7 +13362,7 @@ Type construct_factory_value_without_dependencies() {
 }
 
 template <typename Selection, typename Request,
-          bool Enabled = Selection::status == binding_selection_status::found>
+          bool Enabled = Selection::status == binding_selection_status::kFound>
 struct binding_factory {
     static constexpr bool enabled = false;
 };
@@ -14720,22 +14720,22 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
         using selection = static_binding_t<
             typename registry_type_::template bindings<LookupRequest, Key>>;
         static constexpr bool can_resolve =
-            selection::status == binding_selection_status::found;
+            selection::status == binding_selection_status::kFound;
 
         self_type& host;
 
         constexpr binding_selection_status status() const {
             if constexpr (has_parent_v &&
                           selection::status ==
-                              binding_selection_status::not_found) {
+                              binding_selection_status::kNotFound) {
                 return selection::status;
             } else {
                 static_assert(selection::status !=
-                                  binding_selection_status::not_found,
+                                  binding_selection_status::kNotFound,
                               "static_container cannot resolve an unbound "
                               "type");
             }
-            static_assert(selection::status != binding_selection_status::ambiguous,
+            static_assert(selection::status != binding_selection_status::kAmbiguous,
                           "static_container cannot resolve an ambiguously "
                           "bound type");
             return selection::status;
@@ -14760,7 +14760,7 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
     template <typename T, bool RemoveRvalueReferences, typename Key = void>
     static constexpr bool has_static_resolve_request_v =
         static_selection_t<resolve_request_t<T, RemoveRvalueReferences>,
-                           Key>::status == binding_selection_status::found;
+                           Key>::status == binding_selection_status::kFound;
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void>
     static constexpr binding_selection_status static_resolve_status_v =
@@ -14837,7 +14837,7 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
             using selection = static_binding_t<
                 typename static_source_type::template bindings<
                     lookup_request_type, Key>>;
-            if constexpr (selection::status == binding_selection_status::found) {
+            if constexpr (selection::status == binding_selection_status::kFound) {
                 using binding = typename selection::binding_type;
                 using binding_model_type =
                     typename binding::binding_model_type;
@@ -14869,7 +14869,7 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
         } else {
             if constexpr (has_parent_v &&
                           static_resolve_status_v<T, false, Key> ==
-                              binding_selection_status::not_found) {
+                              binding_selection_status::kNotFound) {
                 if (parent_) {
                     return resolve_parent<T, false, Key>();
                 }
@@ -14894,10 +14894,10 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
                 typename static_source_type::template bindings<
                     normalized_request_type, void>>;
             constexpr bool has_exact_binding =
-                selection::status != binding_selection_status::not_found;
+                selection::status != binding_selection_status::kNotFound;
             constexpr bool has_normalized_binding =
                 normalized_selection::status !=
-                binding_selection_status::not_found;
+                binding_selection_status::kNotFound;
             if constexpr (has_exact_binding) {
                 using binding = typename selection::binding_type;
                 if constexpr (binding_supports_request_v<T, binding>) {
@@ -15008,7 +15008,7 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
             if constexpr (has_parent_v) {
                 if constexpr (static_resolve_status_v<
                                   T, RemoveRvalueReferences, Key> ==
-                              binding_selection_status::not_found) {
+                              binding_selection_status::kNotFound) {
                     if (parent_) {
                         return resolve_parent<T, RemoveRvalueReferences, Key>();
                     }
@@ -15219,7 +15219,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         using selection = detail::static_binding_t<
             typename static_registry_type_::template bindings<Request, Key>>;
         static constexpr bool can_resolve =
-            selection::status == detail::binding_selection_status::found;
+            selection::status == detail::binding_selection_status::kFound;
 
         self_type& self;
 
@@ -15240,7 +15240,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
             return false;
         }
         return runtime_registry_.template binding_status<Request, Key>() !=
-               detail::binding_selection_status::not_found;
+               detail::binding_selection_status::kNotFound;
     }
 
     template <typename T, typename Key = void> bool has_runtime_collection() {
@@ -15258,7 +15258,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     template <typename Request, typename Key = void>
     static constexpr bool has_static_binding_v =
         static_selection_t<Request, Key>::status ==
-        detail::binding_selection_status::found;
+        detail::binding_selection_status::kFound;
 
     template <typename Request, typename Key = void,
               bool Selected = has_static_binding_v<Request, Key>>
@@ -15319,7 +15319,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
             static_binding_satisfies_request_v<request_type>;
         constexpr bool has_normalized_static_binding =
             static_selection_t<normalized_request_type, void>::status ==
-                detail::binding_selection_status::found &&
+                detail::binding_selection_status::kFound &&
             detail::static_binding_resolvable_v<
                 typename static_selection_t<normalized_request_type,
                                             void>::binding_type,
@@ -15526,9 +15526,9 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         using selection = static_selection_t<LookupRequest, Key>;
         using binding = typename selection::binding_type;
         if constexpr (selection::status !=
-                      detail::binding_selection_status::found) {
+                      detail::binding_selection_status::kFound) {
             if constexpr (selection::status ==
-                          detail::binding_selection_status::ambiguous) {
+                          detail::binding_selection_status::kAmbiguous) {
                 throw detail::make_type_ambiguous_exception<LookupRequest>(
                     context);
             } else {
@@ -15550,9 +15550,9 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         using selection = static_selection_t<Request, Key>;
         using binding = typename selection::binding_type;
         if constexpr (selection::status !=
-                      detail::binding_selection_status::found) {
+                      detail::binding_selection_status::kFound) {
             if constexpr (selection::status ==
-                          detail::binding_selection_status::ambiguous) {
+                          detail::binding_selection_status::kAmbiguous) {
                 throw detail::make_type_ambiguous_exception<Request>(context);
             } else {
                 throw detail::make_type_not_found_exception<Request>(context);
@@ -15606,7 +15606,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         } else if constexpr (MayAutoConstruct &&
                              is_auto_constructible<std::decay_t<T>>::value) {
             if constexpr (constructor<Type>::kind ==
-                          detail::constructor_kind::concrete) {
+                          detail::constructor_kind::kConcrete) {
                 static_assert(is_complete<Type>::value,
                               "auto-construction requires a complete type");
                 using type_detection = detail::automatic;
@@ -15679,7 +15679,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         if constexpr (std::is_same_v<Factory,
                                      constructor<normalized_type_t<T>>>) {
             if (runtime_registry_.template binding_status<T>() !=
-                detail::binding_selection_status::not_found) {
+                detail::binding_selection_status::kNotFound) {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
@@ -15706,7 +15706,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 }
             } else if (runtime_registry_
                            .template binding_status<normalized_type_t<T>>() !=
-                       detail::binding_selection_status::not_found) {
+                       detail::binding_selection_status::kNotFound) {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
@@ -15839,10 +15839,10 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 if constexpr (has_parent_v) {
                     if constexpr (static_resolve_status_v<
                                       T, false, key_type> ==
-                                  detail::binding_selection_status::not_found) {
+                                  detail::binding_selection_status::kNotFound) {
                         if (parent_ &&
                             resolve_binding_status<T, false, key_type>() ==
-                                detail::binding_selection_status::not_found) {
+                                detail::binding_selection_status::kNotFound) {
                             return resolve_parent<T, false, key_type>();
                         }
                     }
@@ -15864,7 +15864,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                     if (parent_ &&
                         runtime_registry_.template binding_status_for_id<T>(
                             id) ==
-                            detail::binding_selection_status::not_found) {
+                            detail::binding_selection_status::kNotFound) {
                         return parent_->template resolve<T>(
                             std::forward<IdType>(id));
                     }
@@ -15892,10 +15892,10 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 if constexpr (has_parent_v) {
                     if constexpr (static_resolve_status_v<
                                       T, false> ==
-                                  detail::binding_selection_status::not_found) {
+                                  detail::binding_selection_status::kNotFound) {
                         if (parent_ &&
                             resolve_binding_status<T, false>() ==
-                                detail::binding_selection_status::not_found) {
+                                detail::binding_selection_status::kNotFound) {
                             return resolve_parent<T, false>();
                         }
                     }
@@ -15923,7 +15923,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                                   T>) {
                 constexpr bool has_static_normalized_binding =
                     static_selection_t<normalized_request_type, void>::status !=
-                        detail::binding_selection_status::not_found &&
+                        detail::binding_selection_status::kNotFound &&
                     detail::static_binding_resolvable_v<
                         typename static_selection_t<normalized_request_type,
                                                     void>::binding_type,
@@ -15931,7 +15931,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
                 if constexpr (has_static_construct_request_v<T>) {
                     if (binding_status<request_type>() !=
-                            detail::binding_selection_status::not_found &&
+                            detail::binding_selection_status::kNotFound &&
                         select_static_construct<T>()) {
                         return construct_static<T>();
                     }
@@ -15949,7 +15949,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 return construct_runtime_only<T>(std::move(factory));
             } else if constexpr (has_static_construct_request_v<T>) {
                 if (binding_status<request_type>() !=
-                        detail::binding_selection_status::not_found &&
+                        detail::binding_selection_status::kNotFound &&
                     select_static_construct<T>()) {
                     return construct_static<T>();
                 }
@@ -15961,7 +15961,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         if constexpr (std::is_same_v<Factory,
                                      constructor<normalized_type_t<T>>>) {
             if (binding_status<T>() !=
-                detail::binding_selection_status::not_found) {
+                detail::binding_selection_status::kNotFound) {
                 if constexpr (construct_normalized_request_v<T>) {
                     return ::silicon::di::construct_request_or_wrap_normalized<T>(
                         [&]() { return resolve<T, false>(context); },
@@ -15973,7 +15973,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                     return resolve<T, false>(context);
                 }
             } else if (binding_status<normalized_type_t<T>>() !=
-                       detail::binding_selection_status::not_found) {
+                       detail::binding_selection_status::kNotFound) {
                 if constexpr (construct_normalized_request_v<T>) {
                     return type_traits<std::decay_t<T>>::make(
                         resolve<normalized_type_t<T>, false>(context));
@@ -16052,7 +16052,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
             runtime_registry_.template binding_status<request_type, Key>();
         return detail::resolve_binding_status<static_selection::status>(
             runtime_status,
-            detail::binding_resolution_policy::ambiguous_on_conflict);
+            detail::binding_resolution_policy::kAmbiguousOnConflict);
     }
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void>
@@ -16063,7 +16063,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         return detail::resolve_binding_status<
             static_resolve_status_v<T, RemoveRvalueReferences, Key>>(
             runtime_status,
-            detail::binding_resolution_policy::ambiguous_on_conflict);
+            detail::binding_resolution_policy::kAmbiguousOnConflict);
     }
 
     template <typename T, typename Key = void, typename Fn>
@@ -16132,7 +16132,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         } else if constexpr (has_parent_v) {
             if constexpr (static_resolve_status_v<
                               T, RemoveRvalueReferences> ==
-                          detail::binding_selection_status::not_found) {
+                          detail::binding_selection_status::kNotFound) {
                 if (parent_) {
                     return resolve_parent<T, RemoveRvalueReferences>();
                 }
@@ -16153,7 +16153,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         } else if constexpr (has_parent_v) {
             if constexpr (static_resolve_status_v<
                               T, RemoveRvalueReferences, Key> ==
-                          detail::binding_selection_status::not_found) {
+                          detail::binding_selection_status::kNotFound) {
                 if (parent_) {
                     return resolve_parent<T, RemoveRvalueReferences, Key>();
                 }
@@ -16174,7 +16174,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         } else if constexpr (has_parent_v) {
             if constexpr (static_resolve_status_v<
                               T, RemoveRvalueReferences, Key> ==
-                          detail::binding_selection_status::not_found) {
+                          detail::binding_selection_status::kNotFound) {
                 if (parent_) {
                     return resolve_parent<T, RemoveRvalueReferences, Key>();
                 }
@@ -16209,11 +16209,11 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
             if constexpr (has_parent_v) {
                 if constexpr (static_resolve_status_v<
                                   T, RemoveRvalueReferences, Key> ==
-                              detail::binding_selection_status::not_found) {
+                              detail::binding_selection_status::kNotFound) {
                     if (parent_ &&
                         resolve_binding_status<T, RemoveRvalueReferences,
                                                Key>() ==
-                            detail::binding_selection_status::not_found) {
+                            detail::binding_selection_status::kNotFound) {
                         return resolve_parent<T, RemoveRvalueReferences,
                                               CheckCache, Key>(context);
                     }
@@ -16226,7 +16226,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
             static_binding_candidate<request_type, Key> static_binding{*this};
             auto sources = detail::make_two_binding_sources(
                 runtime, static_binding, runtime,
-                detail::binding_resolution_policy::ambiguous_on_conflict);
+                detail::binding_resolution_policy::kAmbiguousOnConflict);
             return detail::resolve_from_binding_sources<T, request_type>(
                 context, sources);
         }

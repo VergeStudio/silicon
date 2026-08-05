@@ -15,10 +15,10 @@ export namespace silicon::coroutine {
 enum class resume_order_policy {
     /// Last in first out, this is the default policy and will execute the fastest
     /// if you do not need the first waiter to execute first upon the event being set.
-    lifo,
+    kLifo,
     /// First in first out, this policy has an extra overhead to reverse the order of
     /// the waiters but will guarantee the ordering is fifo.
-    fifo
+    kFifo
 };
 
 /**
@@ -109,18 +109,18 @@ class event {
      * @param policy The order in which the waiters should be resumed, defaults to LIFO since it
      *               is more efficient, FIFO requires reversing the order of the waiters first.
      */
-    auto set(resume_order_policy policy = resume_order_policy::lifo) noexcept -> void;
+    auto set(resume_order_policy policy = resume_order_policy::kLifo) noexcept -> void;
 
     /**
      * Sets this event and resumes all awaiters onto the given executor.  This will distribute
      * the waiters across the executor's threads.
      */
     template<concepts::executor executor_type>
-    auto set(std::unique_ptr<executor_type> &e, resume_order_policy policy = resume_order_policy::lifo) noexcept -> void {
+    auto set(std::unique_ptr<executor_type> &e, resume_order_policy policy = resume_order_policy::kLifo) noexcept -> void {
         void *old_value = m_p->m_state.exchange(this, std::memory_order::acq_rel);
         if(old_value != this) {
             // If FIFO has been requested then reverse the order upon resuming.
-            if(policy == resume_order_policy::fifo) {
+            if(policy == resume_order_policy::kFifo) {
                 old_value = reverse(static_cast<awaiter *>(old_value));
             }
             // else lifo nothing to do

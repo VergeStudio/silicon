@@ -20,7 +20,7 @@ auto event::set(resume_order_policy policy) noexcept -> void {
     void *old_value = m_p->m_state.exchange(this, std::memory_order::acq_rel);
     if(old_value != this) {
         // If FIFO has been requsted then reverse the order upon resuming.
-        if(policy == resume_order_policy::fifo) {
+        if(policy == resume_order_policy::kFifo) {
             old_value = reverse(static_cast<awaiter *>(old_value));
         }
         // else lifo nothing to do

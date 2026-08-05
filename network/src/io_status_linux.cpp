@@ -19,28 +19,28 @@ auto make_io_status_from_native_impl(int native_code) -> io_status {
     kind type;
     switch(native_code) {
         case 0:
-            type = kind::ok;
+            type = kind::kOk;
             break;
         case EOF:
-            type = kind::closed;
+            type = kind::kClosed;
             break;
         case ECONNREFUSED:
-            type = kind::connection_refused;
+            type = kind::kConnectionRefused;
             break;
         case ECONNRESET:
-            type = kind::connection_reset;
+            type = kind::kConnectionReset;
             break;
         case EAGAIN:
 #if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
         case EWOULDBLOCK:
 #endif
-            type = kind::would_block_or_try_again;
+            type = kind::kWouldBlockOrTryAgain;
             break;
         case EMSGSIZE:
-            type = kind::message_too_big;
+            type = kind::kMessageTooBig;
             break;
         default:
-            type = kind::native;
+            type = kind::kNative;
             break;
     }
     return io_status{.type = type, .native_code = native_code};

@@ -9,13 +9,13 @@ const static std::string connect_status_error{"error"};
 
 auto to_string(const connect_status &status) -> const std::string & {
     switch(status) {
-        case connect_status::connected:
+        case connect_status::kConnected:
             return connect_status_connected;
-        case connect_status::invalid_ip_address:
+        case connect_status::kInvalidIpAddress:
             return connect_status_invalid_ip_address;
-        case connect_status::timeout:
+        case connect_status::kTimeout:
             return connect_status_timeout;
-        case connect_status::error:
+        case connect_status::kError:
             return connect_status_error;
     }
 

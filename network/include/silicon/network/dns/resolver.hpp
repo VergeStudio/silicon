@@ -35,8 +35,8 @@ template<silicon::coroutine::concepts::io_executor executor_type>
 class resolver;
 
 enum class status {
-    complete,
-    error
+    kComplete,
+    kError
 };
 
 template<silicon::coroutine::concepts::io_executor executor_type>
@@ -66,7 +66,7 @@ class result {
     std::unique_ptr<executor_type> &m_executor;
     silicon::coroutine::event &m_resume;
     uint64_t m_pending_dns_requests{0};
-    dns::status m_status{dns::status::complete};
+    dns::status m_status{dns::status::kComplete};
     std::vector<silicon::network::ip_address> m_ip_addresses{};
 
     friend auto ares_dns_callback(void *arg, int status, int timeouts, ares_addrinfo *addr_info) -> void;
@@ -222,9 +222,9 @@ class resolver {
         --result.m_pending_dns_requests;
 
         if(addr_info == nullptr || status != ARES_SUCCESS) {
-            result.m_status = status::error;
+            result.m_status = status::kError;
         } else {
-            result.m_status = status::complete;
+            result.m_status = status::kComplete;
 
             for(ares_addrinfo_node *node = addr_info->nodes; node != nullptr; node = node->ai_next) {
                 if(node->ai_family == AF_INET) {
@@ -254,7 +254,7 @@ class resolver {
         }
 
         if(result.m_pending_dns_requests == 0) {
-            result.m_resume.set(result.m_executor, silicon::coroutine::resume_order_policy::lifo);
+            result.m_resume.set(result.m_executor, silicon::coroutine::resume_order_policy::kLifo);
         }
     }
 };

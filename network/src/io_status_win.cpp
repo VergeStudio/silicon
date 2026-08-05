@@ -31,7 +31,7 @@ std::string message_impl(int native_code) {
 
 auto make_io_status_from_native_impl(int native_code) -> io_status {
     // TODO: map Windows error codes to io_status::kind values
-    return io_status{.type = io_status::kind::native, .native_code = native_code};
+    return io_status{.type = io_status::kind::kNative, .native_code = native_code};
 }
 
 } // namespace silicon::network

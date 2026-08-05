@@ -42,7 +42,7 @@ client::client(
       m_tls_ctx(std::move(tls_ctx)),
       m_endpoint(endpoint),
       m_socket(std::move(socket)),
-      m_connect_status(connection_status::connected),
+      m_connect_status(connection_status::kConnected),
       m_tls_info(tls_connection_type::accept) {
     // scheduler is assumed good since it comes from a tls::server.
     // tls_ctx is assumed good since it comes from a tls::server.
@@ -88,7 +88,7 @@ auto client::connect(std::chrono::milliseconds timeout) -> silicon::coroutine::t
 
     // tls context isn't setup and is required.
     if(m_tls_ctx == nullptr) {
-        co_return connection_status::context_required;
+        co_return connection_status::kContextRequired;
     }
 
     // This enforces the connection status is aways set on the client object upon returning.
@@ -117,24 +117,24 @@ auto client::connect(std::chrono::milliseconds timeout) -> silicon::coroutine::t
                     co_return return_value(co_await handshake(timeout));
                 }
             } else if(pstatus == silicon::coroutine::poll_status::timeout) {
-                co_return return_value(connection_status::timeout);
+                co_return return_value(connection_status::kTimeout);
             }
         }
     }
 
-    co_return return_value(connection_status::error);
+    co_return return_value(connection_status::kError);
 }
 
 auto client::handshake(std::chrono::milliseconds timeout) -> silicon::coroutine::task<connection_status> {
     m_tls_info.m_tls_ptr = tls_unique_ptr{SSL_new(m_tls_ctx->native_handle())};
     if(m_tls_info.m_tls_ptr == nullptr) {
-        co_return connection_status::resource_allocation_failed;
+        co_return connection_status::kResourceAllocationFailed;
     }
 
     auto *tls = m_tls_info.m_tls_ptr.get();
 
     if(auto r = SSL_set_fd(tls, m_socket.native_handle()); r == 0) {
-        co_return connection_status::set_fd_failure;
+        co_return connection_status::kSetFdFailure;
     }
 
     if(m_tls_info.m_tls_connection_type == tls_connection_type::connect) {
@@ -157,27 +157,27 @@ auto client::handshake(std::chrono::milliseconds timeout) -> silicon::coroutine:
             // char error_buffer[256];
             // ERR_error_string(err, error_buffer);
             // std::cerr << "ssl_handleshake error=[" << error_buffer << "]\n";
-            co_return connection_status::handshake_failed;
+            co_return connection_status::kHandshakeFailed;
         }
 
         // TODO: adjust timeout based on elapsed time so far.
         auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), op, timeout);
         switch(pstatus) {
             case silicon::coroutine::poll_status::timeout:
-                co_return connection_status::timeout;
+                co_return connection_status::kTimeout;
             case silicon::coroutine::poll_status::error:
-                co_return connection_status::poll_error;
+                co_return connection_status::kPollError;
             case silicon::coroutine::poll_status::closed:
-                co_return connection_status::unexpected_close;
+                co_return connection_status::kUnexpectedClose;
             case silicon::coroutine::poll_status::cancelled:
-                co_return connection_status::unexpected_close;
+                co_return connection_status::kUnexpectedClose;
             default:
                 // Event triggered, continue handshake.
                 break;
         }
     }
 
-    co_return connection_status::connected;
+    co_return connection_status::kConnected;
 }
 
 auto client::tls_shutdown_and_free(std::chrono::milliseconds timeout) -> silicon::coroutine::task<void> {

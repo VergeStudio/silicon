@@ -74,7 +74,7 @@ class scoped_lock {
   public:
     enum class lock_strategy {
         /// The lock is already acquired, adopt it as the new owner.
-        adopt
+        kAdopt
     };
 
     /// Implementation state of the scoped lock.  Defined in the interface unit because
@@ -84,7 +84,7 @@ class scoped_lock {
         class silicon::coroutine::mutex *m_mutex{nullptr};
     };
 
-    explicit scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy = lock_strategy::adopt)
+    explicit scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy = lock_strategy::kAdopt)
         : m_p(std::make_unique<P>()) {
         // Future -> support acquiring the lock?  Not sure how to do that without being able to
         // co_await in the constructor.

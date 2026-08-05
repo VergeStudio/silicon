@@ -8,23 +8,23 @@
 namespace silicon::network {
 
 enum class recv_status : int64_t {
-    ok = 0,
+    kOk = 0,
     /// The peer closed the socket.
-    closed = -1,
+    kClosed = -1,
     /// The udp socket has not been bind()'ed to a local port.
-    udp_not_bound = -2,
-    try_again = EAGAIN,
+    kUdpNotBound = -2,
+    kTryAgain = EAGAIN,
     // Note: that only the tcp::client will return this, a tls::client returns the specific ssl_would_block_* status'.
-    would_block = EWOULDBLOCK,
-    bad_file_descriptor = EBADF,
-    connection_refused = ECONNREFUSED,
-    memory_fault = EFAULT,
-    interrupted = EINTR,
-    invalid_argument = EINVAL,
-    no_memory = ENOMEM,
-    not_connected = ENOTCONN,
-    not_a_socket = ENOTSOCK,
-    connection_reset_by_peer = ECONNRESET,
+    kWouldBlock = EWOULDBLOCK,
+    kBadFileDescriptor = EBADF,
+    kConnectionRefused = ECONNREFUSED,
+    kMemoryFault = EFAULT,
+    kInterrupted = EINTR,
+    kInvalidArgument = EINVAL,
+    kNoMemory = ENOMEM,
+    kNotConnected = ENOTCONN,
+    kNotASocket = ENOTSOCK,
+    kConnectionResetByPeer = ECONNRESET,
 };
 
 auto to_string(recv_status status) -> const std::string &;

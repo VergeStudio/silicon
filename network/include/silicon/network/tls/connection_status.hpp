@@ -7,27 +7,27 @@
 namespace silicon::network::tls {
 enum class connection_status {
     /// The tls connection was successful.
-    connected,
+    kConnected,
     /// The connection hasn't been established yet, use connect() prior to the handshake().
-    not_connected,
+    kNotConnected,
     /// The connection needs a silicon::network::tls::context to perform the handshake.
-    context_required,
+    kContextRequired,
     /// The internal ssl memory alocation failed.
-    resource_allocation_failed,
+    kResourceAllocationFailed,
     /// Attempting to set the connections ssl socket/file descriptor failed.
-    set_fd_failure,
+    kSetFdFailure,
     /// The handshake had an error.
-    handshake_failed,
+    kHandshakeFailed,
     /// The connection timed out.
-    timeout,
+    kTimeout,
     /// An error occurred while polling for read or write operations on the socket.
-    poll_error,
+    kPollError,
     /// The socket was unexpectedly closed while attempting the handshake.
-    unexpected_close,
+    kUnexpectedClose,
     /// The given ip address could not be parsed or is invalid.
-    invalid_ip_address,
+    kInvalidIpAddress,
     /// There was an unrecoverable error, use errno to get more information on the specific error.
-    error
+    kError
 };
 
 auto to_string(connection_status status) -> const std::string &;

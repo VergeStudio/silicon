@@ -26,14 +26,14 @@ class socket_address {
     std::shared_ptr<P> m_p{std::make_shared<P>()};
 
   public:
-    socket_address(std::string_view ip, std::uint16_t port, domain_t domain = domain_t::ipv4)
+    socket_address(std::string_view ip, std::uint16_t port, domain_t domain = domain_t::kIpv4)
         : socket_address(ip_address::from_string(ip, domain), port) {
     }
 
     socket_address(const ip_address &ip, std::uint16_t port) {
         auto &storage = m_p->m_storage;
         auto &len = m_p->m_len;
-        if(ip.domain() == domain_t::ipv4) {
+        if(ip.domain() == domain_t::kIpv4) {
             auto *sin = reinterpret_cast<sockaddr_in *>(&storage);
             sin->sin_family = AF_INET;
             sin->sin_port = htons(port);
@@ -45,7 +45,7 @@ class socket_address {
 
             std::memcpy(&sin->sin_addr, ip.data().data(), sizeof(in_addr));
             len = sizeof(sockaddr_in);
-        } else if(ip.domain() == domain_t::ipv6) {
+        } else if(ip.domain() == domain_t::kIpv6) {
             auto *sin6 = reinterpret_cast<sockaddr_in6 *>(&storage);
             sin6->sin6_family = AF_INET6;
             sin6->sin6_port = htons(port);
@@ -101,16 +101,16 @@ class socket_address {
      * @throws std::runtime_error If the address family is not supported
      */
     [[nodiscard]] auto ip() const -> ip_address {
-        if(domain() == domain_t::ipv4) {
+        if(domain() == domain_t::kIpv4) {
             auto *sin = reinterpret_cast<const sockaddr_in *>(&m_p->m_storage);
             return ip_address{
-                    {reinterpret_cast<const uint8_t *>(&sin->sin_addr), sizeof(sin->sin_addr)}, domain_t::ipv4
+                    {reinterpret_cast<const uint8_t *>(&sin->sin_addr), sizeof(sin->sin_addr)}, domain_t::kIpv4
             };
         }
-        if(domain() == domain_t::ipv6) {
+        if(domain() == domain_t::kIpv6) {
             auto *sin6 = reinterpret_cast<const sockaddr_in6 *>(&m_p->m_storage);
             return ip_address{
-                    {reinterpret_cast<const uint8_t *>(&sin6->sin6_addr), sizeof(sin6->sin6_addr)}, domain_t::ipv6
+                    {reinterpret_cast<const uint8_t *>(&sin6->sin6_addr), sizeof(sin6->sin6_addr)}, domain_t::kIpv6
             };
         }
         throw std::runtime_error{"silicon::network::socket_address::ip() Invalid domain"};
@@ -123,10 +123,10 @@ class socket_address {
      */
     [[nodiscard]] auto domain() const -> domain_t {
         if(m_p->m_storage.ss_family == AF_INET) {
-            return domain_t::ipv4;
+            return domain_t::kIpv4;
         }
         if(m_p->m_storage.ss_family == AF_INET6) {
-            return domain_t::ipv6;
+            return domain_t::kIpv6;
         }
         throw std::runtime_error{"silicon::network::socket_address::domain() Invalid domain"};
     }

@@ -24,14 +24,14 @@ import :task;
 export namespace silicon::coroutine {
 namespace ring_buffer_result {
 enum class produce {
-    produced,
-    notified,
-    stopped
+    kProduced,
+    kNotified,
+    kStopped
 };
 
 enum class consume {
-    notified,
-    stopped
+    kNotified,
+    kStopped
 };
 } // namespace ring_buffer_result
 
@@ -46,11 +46,11 @@ class ring_buffer {
   private:
     enum class running_state_t {
         /// @brief The ring buffer is still running.
-        running,
+        kRunning,
         /// @brief The ring buffer is draining all elements, produce is no longer allowed.
-        draining,
+        kDraining,
         /// @brief The ring buffer is fully shutdown, all produce and consume tasks will be woken up with result::stopped.
-        stopped,
+        kStopped,
     };
 
   public:
@@ -81,8 +81,8 @@ class ring_buffer {
             auto &mutex = m_rb.m_p->m_mutex;
 
             // Produce operations can only proceed if running.
-            if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::running) {
-                m_result = ring_buffer_result::produce::stopped;
+            if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
+                m_result = ring_buffer_result::produce::kStopped;
                 mutex.unlock();
                 return true; // Will be awoken with produce::stopped
             }
@@ -116,7 +116,7 @@ class ring_buffer {
         /// If the operation needs to suspend, the coroutine to resume when the element can be produced.
         std::coroutine_handle<> m_awaiting_coroutine;
         /// The result that should be returned when this coroutine resumes.
-        ring_buffer_result::produce m_result{ring_buffer_result::produce::produced};
+        ring_buffer_result::produce m_result{ring_buffer_result::produce::kProduced};
         /// Linked list of produce operations that are awaiting to produce their element.
         produce_operation *m_next{nullptr};
 
@@ -138,8 +138,8 @@ class ring_buffer {
             auto &mutex = m_rb.m_p->m_mutex;
 
             // Consume operations proceed until stopped.
-            if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::stopped) {
-                m_result = ring_buffer_result::consume::stopped;
+            if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
+                m_result = ring_buffer_result::consume::kStopped;
                 mutex.unlock();
                 return true;
             }
@@ -178,7 +178,7 @@ class ring_buffer {
         /// If the operation needs to suspend, the coroutine to resume when the element can be consumed.
         std::coroutine_handle<> m_awaiting_coroutine;
         /// The unexpected result this should return on resume
-        ring_buffer_result::consume m_result{ring_buffer_result::consume::stopped};
+        ring_buffer_result::consume m_result{ring_buffer_result::consume::kStopped};
         /// Linked list of consume operations that are awaiting to consume an element.
         consume_operation *m_next{nullptr};
 
@@ -245,7 +245,7 @@ class ring_buffer {
      */
     auto notify_producers() -> silicon::coroutine::task<void> {
         auto expected = m_p->m_running_state.load(std::memory_order::acquire);
-        if(expected == running_state_t::stopped) {
+        if(expected == running_state_t::kStopped) {
             co_return;
         }
 
@@ -255,7 +255,7 @@ class ring_buffer {
 
         while(produce_waiters != nullptr) {
             auto *next = produce_waiters->m_next;
-            produce_waiters->m_result = ring_buffer_result::produce::notified;
+            produce_waiters->m_result = ring_buffer_result::produce::kNotified;
             produce_waiters->m_awaiting_coroutine.resume();
             produce_waiters = next;
         }
@@ -269,7 +269,7 @@ class ring_buffer {
      */
     auto notify_consumers() -> silicon::coroutine::task<void> {
         auto expected = m_p->m_running_state.load(std::memory_order::acquire);
-        if(expected == running_state_t::stopped) {
+        if(expected == running_state_t::kStopped) {
             co_return;
         }
 
@@ -279,7 +279,7 @@ class ring_buffer {
 
         while(consume_waiters != nullptr) {
             auto *next = consume_waiters->m_next;
-            consume_waiters->m_result = ring_buffer_result::consume::notified;
+            consume_waiters->m_result = ring_buffer_result::consume::kNotified;
             consume_waiters->m_awaiting_coroutine.resume();
             consume_waiters = next;
         }
@@ -294,13 +294,13 @@ class ring_buffer {
     auto shutdown() -> silicon::coroutine::task<void> {
         // Only wake up waiters once.
         auto expected = m_p->m_running_state.load(std::memory_order::acquire);
-        if(expected == running_state_t::stopped) {
+        if(expected == running_state_t::kStopped) {
             co_return;
         }
 
         auto lk = co_await m_p->m_mutex.scoped_lock();
         // Only let one caller do the wake-ups, this can go from running or draining to stopped
-        if(!m_p->m_running_state.compare_exchange_strong(expected, running_state_t::stopped, std::memory_order::acq_rel, std::memory_order::relaxed)) {
+        if(!m_p->m_running_state.compare_exchange_strong(expected, running_state_t::kStopped, std::memory_order::acq_rel, std::memory_order::relaxed)) {
             co_return;
         }
         lk.unlock();
@@ -312,14 +312,14 @@ class ring_buffer {
 
         while(produce_waiters != nullptr) {
             auto *next = produce_waiters->m_next;
-            produce_waiters->m_result = ring_buffer_result::produce::stopped;
+            produce_waiters->m_result = ring_buffer_result::produce::kStopped;
             produce_waiters->m_awaiting_coroutine.resume();
             produce_waiters = next;
         }
 
         while(consume_waiters != nullptr) {
             auto *next = consume_waiters->m_next;
-            consume_waiters->m_result = ring_buffer_result::consume::stopped;
+            consume_waiters->m_result = ring_buffer_result::consume::kStopped;
             consume_waiters->m_awaiting_coroutine.resume();
             consume_waiters = next;
         }
@@ -331,8 +331,8 @@ class ring_buffer {
     [[nodiscard]] auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::coroutine::task<void> {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         // Do not allow any more produces, the state must be in running to drain.
-        auto expected = running_state_t::running;
-        if(!m_p->m_running_state.compare_exchange_strong(expected, running_state_t::draining, std::memory_order::acq_rel, std::memory_order::relaxed)) {
+        auto expected = running_state_t::kRunning;
+        if(!m_p->m_running_state.compare_exchange_strong(expected, running_state_t::kDraining, std::memory_order::acq_rel, std::memory_order::relaxed)) {
             co_return;
         }
 
@@ -345,7 +345,7 @@ class ring_buffer {
             produce_waiters = next;
         }
 
-        while(!empty() && m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::draining) {
+        while(!empty() && m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kDraining) {
             co_await e->yield();
         }
 
@@ -357,7 +357,7 @@ class ring_buffer {
      * Returns true if shutdown() or shutdown_drain() have been called on this silicon::coroutine::ring_buffer.
      * @return True if the silicon::coroutine::ring_buffer has been shutdown.
      */
-    [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::running; }
+    [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning; }
 
   private:
     friend produce_operation;
@@ -380,7 +380,7 @@ class ring_buffer {
         /// The LIFO list of consume watier.
         std::atomic<consume_operation *> m_consume_waiters{nullptr};
 
-        std::atomic<running_state_t> m_running_state{running_state_t::running};
+        std::atomic<running_state_t> m_running_state{running_state_t::kRunning};
     };
 
     std::unique_ptr<P> m_p;

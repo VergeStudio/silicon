@@ -73,7 +73,7 @@ class client final: public ITcpClient {
     auto read_some(buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::coroutine::task<std::pair<io_status, std::span<element_type>>> {
         if(buffer.empty()) {
-            co_return {io_status{io_status::kind::ok}, {}};
+            co_return {io_status{io_status::kind::kOk}, {}};
         }
         auto [status, buf] = co_await read_some_impl(std::as_writable_bytes(std::span{buffer}), timeout);
         co_return {status, std::span<element_type>{reinterpret_cast<element_type *>(buf.data()), buf.size()}};
@@ -109,7 +109,7 @@ class client final: public ITcpClient {
     auto read_exact(buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::coroutine::task<std::pair<io_status, std::span<element_type>>> {
         if(buffer.empty()) {
-            co_return {io_status{io_status::kind::ok}, {}};
+            co_return {io_status{io_status::kind::kOk}, {}};
         }
         auto [status, buf] = co_await read_exact_impl(std::as_writable_bytes(std::span{buffer}), timeout);
         co_return {status, std::span<element_type>{reinterpret_cast<element_type *>(buf.data()), buf.size()}};
@@ -150,7 +150,7 @@ class client final: public ITcpClient {
         static_assert(sizeof(element_type) == 1);
 
         if(buffer.empty()) {
-            co_return {io_status{io_status::kind::ok}, {}};
+            co_return {io_status{io_status::kind::kOk}, {}};
         }
         auto [status, buf] = co_await write_some_impl(std::as_bytes(std::span{buffer}), timeout);
         co_return {status, std::span<element_type>{reinterpret_cast<element_type *>(buf.data()), buf.size()}};
@@ -189,7 +189,7 @@ class client final: public ITcpClient {
         static_assert(sizeof(element_type) == 1);
 
         if(buffer.empty()) {
-            co_return {io_status{io_status::kind::ok}, {}};
+            co_return {io_status{io_status::kind::kOk}, {}};
         }
         auto [status, buf] = co_await write_all_impl(std::as_bytes(std::span{buffer}), timeout);
         co_return {status, std::span<element_type>{reinterpret_cast<element_type *>(buf.data()), buf.size()}};
@@ -241,7 +241,7 @@ class client final: public ITcpClient {
                 if(elapsed >= timeout) {
                     // Returning read prefix of the span
                     co_return {
-                            io_status{io_status::kind::timeout}, buffer.subspan(0, buffer.size() - remaining.size())
+                            io_status{io_status::kind::kTimeout}, buffer.subspan(0, buffer.size() - remaining.size())
                     };
                 }
                 remaining_timeout = timeout - elapsed;
@@ -255,7 +255,7 @@ class client final: public ITcpClient {
             }
         }
 
-        co_return {io_status{io_status::kind::ok}, buffer};
+        co_return {io_status{io_status::kind::kOk}, buffer};
     }
 
     auto write_some_impl(
@@ -302,7 +302,7 @@ class client final: public ITcpClient {
                 );
 
                 if(elapsed >= timeout) {
-                    co_return {io_status{io_status::kind::timeout}, remaining};
+                    co_return {io_status{io_status::kind::kTimeout}, remaining};
                 }
                 remaining_timeout = timeout - elapsed;
             }
@@ -315,7 +315,7 @@ class client final: public ITcpClient {
             }
         }
 
-        co_return {io_status{io_status::kind::ok}, {}};
+        co_return {io_status{io_status::kind::kOk}, {}};
     }
 
     /**
@@ -346,14 +346,14 @@ class client final: public ITcpClient {
         if(bytes_recv > 0) {
             // Ok, we've received some data.
             return {
-                    io_status{io_status::kind::ok},
+                    io_status{io_status::kind::kOk},
                     std::span<element_type>{buffer.data(), static_cast<size_t>(bytes_recv)}
             };
         }
 
         if(bytes_recv == 0) {
             // On TCP stream sockets 0 indicates the connection has been closed by the peer.
-            return {io_status{io_status::kind::closed}, std::span<element_type>{}};
+            return {io_status{io_status::kind::kClosed}, std::span<element_type>{}};
         }
 
         // Report the error to the user.
@@ -377,7 +377,7 @@ class client final: public ITcpClient {
         if(bytes_sent >= 0) {
             // Some or all of the bytes were written.
             return {
-                    io_status{io_status::kind::ok},
+                    io_status{io_status::kind::kOk},
                     std::span<element_type>{buffer.data() + bytes_sent, buffer.size() - bytes_sent}
             };
         }
