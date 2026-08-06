@@ -16,7 +16,8 @@
 #include "silicon/network/tcp/client.hpp"
 #include "silicon/network/tcp/itcp_server.hpp"
 #include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
+import silicon.scheduler.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
+import silicon.scheduler;
 
 namespace silicon::network::tcp {
 
@@ -28,7 +29,7 @@ class server final: public ITcpServer {
     };
 
     explicit server(
-            std::unique_ptr<silicon::coroutine::IScheduler> &scheduler,
+            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
             const network::socket_address &endpoint,
             options opts = options{
 
@@ -114,7 +115,7 @@ class server final: public ITcpServer {
   private:
     friend client;
     /// The io scheduler for awaiting new connections.
-    silicon::coroutine::IScheduler *m_scheduler{nullptr};
+    silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     /// The bind and listen options for this server.
     options m_options;
     /// The socket for accepting new tcp connections on.

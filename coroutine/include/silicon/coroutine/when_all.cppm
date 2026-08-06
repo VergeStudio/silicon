@@ -88,28 +88,21 @@ class when_all_ready_awaitable<std::tuple<>> {
 template<typename... task_types>
 class when_all_ready_awaitable<std::tuple<task_types...>> {
   public:
+    // 注意：Impl 必须一次性聚合初始化。when_all_latch 无默认构造，
+    // when_all_task<T> 的移动赋值亦为 delete，故不可"先默认构造再逐成员赋值"。
     explicit when_all_ready_awaitable(task_types &&...tasks) noexcept(
             std::conjunction<std::is_nothrow_move_constructible<task_types>...>::value
     )
-        : m_p(std::make_unique<Impl>()) {
-        m_p->m_latch = when_all_latch{sizeof...(task_types)};
-        m_p->m_tasks = std::tuple<task_types...>{std::move(tasks)...};
-    }
+        : m_p(new Impl{when_all_latch{sizeof...(task_types)}, std::tuple<task_types...>{std::move(tasks)...}}) {}
 
     explicit when_all_ready_awaitable(std::tuple<task_types...> &&tasks) noexcept(
             std::is_nothrow_move_constructible_v<std::tuple<task_types...>>
     )
-        : m_p(std::make_unique<Impl>()) {
-        m_p->m_latch = when_all_latch{sizeof...(task_types)};
-        m_p->m_tasks = std::move(tasks);
-    }
+        : m_p(new Impl{when_all_latch{sizeof...(task_types)}, std::move(tasks)}) {}
 
     when_all_ready_awaitable(const when_all_ready_awaitable &) = delete;
-    when_all_ready_awaitable(when_all_ready_awaitable &&other)
-        : m_p(std::make_unique<Impl>()) {
-        m_p->m_latch = std::move(other.m_p->m_latch);
-        m_p->m_tasks = std::move(other.m_p->m_tasks);
-    }
+    // PIMPL 语义下移动即转移实现指针，无需逐成员移动。
+    when_all_ready_awaitable(when_all_ready_awaitable &&other) noexcept: m_p(std::move(other.m_p)) {}
 
     auto operator=(const when_all_ready_awaitable &) -> when_all_ready_awaitable & = delete;
     auto operator=(when_all_ready_awaitable &&) -> when_all_ready_awaitable & = delete;
@@ -171,20 +164,12 @@ class when_all_ready_awaitable<std::tuple<task_types...>> {
 template<typename task_container_type>
 class when_all_ready_awaitable {
   public:
+    // 同上：聚合初始化，且 std::size(tasks) 在移动 tasks 之前按序求值。
     explicit when_all_ready_awaitable(task_container_type &&tasks) noexcept
-        : m_p(std::make_unique<Impl>()) {
-        m_p->m_latch = when_all_latch{std::size(tasks)};
-        m_p->m_tasks = std::forward<task_container_type>(tasks);
-    }
+        : m_p(new Impl{when_all_latch{std::size(tasks)}, std::forward<task_container_type>(tasks)}) {}
 
     when_all_ready_awaitable(const when_all_ready_awaitable &) = delete;
-    when_all_ready_awaitable(when_all_ready_awaitable &&other) noexcept(
-            std::is_nothrow_move_constructible_v<task_container_type>
-    )
-        : m_p(std::make_unique<Impl>()) {
-        m_p->m_latch = std::move(other.m_p->m_latch);
-        m_p->m_tasks = std::move(other.m_p->m_tasks);
-    }
+    when_all_ready_awaitable(when_all_ready_awaitable &&other) noexcept: m_p(std::move(other.m_p)) {}
 
     auto operator=(const when_all_ready_awaitable &) -> when_all_ready_awaitable & = delete;
     auto operator=(when_all_ready_awaitable &&) -> when_all_ready_awaitable & = delete;

@@ -380,7 +380,7 @@ class channel {
      * @return true if the channel buffer has no free slot (always true for an
      *         unbuffered channel with capacity 0).
      */
-    [[nodiscard]] auto full() const -> bool { return m_p->m_capacity != 0 && size() == m_p->m_capacity; }
+    [[nodiscard]] auto full() const -> bool { return size() >= m_p->m_capacity; }
 
   private:
     friend send_operation;

@@ -4,7 +4,7 @@
 
 
 namespace silicon::network::udp {
-peer::peer(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, network::domain_t domain)
+peer::peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::domain_t domain)
     : m_scheduler(scheduler.get()),
       m_socket(network::make_socket(network::socket::options{network::socket::type_t::udp, network::socket::blocking_t::no}, domain)) {
     if(m_scheduler == nullptr) {
@@ -12,7 +12,7 @@ peer::peer(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, network::
     }
 }
 
-peer::peer(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, const network::socket_address &endpoint)
+peer::peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint)
     : m_scheduler(scheduler.get()),
       m_socket(
               network::make_accept_socket(

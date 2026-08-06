@@ -7,9 +7,9 @@
 // other modules" errors.
 export module silicon.coroutine:task;
 
-export import silicon.task;
+export import silicon.scheduler.task;
 
 // Backward compatibility alias: task<T> is now in namespace silicon::task.
 export namespace silicon::coroutine {
-    using silicon::task::task;
+    using silicon::scheduler::task::task;
 } // namespace silicon::coroutine

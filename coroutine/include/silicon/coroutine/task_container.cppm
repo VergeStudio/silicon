@@ -25,8 +25,6 @@ import :task;
 
 export namespace silicon::coroutine {
 
-class scheduler;
-
 template<concepts::executor executor_type>
 class task_container
 {

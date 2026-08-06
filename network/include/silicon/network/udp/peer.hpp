@@ -4,13 +4,14 @@
 #include <span>
 
 import silicon.coroutine;
+import silicon.scheduler;
 #include "silicon/network/io_status.hpp"
 #include "silicon/network/ip_address.hpp"
 #include "silicon/network/socket.hpp"
 #include "silicon/network/socket_address.hpp"
 #include "silicon/network/udp/iudp_peer.hpp"
 #include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
+import silicon.scheduler.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
 
 namespace silicon::network::udp {
 class peer final: public IUdpPeer {
@@ -19,12 +20,12 @@ class peer final: public IUdpPeer {
      * Creates a udp peer that can send packets but not receive them.  This udp peer will not explicitly
      * bind to a local ip+port.
      */
-    explicit peer(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, network::domain_t domain = network::domain_t::kIpv4);
+    explicit peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::domain_t domain = network::domain_t::kIpv4);
 
     /**
      * Creates a udp peer that can send and receive packets.  This peer will bind to the given ip_port.
      */
-    explicit peer(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, const network::socket_address &endpoint);
+    explicit peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint);
 
     peer(const peer &) noexcept;
     peer(peer &&) noexcept;
@@ -196,7 +197,7 @@ class peer final: public IUdpPeer {
 
   private:
     /// The scheduler that will drive this udp client.
-    silicon::coroutine::IScheduler *m_scheduler;
+    silicon::scheduler::io_scheduler *m_scheduler;
     /// The udp socket.
     network::socket m_socket{-1};
     /// Did the user request this udp socket is bound locally to receive packets?

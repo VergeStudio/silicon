@@ -1,9 +1,9 @@
 target("core", function()
     set_kind("$(kind)")
 
-    -- 全限定名：跨命名空间入口（app 侧 target）解析传递依赖时，裸名 "thread"
-    -- 会以入口 target 的命名空间上下文查找而失败（dep target not found）。
-    add_deps("silicon::thread")
+    -- silicon.thread 已并入 silicon.scheduler，而 silicon.scheduler 依赖
+    -- silicon.coroutine（后者又依赖 core），故 core 不再重导出/依赖该模块，
+    -- 避免形成循环依赖。需要 thread_pool 的消费方直接 import silicon.scheduler。
 
     if is_plat("windows") then
         add_defines("WIN")

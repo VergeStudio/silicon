@@ -8,6 +8,7 @@
 #    include <optional>
 
 import silicon.coroutine;
+import silicon.scheduler;
 #    include "silicon/network/connect.hpp"
 #    include "silicon/network/ip_address.hpp"
 #    include "silicon/network/socket.hpp"
@@ -17,7 +18,7 @@ import silicon.coroutine;
 #    include "silicon/network/tls/recv_status.hpp"
 #    include "silicon/network/tls/send_status.hpp"
 #include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.task; // 兼容头文本包含与 silicon.task 模块冲突，改用 import
+import silicon.scheduler.task; // 兼容头文本包含与 silicon.task 模块冲突，改用 import
 
 namespace silicon::network::tls {
 class server;
@@ -33,7 +34,7 @@ class client final: public ITlsClient {
      * @param opts See tls::client::options for more information.
      */
     explicit client(
-            std::unique_ptr<silicon::coroutine::IScheduler> &scheduler,
+            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
             std::shared_ptr<context> tls_ctx,
             const network::socket_address &endpoint
     );
@@ -314,10 +315,10 @@ class client final: public ITlsClient {
 
     /// The tls::server creates already connected clients and provides a tcp socket pre-built.
     friend server;
-    client(silicon::coroutine::IScheduler *scheduler, std::shared_ptr<context> tls_ctx, network::socket socket, const network::socket_address &endpoint);
+    client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context> tls_ctx, network::socket socket, const network::socket_address &endpoint);
 
     /// The scheduler that will drive this tcp client.
-    silicon::coroutine::IScheduler *m_scheduler{nullptr};
+    silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     // The tls context.
     std::shared_ptr<context> m_tls_ctx{nullptr};
     /// Options for what server to connect to.

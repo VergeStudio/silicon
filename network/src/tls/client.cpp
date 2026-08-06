@@ -10,7 +10,7 @@ namespace silicon::network::tls {
 using namespace std::chrono_literals;
 
 client::client(
-        std::unique_ptr<silicon::coroutine::IScheduler> &scheduler,
+        std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
         std::shared_ptr<context> tls_ctx,
         const network::socket_address &endpoint
 )
@@ -33,7 +33,7 @@ client::client(
 }
 
 client::client(
-        silicon::coroutine::IScheduler *scheduler,
+        silicon::scheduler::io_scheduler *scheduler,
         std::shared_ptr<context> tls_ctx,
         network::socket socket,
         const network::socket_address &endpoint

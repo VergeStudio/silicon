@@ -21,7 +21,7 @@ import silicon.coroutine;
 #include "silicon/network/hostname.hpp"
 #include "silicon/network/ip_address.hpp"
 #include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
+import silicon.scheduler.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
 
 namespace silicon::network::dns {
 namespace detail {

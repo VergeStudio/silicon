@@ -11,7 +11,7 @@ module;
 export module silicon.coroutine:latch;
 
 import :event;
-import :pool;
+import :concepts.executor;
 
 export namespace silicon::coroutine {
 /**

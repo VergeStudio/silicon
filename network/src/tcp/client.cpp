@@ -6,7 +6,7 @@
 namespace silicon::network::tcp {
 using namespace std::chrono_literals;
 
-client::client(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, network::socket_address endpoint)
+client::client(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
     : m_scheduler(scheduler.get()),
       m_endpoint(std::move(endpoint)),
       m_socket(
@@ -17,7 +17,7 @@ client::client(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, netwo
     }
 }
 
-client::client(silicon::coroutine::IScheduler *scheduler, network::socket socket, const network::socket_address &endpoint)
+client::client(silicon::scheduler::io_scheduler *scheduler, network::socket socket, const network::socket_address &endpoint)
     : m_scheduler(scheduler),
       m_endpoint(std::move(endpoint)),
       m_socket(std::move(socket)),

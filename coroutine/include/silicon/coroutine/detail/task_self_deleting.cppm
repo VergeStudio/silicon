@@ -5,10 +5,10 @@
 // conflicts with `import silicon.task` used elsewhere in this module.
 export module silicon.coroutine:detail.task_self_deleting;
 
-import silicon.task;
+import silicon.scheduler.task;
 
 export namespace silicon::coroutine::detail {
-    using silicon::task::detail::task_self_deleting;
-    using silicon::task::detail::promise_self_deleting;
-    using silicon::task::detail::make_task_self_deleting;
+    using silicon::scheduler::task::detail::task_self_deleting;
+    using silicon::scheduler::task::detail::promise_self_deleting;
+    using silicon::scheduler::task::detail::make_task_self_deleting;
 } // namespace silicon::coroutine::detail

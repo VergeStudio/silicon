@@ -29,7 +29,7 @@ target("network", function()
     -- C++，无模块冲突。net.cppm 接口与其 :config 模块分区不再参与构建。
     -- 实现单元通过 #include 拿到 scheduler/task 等 coroutine 类型，并需在链接
     -- 时依赖 coroutine（tcp::client 调用 scheduler::poll 等）。
-    add_deps("silicon::coroutine")
+    add_deps("silicon::coroutine", "silicon::scheduler")
 
     add_includedirs("include", {public = true})
     -- Include coroutine & task headers for types used in net public headers

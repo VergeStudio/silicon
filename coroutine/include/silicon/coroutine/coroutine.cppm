@@ -2,7 +2,7 @@ module;
 
 export module silicon.coroutine;
 
-import silicon.task;
+import silicon.scheduler.task;
 
 // ---------------------------------------------------------------------------
 // Re-export every coroutine partition through the primary module interface so
@@ -17,7 +17,6 @@ export import :concepts.promise;
 export import :concepts.range_of;
 export import :channel;
 export import :condition_variable;
-export import :default_executor;
 export import :detail.awaiter_list;
 // 平台专属 io_notifier 后端已合并进单一 :io_notifier 分区（src/io_notifier.cppm）：
 // 该分区内部按平台宏展开对应后端类声明，三个同名 .cpp 实现单元由宏开关决定是否
@@ -36,10 +35,8 @@ export import :io_notifier;
 export import :latch;
 export import :mutex;
 export import :poll;
-export import :pool;
 export import :queue;
 export import :ring_buffer;
-export import :scheduler;
 export import :semaphore;
 export import :shared_mutex;
 export import :sync_wait;

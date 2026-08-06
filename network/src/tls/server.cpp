@@ -8,7 +8,7 @@
 
 namespace silicon::network::tls {
 server::server(
-        std::unique_ptr<silicon::coroutine::IScheduler> &scheduler,
+        std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
         std::shared_ptr<context> tls_ctx,
         const network::socket_address &endpoint,
         options opts

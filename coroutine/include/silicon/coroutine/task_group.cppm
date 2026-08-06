@@ -5,8 +5,8 @@
 // with `import silicon.task` used elsewhere in this module.
 export module silicon.coroutine:task_group;
 
-import silicon.task;
+import silicon.scheduler.task;
 
 export namespace silicon::coroutine {
-    using silicon::task::task_group;
+    using silicon::scheduler::task::task_group;
 } // namespace silicon::coroutine

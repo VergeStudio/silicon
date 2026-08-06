@@ -1,0 +1,19 @@
+module;
+
+#include <cstdint>
+#include <string>
+
+#include "silicon/scheduler/common.h"
+
+export module silicon.scheduler:config;
+
+
+namespace silicon::scheduler {
+export SCHEDULER_API const std::string GetVersion() { return "${VERSION}"; }
+export SCHEDULER_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export SCHEDULER_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export SCHEDULER_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export SCHEDULER_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export SCHEDULER_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export SCHEDULER_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+} // namespace silicon::scheduler

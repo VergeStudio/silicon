@@ -16,7 +16,8 @@
 #    include "silicon/network/tls/client.hpp"
 #    include "silicon/network/tls/itls_server.hpp"
 #include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.task; // 兼容头文本包含与 silicon.task 模块冲突，改用 import
+import silicon.scheduler.task; // 兼容头文本包含与 silicon.task 模块冲突，改用 import
+import silicon.scheduler;
 
 namespace silicon::network::tls {
 class context;
@@ -29,7 +30,7 @@ class server final: public ITlsServer {
     };
 
     explicit server(
-            std::unique_ptr<silicon::coroutine::IScheduler> &scheduler,
+            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
             std::shared_ptr<context> tls_ctx,
             const network::socket_address &endpoint,
             options opts = options{
@@ -76,7 +77,7 @@ class server final: public ITlsServer {
 
   private:
     /// The io scheduler for awaiting new connections.
-    silicon::coroutine::IScheduler *m_scheduler{nullptr};
+    silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     // The tls context.
     std::shared_ptr<context> m_tls_ctx{nullptr};
     /// The bind and listen options for this server.

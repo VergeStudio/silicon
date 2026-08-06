@@ -14,7 +14,7 @@ target("coroutine", function()
     -- default), and network (a classic lib) already depends back on coroutine,
     -- which would form a circular target dependency. Keeping the edge one-way
     -- (network -> coroutine) breaks the cycle.
-    add_deps("core", "task", "thread", {configs = {shared = true}})
+    add_deps("core", "task", {configs = {shared = true}})
 
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/coroutine/**.hpp")

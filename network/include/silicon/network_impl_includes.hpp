@@ -40,6 +40,8 @@
 
 // coroutine types used by the impl (e.g. silicon::coroutine::poll_op)
 import silicon.coroutine;
+// io_scheduler（原 silicon::coroutine::IScheduler）现属 silicon.scheduler
+import silicon.scheduler;
 
 // Platform system socket headers.
 #if defined(_WIN32)

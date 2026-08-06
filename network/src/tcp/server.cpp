@@ -4,7 +4,7 @@
 
 
 namespace silicon::network::tcp {
-server::server(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, const network::socket_address &endpoint, options opts)
+server::server(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint, options opts)
     : m_scheduler(scheduler.get()),
       m_options(std::move(opts)),
       m_accept_socket(

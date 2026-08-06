@@ -5,6 +5,7 @@
 #include <optional>
 
 import silicon.coroutine;
+import silicon.scheduler;
 #include "silicon/network/connect.hpp"
 #include "silicon/network/io_status.hpp"
 #include "silicon/network/ip_address.hpp"
@@ -12,7 +13,7 @@ import silicon.coroutine;
 #include "silicon/network/socket_address.hpp"
 #include "silicon/network/tcp/itcp_client.hpp"
 #include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
+import silicon.scheduler.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
 
 namespace silicon::network::tcp {
 class server;
@@ -24,7 +25,7 @@ class client final: public ITcpClient {
      * @param scheduler The io scheduler to drive the tcp client.
      * @param opts See client::options for more information.
      */
-    explicit client(std::unique_ptr<silicon::coroutine::IScheduler> &scheduler, network::socket_address endpoint);
+    explicit client(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint);
     client(const client &other);
     client(client &&other) noexcept;
     auto operator=(const client &other) noexcept -> client &;
@@ -389,10 +390,10 @@ class client final: public ITcpClient {
   private:
     /// The tcp::server creates already connected clients and provides a tcp socket pre-built.
     friend server;
-    client(silicon::coroutine::IScheduler *scheduler, network::socket socket, const network::socket_address &endpoint);
+    client(silicon::scheduler::io_scheduler *scheduler, network::socket socket, const network::socket_address &endpoint);
 
     /// The scheduler that will drive this tcp client.
-    silicon::coroutine::IScheduler *m_scheduler{nullptr};
+    silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     /// Options for what server to connect to.
     socket_address m_endpoint;
     /// The tcp socket.
