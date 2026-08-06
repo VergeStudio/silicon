@@ -57,7 +57,7 @@ class ring_buffer {
     /**
      * static_assert If `num_elements` == 0.
      */
-    ring_buffer(): m_p(std::make_unique<P>()) {
+    ring_buffer(): m_p(std::make_unique<Impl>()) {
         static_assert(num_elements != 0, "num_elements cannot be zero");
     }
 
@@ -363,7 +363,7 @@ class ring_buffer {
     friend produce_operation;
     friend consume_operation;
 
-    class P {
+    struct Impl {
       public:
         silicon::coroutine::mutex m_mutex{};
 
@@ -383,7 +383,7 @@ class ring_buffer {
         std::atomic<running_state_t> m_running_state{running_state_t::kRunning};
     };
 
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 
     auto try_resume_producers() -> silicon::coroutine::task<void> {
         while(true) {

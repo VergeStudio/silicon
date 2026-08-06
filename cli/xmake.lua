@@ -9,7 +9,7 @@ target("cli", function()
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/cli/**.hpp")
     add_files("src/**.cpp")
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/cli/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("cli.config.cppm.in")

@@ -6,7 +6,7 @@ module silicon.coroutine;
 
 namespace silicon::coroutine::detail {
 
-class timer_handle::P {
+class timer_handle::Impl {
   public:
     fd_t m_fd{-1};
     const void *m_timer_handle_ptr{nullptr};
@@ -17,7 +17,7 @@ class timer_handle::P {
 static auto kqueue_current_timer_fd = std::atomic<fd_t>{0};
 
 timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
-    : m_p(std::make_unique<P>()) {
+    : m_p(std::make_unique<Impl>()) {
     m_p->m_fd = kqueue_current_timer_fd++;
     m_p->m_timer_handle_ptr = timer_handle_ptr;
     (void)notifier;
@@ -26,7 +26,7 @@ timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
 #elif defined(__linux__)
 
 timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
-    : m_p(std::make_unique<P>()) {
+    : m_p(std::make_unique<Impl>()) {
     m_p->m_fd = ::timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
     m_p->m_timer_handle_ptr = timer_handle_ptr;
     notifier.watch(m_p->m_fd, poll_op::read, const_cast<void *>(m_p->m_timer_handle_ptr), true);
@@ -35,7 +35,7 @@ timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
 #elif defined(_WIN32)
 
 timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
-    : m_p(std::make_unique<P>()) {
+    : m_p(std::make_unique<Impl>()) {
     // On Windows, timers are managed by the IOCP-based io_notifier.
     // The timer_handle is just a token that carries the poll_info pointer.
     m_p->m_fd = -1;

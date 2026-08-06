@@ -92,7 +92,7 @@ class shared_mutex {
      *          each shared waiter will be scheduled to immediately run on this executor in
      *          parallel.
      */
-    explicit shared_mutex(std::unique_ptr<executor_type> &e): m_p(std::make_unique<P>()) { m_p->m_executor = e.get();
+    explicit shared_mutex(std::unique_ptr<executor_type> &e): m_p(std::make_unique<Impl>()) { m_p->m_executor = e.get();
         if(m_p->m_executor == nullptr) {
             throw std::runtime_error{"silicon::coroutine::shared_mutex cannot have a nullptr executor"};
         }
@@ -245,7 +245,7 @@ class shared_mutex {
         locked_exclusive
     };
 
-    class P {
+    struct Impl {
       public:
         /// @brief This executor is for resuming multiple shared waiters.
         executor_type *m_executor{nullptr};
@@ -263,7 +263,7 @@ class shared_mutex {
         std::atomic<detail::shared_lock_operation<executor_type> *> m_tail_waiter{nullptr};
     };
 
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 
     auto try_lock_shared_locked() -> bool {
         if(m_p->m_state == state::unlocked) {

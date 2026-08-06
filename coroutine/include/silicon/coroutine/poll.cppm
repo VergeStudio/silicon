@@ -87,15 +87,15 @@ enum class poll_status {
 auto to_string(poll_status status) -> const std::string &;
 
 class poll_stop_token {
-    class P {
+    struct Impl {
       public:
         fd_t m_receiver{-1};
     };
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 
   public:
     explicit poll_stop_token(fd_t receiver) {
-        m_p = std::make_unique<P>();
+        m_p = std::make_unique<Impl>();
         m_p->m_receiver = receiver;
     }
 
@@ -103,7 +103,7 @@ class poll_stop_token {
     // by cloning the underlying int rather than deleting copy (which would force a
     // move-only cascade through std::optional<poll_stop_token> users).
     poll_stop_token(const poll_stop_token &other) {
-        m_p = std::make_unique<P>();
+        m_p = std::make_unique<Impl>();
         m_p->m_receiver = other.m_p->m_receiver;
     }
 
@@ -118,17 +118,17 @@ class poll_stop_token {
 };
 
 class poll_stop_source {
-    class P {
+    struct Impl {
       public:
         detail::pipe_t m_pipe{};
     };
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 
   public:
-    poll_stop_source() { m_p = std::make_unique<P>(); }
+    poll_stop_source() { m_p = std::make_unique<Impl>(); }
 
     poll_stop_source(const poll_stop_source &) = delete;
-    poll_stop_source(poll_stop_source &&other) noexcept: m_p(std::make_unique<P>()) { *this = std::move(other); }
+    poll_stop_source(poll_stop_source &&other) noexcept: m_p(std::make_unique<Impl>()) { *this = std::move(other); }
 
     poll_stop_source &operator=(const poll_stop_source &) = delete;
     poll_stop_source &operator=(poll_stop_source &&other) {

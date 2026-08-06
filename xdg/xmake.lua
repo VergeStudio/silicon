@@ -9,7 +9,7 @@ target("xdg", function()
     end
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/xdg/**.hpp")
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/xdg/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)
 

@@ -21,7 +21,7 @@ target("platform", function()
 
     add_includedirs("../core/include", {public = true})
 
-    add_files("../core/src/platform/platform.cppm", {public = true})
+    add_files("../core/include/silicon/core/platform/platform.cppm", {public = true})
 end)
 
 target("platform.test", function()

@@ -124,7 +124,7 @@ class queue {
         awaiter *m_next{nullptr};
     };
 
-    queue(): m_p(std::make_unique<P>()) {}
+    queue(): m_p(std::make_unique<Impl>()) {}
     ~queue() {
         // Synchronous, non-blocking shutdown to avoid deadlock when the
         // queue is destroyed from within a coroutine context. sync_wait()
@@ -373,7 +373,7 @@ class queue {
   private:
     friend awaiter;
 
-    class P {
+    struct Impl {
       public:
         /// @brief The list of pop() awaiters.
         awaiter *m_waiters{nullptr};
@@ -385,7 +385,7 @@ class queue {
         std::atomic<running_state_t> m_running_state{running_state_t::kRunning};
     };
 
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 };
 
 } // namespace silicon::coroutine

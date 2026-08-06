@@ -46,8 +46,8 @@ class sync_wait_event {
     auto wait() noexcept -> void;
 
   private:
-    class P;
-    std::unique_ptr<P> m_p;
+    struct Impl;
+    std::unique_ptr<Impl> m_p;
 };
 
 class sync_wait_task_promise_base {
@@ -167,12 +167,12 @@ class sync_wait_task_promise: public sync_wait_task_promise_base {
     }
 
   private:
-    class P {
+    struct Impl {
       public:
         sync_wait_event *m_event{nullptr};
         variant_type m_storage{};
     };
-    std::unique_ptr<P> m_p{std::make_unique<P>()};
+    std::unique_ptr<Impl> m_p{std::make_unique<Impl>()};
 };
 
 template<>
@@ -211,12 +211,12 @@ class sync_wait_task_promise<void>: public sync_wait_task_promise_base {
     }
 
   private:
-    class P {
+    struct Impl {
       public:
         sync_wait_event *m_event{nullptr};
         std::exception_ptr m_exception;
     };
-    std::unique_ptr<P> m_p{std::make_unique<P>()};
+    std::unique_ptr<Impl> m_p{std::make_unique<Impl>()};
 };
 
 template<typename return_type>
@@ -225,10 +225,10 @@ class sync_wait_task {
     using promise_type = sync_wait_task_promise<return_type>;
     using coroutine_type = std::coroutine_handle<promise_type>;
 
-    sync_wait_task(coroutine_type coroutine) noexcept: m_p(std::make_unique<P>()) { m_p->m_coroutine = coroutine; }
+    sync_wait_task(coroutine_type coroutine) noexcept: m_p(std::make_unique<Impl>()) { m_p->m_coroutine = coroutine; }
 
     sync_wait_task(const sync_wait_task &) = delete;
-    sync_wait_task(sync_wait_task &&other) noexcept: m_p(std::make_unique<P>()) { m_p->m_coroutine = std::exchange(other.m_p->m_coroutine, coroutine_type{}); }
+    sync_wait_task(sync_wait_task &&other) noexcept: m_p(std::make_unique<Impl>()) { m_p->m_coroutine = std::exchange(other.m_p->m_coroutine, coroutine_type{}); }
     auto operator=(const sync_wait_task &) -> sync_wait_task & = delete;
     auto operator=(sync_wait_task &&other) -> sync_wait_task & {
         if(std::addressof(other) != this) {
@@ -249,11 +249,11 @@ class sync_wait_task {
     auto promise() && -> promise_type && { return std::move(m_p->m_coroutine.promise()); }
 
   private:
-    class P {
+    struct Impl {
       public:
         coroutine_type m_coroutine{};
     };
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 };
 
 template<

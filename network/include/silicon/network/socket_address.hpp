@@ -18,12 +18,12 @@ namespace silicon::network {
  * Represents IP address and port.
  */
 class socket_address {
-    struct P {
+    struct Impl {
       public:
         sockaddr_storage m_storage{};
         socklen_t m_len = sizeof(sockaddr_storage);
     };
-    std::shared_ptr<P> m_p{std::make_shared<P>()};
+    std::shared_ptr<Impl> m_p{std::make_shared<Impl>()};
 
   public:
     socket_address(std::string_view ip, std::uint16_t port, domain_t domain = domain_t::kIpv4)
@@ -64,10 +64,10 @@ class socket_address {
     }
 
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
-    socket_address(const socket_address &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    socket_address(const socket_address &o): m_p(std::make_shared<Impl>(*o.m_p)) {}
     socket_address(socket_address &&) noexcept = default;
     auto operator=(const socket_address &o) -> socket_address & {
-        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        if(this != &o) { m_p = std::make_shared<Impl>(*o.m_p); }
         return *this;
     }
     auto operator=(socket_address &&) noexcept -> socket_address & = default;

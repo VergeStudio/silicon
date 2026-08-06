@@ -5,20 +5,20 @@
 
 namespace silicon::network {
 class hostname {
-    struct P {
+    struct Impl {
       public:
         std::string m_hostname;
     };
-    std::shared_ptr<P> m_p{std::make_shared<P>()};
+    std::shared_ptr<Impl> m_p{std::make_shared<Impl>()};
 
   public:
     hostname() = default;
-    explicit hostname(std::string hn): m_p(std::make_shared<P>()) { m_p->m_hostname = std::move(hn); }
+    explicit hostname(std::string hn): m_p(std::make_shared<Impl>()) { m_p->m_hostname = std::move(hn); }
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
-    hostname(const hostname &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    hostname(const hostname &o): m_p(std::make_shared<Impl>(*o.m_p)) {}
     hostname(hostname &&) noexcept = default;
     auto operator=(const hostname &o) -> hostname & {
-        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        if(this != &o) { m_p = std::make_shared<Impl>(*o.m_p); }
         return *this;
     }
     auto operator=(hostname &&) noexcept -> hostname & = default;

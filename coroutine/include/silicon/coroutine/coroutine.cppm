@@ -15,6 +15,7 @@ export import :concepts.buffer;
 export import :concepts.executor;
 export import :concepts.promise;
 export import :concepts.range_of;
+export import :channel;
 export import :condition_variable;
 export import :default_executor;
 export import :detail.awaiter_list;

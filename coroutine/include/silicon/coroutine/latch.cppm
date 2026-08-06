@@ -32,9 +32,9 @@ class latch {
      */
     /// Implementation state of the latch.  Defined in the interface unit because the templated
     /// `count_down(executor)` overload and the inline accessors need to reach it.
-    class P {
+    struct Impl {
       public:
-        explicit P(std::int64_t count) noexcept: m_count(count), m_event(count <= 0) {}
+        explicit Impl(std::int64_t count) noexcept: m_count(count), m_event(count <= 0) {}
 
         /// The number of tasks to wait for completion before triggering the event to resume.
         std::atomic<std::int64_t> m_count;
@@ -43,7 +43,7 @@ class latch {
         event m_event;
     };
 
-    latch(std::int64_t count) noexcept: m_p(std::make_unique<P>(count)) {}
+    latch(std::int64_t count) noexcept: m_p(std::make_unique<Impl>(count)) {}
     ~latch() = default;
 
     latch(const latch &) = delete;
@@ -88,7 +88,7 @@ class latch {
 
   private:
     /// Hidden implementation state.
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 };
 
 } // namespace silicon::coroutine

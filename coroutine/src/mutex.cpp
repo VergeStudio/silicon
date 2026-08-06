@@ -9,7 +9,7 @@ module silicon.coroutine;
 namespace silicon::coroutine {
 
 /// Implementation state of silicon::coroutine::mutex.
-class mutex::P {
+class mutex::Impl {
   public:
     /// unlocked -> state == unlocked_value()
     /// locked but empty waiter list == nullptr
@@ -64,7 +64,7 @@ auto scoped_lock::unlock() -> void {
     }
 }
 
-mutex::mutex() noexcept: m_p(std::make_unique<P>()) {
+mutex::mutex() noexcept: m_p(std::make_unique<Impl>()) {
     m_p->m_state.store(const_cast<void *>(unlocked_value()), std::memory_order::relaxed);
 }
 

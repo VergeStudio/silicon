@@ -79,7 +79,7 @@ class event {
      */
     /// Implementation state of the event.  Defined in the interface unit because the templated
     /// `set(executor)` overload and `is_set()` need to reach it from the interface.
-    class P {
+    struct Impl {
       public:
         /// The state of the event, nullptr is not set with zero awaiters.  Set to an awaiter* there
         /// are coroutines awaiting the event to be set, and set to the owning event the event has
@@ -149,7 +149,7 @@ class event {
     /// For access to m_p.
     friend struct awaiter;
     /// Hidden implementation state.
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 
     /**
      * Reverses the set of waiters from LIFO->FIFO and returns the new head.

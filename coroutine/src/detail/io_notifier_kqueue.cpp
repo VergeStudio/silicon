@@ -26,7 +26,7 @@ using event_t = struct ::kevent;
 // ---------------------------------------------------------------------------
 // PIMPL: kqueue backend state for io_notifier.
 // ---------------------------------------------------------------------------
-struct io_notifier::P {
+struct io_notifier::Impl {
     fd_t m_fd{-1};
 };
 
@@ -51,7 +51,7 @@ static auto event_to_poll_status(const event_t &event) -> poll_status {
     throw std::runtime_error{"invalid kqueue state"};
 }
 
-io_notifier::io_notifier(): m_p(std::make_unique<P>()) {
+io_notifier::io_notifier(): m_p(std::make_unique<Impl>()) {
     m_p->m_fd = ::kqueue();
 }
 

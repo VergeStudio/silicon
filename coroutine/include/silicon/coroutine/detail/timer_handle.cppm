@@ -13,8 +13,8 @@ export namespace silicon::coroutine {
 namespace detail {
 
 class timer_handle {
-    class P;
-    std::unique_ptr<P> m_p;
+    struct Impl;
+    std::unique_ptr<Impl> m_p;
 
   public:
     timer_handle(const void *timer_handle_ptr, io_notifier &notifier);

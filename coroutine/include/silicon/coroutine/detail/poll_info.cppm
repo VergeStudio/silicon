@@ -36,7 +36,7 @@ struct poll_info {
     /// Implementation state of a poll operation.  Kept behind `m_p` so the layout of a poll
     /// operation is an implementation detail.  The definition has to stay in the interface unit
     /// because `poll_awaiter` resumes/reads state from inline coroutine hooks.
-    class P {
+    struct Impl {
       public:
         /// The file descriptor being polled on.  This is needed so that if the timeout occurs first
         /// then the event loop can immediately disable the event within epoll.
@@ -58,16 +58,16 @@ struct poll_info {
         std::optional<poll_stop_token> m_cancel_trigger{std::nullopt};
     };
 
-    poll_info(): m_p(std::make_unique<P>()) {}
+    poll_info(): m_p(std::make_unique<Impl>()) {}
     ~poll_info() = default;
 
-    poll_info(fd_t fd, silicon::coroutine::poll_op op): m_p(std::make_unique<P>()) {
+    poll_info(fd_t fd, silicon::coroutine::poll_op op): m_p(std::make_unique<Impl>()) {
         m_p->m_fd = fd;
         m_p->m_op = op;
     }
 
     poll_info(fd_t fd, silicon::coroutine::poll_op op, std::optional<poll_stop_token> cancel_trigger)
-        : m_p(std::make_unique<P>()) {
+        : m_p(std::make_unique<Impl>()) {
         m_p->m_fd             = fd;
         m_p->m_op             = op;
         m_p->m_cancel_trigger = std::move(cancel_trigger);
@@ -93,7 +93,7 @@ struct poll_info {
 
     auto operator co_await() noexcept -> poll_awaiter { return poll_awaiter{*this}; }
 
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 };
 
 } // namespace silicon::coroutine::detail

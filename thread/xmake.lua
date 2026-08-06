@@ -25,7 +25,7 @@ target("thread", function()
     add_deps("silicon::task", {configs = {shared = true}})
 
     add_files("src/**.cpp")
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/thread/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("thread.config.cppm.in")

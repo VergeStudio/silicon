@@ -8,7 +8,7 @@ module silicon.coroutine;
 
 
 namespace silicon::coroutine {
-event::event(bool initially_set) noexcept: m_p(std::make_unique<P>()) {
+event::event(bool initially_set) noexcept: m_p(std::make_unique<Impl>()) {
     m_p->m_state.store((initially_set) ? static_cast<void *>(this) : nullptr, std::memory_order::relaxed);
 }
 

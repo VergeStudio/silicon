@@ -25,8 +25,7 @@ target("logger", function()
     add_headerfiles("include/silicon/logger/**.h")
 
     add_files("src/**.cpp")
-    add_files("src/**.cppm", {public = true})
-    add_files("module/**.cppm", {public = true})
+    add_files("include/silicon/logger/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("logger.config.cppm.in")

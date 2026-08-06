@@ -1,7 +1,7 @@
 target("config", function()
     set_kind("$(kind)")
 
-    -- src/json/loader.cppm 依赖 silicon.json 模块 BMI（全限定名，跨命名空间可解析）。
+    -- include/silicon/config/json/loader.cppm 依赖 silicon.json 模块 BMI（全限定名，跨命名空间可解析）。
     add_deps("silicon::json", "silicon::fs", {configs = {shared = true}})
 
     if is_plat("windows") and is_config("kind", "shared") then
@@ -15,7 +15,7 @@ target("config", function()
     add_includedirs("include")
 
     add_files("src/**.cpp")
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/config/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("config.config.cppm.in")

@@ -35,7 +35,7 @@ public:
      * @param e Tasks started in the container are scheduled onto this executor.  For tasks created
      *           from a scheduler, this would usually be that scheduler instance.
      */
-    explicit task_container(std::shared_ptr<executor_type> e) : m_p(std::make_unique<P>()) {
+    explicit task_container(std::shared_ptr<executor_type> e) : m_p(std::make_unique<Impl>()) {
         m_p->m_executor = std::move(e);
         if (m_p->m_executor == nullptr)
         {
@@ -98,7 +98,7 @@ public:
     }
 
 private:
-    class P {
+    struct Impl {
       public:
         /// The number of alive tasks.
         std::atomic<std::size_t> m_size{};
@@ -106,7 +106,7 @@ private:
         std::shared_ptr<executor_type> m_executor{nullptr};
     };
 
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 };
 
 } // namespace silicon::coroutine

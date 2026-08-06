@@ -337,13 +337,13 @@ class condition_variable {
   public:
     /// Implementation state of the condition variable.  Defined in the interface unit because the
     /// templated notify_*(executor) overloads reach the waiter list from the interface.
-    class P {
+    struct Impl {
       public:
         /// @brief The list of waiters.
         std::atomic<awaiter_base *> m_awaiters{nullptr};
     };
 
-    condition_variable(): m_p(std::make_unique<P>()) {}
+    condition_variable(): m_p(std::make_unique<Impl>()) {}
     ~condition_variable() = default;
 
     condition_variable(const condition_variable &) = delete;
@@ -531,7 +531,7 @@ class condition_variable {
 
   private:
     /// Hidden implementation state.
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 
     auto make_notify_all_executor_individual_task(awaiter_base *waiter) -> silicon::coroutine::task<void> {
         switch(co_await waiter->on_notify()) {

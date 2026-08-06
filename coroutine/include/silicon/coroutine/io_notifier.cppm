@@ -39,13 +39,13 @@ export namespace silicon::coroutine {
 ///
 /// 每个平台只暴露**同一个** `io_notifier` 类，对外提供完全一致的接口；
 /// 平台专属后端（Windows=IOCP / BSD·macOS=kqueue / Linux=epoll）隐藏在私有的嵌套
-/// `struct P`（PIMPL）之中。`P` 的实体定义位于同名 `.cpp` 实现单元
+/// `struct Impl`（PIMPL）之中。`Impl` 的实体定义位于同名 `.cpp` 实现单元
 /// （io_notifier_iocp.cpp / io_notifier_kqueue.cpp / io_notifier_epoll.cpp），因此
 /// HANDLE / WSANETWORKEVENTS / kevent / epoll_event 等平台专属状态**绝不出现在本接口单元**。
-/// 任何触及 P 成员的方法都必须在各自平台的 `.cpp` 中**非内联**实现。
+/// 任何触及 Impl 成员的方法都必须在各自平台的 `.cpp` 中**非内联**实现。
 class io_notifier {
-    struct P;
-    std::unique_ptr<P> m_p;
+    struct Impl;
+    std::unique_ptr<Impl> m_p;
 
     friend class detail::timer_handle;
 

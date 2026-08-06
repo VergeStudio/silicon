@@ -12,11 +12,11 @@ target("json", function()
     add_headerfiles("include/silicon/json/**.hpp")
     add_headerfiles("include/silicon/json_impl/**.hpp")
 
-    -- silicon.exception 模块由 core 目标编译（core/src/exception/exception.cppm），
+    -- silicon.exception 模块由 core 目标编译（core/include/silicon/core/exception/exception.cppm），
     -- 独立的 silicon::exception target 并不存在，依赖 core 以获取其 BMI。
     add_deps("silicon::core")
 
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/json/**.cppm", {public = true})
 end)
 
 target("json.test", function()

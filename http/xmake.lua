@@ -8,7 +8,7 @@ target("http", function()
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
     add_files("src/**.cpp")
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/http/**.cppm", {public = true})
 end)
 
 target("http.test", function()

@@ -12,7 +12,7 @@ target("event", function()
     add_includedirs("include")
 
     add_files("src/**.cpp")
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/event/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("event.config.cppm.in")

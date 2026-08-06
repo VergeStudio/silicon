@@ -25,7 +25,7 @@ target("core", function()
         add_files("src/shared_library/shared_library_unix.cpp")
         remove_files("src/shared_library/shared_library_windows.cpp", "src/shared_library/shared_library_hpux.cpp", "src/shared_library/shared_library_vx.cpp")
     end
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/core/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("core.config.cppm.in")

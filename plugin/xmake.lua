@@ -7,7 +7,7 @@ target("plugin", function()
     if is_plat("windows") and is_config("kind", "shared") then
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/plugin/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)
 

@@ -24,7 +24,7 @@ target("proxy", function()
     -- silicon.exception 模块由 core 目标编译，依赖 core 以获取其 BMI。
     add_deps("silicon::core")
 
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/proxy/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("proxy.config.cppm.in")

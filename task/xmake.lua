@@ -19,7 +19,7 @@ target("task", function()
     add_headerfiles("include/silicon/task/**.hpp")
 
     add_files("src/**.cpp")
-    add_files("src/**.cppm", {public = true})
+    add_files("include/silicon/task/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("task.config.cppm.in")

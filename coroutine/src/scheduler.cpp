@@ -34,7 +34,7 @@ make_spawned_joinable_wait_task(std::unique_ptr<silicon::coroutine::task_group<s
 } // namespace detail
 
 scheduler::scheduler(options &&opts, private_constructor)
-    : m_p(std::make_unique<P>(std::move(opts))) {
+    : m_p(std::make_unique<Impl>(std::move(opts))) {
     if(!m_p->m_io_notifier.watch(m_p->m_shutdown_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(m_shutdown_ptr), true)) {
         throw std::runtime_error("Failed to register m_shutdown_pipe.read_fd() for read events.");
     }

@@ -29,7 +29,7 @@ class ip_address {
     static const constexpr size_t ipv6_len{16};
 
     ip_address() = default;
-    ip_address(std::span<const uint8_t> binary_address, domain_t domain = domain_t::kIpv4): m_p(std::make_shared<P>()) {
+    ip_address(std::span<const uint8_t> binary_address, domain_t domain = domain_t::kIpv4): m_p(std::make_shared<Impl>()) {
         m_p->m_domain = domain;
         if(m_p->m_domain == domain_t::kIpv4 && binary_address.size() > ipv4_len) {
             throw std::runtime_error{"silicon::network::ip_address provided binary ip address is too long"};
@@ -40,10 +40,10 @@ class ip_address {
         std::copy(binary_address.begin(), binary_address.end(), m_p->m_data.begin());
     }
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
-    ip_address(const ip_address &o): m_p(std::make_shared<P>(*o.m_p)) {}
+    ip_address(const ip_address &o): m_p(std::make_shared<Impl>(*o.m_p)) {}
     ip_address(ip_address &&) noexcept = default;
     auto operator=(const ip_address &o) -> ip_address & {
-        if(this != &o) { m_p = std::make_shared<P>(*o.m_p); }
+        if(this != &o) { m_p = std::make_shared<Impl>(*o.m_p); }
         return *this;
     }
     auto operator=(ip_address &&) noexcept -> ip_address & = default;
@@ -98,12 +98,12 @@ class ip_address {
     }
 
   private:
-    struct P {
+    struct Impl {
       public:
         domain_t m_domain{domain_t::kIpv4};
         std::array<uint8_t, ipv6_len> m_data{};
     };
-    std::shared_ptr<P> m_p{std::make_shared<P>()};
+    std::shared_ptr<Impl> m_p{std::make_shared<Impl>()};
 };
 
 } // namespace silicon::network

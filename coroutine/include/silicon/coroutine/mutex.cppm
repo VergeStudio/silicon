@@ -79,13 +79,13 @@ class scoped_lock {
 
     /// Implementation state of the scoped lock.  Defined in the interface unit because
     /// silicon::coroutine::condition_variable reaches the owned mutex from inline/template wait hooks.
-    class P {
+    struct Impl {
       public:
         class silicon::coroutine::mutex *m_mutex{nullptr};
     };
 
     explicit scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy = lock_strategy::kAdopt)
-        : m_p(std::make_unique<P>()) {
+        : m_p(std::make_unique<Impl>()) {
         // Future -> support acquiring the lock?  Not sure how to do that without being able to
         // co_await in the constructor.
         (void)strategy;
@@ -113,7 +113,7 @@ class scoped_lock {
     auto unlock() -> void;
 
   private:
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 };
 
 class mutex {
@@ -158,8 +158,8 @@ class mutex {
     /// unlocked -> state == unlocked_value()
     /// locked but empty waiter list == nullptr
     /// locked with waiters == lock_operation_base*
-    class P;
-    std::unique_ptr<P> m_p;
+    struct Impl;
+    std::unique_ptr<Impl> m_p;
 
     /// Inactive value, this cannot be nullptr since we want nullptr to signify that the mutex
     /// is locked but there are zero waiters, this makes it easy to CAS new waiters into the

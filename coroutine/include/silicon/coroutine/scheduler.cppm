@@ -439,9 +439,9 @@ class scheduler {
     auto io_notifier() -> io_notifier & { return m_p->m_io_notifier; }
 
   private:
-    class P {
+    struct Impl {
       public:
-        explicit P(options &&opts)
+        explicit Impl(options &&opts)
             : m_opts(std::move(opts)),
               m_io_notifier(),
               m_timer(static_cast<const void *>(&scheduler::m_timer_object), m_io_notifier) {}
@@ -484,7 +484,7 @@ class scheduler {
         std::vector<std::coroutine_handle<>> m_handles_to_resume{};
     };
 
-    std::unique_ptr<P> m_p;
+    std::unique_ptr<Impl> m_p;
 
     static constexpr const int m_shutdown_object{0};
     static constexpr const void *m_shutdown_ptr = &m_shutdown_object;

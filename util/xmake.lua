@@ -18,6 +18,6 @@ target("util", function()
 
     add_includedirs("../core/include", {public = true})
 
-    add_files("../core/src/util/util.cppm", {public = true})
+    add_files("../core/include/silicon/core/util/util.cppm", {public = true})
     add_files("../core/src/util/util.cpp")
 end)
