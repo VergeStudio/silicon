@@ -18,20 +18,16 @@ export import :concepts.range_of;
 export import :channel;
 export import :condition_variable;
 export import :detail.awaiter_list;
-// 平台专属 io_notifier 后端已合并进单一 :io_notifier 分区（src/io_notifier.cppm）：
-// 该分区内部按平台宏展开对应后端类声明，三个同名 .cpp 实现单元由宏开关决定是否
-// 编译。此处只需无条件 re-export 单一 :io_notifier 分区即可（见下方 export import :io_notifier）。
+// 注：io_notifier / detail.poll_info / detail.timer_handle 已迁出到 silicon.scheduler
+// （其唯一消费方是 io_scheduler，且 poll_info 的实现细节需被同模块 TU 直接触及）。
 export import :detail.pipe;
-export import :detail.poll_info;
 export import :detail.task_self_deleting;
-export import :detail.timer_handle;
 export import :detail.void_value;
 export import :event;
 export import :expected;
 export import :fd;
 export import :generator;
 export import :invoke;
-export import :io_notifier;
 export import :latch;
 export import :mutex;
 export import :poll;

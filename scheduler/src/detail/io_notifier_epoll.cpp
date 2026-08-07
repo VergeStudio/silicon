@@ -12,12 +12,23 @@ module;
 #include <memory>
 #include <stdexcept>
 
-module silicon.coroutine;
+module silicon.scheduler;
 
 #if defined(__linux__)
 using namespace std::chrono_literals;
 
-namespace silicon::coroutine {
+// 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
+namespace silicon::scheduler {
+using silicon::coroutine::fd_t;
+using silicon::coroutine::poll_op;
+using silicon::coroutine::poll_op_readable;
+using silicon::coroutine::poll_op_writeable;
+using silicon::coroutine::poll_status;
+using silicon::coroutine::poll_stop_token;
+using silicon::coroutine::time_point;
+} // namespace silicon::scheduler
+
+namespace silicon::scheduler {
 
 using event_t = struct ::epoll_event;
 
@@ -45,7 +56,7 @@ static auto encode_udata(bool keep_registered, bool is_cancel_event, void *udata
 /**
  * Decode the state that was encoded into the epoll events user data field.
  *
- * For details see documentation of `silicon::coroutine::encode_udata(bool, bool, void*)` above.
+ * For details see documentation of `silicon::scheduler::encode_udata(bool, bool, void*)` above.
  */
 static auto decode_udata(uint64_t encoded) -> std::tuple<bool, bool, void *> {
     bool keep_registered = (bool)(encoded >> 63);
@@ -166,5 +177,5 @@ auto io_notifier::native_handle() const -> fd_t {
     return m_p->m_fd;
 }
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler
 #endif

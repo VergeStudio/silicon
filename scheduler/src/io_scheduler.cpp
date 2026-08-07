@@ -121,7 +121,7 @@ auto io_scheduler::yield_until(time_point time) -> silicon::coroutine::task<void
 
         auto amount = std::chrono::duration_cast<std::chrono::milliseconds>(time - now);
 
-        silicon::coroutine::detail::poll_info pi{};
+        silicon::scheduler::detail::poll_info pi{};
         add_timer_token(now + amount, pi);
         co_await pi;
     }
@@ -144,7 +144,7 @@ auto io_scheduler::poll(
 
     bool timeout_requested = (timeout > 0ms);
 
-    auto pi = silicon::coroutine::detail::poll_info{fd, op, cancel_trigger};
+    auto pi = silicon::scheduler::detail::poll_info{fd, op, cancel_trigger};
 
     if(timeout_requested) {
         pi.m_p->m_timer_pos = add_timer_token(clock::now() + timeout, pi);
@@ -214,7 +214,7 @@ auto io_scheduler::yield_for_internal(std::chrono::nanoseconds amount) -> silico
         // it doesn't have a corresponding 'event' that can trigger, it always waits for
         // the timeout to occur before resuming.
 
-        silicon::coroutine::detail::poll_info pi{};
+        silicon::scheduler::detail::poll_info pi{};
         add_timer_token(clock::now() + amount, pi);
         co_await pi;
     }
@@ -262,7 +262,7 @@ auto io_scheduler::process_events_execute(std::chrono::milliseconds timeout) -> 
             // Nothing to do, just needed to wake-up and smell the flowers
         } else {
             // Individual poll task wake-up.
-            process_event_execute(static_cast<silicon::coroutine::detail::poll_info *>(handle_ptr), poll_status);
+            process_event_execute(static_cast<silicon::scheduler::detail::poll_info *>(handle_ptr), poll_status);
         }
     }
 
@@ -341,7 +341,7 @@ auto io_scheduler::process_scheduled_execute_inline() -> void {
     }
 }
 
-auto io_scheduler::process_event_execute(silicon::coroutine::detail::poll_info *pi, poll_status status) -> void {
+auto io_scheduler::process_event_execute(silicon::scheduler::detail::poll_info *pi, poll_status status) -> void {
     if(!pi->m_p->m_processed) {
         std::atomic_thread_fence(std::memory_order::acquire);
         // Its possible the event and the timeout occurred in the same epoll, make sure only one
@@ -369,7 +369,7 @@ auto io_scheduler::process_event_execute(silicon::coroutine::detail::poll_info *
 }
 
 auto io_scheduler::process_timeout_execute() -> void {
-    std::vector<silicon::coroutine::detail::poll_info *> poll_infos{};
+    std::vector<silicon::scheduler::detail::poll_info *> poll_infos{};
     auto now = clock::now();
 
     {
@@ -412,7 +412,7 @@ auto io_scheduler::process_timeout_execute() -> void {
     update_timeout(clock::now());
 }
 
-auto io_scheduler::add_timer_token(time_point tp, silicon::coroutine::detail::poll_info &pi) -> timed_events::iterator {
+auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::detail::poll_info &pi) -> timed_events::iterator {
     std::scoped_lock lk{m_p->m_timed_events_mutex};
     auto pos = m_p->m_timed_events.emplace(tp, &pi);
 

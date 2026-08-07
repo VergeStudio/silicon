@@ -42,6 +42,12 @@ import silicon.scheduler.task;
 import :ischeduler;
 import :thread_pool;
 
+// io_notifier / poll_info / timer_handle 已从 silicon.coroutine 迁入本模块，需显式
+// import 对应分区（分区间不可借道主接口，且本单元即为 :io_scheduler 分区）。
+import :detail.poll_info;
+import :io_notifier;
+import :detail.timer_handle;
+
 // 本单元沿用 coroutine 的基础类型（fd_t / poll_op / poll_status / poll_stop_token /
 // time_point / when_any / expected ...）。using-directive 置于全局作用域：命名空间内
 // 的同名实体优先，不会与 silicon::scheduler::task 冲突；且它不参与模块导出。
@@ -55,7 +61,7 @@ enum class timeout_status {
 };
 
 class io_scheduler: public IScheduler {
-    using timed_events = silicon::coroutine::detail::poll_info::timed_events;
+    using timed_events = silicon::scheduler::detail::poll_info::timed_events;
 
     struct private_constructor {
         explicit private_constructor() = default;
@@ -437,7 +443,7 @@ class io_scheduler: public IScheduler {
 
     [[nodiscard]] auto is_shutdown() const -> bool override { return m_p->m_shutdown_requested.load(std::memory_order::acquire); }
 
-    auto io_notifier() -> silicon::coroutine::io_notifier & { return m_p->m_io_notifier; }
+    auto io_notifier() -> silicon::scheduler::io_notifier & { return m_p->m_io_notifier; }
 
   private:
     struct Impl {
@@ -451,9 +457,9 @@ class io_scheduler: public IScheduler {
         options m_opts;
 
         /// The io event notifier.
-        ::silicon::coroutine::io_notifier m_io_notifier;
+        ::silicon::scheduler::io_notifier m_io_notifier;
         /// The timer handle for timed events, e.g. yield_for() or scheduler_after().
-        silicon::coroutine::detail::timer_handle m_timer;
+        silicon::scheduler::detail::timer_handle m_timer;
         /// The event loop pipe to trigger a shutdown.
         silicon::coroutine::detail::pipe_t m_shutdown_pipe{};
         /// The event loop schedule task pipe.
@@ -481,7 +487,7 @@ class io_scheduler: public IScheduler {
 
         std::atomic<bool> m_io_processing{false};
 
-        std::vector<std::pair<silicon::coroutine::detail::poll_info *, silicon::coroutine::poll_status>> m_recent_events{};
+        std::vector<std::pair<silicon::scheduler::detail::poll_info *, silicon::coroutine::poll_status>> m_recent_events{};
         std::vector<std::coroutine_handle<>> m_handles_to_resume{};
     };
 
@@ -508,10 +514,10 @@ class io_scheduler: public IScheduler {
 
     auto process_scheduled_execute_inline() -> void;
 
-    auto process_event_execute(silicon::coroutine::detail::poll_info *pi, poll_status status) -> void;
+    auto process_event_execute(silicon::scheduler::detail::poll_info *pi, poll_status status) -> void;
     auto process_timeout_execute() -> void;
 
-    auto add_timer_token(time_point tp, silicon::coroutine::detail::poll_info &pi) -> timed_events::iterator;
+    auto add_timer_token(time_point tp, silicon::scheduler::detail::poll_info &pi) -> timed_events::iterator;
     auto remove_timer_token(timed_events::iterator pos) -> void;
     auto update_timeout(time_point now) -> void;
 

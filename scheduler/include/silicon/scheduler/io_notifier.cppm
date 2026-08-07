@@ -21,19 +21,30 @@ module;
 #include <unistd.h>
 #endif
 
-export module silicon.coroutine:io_notifier;
+export module silicon.scheduler:io_notifier;
+
+import silicon.coroutine;
 
 import :detail.poll_info;
-import :fd;
-import :poll;
 
 // timer_handle 仅以引用形式出现在 watch_timer / unwatch_timer 的签名中（不完整类型即可），
 // 故只需前向声明，无需 import 整个 :detail.timer_handle 分区（避免分区间循环依赖）。
-namespace silicon::coroutine::detail {
+namespace silicon::scheduler::detail {
 export class timer_handle;
 }
 
-export namespace silicon::coroutine {
+// 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
+namespace silicon::scheduler {
+using silicon::coroutine::fd_t;
+using silicon::coroutine::poll_op;
+using silicon::coroutine::poll_op_readable;
+using silicon::coroutine::poll_op_writeable;
+using silicon::coroutine::poll_status;
+using silicon::coroutine::poll_stop_token;
+using silicon::coroutine::time_point;
+} // namespace silicon::scheduler
+
+export namespace silicon::scheduler {
 
 /// 平台无关的 I/O 就绪通知器。
 ///
@@ -92,4 +103,4 @@ class io_notifier {
 #endif
 };
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler

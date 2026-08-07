@@ -9,13 +9,22 @@ module;
 #include <utility>
 
 
-export module silicon.coroutine:detail.poll_info;
+export module silicon.scheduler:detail.poll_info;
 
-import :fd;
-import :poll;
-import :time;
+import silicon.coroutine;
 
-export namespace silicon::coroutine::detail {
+// 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
+namespace silicon::scheduler {
+using silicon::coroutine::fd_t;
+using silicon::coroutine::poll_op;
+using silicon::coroutine::poll_op_readable;
+using silicon::coroutine::poll_op_writeable;
+using silicon::coroutine::poll_status;
+using silicon::coroutine::poll_stop_token;
+using silicon::coroutine::time_point;
+} // namespace silicon::scheduler
+
+export namespace silicon::scheduler::detail {
 
 /**
  * Poll Info encapsulates everything about a poll operation for the event as well as its paired
@@ -96,4 +105,4 @@ struct poll_info {
     std::unique_ptr<Impl> m_p;
 };
 
-} // namespace silicon::coroutine::detail
+} // namespace silicon::scheduler::detail

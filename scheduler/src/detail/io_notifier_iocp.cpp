@@ -15,12 +15,23 @@ module;
 #include <system_error>
 #include <unordered_map>
 
-module silicon.coroutine;
+module silicon.scheduler;
 
 #if defined(_WIN32)
 using namespace std::chrono_literals;
 
-namespace silicon::coroutine {
+// 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
+namespace silicon::scheduler {
+using silicon::coroutine::fd_t;
+using silicon::coroutine::poll_op;
+using silicon::coroutine::poll_op_readable;
+using silicon::coroutine::poll_op_writeable;
+using silicon::coroutine::poll_status;
+using silicon::coroutine::poll_stop_token;
+using silicon::coroutine::time_point;
+} // namespace silicon::scheduler
+
+namespace silicon::scheduler {
 
 // ---------------------------------------------------------------------------
 // PIMPL: platform-specific implementation state for io_notifier (IOCP backend).
@@ -253,5 +264,5 @@ auto io_notifier::native_handle() const -> HANDLE {
     return m_p->m_iocp;
 }
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler
 #endif

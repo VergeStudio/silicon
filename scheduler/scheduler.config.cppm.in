@@ -7,6 +7,11 @@ module;
 
 export module silicon.scheduler:config;
 
+// 与 coroutine/di/core 的 config 分区保持一致：import std 使标准库在本模块所有
+// 实现单元（含 io_notifier_* / timer_handle 后端）的模块 purview 内可见，
+// 后端 .cpp 不必逐一显式 include <mutex>/<vector>/<array>/<tuple>/<atomic> 等。
+import std;
+
 
 namespace silicon::scheduler {
 export SCHEDULER_API const std::string GetVersion() { return "${VERSION}"; }
