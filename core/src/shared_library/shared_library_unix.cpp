@@ -13,6 +13,8 @@ module silicon.library;
 import silicon.platform;
 import silicon.exception;
 
+#include "shared_library_impl.hpp"
+
 namespace silicon::library {
 
 SharedLibrary::SharedLibrary() : impl_(std::make_unique<Impl>()) {

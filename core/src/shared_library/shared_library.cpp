@@ -1,13 +1,19 @@
 module;
 #include <memory>
 
+#include <mutex>
 #include <string>
 
 module silicon.library;
 
 import silicon.exception;
 
+#include "shared_library_impl.hpp"
+
 namespace silicon::library {
+
+SharedLibrary::~SharedLibrary() = default;
+
 void *SharedLibrary::GetSymbol(const std::string &symbol_name) {
     void *result = FindSymbol(symbol_name);
     if(result != nullptr) {

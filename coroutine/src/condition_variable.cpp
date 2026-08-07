@@ -1,8 +1,45 @@
 module;
 
+// 标准库头必须置于全局模块片段：接口单元全局片段中的 #include 对实现单元不可达。
+#include <atomic>
+#include <memory>
+
 module silicon.coroutine;
 
 namespace silicon::coroutine {
+
+/// Implementation state of silicon::coroutine::condition_variable.
+struct condition_variable::Impl {
+  public:
+    /// @brief The list of waiters.
+    std::atomic<awaiter_base *> m_awaiters{nullptr};
+};
+
+condition_variable::condition_variable(): m_p(std::make_unique<Impl>()) {}
+
+condition_variable::~condition_variable() = default;
+
+auto condition_variable::pop_all_waiters() noexcept -> awaiter_base * {
+    return detail::awaiter_list_pop_all(m_p->m_awaiters);
+}
+
+auto condition_variable::push_waiter(awaiter_base *waiter) noexcept -> void {
+    detail::awaiter_list_push(m_p->m_awaiters, waiter);
+}
+
+auto condition_variable::make_notify_all_executor_individual_task(awaiter_base *waiter)
+        -> silicon::coroutine::task<void> {
+    switch(co_await waiter->on_notify()) {
+        case notify_status_t::kNotReady:
+            // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
+            detail::awaiter_list_push(m_p->m_awaiters, waiter);
+            break;
+        case notify_status_t::kReady:
+        case notify_status_t::kAwaiterDead:
+            // Don't re-enqueue any awaiters that are ready or dead.
+            break;
+    }
+}
 
 condition_variable::awaiter_base::awaiter_base(
         silicon::coroutine::condition_variable &cv,
@@ -26,13 +63,13 @@ auto condition_variable::awaiter::await_ready() const noexcept -> bool {
 auto condition_variable::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::detail::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    m_lock.m_p->m_mutex->unlock();
+    m_lock.owned_mutex()->unlock();
     return true;
 }
 
 auto condition_variable::awaiter::on_notify() -> silicon::coroutine::task<condition_variable::notify_status_t> {
     // Re-lock, the waiter is now responsible for unlocking.
-    co_await m_lock.m_p->m_mutex->lock();
+    co_await m_lock.owned_mutex()->lock();
     m_awaiting_coroutine.resume();
     co_return notify_status_t::kReady;
 }
@@ -52,18 +89,18 @@ auto condition_variable::awaiter_with_predicate::await_ready() const noexcept ->
 auto condition_variable::awaiter_with_predicate::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::detail::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    m_lock.m_p->m_mutex->unlock();
+    m_lock.owned_mutex()->unlock();
     return true;
 }
 
 auto condition_variable::awaiter_with_predicate::on_notify() -> silicon::coroutine::task<condition_variable::notify_status_t> {
-    co_await m_lock.m_p->m_mutex->lock();
+    co_await m_lock.owned_mutex()->lock();
     if(m_predicate()) {
         m_awaiting_coroutine.resume();
         co_return notify_status_t::kReady;
     }
 
-    m_lock.m_p->m_mutex->unlock();
+    m_lock.owned_mutex()->unlock();
     co_return notify_status_t::kNotReady;
 }
 
@@ -88,12 +125,12 @@ auto condition_variable::awaiter_with_predicate_stop_token::await_ready() noexce
 auto condition_variable::awaiter_with_predicate_stop_token::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::detail::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    m_lock.m_p->m_mutex->unlock();
+    m_lock.owned_mutex()->unlock();
     return true;
 }
 
 auto condition_variable::awaiter_with_predicate_stop_token::on_notify() -> silicon::coroutine::task<condition_variable::notify_status_t> {
-    co_await m_lock.m_p->m_mutex->lock();
+    co_await m_lock.owned_mutex()->lock();
     m_predicate_result = m_predicate();
 
     // If the predicate is ready or a stop has been requested resume.
@@ -102,7 +139,7 @@ auto condition_variable::awaiter_with_predicate_stop_token::on_notify() -> silic
         co_return notify_status_t::kReady;
     }
 
-    m_lock.m_p->m_mutex->unlock();
+    m_lock.owned_mutex()->unlock();
     co_return notify_status_t::kNotReady;
 }
 
@@ -142,7 +179,7 @@ auto condition_variable::awaiter_with_wait_hook::on_notify() -> silicon::corouti
         co_return notify_status_t::kAwaiterDead;
     }
 
-    auto *waiter_mutex = m_lock.m_p->m_mutex;
+    auto *waiter_mutex = m_lock.owned_mutex();
     co_await waiter_mutex->lock();
 
     // If there is no predicate then this awaiter is always ready on notify.

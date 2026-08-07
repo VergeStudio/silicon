@@ -8,11 +8,31 @@ module silicon.coroutine;
 
 
 namespace silicon::coroutine {
+
+struct event::Impl {
+  public:
+    /// The state of the event, nullptr is not set with zero awaiters.  Set to an awaiter* there
+    /// are coroutines awaiting the event to be set, and set to the owning event the event has
+    /// triggered.
+    /// 1) nullptr == not set
+    /// 2) awaiter* == linked list of awaiters waiting for the event to trigger.
+    /// 3) &event == The event is triggered and all awaiters are resumed.
+    mutable std::atomic<void *> m_state;
+};
+
 event::event(bool initially_set) noexcept: m_p(std::make_unique<Impl>()) {
     m_p->m_state.store((initially_set) ? static_cast<void *>(this) : nullptr, std::memory_order::relaxed);
 }
 
 event::~event() = default;
+
+auto event::is_set() const noexcept -> bool {
+    return m_p->m_state.load(std::memory_order::acquire) == this;
+}
+
+auto event::exchange_set_state() noexcept -> void * {
+    return m_p->m_state.exchange(this, std::memory_order::acq_rel);
+}
 
 auto event::set(resume_order_policy policy) noexcept -> void {
     // Exchange the state to this, if the state was previously not this, then traverse the list

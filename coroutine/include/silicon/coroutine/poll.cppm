@@ -87,70 +87,46 @@ enum class poll_status {
 auto to_string(poll_status status) -> const std::string &;
 
 class poll_stop_token {
-    struct Impl {
-      public:
-        fd_t m_receiver{-1};
-    };
-    std::unique_ptr<Impl> m_p;
-
   public:
-    explicit poll_stop_token(fd_t receiver) {
-        m_p = std::make_unique<Impl>();
-        m_p->m_receiver = receiver;
-    }
+    explicit poll_stop_token(fd_t receiver);
 
     // poll_stop_token is logically a value (wraps a single fd), so keep it copyable
     // by cloning the underlying int rather than deleting copy (which would force a
     // move-only cascade through std::optional<poll_stop_token> users).
-    poll_stop_token(const poll_stop_token &other) {
-        m_p = std::make_unique<Impl>();
-        m_p->m_receiver = other.m_p->m_receiver;
-    }
+    poll_stop_token(const poll_stop_token &other);
 
-    poll_stop_token &operator=(const poll_stop_token &other) {
-        if (std::addressof(other) != this) {
-            m_p->m_receiver = other.m_p->m_receiver;
-        }
-        return *this;
-    }
+    ~poll_stop_token();
 
-    auto native_handle() const -> fd_t { return m_p->m_receiver; }
+    auto operator=(const poll_stop_token &other) -> poll_stop_token &;
+
+    [[nodiscard]] auto native_handle() const -> fd_t;
+
+  private:
+    /// Implementation state, fully hidden in the implementation unit.
+    struct Impl;
+    std::unique_ptr<Impl> m_p;
 };
 
 class poll_stop_source {
-    struct Impl {
-      public:
-        detail::pipe_t m_pipe{};
-    };
-    std::unique_ptr<Impl> m_p;
-
   public:
-    poll_stop_source() { m_p = std::make_unique<Impl>(); }
+    poll_stop_source();
 
     poll_stop_source(const poll_stop_source &) = delete;
-    poll_stop_source(poll_stop_source &&other) noexcept: m_p(std::make_unique<Impl>()) { *this = std::move(other); }
+    poll_stop_source(poll_stop_source &&other) noexcept;
 
-    poll_stop_source &operator=(const poll_stop_source &) = delete;
-    poll_stop_source &operator=(poll_stop_source &&other) {
-        m_p->m_pipe = std::move(other.m_p->m_pipe);
-        return *this;
-    }
+    ~poll_stop_source();
 
-    ~poll_stop_source() = default;
+    auto operator=(const poll_stop_source &) -> poll_stop_source & = delete;
+    auto operator=(poll_stop_source &&other) -> poll_stop_source &;
 
-    auto get_token() const -> poll_stop_token { return poll_stop_token(m_p->m_pipe.read_fd()); }
+    [[nodiscard]] auto get_token() const -> poll_stop_token;
 
-    auto signal_stop() -> void {
-        const int value{1};
-#if defined(_WIN32)
-        int written = ::_write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));
-#else
-        ssize_t written = ::write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));
-#endif
-        if(written != sizeof(value)) {
-            std::cerr << "poll::signal_stop() write failed, only wrote " << written << " bytes\n";
-        }
-    }
+    auto signal_stop() -> void;
+
+  private:
+    /// Implementation state, fully hidden in the implementation unit.
+    struct Impl;
+    std::unique_ptr<Impl> m_p;
 };
 
 } // namespace silicon::coroutine

@@ -1,7 +1,6 @@
 module;
 #include <memory>
 
-#include <mutex>
 #include <string>
 
 export module silicon.library;
@@ -36,7 +35,7 @@ export class SharedLibrary final {
 
     /// Destroys the SharedLibrary. The actual library
     /// remains loaded.
-    virtual ~SharedLibrary() = default;
+    virtual ~SharedLibrary();
 
   public:
     /// Loads a shared library from the given path,
@@ -94,12 +93,7 @@ export class SharedLibrary final {
     void *FindSymbol(const std::string &);
 
   private:
-    struct Impl {
-      public:
-      std::string path_;
-      void *handle_{nullptr};
-      std::mutex mutex_;
-    };
+    struct Impl;
     std::unique_ptr<Impl> impl_;
 
 };

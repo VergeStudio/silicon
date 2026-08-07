@@ -77,20 +77,7 @@ class scoped_lock {
         kAdopt
     };
 
-    /// Implementation state of the scoped lock.  Defined in the interface unit because
-    /// silicon::coroutine::condition_variable reaches the owned mutex from inline/template wait hooks.
-    struct Impl {
-      public:
-        class silicon::coroutine::mutex *m_mutex{nullptr};
-    };
-
-    explicit scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy = lock_strategy::kAdopt)
-        : m_p(std::make_unique<Impl>()) {
-        // Future -> support acquiring the lock?  Not sure how to do that without being able to
-        // co_await in the constructor.
-        (void)strategy;
-        m_p->m_mutex = &m;
-    }
+    explicit scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy = lock_strategy::kAdopt);
 
     /**
      * Unlocks the mutex upon this shared lock destructing.
@@ -98,14 +85,9 @@ class scoped_lock {
     ~scoped_lock();
 
     scoped_lock(const scoped_lock &) = delete;
-    scoped_lock(scoped_lock &&other) noexcept: m_p(std::move(other.m_p)) {}
+    scoped_lock(scoped_lock &&other) noexcept;
     auto operator=(const scoped_lock &) -> scoped_lock & = delete;
-    auto operator=(scoped_lock &&other) noexcept -> scoped_lock & {
-        if(std::addressof(other) != this) {
-            m_p = std::move(other.m_p);
-        }
-        return *this;
-    }
+    auto operator=(scoped_lock &&other) noexcept -> scoped_lock &;
 
     /**
      * Unlocks the scoped lock prior to it going out of scope.
@@ -113,7 +95,20 @@ class scoped_lock {
     auto unlock() -> void;
 
   private:
+    /// Implementation state, fully hidden in the implementation unit.
+    struct Impl;
     std::unique_ptr<Impl> m_p;
+
+    /**
+     * @brief Non-template accessor for the currently owned mutex.
+     *
+     * silicon::coroutine::condition_variable has to unlock and re-lock the caller's mutex from both
+     * implementation-unit code and templated wait hooks living in the interface unit.  Routing those
+     * accesses through this non-template hook keeps Impl fully hidden in mutex.cpp.
+     *
+     * @return The owned mutex, or nullptr if the lock has already been released.
+     */
+    [[nodiscard]] auto owned_mutex() const noexcept -> class silicon::coroutine::mutex *;
 };
 
 class mutex {

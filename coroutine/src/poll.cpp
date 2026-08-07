@@ -1,5 +1,17 @@
 module;
 
+// 标准库头必须置于全局模块片段：接口单元全局片段中的 #include 对实现单元不可达。
+#include <iostream>
+#include <memory>
+#include <string>
+#include <utility>
+
+#if defined(_WIN32)
+#    include <io.h> // ::_write
+#else
+#    include <unistd.h> // ::write
+#endif
+
 module silicon.coroutine;
 
 
@@ -44,6 +56,78 @@ auto to_string(poll_status status) -> const std::string & {
             return poll_status_closed;
         default:
             return poll_unknown;
+    }
+}
+
+// --------------------------------------------------------------------------------------------
+// poll_stop_token
+// --------------------------------------------------------------------------------------------
+
+/// Implementation state of silicon::coroutine::poll_stop_token.
+struct poll_stop_token::Impl {
+  public:
+    fd_t m_receiver{-1};
+};
+
+poll_stop_token::poll_stop_token(fd_t receiver): m_p(std::make_unique<Impl>()) {
+    m_p->m_receiver = receiver;
+}
+
+poll_stop_token::poll_stop_token(const poll_stop_token &other): m_p(std::make_unique<Impl>()) {
+    m_p->m_receiver = other.m_p->m_receiver;
+}
+
+poll_stop_token::~poll_stop_token() = default;
+
+auto poll_stop_token::operator=(const poll_stop_token &other) -> poll_stop_token & {
+    if(std::addressof(other) != this) {
+        m_p->m_receiver = other.m_p->m_receiver;
+    }
+    return *this;
+}
+
+auto poll_stop_token::native_handle() const -> fd_t {
+    return m_p->m_receiver;
+}
+
+// --------------------------------------------------------------------------------------------
+// poll_stop_source
+// --------------------------------------------------------------------------------------------
+
+/// Implementation state of silicon::coroutine::poll_stop_source.
+struct poll_stop_source::Impl {
+  public:
+    detail::pipe_t m_pipe{};
+};
+
+poll_stop_source::poll_stop_source(): m_p(std::make_unique<Impl>()) {}
+
+poll_stop_source::poll_stop_source(poll_stop_source &&other) noexcept: m_p(std::make_unique<Impl>()) {
+    *this = std::move(other);
+}
+
+poll_stop_source::~poll_stop_source() = default;
+
+auto poll_stop_source::operator=(poll_stop_source &&other) -> poll_stop_source & {
+    if(std::addressof(other) != this) {
+        m_p->m_pipe = std::move(other.m_p->m_pipe);
+    }
+    return *this;
+}
+
+auto poll_stop_source::get_token() const -> poll_stop_token {
+    return poll_stop_token(m_p->m_pipe.read_fd());
+}
+
+auto poll_stop_source::signal_stop() -> void {
+    const int value{1};
+#if defined(_WIN32)
+    int written = ::_write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));
+#else
+    ssize_t written = ::write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));
+#endif
+    if(written != sizeof(value)) {
+        std::cerr << "poll::signal_stop() write failed, only wrote " << written << " bytes\n";
     }
 }
 

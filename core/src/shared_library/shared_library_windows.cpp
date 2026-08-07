@@ -13,6 +13,8 @@ module silicon.library;
 import silicon.platform;
 import silicon.exception;
 
+#include "shared_library_impl.hpp"
+
 #if defined(_WIN32) || defined(_WIN64)
 
 #include "libloaderapi.h"

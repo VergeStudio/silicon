@@ -77,19 +77,6 @@ class event {
      * @param initially_set By default all events start as not set, but if needed this parameter can
      *                      set the event to already be triggered.
      */
-    /// Implementation state of the event.  Defined in the interface unit because the templated
-    /// `set(executor)` overload and `is_set()` need to reach it from the interface.
-    struct Impl {
-      public:
-        /// The state of the event, nullptr is not set with zero awaiters.  Set to an awaiter* there
-        /// are coroutines awaiting the event to be set, and set to the owning event the event has
-        /// triggered.
-        /// 1) nullptr == not set
-        /// 2) awaiter* == linked list of awaiters waiting for the event to trigger.
-        /// 3) &event == The event is triggered and all awaiters are resumed.
-        mutable std::atomic<void *> m_state;
-    };
-
     explicit event(bool initially_set = false) noexcept;
     ~event();
 
@@ -101,7 +88,7 @@ class event {
     /**
      * @return True if this event is currently in the set state.
      */
-    auto is_set() const noexcept -> bool { return m_p->m_state.load(std::memory_order::acquire) == this; }
+    auto is_set() const noexcept -> bool;
 
     /**
      * Sets this event and resumes all awaiters.  Note that all waiters will be resumed onto this
@@ -117,7 +104,7 @@ class event {
      */
     template<concepts::executor executor_type>
     auto set(std::unique_ptr<executor_type> &e, resume_order_policy policy = resume_order_policy::kLifo) noexcept -> void {
-        void *old_value = m_p->m_state.exchange(this, std::memory_order::acq_rel);
+        void *old_value = exchange_set_state();
         if(old_value != this) {
             // If FIFO has been requested then reverse the order upon resuming.
             if(policy == resume_order_policy::kFifo) {
@@ -148,6 +135,9 @@ class event {
   private:
     /// For access to m_p.
     friend struct awaiter;
+
+    /// PIMPL：Impl 仅前置声明，定义置于 src/event.cpp。
+    struct Impl;
     /// Hidden implementation state.
     std::unique_ptr<Impl> m_p;
 
@@ -155,6 +145,12 @@ class event {
      * Reverses the set of waiters from LIFO->FIFO and returns the new head.
      */
     auto reverse(awaiter *head) -> awaiter *;
+
+    /**
+     * 非模板钩子：把状态原子交换为 this 并返回旧值。
+     * 供接口单元中的 `set(executor)` 模板重载使用，避免 Impl 泄漏到接口单元。
+     */
+    auto exchange_set_state() noexcept -> void *;
 };
 
 } // namespace silicon::coroutine

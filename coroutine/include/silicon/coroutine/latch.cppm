@@ -30,21 +30,8 @@ class latch {
      * @param count The number of tasks to wait to complete, if this is zero or negative then the
      *              latch starts 'completed' immediately and execution is resumed with no suspension.
      */
-    /// Implementation state of the latch.  Defined in the interface unit because the templated
-    /// `count_down(executor)` overload and the inline accessors need to reach it.
-    struct Impl {
-      public:
-        explicit Impl(std::int64_t count) noexcept: m_count(count), m_event(count <= 0) {}
-
-        /// The number of tasks to wait for completion before triggering the event to resume.
-        std::atomic<std::int64_t> m_count;
-        /// The event to trigger when the latch counter reaches zero, this resumes the coroutine
-        /// that is co_await'ing on the latch.
-        event m_event;
-    };
-
-    latch(std::int64_t count) noexcept: m_p(std::make_unique<Impl>(count)) {}
-    ~latch() = default;
+    latch(std::int64_t count) noexcept;
+    ~latch();
 
     latch(const latch &) = delete;
     latch(latch &&) = delete;
@@ -54,22 +41,18 @@ class latch {
     /**
      * @return True if the latch has been counted down to zero.
      */
-    auto is_ready() const noexcept -> bool { return m_p->m_event.is_set(); }
+    auto is_ready() const noexcept -> bool;
 
     /**
      * @return The number of tasks this latch is still waiting to complete.
      */
-    auto remaining() const noexcept -> std::size_t { return m_p->m_count.load(std::memory_order::acquire); }
+    auto remaining() const noexcept -> std::size_t;
 
     /**
      * If the latch counter goes to zero then the task awaiting the latch is resumed.
      * @param n The number of tasks to complete towards the latch, defaults to 1.
      */
-    auto count_down(std::int64_t n = 1) noexcept -> void {
-        if(m_p->m_count.fetch_sub(n, std::memory_order::acq_rel) <= n) {
-            m_p->m_event.set();
-        }
-    }
+    auto count_down(std::int64_t n = 1) noexcept -> void;
 
     /**
      * If the latch counter goes to zero then the task awaiting the latch is resumed on the given
@@ -79,16 +62,26 @@ class latch {
      */
     template<concepts::executor executor_type>
     auto count_down(std::unique_ptr<executor_type> &executor, std::int64_t n = 1) noexcept -> void {
-        if(m_p->m_count.fetch_sub(n, std::memory_order::acq_rel) <= n) {
-            m_p->m_event.set(executor);
+        if(decrement(n)) {
+            internal_event().set(executor);
         }
     }
 
-    auto operator co_await() const noexcept -> event::awaiter { return m_p->m_event.operator co_await(); }
+    auto operator co_await() const noexcept -> event::awaiter;
 
   private:
+    /// PIMPL：Impl 仅前置声明，定义置于 src/latch.cpp。
+    struct Impl;
     /// Hidden implementation state.
     std::unique_ptr<Impl> m_p;
+
+    /**
+     * 非模板钩子：递减计数，返回是否刚好归零（需要触发内部 event）。
+     * 供接口单元中的 `count_down(executor)` 模板重载使用。
+     */
+    auto decrement(std::int64_t n) noexcept -> bool;
+    /// 非模板钩子：暴露内部 event 引用，供模板重载在 executor 上恢复等待者。
+    auto internal_event() noexcept -> event &;
 };
 
 } // namespace silicon::coroutine

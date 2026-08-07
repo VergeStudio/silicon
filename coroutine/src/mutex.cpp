@@ -52,6 +52,33 @@ auto lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_corouti
 
 } // namespace detail
 
+/// Implementation state of silicon::coroutine::scoped_lock.
+struct scoped_lock::Impl {
+  public:
+    class silicon::coroutine::mutex *m_mutex{nullptr};
+};
+
+scoped_lock::scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy)
+    : m_p(std::make_unique<Impl>()) {
+    // Future -> support acquiring the lock?  Not sure how to do that without being able to
+    // co_await in the constructor.
+    (void)strategy;
+    m_p->m_mutex = &m;
+}
+
+scoped_lock::scoped_lock(scoped_lock &&other) noexcept: m_p(std::move(other.m_p)) {}
+
+auto scoped_lock::operator=(scoped_lock &&other) noexcept -> scoped_lock & {
+    if(std::addressof(other) != this) {
+        m_p = std::move(other.m_p);
+    }
+    return *this;
+}
+
+auto scoped_lock::owned_mutex() const noexcept -> class silicon::coroutine::mutex * {
+    return (m_p != nullptr) ? m_p->m_mutex : nullptr;
+}
+
 scoped_lock::~scoped_lock() {
     unlock();
 }

@@ -255,7 +255,7 @@ class condition_variable {
 
                 // This means the timeout has occurred first. Before resuming the wait_[for|until]() caller the lock
                 // must be re-acquired.
-                co_await m_lock.m_p->m_mutex->lock();
+                co_await m_lock.owned_mutex()->lock();
                 m_predicate_result = data.m_predicate.has_value() ? data.m_predicate.value()() : true;
                 m_awaiting_coroutine.resume();
                 co_return;
@@ -278,8 +278,8 @@ class condition_variable {
             // We enqueue the hook_task since we can make it live until the notify occurs and will properly resume the
             // actual coroutine only once.
             awaiter_with_wait_hook hook_task{m_condition_variable, m_lock, data};
-            detail::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(&hook_task));
-            m_lock.m_p->m_mutex->unlock(); // Unlock the actual lock now that we are setup, not the fake hook task.
+            m_condition_variable.push_waiter(static_cast<awaiter_base *>(&hook_task));
+            m_lock.owned_mutex()->unlock(); // Unlock the actual lock now that we are setup, not the fake hook task.
 
             co_await silicon::coroutine::when_all(make_on_notify_callback_task(data), make_timeout_task(data));
             co_return;
@@ -335,16 +335,8 @@ class condition_variable {
 #endif
 
   public:
-    /// Implementation state of the condition variable.  Defined in the interface unit because the
-    /// templated notify_*(executor) overloads reach the waiter list from the interface.
-    struct Impl {
-      public:
-        /// @brief The list of waiters.
-        std::atomic<awaiter_base *> m_awaiters{nullptr};
-    };
-
-    condition_variable(): m_p(std::make_unique<Impl>()) {}
-    ~condition_variable() = default;
+    condition_variable();
+    ~condition_variable();
 
     condition_variable(const condition_variable &) = delete;
     condition_variable(condition_variable &&) = delete;
@@ -384,7 +376,7 @@ class condition_variable {
      */
     template<silicon::coroutine::concepts::executor executor_type>
     auto notify_all(std::unique_ptr<executor_type> &executor) -> void {
-        auto *waiter = detail::awaiter_list_pop_all(m_p->m_awaiters);
+        auto *waiter = pop_all_waiters();
 
         while(waiter != nullptr) {
             // Need to grab next before notifying since the notifier will self destruct after completing.
@@ -530,21 +522,23 @@ class condition_variable {
 #endif
 
   private:
-    /// Hidden implementation state.
+    /// Implementation state, fully hidden in the implementation unit.
+    struct Impl;
     std::unique_ptr<Impl> m_p;
 
-    auto make_notify_all_executor_individual_task(awaiter_base *waiter) -> silicon::coroutine::task<void> {
-        switch(co_await waiter->on_notify()) {
-            case notify_status_t::kNotReady:
-                // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
-                detail::awaiter_list_push(m_p->m_awaiters, waiter);
-                break;
-            case notify_status_t::kReady:
-            case notify_status_t::kAwaiterDead:
-                // Don't re-enqueue any awaiters that are ready or dead.
-                break;
-        }
-    }
+    /**
+     * @brief Non-template hooks over the hidden waiter list.
+     *
+     * The templated notify_*(executor) overloads and the templated wait_[for|until]() awaiters live in
+     * this interface unit but still need to mutate the waiter list held by Impl.  Routing those accesses
+     * through non-template members keeps Impl defined only in condition_variable.cpp.
+     */
+    /// @brief Pops the entire waiter list, the caller owns the returned intrusive list.
+    auto pop_all_waiters() noexcept -> awaiter_base *;
+    /// @brief Pushes a waiter back onto the waiter list.
+    auto push_waiter(awaiter_base *waiter) noexcept -> void;
+
+    auto make_notify_all_executor_individual_task(awaiter_base *waiter) -> silicon::coroutine::task<void>;
 };
 
 
