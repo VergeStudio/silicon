@@ -46,7 +46,7 @@ class client final: public ITcpClient {
      * @param timeout How long to wait for the connection to establish? Timeout of zero is indefinite.
      * @return The result status of trying to connect.
      */
-    auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::coroutine::task<network::connect_status> override;
+    auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<network::connect_status> override;
 
     /**
      * Attempts to asynchronously read data from the socket into the provided buffer.
@@ -72,7 +72,7 @@ class client final: public ITcpClient {
             silicon::coroutine::concepts::mutable_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
     auto read_some(buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<std::pair<io_status, std::span<element_type>>> {
+            -> silicon::scheduler::task::task<std::pair<io_status, std::span<element_type>>> {
         if(buffer.empty()) {
             co_return {io_status{io_status::kind::kOk}, {}};
         }
@@ -108,7 +108,7 @@ class client final: public ITcpClient {
             silicon::coroutine::concepts::mutable_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
     auto read_exact(buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<std::pair<io_status, std::span<element_type>>> {
+            -> silicon::scheduler::task::task<std::pair<io_status, std::span<element_type>>> {
         if(buffer.empty()) {
             co_return {io_status{io_status::kind::kOk}, {}};
         }
@@ -147,7 +147,7 @@ class client final: public ITcpClient {
             silicon::coroutine::concepts::const_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
     auto write_some(const buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<std::pair<io_status, std::span<element_type>>> {
+            -> silicon::scheduler::task::task<std::pair<io_status, std::span<element_type>>> {
         static_assert(sizeof(element_type) == 1);
 
         if(buffer.empty()) {
@@ -186,7 +186,7 @@ class client final: public ITcpClient {
             silicon::coroutine::concepts::const_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
     auto write_all(const buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<std::pair<io_status, std::span<element_type>>> {
+            -> silicon::scheduler::task::task<std::pair<io_status, std::span<element_type>>> {
         static_assert(sizeof(element_type) == 1);
 
         if(buffer.empty()) {
@@ -201,7 +201,7 @@ class client final: public ITcpClient {
             std::span<std::byte> buffer,
             const std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
     )
-            -> silicon::coroutine::task<std::pair<io_status, std::span<std::byte>>> {
+            -> silicon::scheduler::task::task<std::pair<io_status, std::span<std::byte>>> {
         // Fast path
         if(m_is_read_ready) {
             auto [status, read] = recv(buffer);
@@ -228,7 +228,7 @@ class client final: public ITcpClient {
             std::span<std::byte> buffer,
             const std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
     )
-            -> silicon::coroutine::task<std::pair<io_status, std::span<std::byte>>> {
+            -> silicon::scheduler::task::task<std::pair<io_status, std::span<std::byte>>> {
         const auto start_time = std::chrono::steady_clock::now();
         std::span<std::byte> remaining = buffer;
 
@@ -263,7 +263,7 @@ class client final: public ITcpClient {
             std::span<const std::byte> buffer,
             const std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
     )
-            -> silicon::coroutine::task<std::pair<io_status, std::span<const std::byte>>> {
+            -> silicon::scheduler::task::task<std::pair<io_status, std::span<const std::byte>>> {
         // Fast path
         if(m_is_write_ready) {
             auto [status, unsent] = send(buffer);
@@ -291,7 +291,7 @@ class client final: public ITcpClient {
             std::span<const std::byte> buffer,
             const std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
     )
-            -> silicon::coroutine::task<std::pair<io_status, std::span<const std::byte>>> {
+            -> silicon::scheduler::task::task<std::pair<io_status, std::span<const std::byte>>> {
         const auto start_time = std::chrono::steady_clock::now();
         std::span<const std::byte> remaining = buffer;
 
@@ -328,7 +328,7 @@ class client final: public ITcpClient {
      *         this specific event operation is ready.
      */
     auto poll(const silicon::coroutine::poll_op op, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<silicon::coroutine::poll_status> override {
+            -> silicon::scheduler::task::task<silicon::coroutine::poll_status> override {
         return m_scheduler->poll(m_socket.native_handle(), op, timeout);
     }
 

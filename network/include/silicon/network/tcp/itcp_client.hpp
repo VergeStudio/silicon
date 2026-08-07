@@ -30,12 +30,12 @@ class ITcpClient {
     [[nodiscard]] virtual auto socket() const -> const network::socket & = 0;
 
     virtual auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<network::connect_status> = 0;
+            -> silicon::scheduler::task::task<network::connect_status> = 0;
 
     virtual auto poll(
             silicon::coroutine::poll_op op,
             std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
-    ) -> silicon::coroutine::task<silicon::coroutine::poll_status> = 0;
+    ) -> silicon::scheduler::task::task<silicon::coroutine::poll_status> = 0;
 };
 
 } // namespace silicon::network::tcp

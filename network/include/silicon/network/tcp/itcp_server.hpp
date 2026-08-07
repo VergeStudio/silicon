@@ -20,7 +20,7 @@ class ITcpServer {
     virtual ~ITcpServer() = default;
 
     virtual auto accept(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<silicon::coroutine::expected<client, io_status>> = 0;
+            -> silicon::scheduler::task::task<silicon::coroutine::expected<client, io_status>> = 0;
 };
 
 } // namespace silicon::network::tcp

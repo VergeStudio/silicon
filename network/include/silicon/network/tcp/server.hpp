@@ -51,7 +51,7 @@ class server final: public ITcpServer {
      * @return The newly connected tcp client connection on success or an io_status describing the failure.
      */
     auto accept(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<silicon::coroutine::expected<network::tcp::client, io_status>> override {
+            -> silicon::scheduler::task::task<silicon::coroutine::expected<network::tcp::client, io_status>> override {
         // Fast path
         if(m_is_read_ready) {
             auto client = accept_now();
@@ -94,7 +94,7 @@ class server final: public ITcpServer {
      * @return The result of the poll, 'event' means the poll was successful and there is at least 1
      *         connection ready to be accepted.
      */
-    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::coroutine::task<coroutine::poll_status> {
+    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<coroutine::poll_status> {
         return m_scheduler->poll(m_accept_socket.native_handle(), silicon::coroutine::poll_op::read, timeout, m_cancel_trigger.get_token());
     }
 

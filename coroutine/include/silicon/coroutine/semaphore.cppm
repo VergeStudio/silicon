@@ -93,7 +93,7 @@ class semaphore {
      * @brief Acquires a resource from the semaphore, if the semaphore has no resources available then
      * this will suspend and wait until a resource becomes available.
      */
-    [[nodiscard]] auto acquire() -> silicon::coroutine::task<semaphore_acquire_result> {
+    [[nodiscard]] auto acquire() -> silicon::scheduler::task::task<semaphore_acquire_result> {
         co_await m_p->m_mutex.lock();
         co_return co_await detail::acquire_operation<max_value>{*this};
     }
@@ -102,7 +102,7 @@ class semaphore {
      * @brief Releases a resources back to the semaphore, if the semaphore is already at value() == max() this does nothing.
      * @return
      */
-    [[nodiscard]] auto release() -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto release() -> silicon::scheduler::task::task<void> {
         co_await m_p->m_mutex.lock();
         // Do not resume or increment resources past the max_value.
         if(value() == max()) {
@@ -151,7 +151,7 @@ class semaphore {
      * Stops the semaphore and will notify all release/acquire waiters to wake up in a failed state.
      * Once this is set it cannot be un-done and all future operations on the semaphore will fail.
      */
-    [[nodiscard]] auto shutdown() noexcept -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto shutdown() noexcept -> silicon::scheduler::task::task<void> {
         if(is_shutdown()) {
             co_return;
         }

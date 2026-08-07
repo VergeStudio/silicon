@@ -51,7 +51,7 @@ class server final: public ITlsServer {
      * @return The result of the poll, 'event' means the poll was successful and there is at least 1
      *         connection ready to be accepted.
      */
-    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::coroutine::task<silicon::coroutine::poll_status> override {
+    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<silicon::coroutine::poll_status> override {
         return m_scheduler->poll(m_accept_socket.native_handle(), silicon::coroutine::poll_op::read, timeout, m_cancel_trigger.get_token());
     }
 
@@ -61,7 +61,7 @@ class server final: public ITlsServer {
      * @param timeout The timeout to complete the TLS handshake.
      * @return The newly connected tcp client connection.
      */
-    auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30}) -> silicon::coroutine::task<silicon::network::tls::client> override;
+    auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30}) -> silicon::scheduler::task::task<silicon::network::tls::client> override;
 
     /**
      * @return The tcp accept socket this server is using.

@@ -20,9 +20,7 @@ module;
 export module silicon.coroutine:task_container;
 
 import silicon.scheduler;
-import :detail.task_self_deleting;
-import :task;
-
+import silicon.scheduler.task;
 export namespace silicon::coroutine {
 
 template<concepts::executor executor_type>
@@ -60,11 +58,11 @@ public:
      * @return True if the task was succesfully started into the task container. This can fail if the task
      *         is already completed or does not contain a valid coroutine anymore.
      */
-    auto start(coroutine::task<void>&& user_task) -> bool
+    auto start(silicon::scheduler::task::task<void>&& user_task) -> bool
     {
         m_p->m_size.fetch_add(1, std::memory_order::relaxed);
 
-        auto task = detail::make_task_self_deleting(std::move(user_task));
+        auto task = silicon::scheduler::task::detail::make_task_self_deleting(std::move(user_task));
         // Hook the promise to decrement the size upon its self deletion of the coroutine frame.
         task.promise().user_final_suspend([this]() -> void { m_p->m_size.fetch_sub(1, std::memory_order::release); });
         return m_p->m_executor->resume(task.handle());
@@ -87,7 +85,7 @@ public:
      * This does not shut down the task container, but can be used when shutting down, or if your
      * logic requires all the tasks contained within to complete, it is similar to latch.
      */
-    auto yield_until_empty() -> coroutine::task<void>
+    auto yield_until_empty() -> silicon::scheduler::task::task<void>
     {
         while (!empty())
         {

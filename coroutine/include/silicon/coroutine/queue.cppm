@@ -17,8 +17,7 @@ export module silicon.coroutine:queue;
 
 import silicon.scheduler;
 import :mutex;
-import :task;
-
+import silicon.scheduler.task;
 export namespace silicon::coroutine {
 
 enum class queue_produce_result {
@@ -172,9 +171,9 @@ class queue {
      *        context to the waiter.
      *
      * @param element The element being produced.
-     * @return silicon::coroutine::task<queue_produce_result>
+     * @return silicon::scheduler::task::task<queue_produce_result>
      */
-    auto push(const element_type &element) -> silicon::coroutine::task<queue_produce_result> {
+    auto push(const element_type &element) -> silicon::scheduler::task::task<queue_produce_result> {
         // The general idea is to see if anyone is waiting, and if so directly transfer the element
         // to that waiter. If there is nobody waiting then move the element into the queue.
         auto lock = co_await m_p->m_mutex.scoped_lock();
@@ -204,9 +203,9 @@ class queue {
      *        context to the waiter.
      *
      * @param element The element being produced.
-     * @return silicon::coroutine::task<queue_produce_result>
+     * @return silicon::scheduler::task::task<queue_produce_result>
      */
-    auto push(element_type &&element) -> silicon::coroutine::task<queue_produce_result> {
+    auto push(element_type &&element) -> silicon::scheduler::task::task<queue_produce_result> {
         auto lock = co_await m_p->m_mutex.scoped_lock();
 
         if(m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
@@ -232,10 +231,10 @@ class queue {
      *        is empty and has waiters.
      *
      * @param args The element's constructor argument types and values.
-     * @return silicon::coroutine::task<queue_produce_result>
+     * @return silicon::scheduler::task::task<queue_produce_result>
      */
     template<typename... args_type>
-    auto emplace(args_type &&...args) -> silicon::coroutine::task<queue_produce_result> {
+    auto emplace(args_type &&...args) -> silicon::scheduler::task::task<queue_produce_result> {
         auto lock = co_await m_p->m_mutex.scoped_lock();
 
         if(m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
@@ -261,7 +260,7 @@ class queue {
      * @return awaiter A waiter task that upon co_await complete returns an element or the queue
      *                 status that it is shut down.
      */
-    [[nodiscard]] auto pop() -> silicon::coroutine::task<expected<element_type, queue_consume_result>> {
+    [[nodiscard]] auto pop() -> silicon::scheduler::task::task<expected<element_type, queue_consume_result>> {
         co_await m_p->m_mutex.lock();
         co_return co_await awaiter{*this};
     }
@@ -309,9 +308,9 @@ class queue {
     /**
      * @brief Shuts down the queue immediately discarding any elements that haven't been processed.
      *
-     * @return silicon::coroutine::task<void>
+     * @return silicon::scheduler::task::task<void>
      */
-    auto shutdown() -> silicon::coroutine::task<void> {
+    auto shutdown() -> silicon::scheduler::task::task<void> {
         auto expected = m_p->m_running_state.load(std::memory_order::acquire);
         if(expected == running_state_t::kStopped) {
             co_return;
@@ -342,10 +341,10 @@ class queue {
      *
      * @tparam executor_t The executor type.
      * @param e The executor to yield this task to wait for elements to be processed.
-     * @return silicon::coroutine::task<void>
+     * @return silicon::scheduler::task::task<void>
      */
     template<silicon::coroutine::concepts::executor executor_type>
-    auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::coroutine::task<void> {
+    auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::scheduler::task::task<void> {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         auto expected = running_state_t::kRunning;
         if(!m_p->m_running_state.compare_exchange_strong(

@@ -25,7 +25,7 @@ auto make_invoker_task(functor_type functor, args_types &&...args) -> decltype(f
  * @code {.cpp}
  * int a = 1;
  * int b = 2;
- * auto make_task = [&a](int c) -> silicon::coroutine::task<int>
+ * auto make_task = [&a](int c) -> silicon::scheduler::task::task<int>
  * {
  *     co_await task_that_suspends();
  *     return a + b;

@@ -22,10 +22,9 @@ export module silicon.coroutine:when_any;
 #ifndef EMSCRIPTEN
 
 import silicon.scheduler;
-import :detail.task_self_deleting;
+import silicon.scheduler.task;
 import :event;
 import :mutex;
-import :task;
 import :when_all;
 
 export namespace silicon::coroutine {
@@ -46,7 +45,7 @@ template<size_t index, typename return_type, concepts::awaitable awaitable>
 auto make_when_any_tuple_task(
         std::atomic<bool> &first_completed, silicon::coroutine::event &notify, std::optional<return_type> &return_value, awaitable a
 )
-        -> silicon::coroutine::task<void> {
+        -> silicon::scheduler::task::task<void> {
     auto expected = false;
     if constexpr(concepts::awaitable_void<awaitable>) {
         co_await static_cast<awaitable &&>(a);
@@ -74,7 +73,7 @@ template<typename return_type, concepts::awaitable... awaitable_type, size_t... 
         silicon::coroutine::event &notify,
         std::optional<return_type> &return_value,
         awaitable_type... awaitables
-) -> silicon::coroutine::detail::task_self_deleting {
+) -> silicon::scheduler::task::detail::task_self_deleting {
     std::atomic<bool> first_completed{false};
     co_await silicon::coroutine::when_all(
             make_when_any_tuple_task<indices>(first_completed, notify, return_value, std::move(awaitables))...
@@ -84,7 +83,7 @@ template<typename return_type, concepts::awaitable... awaitable_type, size_t... 
 
 template<concepts::awaitable awaitable>
 auto make_when_any_task_return_void(awaitable a, std::atomic<bool> &first_completed, silicon::coroutine::event &notify)
-        -> silicon::coroutine::task<void> {
+        -> silicon::scheduler::task::task<void> {
     co_await static_cast<awaitable &&>(a);
     auto expected = false;
     if(first_completed.compare_exchange_strong(expected, true, std::memory_order::acq_rel, std::memory_order::relaxed)) {
@@ -97,7 +96,7 @@ template<concepts::awaitable awaitable, typename return_type>
 auto make_when_any_task(
         awaitable a, std::atomic<bool> &first_completed, silicon::coroutine::event &notify, std::optional<return_type> &return_value
 )
-        -> silicon::coroutine::task<void> {
+        -> silicon::scheduler::task::task<void> {
     auto expected = false;
     auto result = co_await static_cast<awaitable &&>(a);
     // Its important to only touch return_value and notify once since their lifetimes will be destroyed
@@ -112,9 +111,9 @@ auto make_when_any_task(
 
 template<std::ranges::range range_type, concepts::awaitable awaitable_type = std::ranges::range_value_t<range_type>>
 auto make_when_any_controller_task_return_void(range_type awaitables, silicon::coroutine::event &notify)
-        -> silicon::coroutine::detail::task_self_deleting {
+        -> silicon::scheduler::task::detail::task_self_deleting {
     std::atomic<bool> first_completed{false};
-    std::vector<silicon::coroutine::task<void>> tasks{};
+    std::vector<silicon::scheduler::task::task<void>> tasks{};
 
     if constexpr(std::ranges::sized_range<range_type>) {
         tasks.reserve(std::size(awaitables));
@@ -136,14 +135,14 @@ template<
 auto make_when_any_controller_task(
         range_type awaitables, silicon::coroutine::event &notify, std::optional<return_type_base> &return_value
 )
-        -> silicon::coroutine::detail::task_self_deleting {
+        -> silicon::scheduler::task::detail::task_self_deleting {
     // This must live for as long as the longest running when_any task since each task tries to see
     // if it was the first to complete. Only the very first task to complete will set the return_value
     // and notify.
     std::atomic<bool> first_completed{false};
 
     // This detatched task will maintain the lifetime of all the when_any tasks.
-    std::vector<silicon::coroutine::task<void>> tasks{};
+    std::vector<silicon::scheduler::task::task<void>> tasks{};
 
     if constexpr(std::ranges::sized_range<range_type>) {
         tasks.reserve(std::size(awaitables));
@@ -163,7 +162,7 @@ auto make_when_any_controller_task(
 
 template<concepts::awaitable... awaitable_type>
 [[nodiscard]] auto when_any(std::stop_source stop_source, awaitable_type... awaitables)
-        -> silicon::coroutine::task<std::variant<typename detail::when_any_variant_traits<
+        -> silicon::scheduler::task::task<std::variant<typename detail::when_any_variant_traits<
                 std::remove_reference_t<typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>>::type...>> {
     using return_type = std::variant<typename detail::when_any_variant_traits<
             std::remove_reference_t<typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>>::type...>;
@@ -186,7 +185,7 @@ template<concepts::awaitable... awaitable_type>
 
 template<concepts::awaitable... awaitable_type>
 [[nodiscard]] auto when_any(awaitable_type... awaitables)
-        -> silicon::coroutine::task<std::variant<typename detail::when_any_variant_traits<
+        -> silicon::scheduler::task::task<std::variant<typename detail::when_any_variant_traits<
                 std::remove_reference_t<typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>>::type...>> {
     using return_type = std::variant<typename detail::when_any_variant_traits<
             std::remove_reference_t<typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>>::type...>;
@@ -211,7 +210,7 @@ template<
         concepts::awaitable awaitable_type = std::ranges::range_value_t<range_type>,
         typename return_type = typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type,
         typename return_type_base = std::remove_reference_t<return_type>>
-[[nodiscard]] auto when_any(std::stop_source stop_source, range_type awaitables) -> silicon::coroutine::task<return_type_base> {
+[[nodiscard]] auto when_any(std::stop_source stop_source, range_type awaitables) -> silicon::scheduler::task::task<return_type_base> {
     silicon::coroutine::event notify{};
 
     if constexpr(std::is_void_v<return_type_base>) {
@@ -241,7 +240,7 @@ template<
         concepts::awaitable awaitable_type = std::ranges::range_value_t<range_type>,
         typename return_type = typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type,
         typename return_type_base = std::remove_reference_t<return_type>>
-[[nodiscard]] auto when_any(range_type awaitables) -> silicon::coroutine::task<return_type_base> {
+[[nodiscard]] auto when_any(range_type awaitables) -> silicon::scheduler::task::task<return_type_base> {
     silicon::coroutine::event notify{};
 
     if constexpr(std::is_void_v<return_type_base>) {

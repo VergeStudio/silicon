@@ -28,7 +28,7 @@ auto condition_variable::push_waiter(awaiter_base *waiter) noexcept -> void {
 }
 
 auto condition_variable::make_notify_all_executor_individual_task(awaiter_base *waiter)
-        -> silicon::coroutine::task<void> {
+        -> silicon::scheduler::task::task<void> {
     switch(co_await waiter->on_notify()) {
         case notify_status_t::kNotReady:
             // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
@@ -67,7 +67,7 @@ auto condition_variable::awaiter::await_suspend(std::coroutine_handle<> awaiting
     return true;
 }
 
-auto condition_variable::awaiter::on_notify() -> silicon::coroutine::task<condition_variable::notify_status_t> {
+auto condition_variable::awaiter::on_notify() -> silicon::scheduler::task::task<condition_variable::notify_status_t> {
     // Re-lock, the waiter is now responsible for unlocking.
     co_await m_lock.owned_mutex()->lock();
     m_awaiting_coroutine.resume();
@@ -93,7 +93,7 @@ auto condition_variable::awaiter_with_predicate::await_suspend(std::coroutine_ha
     return true;
 }
 
-auto condition_variable::awaiter_with_predicate::on_notify() -> silicon::coroutine::task<condition_variable::notify_status_t> {
+auto condition_variable::awaiter_with_predicate::on_notify() -> silicon::scheduler::task::task<condition_variable::notify_status_t> {
     co_await m_lock.owned_mutex()->lock();
     if(m_predicate()) {
         m_awaiting_coroutine.resume();
@@ -129,7 +129,7 @@ auto condition_variable::awaiter_with_predicate_stop_token::await_suspend(std::c
     return true;
 }
 
-auto condition_variable::awaiter_with_predicate_stop_token::on_notify() -> silicon::coroutine::task<condition_variable::notify_status_t> {
+auto condition_variable::awaiter_with_predicate_stop_token::on_notify() -> silicon::scheduler::task::task<condition_variable::notify_status_t> {
     co_await m_lock.owned_mutex()->lock();
     m_predicate_result = m_predicate();
 
@@ -168,7 +168,7 @@ condition_variable::awaiter_with_wait_hook::awaiter_with_wait_hook(
       m_data(data) {
 }
 
-auto condition_variable::awaiter_with_wait_hook::on_notify() -> silicon::coroutine::task<condition_variable::notify_status_t> {
+auto condition_variable::awaiter_with_wait_hook::on_notify() -> silicon::scheduler::task::task<condition_variable::notify_status_t> {
     auto event_lock = co_await m_data.m_event_mutex.scoped_lock();
 
     // See if this awaiter is a real notify or if it has timed out already.
@@ -208,7 +208,7 @@ auto condition_variable::awaiter_with_wait_hook::on_notify() -> silicon::corouti
 
 #endif
 
-auto condition_variable::notify_one() -> silicon::coroutine::task<void> {
+auto condition_variable::notify_one() -> silicon::scheduler::task::task<void> {
     // The loop is here in case there are *dead* awaiter_hook_tasks that need to be skipped.
     while(true) {
         auto *waiter = detail::awaiter_list_pop(m_p->m_awaiters);
@@ -231,7 +231,7 @@ auto condition_variable::notify_one() -> silicon::coroutine::task<void> {
     }
 }
 
-auto condition_variable::notify_all() -> silicon::coroutine::task<void> {
+auto condition_variable::notify_all() -> silicon::scheduler::task::task<void> {
     auto *waiter = detail::awaiter_list_pop_all(m_p->m_awaiters);
 
     while(waiter != nullptr) {

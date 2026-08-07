@@ -19,10 +19,10 @@ class ITlsServer {
     virtual ~ITlsServer() = default;
 
     virtual auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<silicon::coroutine::poll_status> = 0;
+            -> silicon::scheduler::task::task<silicon::coroutine::poll_status> = 0;
 
     virtual auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30})
-            -> silicon::coroutine::task<client> = 0;
+            -> silicon::scheduler::task::task<client> = 0;
 };
 
 } // namespace silicon::network::tls

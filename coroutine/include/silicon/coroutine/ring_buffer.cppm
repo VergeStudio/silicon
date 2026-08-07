@@ -16,8 +16,7 @@ export module silicon.coroutine:ring_buffer;
 
 import silicon.scheduler;
 import :mutex;
-import :task;
-
+import silicon.scheduler.task;
 export namespace silicon::coroutine {
 namespace ring_buffer_result {
 enum class produce {
@@ -194,7 +193,7 @@ class ring_buffer {
      * in the ring buffer becomes available.
      * @param e The element to produce.
      */
-    [[nodiscard]] auto produce(element e) -> silicon::coroutine::task<ring_buffer_result::produce> {
+    [[nodiscard]] auto produce(element e) -> silicon::scheduler::task::task<ring_buffer_result::produce> {
         co_await m_p->m_mutex.lock();
         auto result = co_await produce_operation{*this, std::move(e)};
         co_await try_resume_consumers();
@@ -205,7 +204,7 @@ class ring_buffer {
      * Consumes an element from the ring buffer.  This operation will suspend until an element in
      * the ring buffer becomes available.
      */
-    [[nodiscard]] auto consume() -> silicon::coroutine::task<expected<element, ring_buffer_result::consume>> {
+    [[nodiscard]] auto consume() -> silicon::scheduler::task::task<expected<element, ring_buffer_result::consume>> {
         co_await m_p->m_mutex.lock();
         auto result = co_await consume_operation{*this};
         co_await try_resume_producers();
@@ -240,7 +239,7 @@ class ring_buffer {
      * @brief Wakes up all currently awaiting producers.  Their await_resume() function
      *        will return an expected produce result that producers have been notified.
      */
-    auto notify_producers() -> silicon::coroutine::task<void> {
+    auto notify_producers() -> silicon::scheduler::task::task<void> {
         auto expected = m_p->m_running_state.load(std::memory_order::acquire);
         if(expected == running_state_t::kStopped) {
             co_return;
@@ -264,7 +263,7 @@ class ring_buffer {
      * @brief Wakes up all currently awaiting consumers.  Their await_resume() function
      *        will return an expected consume result that consumers have been notified.
      */
-    auto notify_consumers() -> silicon::coroutine::task<void> {
+    auto notify_consumers() -> silicon::scheduler::task::task<void> {
         auto expected = m_p->m_running_state.load(std::memory_order::acquire);
         if(expected == running_state_t::kStopped) {
             co_return;
@@ -288,7 +287,7 @@ class ring_buffer {
      * @brief Wakes up all currently awaiting producers and consumers.  Their await_resume() function
      *        will return an expected consume result that the ring buffer has stopped.
      */
-    auto shutdown() -> silicon::coroutine::task<void> {
+    auto shutdown() -> silicon::scheduler::task::task<void> {
         // Only wake up waiters once.
         auto expected = m_p->m_running_state.load(std::memory_order::acquire);
         if(expected == running_state_t::kStopped) {
@@ -325,7 +324,7 @@ class ring_buffer {
     }
 
     template<silicon::coroutine::concepts::executor executor_type>
-    [[nodiscard]] auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::scheduler::task::task<void> {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         // Do not allow any more produces, the state must be in running to drain.
         auto expected = running_state_t::kRunning;
@@ -382,7 +381,7 @@ class ring_buffer {
 
     std::unique_ptr<Impl> m_p;
 
-    auto try_resume_producers() -> silicon::coroutine::task<void> {
+    auto try_resume_producers() -> silicon::scheduler::task::task<void> {
         while(true) {
             auto lk = co_await m_p->m_mutex.scoped_lock();
             if(m_p->m_used.load(std::memory_order::acquire) < num_elements) {
@@ -401,7 +400,7 @@ class ring_buffer {
         }
     }
 
-    auto try_resume_consumers() -> silicon::coroutine::task<void> {
+    auto try_resume_consumers() -> silicon::scheduler::task::task<void> {
         while(true) {
             auto lk = co_await m_p->m_mutex.scoped_lock();
             if(m_p->m_used.load(std::memory_order::acquire) > 0) {

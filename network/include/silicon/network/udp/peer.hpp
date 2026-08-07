@@ -53,7 +53,7 @@ class peer final: public IUdpPeer {
             const socket_address &address,
             const buffer_type &buffer,
             std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
-    ) -> silicon::coroutine::task<io_status> {
+    ) -> silicon::scheduler::task::task<io_status> {
         co_return co_await write_to_impl(address, std::as_bytes(std::span{buffer}), timeout);
     }
 
@@ -66,7 +66,7 @@ class peer final: public IUdpPeer {
      */
     template<silicon::coroutine::concepts::mutable_buffer buffer_type>
     auto read_from(buffer_type &buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<std::tuple<io_status, socket_address, std::span<std::byte>>> {
+            -> silicon::scheduler::task::task<std::tuple<io_status, socket_address, std::span<std::byte>>> {
         co_return co_await read_from_impl(std::as_writable_bytes(std::span{buffer}), timeout);
     }
 
@@ -75,7 +75,7 @@ class peer final: public IUdpPeer {
             const socket_address &address,
             const std::span<const std::byte> buffer,
             std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
-    ) -> silicon::coroutine::task<io_status> {
+    ) -> silicon::scheduler::task::task<io_status> {
         if(buffer.empty()) {
             co_return io_status{io_status::kind::kOk};
         }
@@ -102,7 +102,7 @@ class peer final: public IUdpPeer {
     }
 
     auto read_from_impl(std::span<std::byte> buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<std::tuple<io_status, socket_address, std::span<std::byte>>> {
+            -> silicon::scheduler::task::task<std::tuple<io_status, socket_address, std::span<std::byte>>> {
         // The user must bind locally to be able to receive packets.
         if(!m_bound) {
             co_return {io_status{io_status::kind::kUdpNotBound}, network::socket_address::make_uninitialised(), {}};
@@ -141,7 +141,7 @@ class peer final: public IUdpPeer {
      * @return The result status of the poll operation.
      */
     auto poll(silicon::coroutine::poll_op op, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<silicon::coroutine::poll_status> {
+            -> silicon::scheduler::task::task<silicon::coroutine::poll_status> {
         co_return co_await m_scheduler->poll(m_socket.native_handle(), op, timeout);
     }
 

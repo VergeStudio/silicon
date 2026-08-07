@@ -11,8 +11,7 @@ export module silicon.coroutine:shared_mutex;
 
 import silicon.scheduler;
 import :mutex;
-import :task;
-
+import silicon.scheduler.task;
 export namespace silicon::coroutine {
 template<concepts::executor executor_type>
 class shared_mutex;
@@ -110,7 +109,7 @@ class shared_mutex {
      * object due to destructors not being able to be co_await'ed.
      * @param scoped_task The user's scoped task to execute after acquiring the shared lock.
      */
-    [[nodiscard]] auto scoped_lock_shared(silicon::coroutine::task<void> scoped_task) -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto scoped_lock_shared(silicon::scheduler::task::task<void> scoped_task) -> silicon::scheduler::task::task<void> {
         co_await m_p->m_mutex.lock();
         co_await detail::shared_lock_operation<executor_type>{*this, false};
         co_await scoped_task;
@@ -124,7 +123,7 @@ class shared_mutex {
      * object due to destructors not being able to be co_await'ed.
      * @param scoped_task The user's scoped task to execute after acquiring the exclusive lock.
      */
-    [[nodiscard]] auto scoped_lock(silicon::coroutine::task<void> scoped_task) -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto scoped_lock(silicon::scheduler::task::task<void> scoped_task) -> silicon::scheduler::task::task<void> {
         co_await m_p->m_mutex.lock();
         co_await detail::shared_lock_operation<executor_type>{*this, true};
         co_await scoped_task;
@@ -136,7 +135,7 @@ class shared_mutex {
      * Acquires the lock in a shared state. The shared_mutex must be unlock_shared() to release.
      * @return task
      */
-    [[nodiscard]] auto lock_shared() -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto lock_shared() -> silicon::scheduler::task::task<void> {
         co_await m_p->m_mutex.lock();
         co_await detail::shared_lock_operation<executor_type>{*this, false};
         co_return;
@@ -146,7 +145,7 @@ class shared_mutex {
      * Acquires the lock in an exclusive state. The shared_mutex must be unlock()'ed to release.
      * @return task
      */
-    [[nodiscard]] auto lock() -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto lock() -> silicon::scheduler::task::task<void> {
         co_await m_p->m_mutex.lock();
         co_await detail::shared_lock_operation<executor_type>{*this, true};
         co_return;
@@ -189,7 +188,7 @@ class shared_mutex {
      * If the shared user count drops to zero and this lock has an exclusive waiter then the exclusive
      * waiter acquires the lock.
      */
-    [[nodiscard]] auto unlock_shared() -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto unlock_shared() -> silicon::scheduler::task::task<void> {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         auto users = m_p->m_shared_users.fetch_sub(1, std::memory_order::acq_rel);
 
@@ -212,7 +211,7 @@ class shared_mutex {
      * shared waiters acquire the lock in a shared state in parallel and are resumed on the original
      * executor this shared mutex was created with.
      */
-    [[nodiscard]] auto unlock() -> silicon::coroutine::task<void> {
+    [[nodiscard]] auto unlock() -> silicon::scheduler::task::task<void> {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         auto *head_waiter = m_p->m_head_waiter.load(std::memory_order::acquire);
         if(head_waiter != nullptr) {

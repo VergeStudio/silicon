@@ -12,9 +12,7 @@ module;
 
 
 export module silicon.coroutine:mutex;
-
-import :task;
-
+import silicon.scheduler.task;
 export namespace silicon::coroutine {
 class mutex;
 class scoped_lock;

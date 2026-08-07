@@ -12,7 +12,7 @@ import silicon.coroutine;
 
 using silicon::coroutine::channel;
 using silicon::coroutine::sync_wait;
-using silicon::coroutine::task;
+using silicon::scheduler::task::task;
 using silicon::coroutine::when_all;
 
 namespace cr = silicon::coroutine::channel_result;

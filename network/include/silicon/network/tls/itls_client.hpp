@@ -21,7 +21,7 @@ class ITlsClient {
     virtual ~ITlsClient() = default;
 
     virtual auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::coroutine::task<connection_status> = 0;
+            -> silicon::scheduler::task::task<connection_status> = 0;
 };
 
 } // namespace silicon::network::tls

@@ -126,7 +126,7 @@ class resolver {
     /**
      * @param hn The hostname to resolve its ip addresses.
      */
-    auto host_by_name(const network::hostname &hn) -> silicon::coroutine::task<std::unique_ptr<result<executor_type>>> {
+    auto host_by_name(const network::hostname &hn) -> silicon::scheduler::task::task<std::unique_ptr<result<executor_type>>> {
         silicon::coroutine::event resume_event{};
         auto result_ptr = std::make_unique<result<executor_type>>(m_executor, resume_event, 1);
 
@@ -161,7 +161,7 @@ class resolver {
     /// are not setup when socket state is changed.
     std::unordered_map<silicon::coroutine::fd_t, silicon::coroutine::poll_op> m_active_sockets{};
 
-    auto make_poll_task(silicon::coroutine::fd_t fd) -> silicon::coroutine::task<void> {
+    auto make_poll_task(silicon::coroutine::fd_t fd) -> silicon::scheduler::task::task<void> {
         // The loop ensures non-blocking polling until the socket is closed by c-ares.
         while(m_active_sockets.contains(fd)) {
             auto ops = m_active_sockets[fd];
