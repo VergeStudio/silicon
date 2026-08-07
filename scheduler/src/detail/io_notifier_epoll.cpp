@@ -14,6 +14,8 @@ module;
 
 module silicon.scheduler;
 
+import :detail.poll_info_impl;
+
 #if defined(__linux__)
 using namespace std::chrono_literals;
 

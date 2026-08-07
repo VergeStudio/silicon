@@ -17,6 +17,8 @@ module;
 
 module silicon.scheduler;
 
+import :detail.poll_info_impl;
+
 #if defined(_WIN32)
 using namespace std::chrono_literals;
 

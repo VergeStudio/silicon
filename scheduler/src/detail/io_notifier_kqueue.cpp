@@ -16,6 +16,8 @@ module;
 
 module silicon.scheduler;
 
+import :detail.poll_info_impl;
+
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 using namespace std::chrono_literals;
 
