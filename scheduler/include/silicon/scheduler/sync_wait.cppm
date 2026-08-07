@@ -15,9 +15,9 @@ module;
 #include <stdexcept>
 #include <variant>
 
-#include "silicon/coroutine/common.h"
+#include "silicon/scheduler/common.h"
 
-export module silicon.coroutine:sync_wait;
+export module silicon.scheduler:sync_wait;
 
 import :concepts.awaitable;
 

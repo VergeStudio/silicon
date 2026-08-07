@@ -17,7 +17,7 @@ module;
 
 export module silicon.coroutine:when_all;
 
-import :concepts.awaitable;
+import silicon.scheduler;
 import :detail.void_value;
 
 export namespace silicon::coroutine {

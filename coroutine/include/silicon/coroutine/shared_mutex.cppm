@@ -9,7 +9,7 @@ module;
 
 export module silicon.coroutine:shared_mutex;
 
-import :concepts.executor;
+import silicon.scheduler;
 import :mutex;
 import :task;
 

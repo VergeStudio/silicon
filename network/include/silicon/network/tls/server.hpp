@@ -16,6 +16,7 @@
 #    include "silicon/network/tls/client.hpp"
 #    include "silicon/network/tls/itls_server.hpp"
 #include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
+import silicon.coroutine;        // 调度原语别名（task/expected/...）的命名空间仍属 silicon::coroutine
 import silicon.scheduler.task; // 兼容头文本包含与 silicon.task 模块冲突，改用 import
 import silicon.scheduler;
 

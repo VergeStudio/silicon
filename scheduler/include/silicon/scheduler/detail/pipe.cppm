@@ -5,7 +5,7 @@ module;
 #include <memory>
 
 
-export module silicon.coroutine:detail.pipe;
+export module silicon.scheduler:detail.pipe;
 
 import :fd;
 

@@ -5,7 +5,7 @@ module;
 #include <condition_variable>
 #include <mutex>
 
-module silicon.coroutine;
+module silicon.scheduler;
 
 namespace silicon::coroutine::detail {
 

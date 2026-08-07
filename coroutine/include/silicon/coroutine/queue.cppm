@@ -15,10 +15,8 @@ module;
 
 export module silicon.coroutine:queue;
 
-import :concepts.executor;
-import :expected;
+import silicon.scheduler;
 import :mutex;
-import :sync_wait;
 import :task;
 
 export namespace silicon::coroutine {

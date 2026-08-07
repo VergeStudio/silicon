@@ -4,7 +4,7 @@ module;
 #include <concepts>
 #include <ranges>
 
-export module silicon.coroutine:concepts.range_of;
+export module silicon.scheduler:concepts.range_of;
 
 export namespace silicon::coroutine::concepts {
 /**

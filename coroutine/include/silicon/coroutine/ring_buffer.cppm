@@ -14,11 +14,8 @@ module;
 
 export module silicon.coroutine:ring_buffer;
 
-import :concepts.executor;
-import :detail.awaiter_list;
-import :expected;
+import silicon.scheduler;
 import :mutex;
-import :sync_wait;
 import :task;
 
 export namespace silicon::coroutine {

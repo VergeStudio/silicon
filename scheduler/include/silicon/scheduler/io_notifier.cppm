@@ -23,7 +23,9 @@ module;
 
 export module silicon.scheduler:io_notifier;
 
-import silicon.coroutine;
+import :fd;
+import :poll;
+import :time;
 
 import :detail.poll_info;
 
@@ -33,7 +35,8 @@ namespace silicon::scheduler::detail {
 export class timer_handle;
 }
 
-// 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
+// 基础 I/O 类型已随调度原语迁入本模块（命名空间仍为 silicon::coroutine），
+// 此处仅在本单元内引入简化书写，不 export。
 namespace silicon::scheduler {
 using silicon::coroutine::fd_t;
 using silicon::coroutine::poll_op;

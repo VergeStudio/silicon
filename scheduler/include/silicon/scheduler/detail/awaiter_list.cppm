@@ -4,7 +4,7 @@ module;
 #include <atomic>
 
 
-export module silicon.coroutine:detail.awaiter_list;
+export module silicon.scheduler:detail.awaiter_list;
 
 import :concepts.awaitable;
 

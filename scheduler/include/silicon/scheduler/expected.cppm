@@ -3,7 +3,7 @@ module;
 
 #include <expected>
 
-export module silicon.coroutine:expected;
+export module silicon.scheduler:expected;
 
 export namespace silicon::coroutine {
     template <typename T, typename E>

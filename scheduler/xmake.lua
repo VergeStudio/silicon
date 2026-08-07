@@ -20,11 +20,15 @@ target("scheduler", function()
     -- 分区：:ischeduler（抽象基类）、:thread_pool（CPU 线程池，原 silicon.thread）、
     -- :io_scheduler（事件循环，原 silicon.coroutine:scheduler）、
     -- :default_executor（进程级默认执行器）、:config。
+    --
+    -- 另含自 silicon.coroutine 下沉的调度原语（命名空间仍为 silicon::coroutine）：
+    -- :concepts.*、:expected、:fd、:poll、:time、:sync_wait、:detail.awaiter_list、
+    -- :detail.pipe。依赖方向已单向化为 coroutine -> scheduler -> task。
     add_includedirs("include")
 
     -- task 目录已并入 scheduler/task（target 名仍为 task）。
+    -- 注意：不得再依赖 silicon::coroutine —— coroutine 现在反向依赖本 target。
     add_deps("silicon::task", {configs = {shared = true}})
-    add_deps("silicon::coroutine", {configs = {shared = true}})
 
     add_files("src/**.cpp")
     add_files("include/silicon/scheduler/**.cppm", {public = true})

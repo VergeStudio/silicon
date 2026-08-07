@@ -5,7 +5,7 @@ module;
 #include <coroutine>
 
 
-export module silicon.coroutine:concepts.promise;
+export module silicon.scheduler:concepts.promise;
 
 import :concepts.awaitable;
 

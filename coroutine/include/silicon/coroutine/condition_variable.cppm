@@ -28,8 +28,7 @@ module;
 
 export module silicon.coroutine:condition_variable;
 
-import :concepts.executor;
-import :detail.awaiter_list;
+import silicon.scheduler;
 import :detail.task_self_deleting;
 import :event;
 import :mutex;

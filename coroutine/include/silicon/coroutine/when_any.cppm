@@ -21,10 +21,9 @@ export module silicon.coroutine:when_any;
 
 #ifndef EMSCRIPTEN
 
-import :concepts.awaitable;
+import silicon.scheduler;
 import :detail.task_self_deleting;
 import :event;
-import :expected;
 import :mutex;
 import :task;
 import :when_all;

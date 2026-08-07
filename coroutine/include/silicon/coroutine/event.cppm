@@ -9,7 +9,7 @@ module;
 
 export module silicon.coroutine:event;
 
-import :concepts.executor;
+import silicon.scheduler;
 
 export namespace silicon::coroutine {
 enum class resume_order_policy {

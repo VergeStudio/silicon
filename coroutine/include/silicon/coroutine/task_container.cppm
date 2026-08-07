@@ -19,7 +19,7 @@ module;
 
 export module silicon.coroutine:task_container;
 
-import :concepts.executor;
+import silicon.scheduler;
 import :detail.task_self_deleting;
 import :task;
 

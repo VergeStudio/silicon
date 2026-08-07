@@ -19,7 +19,7 @@ module;
 #    include <unistd.h>
 #endif
 
-module silicon.coroutine;
+module silicon.scheduler;
 
 namespace silicon::coroutine::detail
 {

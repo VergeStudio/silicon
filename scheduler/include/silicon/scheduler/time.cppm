@@ -3,7 +3,7 @@ module;
 
 #include <chrono>
 
-export module silicon.coroutine:time;
+export module silicon.scheduler:time;
 
 export namespace silicon::coroutine {
 using clock = std::chrono::steady_clock;

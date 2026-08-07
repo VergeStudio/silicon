@@ -10,7 +10,7 @@ module;
 
 export module silicon.coroutine:channel;
 
-import :expected;
+import silicon.scheduler;
 import :mutex;
 import :task;
 

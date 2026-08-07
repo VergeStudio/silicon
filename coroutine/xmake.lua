@@ -14,7 +14,9 @@ target("coroutine", function()
     -- default), and network (a classic lib) already depends back on coroutine,
     -- which would form a circular target dependency. Keeping the edge one-way
     -- (network -> coroutine) breaks the cycle.
-    add_deps("core", "task", {configs = {shared = true}})
+    -- 调度原语与事件循环已下沉到 silicon.scheduler；coroutine 单向依赖之
+    -- （coroutine -> scheduler -> task），primary interface 对其整体 re-export。
+    add_deps("core", "task", "scheduler", {configs = {shared = true}})
 
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/coroutine/**.hpp")
@@ -22,13 +24,8 @@ target("coroutine", function()
     add_files("src/**.cpp")
     add_files("include/silicon/coroutine/**.cppm", {public = true})
 
-    -- 平台专属 io_notifier 后端（iocp / epoll / kqueue）统一为单一导出类
-    -- silicon::coroutine::io_notifier（位于接口单元 include/silicon/coroutine/io_notifier.cppm，
-    -- 即 :io_notifier 分区）。
-    -- 该类对外接口在所有平台完全一致；平台专属状态隐藏在私有的嵌套 struct Impl（PIMPL）
-    -- 中，Impl 的实体定义落在各自平台的 .cpp 实现单元
-    -- （io_notifier_iocp.cpp / io_notifier_kqueue.cpp / io_notifier_epoll.cpp），由宏开关
-    -- 决定哪个 .cpp 实际提供方法体。因此这里不再按平台 remove_files。
+    -- 注：平台专属 io_notifier 后端（iocp / epoll / kqueue）连同 poll_info /
+    -- timer_handle / io_scheduler 已迁至 silicon.scheduler，不再由本 target 编译。
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("coroutine.config.cppm.in")

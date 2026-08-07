@@ -6,7 +6,7 @@ module;
 #include <type_traits>
 #include <utility>
 
-export module silicon.coroutine:concepts.awaitable;
+export module silicon.scheduler:concepts.awaitable;
 
 export namespace silicon::coroutine::concepts {
 

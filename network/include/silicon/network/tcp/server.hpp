@@ -16,6 +16,7 @@
 #include "silicon/network/tcp/client.hpp"
 #include "silicon/network/tcp/itcp_server.hpp"
 #include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
+import silicon.coroutine;        // 调度原语别名（task/expected/...）的命名空间仍属 silicon::coroutine
 import silicon.scheduler.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
 import silicon.scheduler;
 

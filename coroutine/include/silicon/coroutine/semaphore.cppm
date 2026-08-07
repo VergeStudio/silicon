@@ -11,10 +11,8 @@ module;
 
 export module silicon.coroutine:semaphore;
 
-import :detail.awaiter_list;
-import :expected;
+import silicon.scheduler;
 import :mutex;
-import :sync_wait;
 
 export namespace silicon::coroutine {
 

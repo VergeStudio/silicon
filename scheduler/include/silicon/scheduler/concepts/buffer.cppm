@@ -5,7 +5,7 @@ module;
 #include <cstdint>
 #include <type_traits>
 
-export module silicon.coroutine:concepts.buffer;
+export module silicon.scheduler:concepts.buffer;
 
 export namespace silicon::coroutine::concepts {
 // clang-format off

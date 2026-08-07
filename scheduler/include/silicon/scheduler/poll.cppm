@@ -24,7 +24,7 @@ module;
 #endif
 
 
-export module silicon.coroutine:poll;
+export module silicon.scheduler:poll;
 
 import :detail.pipe;
 import :fd;
