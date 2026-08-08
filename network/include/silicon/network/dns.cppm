@@ -1,4 +1,12 @@
-#pragma once
+// Interface partition silicon.network:dns
+//
+// c-ares backed asynchronous DNS resolver. The exported template classes
+// resolver<executor_type> / result<executor_type> keep their full inline
+// definitions here (in module purview) so consumer translation units can
+// instantiate them. The partition pulls scheduler task / coroutine scheduling
+// primitives and the :core types it names.
+
+module;
 
 #include <ares.h>
 #if defined(_WIN32) || defined(_WIN64)
@@ -11,24 +19,27 @@
 
 #include <array>
 #include <chrono>
+#include <coroutine>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
 
-import silicon.coroutine;
-#include "silicon/network/hostname.hpp"
-#include "silicon/network/ip_address.hpp"
-#include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.scheduler.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
+export module silicon.network:dns;
 
-namespace silicon::network::dns {
+export import silicon.coroutine;
+export import silicon.scheduler;
+export import silicon.scheduler.task;
+import :core;
+
+export namespace silicon::network::dns {
+
 namespace detail {
 /// Global count to track if c-ares has been initialized or cleaned up.
-static uint64_t m_ares_count;
+extern uint64_t m_ares_count;
 /// Critical section around the c-ares global init/cleanup to prevent heap corruption.
-static std::mutex m_ares_mutex;
+extern std::mutex m_ares_mutex;
 } // namespace detail
 
 template<silicon::coroutine::concepts::io_executor executor_type>

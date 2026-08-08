@@ -1,19 +1,46 @@
-#pragma once
+// Interface partition silicon.network:udp
+//
+// UDP peer abstraction. Template read/write methods are kept inline in module
+// purview. Pulls :core types and the scheduler task / coroutine primitives.
+
+module;
+
+#if defined(_WIN32) || defined(_WIN64)
+#    include <winsock2.h>
+#    include <ws2tcpip.h>
+#else
+#    include <arpa/inet.h>
+#    include <sys/socket.h>
+#endif
+
 #include <chrono>
+#include <coroutine>
 #include <memory>
 #include <span>
 
-import silicon.coroutine;
-import silicon.scheduler;
-#include "silicon/network/io_status.hpp"
-#include "silicon/network/ip_address.hpp"
-#include "silicon/network/socket.hpp"
-#include "silicon/network/socket_address.hpp"
-#include "silicon/network/udp/iudp_peer.hpp"
-#include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.scheduler.task; // task.hpp 为模块附着实体的兼容头，文本包含与 silicon.task 模块冲突
+export module silicon.network:udp;
 
-namespace silicon::network::udp {
+export import silicon.coroutine;
+export import silicon.scheduler;
+export import silicon.scheduler.task;
+import :core;
+
+export namespace silicon::network::udp {
+
+/// @brief Abstract interface for a UDP peer.
+class IUdpPeer {
+  public:
+    IUdpPeer() = default;
+    IUdpPeer(const IUdpPeer &) = delete;
+    IUdpPeer(IUdpPeer &&) = delete;
+    auto operator=(const IUdpPeer &) -> IUdpPeer & = delete;
+    auto operator=(IUdpPeer &&) -> IUdpPeer & = delete;
+    virtual ~IUdpPeer() = default;
+
+    virtual auto socket() noexcept -> network::socket & = 0;
+    virtual auto socket() const noexcept -> const network::socket & = 0;
+};
+
 class peer final: public IUdpPeer {
   public:
     /**

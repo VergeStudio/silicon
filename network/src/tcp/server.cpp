@@ -1,7 +1,12 @@
+// Implementation unit for silicon::network::tcp::server.
+
+module;
+
 #include <memory>
 
-#include "silicon/network_impl_includes.hpp"
+module silicon.network;
 
+import silicon.scheduler;
 
 namespace silicon::network::tcp {
 server::server(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint, options opts)

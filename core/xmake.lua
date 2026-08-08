@@ -14,7 +14,6 @@ target("core", function()
     end
 
     add_includedirs("include", {public = true})
-    add_headerfiles("include/silicon/core/**.hpp")
 
     add_files("src/**.cpp")
     -- Platform-specific shared library implementation

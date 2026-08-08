@@ -8,7 +8,6 @@ target("xdg", function()
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
     add_includedirs("include", {public = true})
-    add_headerfiles("include/silicon/xdg/**.hpp")
     add_files("include/silicon/xdg/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)

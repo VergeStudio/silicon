@@ -12,10 +12,6 @@ module;
 
 
 
-#ifdef LIBCORO_FEATURE_NETWORKING
-#include "silicon/network/socket.hpp"
-#endif
-
 #if !defined(_WIN32)
 #    include <unistd.h>
 #endif
@@ -388,25 +384,6 @@ class io_scheduler: public IScheduler {
             std::chrono::milliseconds timeout = std::chrono::milliseconds{0},
             std::optional<poll_stop_token> cancel_trigger = std::nullopt
     ) -> silicon::scheduler::task::task<poll_status>;
-
-#ifdef LIBCORO_FEATURE_NETWORKING
-    /**
-     * Polls the given silicon::network::socket for the given operations.
-     * @param sock The socket to poll for events on.
-     * @param op The operations to poll for.
-     * @param timeout The amount of time to wait for the events to trigger.  A timeout of zero will
-     *                block indefinitely until the event triggers.
-     * @return THe result of the poll operation.
-     */
-    [[nodiscard]] auto poll(
-            const silicon::network::socket &sock,
-            silicon::coroutine::poll_op op,
-            std::chrono::milliseconds timeout = std::chrono::milliseconds{0},
-            std::optional<poll_stop_token> cancel_trigger = std::nullopt
-    ) -> silicon::scheduler::task::task<poll_status> {
-        return poll(sock.native_handle(), op, timeout, cancel_trigger);
-    }
-#endif
 
     /**
      * Resumes execution of a direct coroutine handle on this io scheduler.

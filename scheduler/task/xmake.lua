@@ -16,7 +16,6 @@ target("task", function()
     end
 
     add_includedirs("include", {public = true})
-    add_headerfiles("include/silicon/scheduler/task/**.hpp")
 
     add_files("src/**.cpp")
     add_files("include/silicon/scheduler/task/**.cppm", {public = true})

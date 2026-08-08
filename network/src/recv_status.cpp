@@ -1,5 +1,10 @@
-#include "silicon/network_impl_includes.hpp"
+// Implementation unit for silicon::network (recv_status to_string).
 
+module;
+
+#include <string>
+
+module silicon.network;
 
 namespace silicon::network {
 

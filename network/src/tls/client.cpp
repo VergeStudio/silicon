@@ -1,10 +1,32 @@
-#include <memory>
+// Implementation unit for silicon::network::tls::client.
 
-#include "silicon/network_impl_includes.hpp"
+module;
 
+#ifdef SILICON_FEATURE_TLS
+#    if defined(_WIN32) || defined(_WIN64)
+#        include <winsock2.h>
+#        include <ws2tcpip.h>
+#    else
+#        include <sys/socket.h>
+#        include <unistd.h>
+#    endif
+
+#    include <openssl/err.h>
+#    include <openssl/ssl.h>
+
+#    include <atomic>
+#    include <chrono>
+#    include <iostream>
+#    include <memory>
+#endif
+
+module silicon.network;
 
 #ifdef SILICON_FEATURE_TLS
 
+import silicon.coroutine;
+import silicon.scheduler;
+import silicon.scheduler.task;
 
 namespace silicon::network::tls {
 using namespace std::chrono_literals;

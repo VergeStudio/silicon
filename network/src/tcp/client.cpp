@@ -1,7 +1,24 @@
+// Implementation unit for silicon::network::tcp::client.
+
+module;
+
+#if defined(_WIN32) || defined(_WIN64)
+#    include <winsock2.h>
+#    include <ws2tcpip.h>
+#else
+#    include <sys/socket.h>
+#    include <unistd.h>
+#endif
+
+#include <chrono>
+#include <iostream>
 #include <memory>
 
-#include "silicon/network_impl_includes.hpp"
+module silicon.network;
 
+import silicon.coroutine;
+import silicon.scheduler;
+import silicon.scheduler.task;
 
 namespace silicon::network::tcp {
 using namespace std::chrono_literals;

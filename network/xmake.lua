@@ -22,29 +22,23 @@ target("network", function()
         add_defines("NET_SHARED_LIB", "NET_EXPORT", {public = true})
     end
 
-    -- network 作为传统（非模块）库编译：其实现单元对头文件声明的类做外部
-    -- 成员函数定义，这在 C++20 命名模块下会触发 "declaration ... follows
-    -- declaration in the global module"（实现单元无法在模块作用域重新声明全局
-    -- 模块里声明的类成员）。改为普通 TU 后，#include 头文件 + 外部定义即标准
-    -- C++，无模块冲突。net.cppm 接口与其 :config 模块分区不再参与构建。
-    -- 实现单元通过 #include 拿到 scheduler/task 等 coroutine 类型，并需在链接
-    -- 时依赖 coroutine（tcp::client 调用 scheduler::poll 等）。
+    -- silicon::network 现为本真 C++20 命名模块库：
+    --   * 接口分区 (.cppm)：network.cppm(主接口) + core/dns/tcp/udp/tls；
+    --     :config 由 network.config.cppm.in 经 xmake 生成至 $(builddir)。
+    --   * 实现单元 (src/**.cpp)：均改写为 `module silicon.network;`，通过隐式
+    --     导入主接口获得模块作用域内的类声明，再提供非模板成员的外联定义。
+    --   * 原 25 个 .hpp 头与孤儿 net.cppm、network_impl_includes.hpp 已删除；
+    --     跨模块符号（coroutine/scheduler/task）改用 `import` 而非文本包含。
+    -- 依赖方向保持单向：network -> coroutine -> scheduler -> task。
     add_deps("silicon::coroutine", "silicon::scheduler")
 
     add_includedirs("include", {public = true})
-    -- Include coroutine & task headers for types used in net public headers
-    add_includedirs("../coroutine/include", {public = true})
-    -- Impl units #include "silicon/network_impl_includes.hpp" (the global-module
-    -- fragment bundle under tools/build/shims). xmake's module dep scanner invokes
-    -- the unwrapped clang-scan-deps, which does not get the include path the
-    -- clang++ wrapper injects, so add it here explicitly for scanning + compile.
-    -- Path is relative to THIS xmake.lua dir (pkg/silicon/network).
-    add_includedirs("../../../tools/build/shims")
-    add_headerfiles("include/silicon/network/**.hpp")
-
     add_packages("c-ares", {public = true})
 
-    -- Include all source files, but exclude platform files for the wrong platform
+    -- 接口分区（主接口 + 各子分区）+ 生成的 :config 分区。
+    add_files("include/silicon/network/**.cppm", {public = true})
+
+    -- 实现单元（传统 .cpp，但均为模块实现单元）。
     add_files("src/**.cpp")
     if is_os("windows") then
         remove_files("src/io_status_linux.cpp")
@@ -52,6 +46,8 @@ target("network", function()
         remove_files("src/io_status_win.cpp")
     end
 
+    -- 生成的 :config 分区（版本信息），由 network.config.cppm.in 产出。
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("network.config.cppm.in")
+    add_files("$(builddir)/silicon/config/network.*.cppm", {public = true})
 end)

@@ -106,14 +106,9 @@ class IFileSystem {
 
 } // namespace silicon::fs
 
-// ── 分平台实现（_win / _posix 后缀头文件） ──────────────────────────
-// 按 SILICON_PLATFORM_* 宏（顶层 xmake.lua 定义）在编译期选用对应实现，
-// 由本模块 #include 进 silicon.fs，避免多模块 BMI 暴露问题。
-#if defined(SILICON_PLATFORM_WINDOWS)
-#    include "silicon/fs/fs_win.hpp"
-#elif defined(SILICON_PLATFORM_UNIX)
-#    include "silicon/fs/fs_posix.hpp"
-#endif
+// ── 分平台实现（FileSystemBase / Win32FileSystem / PosixFileSystem） ──
+// 已并入模块实现单元 fs/src/fs.cpp：按 SILICON_PLATFORM_* 宏在编译期选用
+// 对应平台实现（宏由顶层 xmake.lua 定义），CreateFileSystem() 亦在该单元定义。
 
 export namespace silicon::fs {
 

@@ -1,8 +1,14 @@
-#include "silicon/network_impl_includes.hpp"
+// Implementation unit for silicon::network::tls::connection_status to_string.
 
+module;
 
 #ifdef SILICON_FEATURE_TLS
+#    include <string>
+#endif
 
+module silicon.network;
+
+#ifdef SILICON_FEATURE_TLS
 
 namespace silicon::network::tls {
 static const std::string connection_status_connected = {"connected"};

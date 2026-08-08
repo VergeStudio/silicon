@@ -1,4 +1,13 @@
-#include "silicon/network_impl_includes.hpp"
+// Implementation unit for silicon::network (io_status shared helpers).
+
+module;
+
+#include <string>
+#include <string_view>
+
+module silicon.network;
+
+import silicon.coroutine;
 
 // ── Shared: message() preamble (same on all platforms) ──────────────────
 std::string silicon::network::io_status::message() const {

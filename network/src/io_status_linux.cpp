@@ -1,7 +1,13 @@
 // Linux/BSD implementation of platform-specific io_status helpers.
+
+module;
+
+#include <cerrno>
+#include <errno.h>
+#include <string>
 #include <system_error>
 
-#include "silicon/network_impl_includes.hpp"
+module silicon.network;
 
 namespace silicon::network {
 
@@ -31,9 +37,9 @@ auto make_io_status_from_native_impl(int native_code) -> io_status {
             type = kind::kConnectionReset;
             break;
         case EAGAIN:
-#if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+#    if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
         case EWOULDBLOCK:
-#endif
+#    endif
             type = kind::kWouldBlockOrTryAgain;
             break;
         case EMSGSIZE:

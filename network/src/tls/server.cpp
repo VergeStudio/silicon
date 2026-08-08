@@ -1,10 +1,18 @@
-#include <memory>
+// Implementation unit for silicon::network::tls::server.
 
-#include "silicon/network_impl_includes.hpp"
+module;
 
+#ifdef SILICON_FEATURE_TLS
+#    include <memory>
+#    include <chrono>
+#endif
+
+module silicon.network;
 
 #ifdef SILICON_FEATURE_TLS
 
+import silicon.scheduler;
+import silicon.scheduler.task;
 
 namespace silicon::network::tls {
 server::server(

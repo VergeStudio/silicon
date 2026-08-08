@@ -7,10 +7,10 @@ module;
 #include <variant>
 
 #include "silicon/core/common.h"
-#include "silicon/core/string.hpp"
-#include "silicon/core/util.hpp"
 
 export module silicon.exception;
+
+import silicon.util;
 
 namespace silicon::exception {
 export class CORE_API Exception: public std::exception {

@@ -1,7 +1,12 @@
+// Implementation unit for silicon::network::udp::peer.
+
+module;
+
 #include <memory>
 
-#include "silicon/network_impl_includes.hpp"
+module silicon.network;
 
+import silicon.scheduler;
 
 namespace silicon::network::udp {
 peer::peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::domain_t domain)

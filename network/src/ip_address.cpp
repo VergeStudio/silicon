@@ -1,7 +1,17 @@
-#include "silicon/network_impl_includes.hpp"
+// Implementation unit for silicon::network (domain_t to_string).
+//
+// NOTE: ip_address itself is fully inline in the :core partition; only this
+// free helper lives here.
 
+module;
+
+#include <stdexcept>
+#include <string>
+
+module silicon.network;
 
 namespace silicon::network {
+
 static std::string domain_ipv4{"ipv4"};
 static std::string domain_ipv6{"ipv6"};
 

@@ -285,10 +285,12 @@ inline auto promise<void>::get_return_object() noexcept -> task<> {
 // task_self_deleting — a coroutine that self-destructs upon completion
 // ---------------------------------------------------------------------------
 //
-// NOTE: 这些内部辅助类型必须与公共头 include/silicon/scheduler/task/detail/
-// task_self_deleting.hpp 保持同一命名空间（silicon::scheduler::task::detail），
-// 否则跨 DLL 消费方（如 silicon.coroutine 走头文件路径）引用的
-// detail:: 修饰名与本模块导出的符号不匹配，导致 undefined symbol。
+// NOTE: 这些内部辅助类型此前由公共头 include/silicon/scheduler/task/detail/
+// task_self_deleting.hpp 提供；该兼容头已删除，本模块接口现为唯一定义处。
+// 命名空间仍须保持为 silicon::scheduler::task::detail，以保证跨 DLL 消费方
+// （如 silicon.coroutine）引用的 detail:: 修饰名与本模块导出的符号一致，
+// 否则会出现 undefined symbol。消费方统一经 `import silicon.scheduler.task;`
+// 使用，不再走头文件路径。
 namespace detail {
 
 class task_self_deleting;

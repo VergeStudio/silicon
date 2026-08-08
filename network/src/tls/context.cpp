@@ -1,8 +1,18 @@
-#include "silicon/network_impl_includes.hpp"
+// Implementation unit for silicon::network::tls::context.
 
+module;
 
 #ifdef SILICON_FEATURE_TLS
+#    include <openssl/err.h>
+#    include <openssl/ssl.h>
 
+#    include <filesystem>
+#    include <mutex>
+#endif
+
+module silicon.network;
+
+#ifdef SILICON_FEATURE_TLS
 
 namespace silicon::network::tls {
 static uint64_t g_tls_context_count{0};

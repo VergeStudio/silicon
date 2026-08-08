@@ -8,7 +8,7 @@
 #include <source_location>
 #include <string_view>
 
-#include "silicon/core/string.hpp"
+import silicon.util;
 #include "spdlog/async.h"
 #include "spdlog/async_logger.h"
 #include "spdlog/sinks/hourly_file_sink.h"

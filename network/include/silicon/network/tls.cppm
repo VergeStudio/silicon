@@ -1,26 +1,193 @@
+// Interface partition silicon.network:tls
+//
+// OpenSSL-backed TLS client / server abstractions. Compiled only when
+// SILICON_FEATURE_TLS is defined (mirrors the original header guards). The
+// module declaration is always present so the file is a valid (empty) module
+// unit when TLS is disabled; the primary interface only `export import :tls;`
+// inside the same guard, so there is no dangling import.
+//
+// Template read/write methods are kept inline in module purview. Pulls :core
+// types and the scheduler task / coroutine primitives it names.
+
+module;
+
+#ifdef SILICON_FEATURE_TLS
+#    include <openssl/bio.h>
+#    include <openssl/err.h>
+#    include <openssl/pem.h>
+#    include <openssl/ssl.h>
+
+#    include <filesystem>
+#    include <mutex>
+#endif
+
+#include <chrono>
+#include <coroutine>
 #include <memory>
+#include <optional>
+#include <span>
+#include <utility>
+
+export module silicon.network:tls;
+
+export import silicon.coroutine;
+export import silicon.scheduler;
+export import silicon.scheduler.task;
+import :core;
+
 #ifdef SILICON_FEATURE_TLS
 
-#    pragma once
+export namespace silicon::network::tls {
 
-#    include <chrono>
-#    include <memory>
-#    include <optional>
+class client;
 
-import silicon.coroutine;
-import silicon.scheduler;
-#    include "silicon/network/connect.hpp"
-#    include "silicon/network/ip_address.hpp"
-#    include "silicon/network/socket.hpp"
-#    include "silicon/network/tls/connection_status.hpp"
-#    include "silicon/network/tls/context.hpp"
-#    include "silicon/network/tls/itls_client.hpp"
-#    include "silicon/network/tls/recv_status.hpp"
-#    include "silicon/network/tls/send_status.hpp"
-#include <coroutine> // task.hpp 文本包含时代经其传递获得，import 化后需显式包含
-import silicon.scheduler.task; // 兼容头文本包含与 silicon.task 模块冲突，改用 import
+enum class tls_file_type : int {
+    /// The file is of type ASN1
+    asn1 = SSL_FILETYPE_ASN1,
+    /// The file is of type PEM
+    pem = SSL_FILETYPE_PEM
+};
 
-namespace silicon::network::tls {
+enum class verify_peer_t : int {
+    kYes,
+    kNo
+};
+
+enum class connection_status {
+    /// The tls connection was successful.
+    kConnected,
+    /// The connection hasn't been established yet, use connect() prior to the handshake().
+    kNotConnected,
+    /// The connection needs a silicon::network::tls::context to perform the handshake.
+    kContextRequired,
+    /// The internal ssl memory alocation failed.
+    kResourceAllocationFailed,
+    /// Attempting to set the connections ssl socket/file descriptor failed.
+    kSetFdFailure,
+    /// The handshake had an error.
+    kHandshakeFailed,
+    /// The connection timed out.
+    kTimeout,
+    /// An error occurred while polling for read or write operations on the socket.
+    kPollError,
+    /// The socket was unexpectedly closed while attempting the handshake.
+    kUnexpectedClose,
+    /// The given ip address could not be parsed or is invalid.
+    kInvalidIpAddress,
+    /// There was an unrecoverable error, use errno to get more information on the specific error.
+    kError
+};
+
+auto to_string(connection_status status) -> const std::string &;
+
+enum class recv_status : int64_t {
+    kOk = SSL_ERROR_NONE,
+    // The user provided an 0 length buffer.
+    kBufferIsEmpty = -3,
+    kTimeout = -4,
+    // The operation was cancelled.
+    kCancelled = -5,
+    /// The peer closed the socket.
+    kClosed = SSL_ERROR_ZERO_RETURN,
+    kError = SSL_ERROR_SSL,
+    kWantRead = SSL_ERROR_WANT_READ,
+    kWantWrite = SSL_ERROR_WANT_WRITE,
+    kWantConnect = SSL_ERROR_WANT_CONNECT,
+    kWantAccept = SSL_ERROR_WANT_ACCEPT,
+    kWantX509Lookup = SSL_ERROR_WANT_X509_LOOKUP,
+    kErrorSyscall = SSL_ERROR_SYSCALL,
+
+};
+
+auto to_string(recv_status status) -> const std::string &;
+
+enum class send_status : int64_t {
+    kOk = SSL_ERROR_NONE,
+    // The user provided an 0 length buffer.
+    kBufferIsEmpty = -3,
+    // The operation timed out.
+    kTimeout = -4,
+    /// The operation was cancelled.
+    kCancelled = -5,
+    /// The peer closed the socket.
+    kClosed = SSL_ERROR_ZERO_RETURN,
+    kError = SSL_ERROR_SSL,
+    kWantRead = SSL_ERROR_WANT_READ,
+    kWantWrite = SSL_ERROR_WANT_WRITE,
+    kWantConnect = SSL_ERROR_WANT_CONNECT,
+    kWantAccept = SSL_ERROR_WANT_ACCEPT,
+    kWantX509Lookup = SSL_ERROR_WANT_X509_LOOKUP,
+    kErrorSyscall = SSL_ERROR_SYSCALL,
+
+};
+
+auto to_string(send_status status) -> const std::string &;
+
+class context {
+  public:
+    /**
+     * Creates a context with no certificate and no private key, maybe useful for testing.
+     * @param verify_peer Should the peer be verified? Defaults to true.
+     */
+    explicit context(verify_peer_t verify_peer = verify_peer_t::kYes);
+
+    /**
+     * Creates a context with the given certificate and the given private key.
+     * @param certificate The location of the certificate file.
+     * @param certificate_type See `tls_file_type`.
+     * @param private_key The location of the private key file.
+     * @param private_key_type See `tls_file_type`.
+     * @param verify_perr Should the peer be verified? Defaults to true.
+     */
+    context(
+            std::filesystem::path certificate,
+            tls_file_type certificate_type,
+            std::filesystem::path private_key,
+            tls_file_type private_key_type,
+            verify_peer_t verify_peer = verify_peer_t::kYes
+    );
+    ~context();
+
+  private:
+    SSL_CTX *m_ssl_ctx{nullptr};
+
+    /// The following classes use the underlying SSL_CTX* object for performing SSL functions.
+    friend client;
+
+    auto native_handle() -> SSL_CTX * { return m_ssl_ctx; }
+    auto native_handle() const -> const SSL_CTX * { return m_ssl_ctx; }
+};
+
+/// @brief Abstract interface for a TLS client connection.
+class ITlsClient {
+  public:
+    ITlsClient() = default;
+    ITlsClient(const ITlsClient &) = delete;
+    ITlsClient(ITlsClient &&) = delete;
+    auto operator=(const ITlsClient &) -> ITlsClient & = delete;
+    auto operator=(ITlsClient &&) -> ITlsClient & = delete;
+    virtual ~ITlsClient() = default;
+
+    virtual auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+            -> silicon::scheduler::task::task<connection_status> = 0;
+};
+
+class ITlsServer {
+  public:
+    ITlsServer() = default;
+    ITlsServer(const ITlsServer &) = delete;
+    ITlsServer(ITlsServer &&) = delete;
+    auto operator=(const ITlsServer &) -> ITlsServer & = delete;
+    auto operator=(ITlsServer &&) -> ITlsServer & = delete;
+    virtual ~ITlsServer() = default;
+
+    virtual auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+            -> silicon::scheduler::task::task<silicon::coroutine::poll_status> = 0;
+
+    virtual auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30})
+            -> silicon::scheduler::task::task<client> = 0;
+};
+
 class server;
 
 class client final: public ITlsClient {
@@ -333,6 +500,72 @@ class client final: public ITlsClient {
     std::atomic<bool> m_shutdown{false};
 
     auto tls_shutdown_and_free(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<void>;
+};
+
+class server final: public ITlsServer {
+  public:
+    struct options {
+        /// The kernel backlog of connections to buffer.
+        int32_t backlog{128};
+    };
+
+    explicit server(
+            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
+            std::shared_ptr<context> tls_ctx,
+            const network::socket_address &endpoint,
+            options opts = options{
+                    .backlog = 128,
+            }
+    );
+
+    server(const server &) = delete;
+    server(server &&other);
+    auto operator=(const server &) -> server & = delete;
+    auto operator=(server &&other) -> server &;
+    ~server() override = default;
+
+    /**
+     * Polls for new incoming tcp connections.
+     * @param timeout How long to wait for a new connection before timing out, zero waits indefinitely.
+     * @return The result of the poll, 'event' means the poll was successful and there is at least 1
+     *         connection ready to be accepted.
+     */
+    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<silicon::coroutine::poll_status> override {
+        return m_scheduler->poll(m_accept_socket.native_handle(), silicon::coroutine::poll_op::read, timeout, m_cancel_trigger.get_token());
+    }
+
+    /**
+     * Accepts an incoming tcp client connection.  On failure the tcp clients socket will be set to
+     * and invalid state, use the socket.is_value() to verify the client was correctly accepted.
+     * @param timeout The timeout to complete the TLS handshake.
+     * @return The newly connected tcp client connection.
+     */
+    auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30}) -> silicon::scheduler::task::task<silicon::network::tls::client> override;
+
+    /**
+     * @return The tcp accept socket this server is using.
+     * @{
+     **/
+    [[nodiscard]] auto accept_socket() -> network::socket & { return m_accept_socket; }
+    [[nodiscard]] auto accept_socket() const -> const network::socket & { return m_accept_socket; }
+    /** @} */
+
+    auto shutdown() {
+        m_cancel_trigger.signal_stop();
+        m_accept_socket.shutdown(silicon::coroutine::poll_op::read_write);
+    }
+
+  private:
+    /// The io scheduler for awaiting new connections.
+    silicon::scheduler::io_scheduler *m_scheduler{nullptr};
+    // The tls context.
+    std::shared_ptr<context> m_tls_ctx{nullptr};
+    /// The bind and listen options for this server.
+    options m_options;
+    /// The socket for accepting new tcp connections on.
+    network::socket m_accept_socket{-1};
+    /// Stop signal to trigger a cancellation of the async accept poll operation.
+    poll_stop_source m_cancel_trigger{};
 };
 
 } // namespace silicon::network::tls

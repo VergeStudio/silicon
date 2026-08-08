@@ -45,11 +45,7 @@ std::vector<std::string> ConfigDirs();
 
 } // namespace silicon::xdg
 
-// ── 分平台实现（_win / _posix 后缀头文件） ──────────────────────────
-// 按编译器预定义宏在编译期选中对应实现，经 #include 注入本模块并导出到
-// silicon.xdg，使模块自包含、不依赖消费项目的宏定义。
-#if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
-#    include "silicon/xdg/xdg_win.hpp"
-#elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__) || defined(__TOS_MACOS__)
-#    include "silicon/xdg/xdg_posix.hpp"
-#endif
+// ── 分平台实现（HomeDir / *Home / *Dirs 等） ──────────────────────────
+// 此前由 xdg_win.hpp / xdg_posix.hpp 经 #include 注入本接口单元；现统一
+// 移入模块实现单元 src/xdg.cpp，按编译器预定义宏在编译期选用对应平台分支，
+// 使模块自包含、不依赖消费项目的宏定义。

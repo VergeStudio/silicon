@@ -1,11 +1,15 @@
 // Windows implementation of platform-specific io_status helpers.
 
+module;
+
 #ifndef WIN32_LEAN_AND_MEAN
 #    define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
 
-#include "silicon/network_impl_includes.hpp"
+#include <string>
+
+module silicon.network;
 
 namespace silicon::network {
 

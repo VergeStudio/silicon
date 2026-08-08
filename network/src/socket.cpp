@@ -1,6 +1,31 @@
-#include <cerrno>
+// Implementation unit for silicon::network (socket + make_socket factories).
+//
+// Provides out-of-line member definitions for silicon::network::socket and the
+// free make_socket / make_accept_socket factories. Network types come from the
+// :core partition (implicit primary import); platform socket APIs come from
+// the global module fragment below.
 
-#include "silicon/network_impl_includes.hpp"
+module;
+
+#if defined(_WIN32) || defined(_WIN64)
+#    ifndef WIN32_LEAN_AND_MEAN
+#        define WIN32_LEAN_AND_MEAN
+#    endif
+#    include <winsock2.h>
+#    include <ws2tcpip.h>
+#else
+#    include <arpa/inet.h>
+#    include <fcntl.h>
+#    include <sys/socket.h>
+#    include <unistd.h>
+#endif
+
+#include <cerrno>
+#include <stdexcept>
+
+module silicon.network;
+
+import silicon.coroutine;
 
 #ifdef _WIN32
 // Winsock uses SD_RECEIVE/SD_SEND/SD_BOTH instead of the POSIX SHUT_RD/WR/RDWR.
@@ -10,7 +35,6 @@
 #        define SHUT_RDWR SD_BOTH
 #    endif
 #endif
-
 
 namespace silicon::network {
 auto socket::type_to_os(type_t type) -> int {
@@ -159,7 +183,7 @@ auto socket::accept(socket_address &client_endpoint) -> socket {
     auto raw = ::accept(m_fd, const_cast<sockaddr *>(addr), &len);
     return socket{static_cast<int>(raw)};
 #else
-    auto raw = ::accept(m_fd, const_cast<sockaddr *>(addr), &addrlen);
+    auto raw = ::accept(m_fd, const_cast<sockaddr *>(addr), addrlen);
     return socket{raw};
 #endif
 }
