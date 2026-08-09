@@ -35,4 +35,6 @@ export import :ischeduler;
 export import :thread_pool;
 export import :io_scheduler;
 export import :run_loop;
+export import :inline_scheduler;
+export import :parallel_scheduler;
 export import :default_executor;
