@@ -34,4 +34,5 @@ export import :detail.timer_handle;
 export import :ischeduler;
 export import :thread_pool;
 export import :io_scheduler;
+export import :run_loop;
 export import :default_executor;

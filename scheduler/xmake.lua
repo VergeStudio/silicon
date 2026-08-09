@@ -19,6 +19,7 @@ target("scheduler", function()
 
     -- 分区：:ischeduler（抽象基类）、:thread_pool（CPU 线程池，原 silicon.thread）、
     -- :io_scheduler（事件循环，原 silicon.coroutine:scheduler）、
+    -- :run_loop（单线程同步执行上下文，参考 stdexec::run_loop）、
     -- :default_executor（进程级默认执行器）、:config。
     --
     -- 另含自 silicon.coroutine 下沉的调度原语（命名空间仍为 silicon::coroutine）：
