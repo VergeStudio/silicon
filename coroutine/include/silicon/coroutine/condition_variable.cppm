@@ -70,7 +70,7 @@ class condition_variable {
 
         /// @brief Each awaiter type defines its own notify behavior.
         /// @return The status of if the waiter's notify result.
-        virtual auto on_notify() -> silicon::scheduler::task::task<notify_status_t> = 0;
+        virtual auto on_notify() -> silicon::scheduler::task<notify_status_t> = 0;
     };
 
     struct awaiter: public awaiter_base {
@@ -86,7 +86,7 @@ class condition_variable {
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
         auto await_resume() noexcept {}
 
-        auto on_notify() -> silicon::scheduler::task::task<notify_status_t> override;
+        auto on_notify() -> silicon::scheduler::task<notify_status_t> override;
     };
 
     struct awaiter_with_predicate: public awaiter_base {
@@ -102,7 +102,7 @@ class condition_variable {
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
         auto await_resume() noexcept {}
 
-        auto on_notify() -> silicon::scheduler::task::task<notify_status_t> override;
+        auto on_notify() -> silicon::scheduler::task<notify_status_t> override;
 
         /// @brief The wait predicate to execute on notify.
         predicate_type m_predicate;
@@ -125,7 +125,7 @@ class condition_variable {
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
         auto await_resume() noexcept -> bool { return m_predicate_result; }
 
-        auto on_notify() -> silicon::scheduler::task::task<notify_status_t> override;
+        auto on_notify() -> silicon::scheduler::task<notify_status_t> override;
 
         /// @brief The wait predicate to execute on notify.
         predicate_type m_predicate;
@@ -186,7 +186,7 @@ class condition_variable {
         awaiter_with_wait_hook(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, controller_data &data) noexcept;
         ~awaiter_with_wait_hook() override = default;
 
-        auto on_notify() -> silicon::scheduler::task::task<notify_status_t> override;
+        auto on_notify() -> silicon::scheduler::task<notify_status_t> override;
 
         controller_data &m_data;
     };
@@ -219,9 +219,9 @@ class condition_variable {
          * for the controller task.
          *
          * @param data The controller task's data.
-         * @return silicon::scheduler::task::task<void>
+         * @return silicon::scheduler::task<void>
          */
-        auto make_on_notify_callback_task(controller_data &data) -> silicon::scheduler::task::task<void> {
+        auto make_on_notify_callback_task(controller_data &data) -> silicon::scheduler::task<void> {
             co_await data.m_notify_callback;
 
             // If this is the condition and not a timeout resume from this task.
@@ -239,9 +239,9 @@ class condition_variable {
          * @brief Task to handle the timeout case, this will always wait the duration of the timeout before exiting.
          *
          * @param data The controller task data.
-         * @return silicon::scheduler::task::task<void>
+         * @return silicon::scheduler::task<void>
          */
-        auto make_timeout_task(controller_data &data) -> silicon::scheduler::task::task<void> {
+        auto make_timeout_task(controller_data &data) -> silicon::scheduler::task<void> {
             co_await m_executor->schedule_after(m_wait_for);
             auto lock = co_await data.m_event_mutex.scoped_lock();
             bool expected{false};
@@ -269,9 +269,9 @@ class condition_variable {
          * access the true awaiter the awaiter_completed atomic bool must be acquired, if it is not acquired the calling
          * awaiter is invalid since it has already been resumed with the first event of timeout or no_timeout.
          *
-         * @return silicon::scheduler::task::detail::task_self_deleting This task is self deleting since it has an indeterminate lifetime.
+         * @return silicon::scheduler::detail::task_self_deleting This task is self deleting since it has an indeterminate lifetime.
          */
-        auto make_controller_task() -> silicon::scheduler::task::detail::task_self_deleting {
+        auto make_controller_task() -> silicon::scheduler::detail::task_self_deleting {
             controller_data data{m_status, m_predicate_result, std::move(m_predicate), std::move(m_stop_token)};
             // We enqueue the hook_task since we can make it live until the notify occurs and will properly resume the
             // actual coroutine only once.
@@ -313,7 +313,7 @@ class condition_variable {
             }
         }
 
-        auto on_notify() -> silicon::scheduler::task::task<notify_status_t> override { std::unreachable(); }
+        auto on_notify() -> silicon::scheduler::task<notify_status_t> override { std::unreachable(); }
 
         /// @brief The io_executor used to wait for the timeout.
         std::unique_ptr<io_executor_type> &m_executor;
@@ -344,7 +344,7 @@ class condition_variable {
     /**
      * @brief Notifies a single waiter.
      */
-    auto notify_one() -> silicon::scheduler::task::task<void>;
+    auto notify_one() -> silicon::scheduler::task<void>;
 
     /**
      * @brief Notifies a single waiter and resumes the waiter on the given executor.
@@ -360,7 +360,7 @@ class condition_variable {
     /**
      * @brief Notifies all waiters.
      */
-    auto notify_all() -> silicon::scheduler::task::task<void>;
+    auto notify_all() -> silicon::scheduler::task<void>;
 
     /**
      * @brief Notifies all waiters and resumes them on the given executor. Note that each waiter must be notified
@@ -536,7 +536,7 @@ class condition_variable {
     /// @brief Pushes a waiter back onto the waiter list.
     auto push_waiter(awaiter_base *waiter) noexcept -> void;
 
-    auto make_notify_all_executor_individual_task(awaiter_base *waiter) -> silicon::scheduler::task::task<void>;
+    auto make_notify_all_executor_individual_task(awaiter_base *waiter) -> silicon::scheduler::task<void>;
 };
 
 

@@ -24,8 +24,8 @@ template<typename executor_type>
 concept executor = requires(executor_type e, std::coroutine_handle<> c)
 {
     { e.schedule() } -> silicon::coroutine::concepts::awaiter;
-    { e.spawn_detached(std::declval<silicon::scheduler::task::task<void>>()) } -> std::same_as<bool>;
-    { e.spawn_joinable(std::declval<silicon::scheduler::task::task<void>>()) } -> std::same_as<silicon::scheduler::task::task<void>>;
+    { e.spawn_detached(std::declval<silicon::scheduler::task<void>>()) } -> std::same_as<bool>;
+    { e.spawn_joinable(std::declval<silicon::scheduler::task<void>>()) } -> std::same_as<silicon::scheduler::task<void>>;
     { e.yield() } -> silicon::coroutine::concepts::awaiter;
     { e.resume(c) } -> std::same_as<bool>;
     { e.size() } -> std::same_as<std::size_t>;
@@ -39,7 +39,7 @@ concept executor = requires(executor_type e, std::coroutine_handle<> c)
 template<typename executor_type>
 concept io_executor = executor<executor_type> and requires(executor_type e, std::coroutine_handle<> c, fd_t fd, silicon::coroutine::poll_op op, std::chrono::milliseconds timeout)
 {
-    { e.poll(fd, op, timeout) } -> std::same_as<silicon::scheduler::task::task<poll_status>>;
+    { e.poll(fd, op, timeout) } -> std::same_as<silicon::scheduler::task<poll_status>>;
 };
 
 // clang-format on

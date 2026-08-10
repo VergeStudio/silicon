@@ -12,7 +12,7 @@ module;
 
 module silicon.scheduler.task;
 
-namespace silicon::scheduler::task {
+namespace silicon::scheduler {
 
 namespace detail {
 
@@ -44,4 +44,4 @@ auto task_event::awaiter::await_ready() const noexcept -> bool {
 
 auto task_event::awaiter::await_resume() noexcept -> void {}
 
-} // namespace silicon::scheduler::task
+} // namespace silicon::scheduler

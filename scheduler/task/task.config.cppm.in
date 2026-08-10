@@ -8,7 +8,11 @@ module;
 export module silicon.scheduler.task:config;
 
 
-namespace silicon::scheduler::task {
+// 命名空间不能再用 silicon::scheduler::task —— 拍平后 task 已是 silicon::scheduler
+// 作用域下的类模板名，同名命名空间会与之冲突。也不能直接落在 silicon::scheduler，
+// 否则会与 silicon.scheduler:config 中同签名的 GetVersion* 构成重定义
+// （silicon.scheduler 对本模块整体 re-export）。故独立为 task_version。
+namespace silicon::scheduler::task_version {
 export TASK_API const std::string GetVersion() { return "${VERSION}"; }
 export TASK_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
 export TASK_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
@@ -16,4 +20,4 @@ export TASK_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
 export TASK_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
 export TASK_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
 export TASK_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
-} // namespace silicon::scheduler::task
+} // namespace silicon::scheduler::task_version

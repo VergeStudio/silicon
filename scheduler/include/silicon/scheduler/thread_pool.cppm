@@ -68,13 +68,13 @@ class thread_pool final: public IScheduler {
 
     [[nodiscard]] auto schedule() -> schedule_operation;
 
-    auto spawn_detached(silicon::scheduler::task::task<void> &&task) noexcept -> bool override;
-    auto spawn_joinable(silicon::scheduler::task::task<void> &&task) noexcept
-            -> silicon::scheduler::task::task<void> override;
+    auto spawn_detached(silicon::scheduler::task<void> &&task) noexcept -> bool override;
+    auto spawn_joinable(silicon::scheduler::task<void> &&task) noexcept
+            -> silicon::scheduler::task<void> override;
 
     template<typename return_type>
-    [[nodiscard]] auto schedule(silicon::scheduler::task::task<return_type> task)
-            -> silicon::scheduler::task::task<return_type> {
+    [[nodiscard]] auto schedule(silicon::scheduler::task<return_type> task)
+            -> silicon::scheduler::task<return_type> {
         co_await schedule();
         co_return co_await task;
     }

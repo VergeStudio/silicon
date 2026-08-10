@@ -57,7 +57,7 @@ auto server::operator=(server &&other) -> server & {
     return *this;
 }
 
-auto server::accept(std::chrono::milliseconds timeout) -> silicon::scheduler::task::task<silicon::network::tls::client> {
+auto server::accept(std::chrono::milliseconds timeout) -> silicon::scheduler::task<silicon::network::tls::client> {
     auto client_endpoint = network::socket_address::make_uninitialised();
 
     network::socket s = m_accept_socket.accept(client_endpoint);

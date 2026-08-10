@@ -22,7 +22,7 @@ namespace silicon::scheduler {
 
 namespace detail {
 static auto
-make_spawned_joinable_wait_task(std::unique_ptr<silicon::scheduler::task::task_group<silicon::scheduler::thread_pool>> group_ptr) -> silicon::scheduler::task::task<void> {
+make_spawned_joinable_wait_task(std::unique_ptr<silicon::scheduler::task_group<silicon::scheduler::thread_pool>> group_ptr) -> silicon::scheduler::task<void> {
     co_await *group_ptr;
     co_return;
 }
@@ -119,15 +119,15 @@ auto thread_pool::schedule() -> schedule_operation {
     }
 }
 
-auto thread_pool::spawn_detached(silicon::scheduler::task::task<void> &&task) noexcept -> bool {
+auto thread_pool::spawn_detached(silicon::scheduler::task<void> &&task) noexcept -> bool {
     m_impl->m_size.fetch_add(1, std::memory_order::release);
-    auto wrapper_task = silicon::scheduler::task::detail::make_task_self_deleting(std::move(task));
+    auto wrapper_task = silicon::scheduler::detail::make_task_self_deleting(std::move(task));
     wrapper_task.promise().user_final_suspend([impl = m_impl.get()]() -> void { impl->m_size.fetch_sub(1, std::memory_order::release); });
     return resume(wrapper_task.handle());
 }
 
-auto thread_pool::spawn_joinable(silicon::scheduler::task::task<void> &&task) noexcept -> silicon::scheduler::task::task<void> {
-    auto group_ptr = std::make_unique<silicon::scheduler::task::task_group<silicon::scheduler::thread_pool>>(this, std::move(task));
+auto thread_pool::spawn_joinable(silicon::scheduler::task<void> &&task) noexcept -> silicon::scheduler::task<void> {
+    auto group_ptr = std::make_unique<silicon::scheduler::task_group<silicon::scheduler::thread_pool>>(this, std::move(task));
     return detail::make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 

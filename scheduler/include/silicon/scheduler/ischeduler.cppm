@@ -39,11 +39,11 @@ class IScheduler {
 
     /// @brief 提交一个 void 任务（分离执行，调用方不再持有所有权）。
     /// @return 任务是否成功进入调度器。
-    virtual auto spawn_detached(silicon::scheduler::task::task<void> &&task) -> bool = 0;
+    virtual auto spawn_detached(silicon::scheduler::task<void> &&task) -> bool = 0;
 
     /// @brief 提交一个 void 任务，返回可 join（co_await）的任务句柄。
-    virtual auto spawn_joinable(silicon::scheduler::task::task<void> &&task)
-            -> silicon::scheduler::task::task<void> = 0;
+    virtual auto spawn_joinable(silicon::scheduler::task<void> &&task)
+            -> silicon::scheduler::task<void> = 0;
 
     /// @brief 在本调度器上恢复一个裸协程句柄。
     virtual auto resume(std::coroutine_handle<> handle) -> bool = 0;

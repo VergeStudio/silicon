@@ -82,7 +82,7 @@ auto client::operator=(client &&other) noexcept -> client & {
     return *this;
 }
 
-auto client::connect(std::chrono::milliseconds timeout) -> silicon::scheduler::task::task<connect_status> {
+auto client::connect(std::chrono::milliseconds timeout) -> silicon::scheduler::task<connect_status> {
     // Only allow the user to connect per tcp client once, if they need to re-connect they should
     // make a new tcp::client.
     if(m_connect_status.has_value()) {

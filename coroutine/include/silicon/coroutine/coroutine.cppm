@@ -23,7 +23,6 @@ export import silicon.scheduler;
 // ---------------------------------------------------------------------------
 export import :channel;
 export import :condition_variable;
-export import :detail.void_value;
 export import :event;
 export import :generator;
 export import :invoke;
@@ -34,6 +33,7 @@ export import :ring_buffer;
 export import :semaphore;
 export import :shared_mutex;
 export import :task_container;
+export import :void_value;
 export import :when_all;
 export import :when_any;
 export import :config;

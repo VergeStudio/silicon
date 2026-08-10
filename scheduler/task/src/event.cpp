@@ -6,7 +6,7 @@ module;
 
 module silicon.scheduler.task;
 
-namespace silicon::scheduler::task {
+namespace silicon::scheduler {
 
 task_event::task_event(bool initially_set) noexcept
     : m_state(initially_set ? static_cast<void *>(this) : nullptr) {}
@@ -59,4 +59,4 @@ auto task_event::operator co_await() const noexcept -> awaiter {
     return awaiter(*this);
 }
 
-} // namespace silicon::scheduler::task
+} // namespace silicon::scheduler

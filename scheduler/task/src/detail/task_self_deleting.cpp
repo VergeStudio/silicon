@@ -9,7 +9,7 @@ module;
 
 module silicon.scheduler.task;
 
-namespace silicon::scheduler::task::detail {
+namespace silicon::scheduler::detail {
 
 promise_self_deleting::promise_self_deleting(promise_self_deleting &&other) noexcept
     : m_user_final_suspend(std::exchange(other.m_user_final_suspend, nullptr)) {
@@ -63,9 +63,9 @@ auto task_self_deleting::handle() -> std::coroutine_handle<promise_self_deleting
     return std::coroutine_handle<promise_self_deleting>::from_promise(*m_promise);
 }
 
-auto make_task_self_deleting(silicon::scheduler::task::task<void> user_task) -> task_self_deleting {
+auto make_task_self_deleting(silicon::scheduler::task<void> user_task) -> task_self_deleting {
     co_await user_task;
     co_return;
 }
 
-} // namespace silicon::scheduler::task::detail
+} // namespace silicon::scheduler::detail

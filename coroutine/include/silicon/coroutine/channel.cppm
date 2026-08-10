@@ -220,7 +220,7 @@ class channel {
      * @return channel_result::send::kSent on success, or kClosed if the
      *         channel has been closed.
      */
-    auto send(const element_type &element) -> silicon::scheduler::task::task<channel_result::send> {
+    auto send(const element_type &element) -> silicon::scheduler::task<channel_result::send> {
         co_await m_p->m_mutex.lock();
         auto result = co_await send_operation{*this, element};
         co_await try_resume_receivers();
@@ -234,7 +234,7 @@ class channel {
      * @return channel_result::send::kSent on success, or kClosed if the
      *         channel has been closed.
      */
-    auto send(element_type &&element) -> silicon::scheduler::task::task<channel_result::send> {
+    auto send(element_type &&element) -> silicon::scheduler::task<channel_result::send> {
         co_await m_p->m_mutex.lock();
         auto result = co_await send_operation{*this, std::move(element)};
         co_await try_resume_receivers();
@@ -276,7 +276,7 @@ class channel {
      * @return The element, or channel_result::recv::kClosed if the channel is
      *         closed and no buffered elements remain.
      */
-    [[nodiscard]] auto recv() -> silicon::scheduler::task::task<expected<element_type, channel_result::recv>> {
+    [[nodiscard]] auto recv() -> silicon::scheduler::task<expected<element_type, channel_result::recv>> {
         co_await m_p->m_mutex.lock();
         auto result = co_await recv_operation{*this};
         co_await try_resume_senders();
@@ -321,7 +321,7 @@ class channel {
      *        and can still be received (drain semantics), then recv() reports
      *        kClosed. All suspended waiters are woken up with the closed result.
      */
-    auto close() -> silicon::scheduler::task::task<void> {
+    auto close() -> silicon::scheduler::task<void> {
         auto expected_state = m_p->m_running_state.load(std::memory_order::acquire);
         if(expected_state == running_state_t::kStopped) {
             co_return;
@@ -408,7 +408,7 @@ class channel {
         return channel_result::send::kFull;
     }
 
-    auto try_resume_senders() -> silicon::scheduler::task::task<void> {
+    auto try_resume_senders() -> silicon::scheduler::task<void> {
         while(true) {
             auto lk = co_await m_p->m_mutex.scoped_lock();
             if(m_p->m_count.load(std::memory_order::acquire) < m_p->m_capacity) {
@@ -424,7 +424,7 @@ class channel {
         }
     }
 
-    auto try_resume_receivers() -> silicon::scheduler::task::task<void> {
+    auto try_resume_receivers() -> silicon::scheduler::task<void> {
         while(true) {
             auto lk = co_await m_p->m_mutex.scoped_lock();
             if(m_p->m_count.load(std::memory_order::acquire) > 0) {

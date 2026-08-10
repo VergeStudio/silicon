@@ -14,8 +14,11 @@ export module silicon.scheduler.task;
 
 export import :config;
 
-export namespace silicon::scheduler::task {
+export namespace silicon::scheduler {
 
+// task 的前置声明必须先于 detail::promise —— promise 的 get_return_object()
+// 以 task<return_type> 为返回类型，而 task 的完整定义在其后。默认实参 = void
+// 亦仅可在此首次声明处给出，供 task<> 与 promise<void> 使用。
 template<typename return_type = void>
 class task;
 
@@ -65,7 +68,7 @@ struct promise final: public promise_base {
     };
 
   public:
-    using task_type = task<return_type>;
+    using task_t = task<return_type>;
     using coroutine_handle = std::coroutine_handle<promise<return_type>>;
     static constexpr bool return_type_is_reference = std::is_reference_v<return_type>;
     using stored_type = std::conditional_t<
@@ -81,7 +84,7 @@ struct promise final: public promise_base {
     promise &operator=(promise &&other) = delete;
     ~promise() = default;
 
-    auto get_return_object() noexcept -> task_type;
+    auto get_return_object() noexcept -> task_t;
 
     template<typename value_type>
         requires(return_type_is_reference and std::is_constructible_v<return_type, value_type &&>) or
@@ -160,7 +163,7 @@ struct promise final: public promise_base {
 
 template<>
 struct promise<void>: public promise_base {
-    using task_type = task<void>;
+    using task_t = task<void>;
     using coroutine_handle = std::coroutine_handle<promise<void>>;
 
     promise() noexcept = default;
@@ -170,7 +173,7 @@ struct promise<void>: public promise_base {
     promise &operator=(promise &&other) = delete;
     ~promise() = default;
 
-    auto get_return_object() noexcept -> task_type;
+    auto get_return_object() noexcept -> task_t;
 
     auto return_void() noexcept -> void {}
 
@@ -191,7 +194,7 @@ struct promise<void>: public promise_base {
 template<typename return_type>
 class [[nodiscard]] task {
   public:
-    using task_type = task<return_type>;
+    using task_t = task<return_type>;
     using promise_type = detail::promise<return_type>;
     using coroutine_handle = std::coroutine_handle<promise_type>;
 
@@ -287,10 +290,11 @@ inline auto promise<void>::get_return_object() noexcept -> task<> {
 //
 // NOTE: 这些内部辅助类型此前由公共头 include/silicon/scheduler/task/detail/
 // task_self_deleting.hpp 提供；该兼容头已删除，本模块接口现为唯一定义处。
-// 命名空间仍须保持为 silicon::scheduler::task::detail，以保证跨 DLL 消费方
-// （如 silicon.coroutine）引用的 detail:: 修饰名与本模块导出的符号一致，
-// 否则会出现 undefined symbol。消费方统一经 `import silicon.scheduler.task;`
-// 使用，不再走头文件路径。
+// 命名空间为 silicon::scheduler::detail —— 外层 task 命名空间已拍平，
+// silicon::scheduler::task 现指类模板本身，不能再作命名空间限定符。
+// 实现单元 src/detail/task_self_deleting.cpp 必须使用同一命名空间，
+// 否则修饰名不一致会导致跨 DLL 消费方出现 undefined symbol。
+// 消费方统一经 `import silicon.scheduler.task;` 使用，不再走头文件路径。
 namespace detail {
 
 class task_self_deleting;
@@ -337,7 +341,7 @@ class task_self_deleting {
     promise_self_deleting *m_promise{nullptr};
 };
 
-auto make_task_self_deleting(silicon::scheduler::task::task<void> user_task) -> task_self_deleting;
+auto make_task_self_deleting(silicon::scheduler::task<void> user_task) -> task_self_deleting;
 
 } // namespace detail
 
@@ -389,9 +393,9 @@ class task_group {
         }
     }
 
-    explicit task_group(executor_type *executor, silicon::scheduler::task::task<void> &&task)
+    explicit task_group(executor_type *executor, silicon::scheduler::task<void> &&task)
         : task_group(executor) {
-        (void)start(std::forward<silicon::scheduler::task::task<void>>(task));
+        (void)start(std::forward<silicon::scheduler::task<void>>(task));
     }
 
     template<typename range_type>
@@ -402,8 +406,8 @@ class task_group {
     }
 
     explicit task_group(std::unique_ptr<executor_type> &executor): m_executor(executor.get()) {}
-    explicit task_group(std::unique_ptr<executor_type> &executor, silicon::scheduler::task::task<void> &&task)
-        : task_group(executor.get(), std::forward<silicon::scheduler::task::task<void>>(task)) {}
+    explicit task_group(std::unique_ptr<executor_type> &executor, silicon::scheduler::task<void> &&task)
+        : task_group(executor.get(), std::forward<silicon::scheduler::task<void>>(task)) {}
 
     template<typename range_type>
     explicit task_group(std::unique_ptr<executor_type> &executor, range_type tasks)
@@ -424,7 +428,7 @@ class task_group {
         }
     }
 
-    [[nodiscard]] auto start(silicon::scheduler::task::task<void> &&task) -> bool {
+    [[nodiscard]] auto start(silicon::scheduler::task<void> &&task) -> bool {
         m_on_empty_event.reset();
         m_size.fetch_add(1, std::memory_order::release);
         auto wrapper_task = detail::make_task_self_deleting(std::move(task));
@@ -452,4 +456,4 @@ class task_group {
     }
 };
 
-} // namespace silicon::scheduler::task
+} // namespace silicon::scheduler

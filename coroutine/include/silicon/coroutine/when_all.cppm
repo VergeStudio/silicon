@@ -18,7 +18,7 @@ module;
 export module silicon.coroutine:when_all;
 
 import silicon.scheduler;
-import :detail.void_value;
+import :void_value;
 
 export namespace silicon::coroutine {
 namespace detail {

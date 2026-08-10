@@ -169,7 +169,7 @@ class ITlsClient {
     virtual ~ITlsClient() = default;
 
     virtual auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task::task<connection_status> = 0;
+            -> silicon::scheduler::task<connection_status> = 0;
 };
 
 class ITlsServer {
@@ -182,10 +182,10 @@ class ITlsServer {
     virtual ~ITlsServer() = default;
 
     virtual auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task::task<silicon::coroutine::poll_status> = 0;
+            -> silicon::scheduler::task<silicon::coroutine::poll_status> = 0;
 
     virtual auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30})
-            -> silicon::scheduler::task::task<client> = 0;
+            -> silicon::scheduler::task<client> = 0;
 };
 
 class server;
@@ -225,7 +225,7 @@ class client final: public ITlsClient {
      * @param timeout How long to wait for the connection to establish? Timeout of zero is indefinite.
      * @return The result status of trying to connect.
      */
-    auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<connection_status> override;
+    auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status> override;
 
     /**
      * Receives incoming data into the given buffer. This function will automatically poll for readability.
@@ -238,7 +238,7 @@ class client final: public ITlsClient {
             silicon::coroutine::concepts::mutable_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
     auto recv(buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt)
-            -> silicon::scheduler::task::task<std::pair<recv_status, std::span<element_type>>> {
+            -> silicon::scheduler::task<std::pair<recv_status, std::span<element_type>>> {
         if(buffer.empty()) {
             co_return {recv_status::kBufferIsEmpty, std::span<element_type>{}};
         }
@@ -317,7 +317,7 @@ class client final: public ITlsClient {
             silicon::coroutine::concepts::const_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
     auto send(const buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt)
-            -> silicon::scheduler::task::task<std::pair<send_status, std::span<element_type>>> {
+            -> silicon::scheduler::task<std::pair<send_status, std::span<element_type>>> {
         // Make sure there is data to send.
         if(buffer.empty()) {
             co_return {send_status::kBufferIsEmpty, std::span<element_type>{buffer.data(), buffer.size()}};
@@ -397,12 +397,12 @@ class client final: public ITlsClient {
      * until it completes.
      * @return Task.
      */
-    auto shutdown() -> silicon::scheduler::task::task<void> {
+    auto shutdown() -> silicon::scheduler::task<void> {
         co_await shutdown(std::chrono::seconds{30});
     }
 
     template<typename rep, typename period>
-    auto shutdown(std::chrono::duration<rep, period> timeout) -> silicon::scheduler::task::task<void> {
+    auto shutdown(std::chrono::duration<rep, period> timeout) -> silicon::scheduler::task<void> {
         // Only allow the client to be shutdown once.
         if(m_shutdown.exchange(true, std::memory_order::acq_rel) != false) {
             co_return;
@@ -419,7 +419,7 @@ class client final: public ITlsClient {
      * @param timeout How long to allow for the tls handshake to successfully complete?
      * @return The result of the tls handshake.
      */
-    auto handshake(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<connection_status>;
+    auto handshake(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status>;
 
     /**
      * Polls for the given operation on this client's socket.  This should be done prior to
@@ -430,7 +430,7 @@ class client final: public ITlsClient {
      *         this specific event operation is ready.
      */
     auto poll(silicon::coroutine::poll_op op, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task::task<poll_status> {
+            -> silicon::scheduler::task<poll_status> {
         return m_scheduler->poll(m_socket.native_handle(), op, timeout);
     }
 
@@ -499,7 +499,7 @@ class client final: public ITlsClient {
     /// Flag to signal if this tls client has already been shutdown or not.
     std::atomic<bool> m_shutdown{false};
 
-    auto tls_shutdown_and_free(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<void>;
+    auto tls_shutdown_and_free(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<void>;
 };
 
 class server final: public ITlsServer {
@@ -530,7 +530,7 @@ class server final: public ITlsServer {
      * @return The result of the poll, 'event' means the poll was successful and there is at least 1
      *         connection ready to be accepted.
      */
-    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task::task<silicon::coroutine::poll_status> override {
+    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<silicon::coroutine::poll_status> override {
         return m_scheduler->poll(m_accept_socket.native_handle(), silicon::coroutine::poll_op::read, timeout, m_cancel_trigger.get_token());
     }
 
@@ -540,7 +540,7 @@ class server final: public ITlsServer {
      * @param timeout The timeout to complete the TLS handshake.
      * @return The newly connected tcp client connection.
      */
-    auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30}) -> silicon::scheduler::task::task<silicon::network::tls::client> override;
+    auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30}) -> silicon::scheduler::task<silicon::network::tls::client> override;
 
     /**
      * @return The tcp accept socket this server is using.
