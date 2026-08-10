@@ -39,12 +39,9 @@ target("network", function()
     add_files("include/silicon/network/**.cppm", {public = true})
 
     -- 实现单元（传统 .cpp，但均为模块实现单元）。
+    -- 平台差异（io_status_linux.cpp / io_status_win.cpp）由文件内互斥 #if 守卫
+    -- 选择（项目约定：不在 xmake.lua 里做 is_plat 条件 add_files/remove_files）。
     add_files("src/**.cpp")
-    if is_os("windows") then
-        remove_files("src/io_status_linux.cpp")
-    else
-        remove_files("src/io_status_win.cpp")
-    end
 
     -- 生成的 :config 分区（版本信息），由 network.config.cppm.in 产出。
     set_configdir("$(builddir)/silicon/config")

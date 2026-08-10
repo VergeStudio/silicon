@@ -1,15 +1,23 @@
 // Windows implementation of platform-specific io_status helpers.
+// 平台无关的 io_status 公共实现（message()/make_io_status_from_native/
+// make_io_status_from_poll_status/to_string）在公共实现单元 io_status.cpp；
+// 本文件仅提供平台差异的 message_impl / make_io_status_from_native_impl。
+// 守卫与 io_status_linux.cpp 的 unix 系守卫互斥，恰好一个文件定义同组符号。
 
 module;
 
-#ifndef WIN32_LEAN_AND_MEAN
-#    define WIN32_LEAN_AND_MEAN
+#if defined(_WIN32) || defined(_WIN64)
+#    ifndef WIN32_LEAN_AND_MEAN
+#        define WIN32_LEAN_AND_MEAN
+#    endif
+#    include <windows.h>
 #endif
-#include <windows.h>
 
 #include <string>
 
 module silicon.network;
+
+#if defined(_WIN32) || defined(_WIN64)
 
 namespace silicon::network {
 
@@ -39,3 +47,5 @@ auto make_io_status_from_native_impl(int native_code) -> io_status {
 }
 
 } // namespace silicon::network
+
+#endif // defined(_WIN32) || defined(_WIN64)
