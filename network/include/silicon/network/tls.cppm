@@ -159,27 +159,27 @@ class context {
 };
 
 /// @brief Abstract interface for a TLS client connection.
-class ITlsClient {
+class i_tls_client {
   public:
-    ITlsClient() = default;
-    ITlsClient(const ITlsClient &) = delete;
-    ITlsClient(ITlsClient &&) = delete;
-    auto operator=(const ITlsClient &) -> ITlsClient & = delete;
-    auto operator=(ITlsClient &&) -> ITlsClient & = delete;
-    virtual ~ITlsClient() = default;
+    i_tls_client() = default;
+    i_tls_client(const i_tls_client &) = delete;
+    i_tls_client(i_tls_client &&) = delete;
+    auto operator=(const i_tls_client &) -> i_tls_client & = delete;
+    auto operator=(i_tls_client &&) -> i_tls_client & = delete;
+    virtual ~i_tls_client() = default;
 
     virtual auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<connection_status> = 0;
 };
 
-class ITlsServer {
+class i_tls_server {
   public:
-    ITlsServer() = default;
-    ITlsServer(const ITlsServer &) = delete;
-    ITlsServer(ITlsServer &&) = delete;
-    auto operator=(const ITlsServer &) -> ITlsServer & = delete;
-    auto operator=(ITlsServer &&) -> ITlsServer & = delete;
-    virtual ~ITlsServer() = default;
+    i_tls_server() = default;
+    i_tls_server(const i_tls_server &) = delete;
+    i_tls_server(i_tls_server &&) = delete;
+    auto operator=(const i_tls_server &) -> i_tls_server & = delete;
+    auto operator=(i_tls_server &&) -> i_tls_server & = delete;
+    virtual ~i_tls_server() = default;
 
     virtual auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<silicon::coroutine::poll_status> = 0;
@@ -190,7 +190,7 @@ class ITlsServer {
 
 class server;
 
-class client final: public ITlsClient {
+class client final: public i_tls_client {
   public:
     /**
      * Creates a new tls client that can connect to an ip address + port. By default, the socket
@@ -502,7 +502,7 @@ class client final: public ITlsClient {
     auto tls_shutdown_and_free(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<void>;
 };
 
-class server final: public ITlsServer {
+class server final: public i_tls_server {
   public:
     struct options {
         /// The kernel backlog of connections to buffer.

@@ -31,16 +31,16 @@ parse_result::parse_result(parse_result &&) noexcept = default;
 
 parse_result &parse_result::operator=(parse_result &&) noexcept = default;
 
-std::string &parse_result::Command() { return impl_->command_; }
+std::string &parse_result::command() { return impl_->command_; }
 
-const std::string &parse_result::Command() const { return impl_->command_; }
+const std::string &parse_result::command() const { return impl_->command_; }
 
-std::map<std::string, std::string> &parse_result::Flags() { return impl_->flags_; }
+std::map<std::string, std::string> &parse_result::flags() { return impl_->flags_; }
 
-const std::map<std::string, std::string> &parse_result::Flags() const { return impl_->flags_; }
+const std::map<std::string, std::string> &parse_result::flags() const { return impl_->flags_; }
 
-std::vector<std::string> &parse_result::Positional() { return impl_->positional_; }
+std::vector<std::string> &parse_result::positional() { return impl_->positional_; }
 
-const std::vector<std::string> &parse_result::Positional() const { return impl_->positional_; }
+const std::vector<std::string> &parse_result::positional() const { return impl_->positional_; }
 
 } // namespace silicon::cli

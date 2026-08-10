@@ -25,12 +25,12 @@ CLI_API struct parse_result {
     parse_result &operator=(parse_result &&) noexcept;
 
   public:
-    std::string &Command();
-    const std::string &Command() const;
-    std::map<std::string, std::string> &Flags();
-    const std::map<std::string, std::string> &Flags() const;
-    std::vector<std::string> &Positional();
-    const std::vector<std::string> &Positional() const;
+    std::string &command();
+    const std::string &command() const;
+    std::map<std::string, std::string> &flags();
+    const std::map<std::string, std::string> &flags() const;
+    std::vector<std::string> &positional();
+    const std::vector<std::string> &positional() const;
 
   private:
     /// Implementation state, fully hidden in the implementation unit (src/parser/parse_result.cpp).

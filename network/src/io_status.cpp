@@ -72,7 +72,7 @@ auto silicon::network::to_string(silicon::network::io_status::kind k) -> std::st
         case kind::kNative:
             return "Native error code";
         case kind::kMessageTooBig:
-            return "Message is too big";
+            return "message is too big";
         case kind::kUnknown:
         default:
             return "unknown";

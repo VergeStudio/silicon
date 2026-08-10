@@ -32,7 +32,7 @@ void global_logger::Init(const std::string_view &log_path, const log_level log_l
             std::scoped_lock<std::mutex> const lock(mutex_);
 
             spdlog::init_thread_pool(queue_size, thread_num);
-            CreateLogger(log_level, util::StrCat(log_path, "/main.log"), backtrace_num);
+            CreateLogger(log_level, util::str_cat(log_path, "/main.log"), backtrace_num);
 
             is_initialized_ = true;
         }

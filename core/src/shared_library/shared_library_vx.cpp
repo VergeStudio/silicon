@@ -2,7 +2,7 @@
 #include <memory>
 //
 //#include "Poco/SharedLibrary_VX.h"
-//#include "Poco/Exception.h"
+//#include "Poco/exception.h"
 //#include "Poco/Format.h"
 //
 //#include <loadLib>

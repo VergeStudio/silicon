@@ -2,7 +2,7 @@ module;
 
 #include <atomic>
 #include <cstdio>
-#include <cstdlib> // silicon::os::GetEnv（_dupenv_s / std::getenv / std::free）
+#include <cstdlib> // silicon::os::get_env（_dupenv_s / std::getenv / std::free）
 #include <cstring>
 #include <mutex>
 #include <queue>
@@ -17,16 +17,16 @@ export namespace silicon::util {
 // util.hpp declarations
 // -----------------------------------------------------------------------------
 
-bool HasSuffix(const char *, const char *);
-std::uint64_t GenerateUniqueId();
+bool has_suffix(const char *, const char *);
+std::uint64_t generate_unique_id();
 
 // -----------------------------------------------------------------------------
-// string.hpp — StrCat / StrAppend (C++23 unified variadic template)
+// string.hpp — str_cat / str_append (C++23 unified variadic template)
 // -----------------------------------------------------------------------------
 
 namespace strings_internal {
 
-inline void AppendPieces(std::string *dest, std::initializer_list<std::string_view> pieces) {
+inline void append_pieces(std::string *dest, std::initializer_list<std::string_view> pieces) {
     size_t size = 0;
     for(const auto &piece: pieces) {
         size += piece.size();
@@ -37,26 +37,26 @@ inline void AppendPieces(std::string *dest, std::initializer_list<std::string_vi
     }
 }
 
-inline std::string CatPieces(std::initializer_list<std::string_view> pieces) {
+inline std::string cat_pieces(std::initializer_list<std::string_view> pieces) {
     std::string out;
-    AppendPieces(&out, std::move(pieces));
+    append_pieces(&out, std::move(pieces));
     return out;
 }
 
 } // namespace strings_internal
 
-// Unified variadic StrCat — handles 0 to N arguments via fold expression
+// Unified variadic str_cat — handles 0 to N arguments via fold expression
 template <typename... Args>
     requires (std::convertible_to<Args, std::string_view> && ...)
-inline std::string StrCat(const Args &...args) {
-    return strings_internal::CatPieces({static_cast<std::string_view>(args)...});
+inline std::string str_cat(const Args &...args) {
+    return strings_internal::cat_pieces({static_cast<std::string_view>(args)...});
 }
 
-// Unified variadic StrAppend — handles 1 to N arguments
+// Unified variadic str_append — handles 1 to N arguments
 template <typename... Args>
     requires (std::convertible_to<Args, std::string_view> && ...) && (sizeof...(Args) >= 1)
-inline void StrAppend(std::string *destination, const Args &...args) {
-    strings_internal::AppendPieces(destination, {static_cast<std::string_view>(args)...});
+inline void str_append(std::string *destination, const Args &...args) {
+    strings_internal::append_pieces(destination, {static_cast<std::string_view>(args)...});
 }
 
 } // namespace silicon::util
@@ -67,7 +67,7 @@ inline void StrAppend(std::string *destination, const Args &...args) {
 export namespace silicon::os {
 
 // 读取环境变量。未设置或为空时返回空字符串。
-inline std::string GetEnv(const char *name) {
+inline std::string get_env(const char *name) {
 #ifdef _WIN32
     char *buf = nullptr;
     size_t len = 0;

@@ -6,18 +6,18 @@ module;
 module silicon.exception;
 
 namespace silicon::exception {
-Exception::Exception(std::string_view message) {
+exception::exception(std::string_view message) {
     impl_->message_ = static_cast<std::string>(message);
 }
 
-const char *Exception::what() const noexcept {
+const char *exception::what() const noexcept {
     return impl_->message_.c_str();
 }
 
-LogicError::LogicError(std::string_view message): Exception(message) {
+logic_error::logic_error(std::string_view message): exception(message) {
 }
 
-RuntimeError::RuntimeError(std::string_view message): Exception(message) {
+runtime_error::runtime_error(std::string_view message): exception(message) {
 }
 } // namespace silicon::exception
 

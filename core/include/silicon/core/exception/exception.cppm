@@ -13,25 +13,25 @@ export module silicon.exception;
 import silicon.util;
 
 namespace silicon::exception {
-export class CORE_API Exception: public std::exception {
+export class CORE_API exception: public std::exception {
 
   public:
-    explicit Exception(std::string_view);
+    explicit exception(std::string_view);
 
     template<typename... SV>
-    Exception(const SV &...args) {
-        impl_->message_ = silicon::util::StrCat(args...);
+    exception(const SV &...args) {
+        impl_->message_ = silicon::util::str_cat(args...);
     }
 
     // 异常对象必须可拷贝（[except.throw]），故 Impl 用 shared_ptr 承载 + 深拷贝。
-    Exception(const Exception &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    Exception &operator=(const Exception &o) {
+    exception(const exception &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    exception &operator=(const exception &o) {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    Exception(Exception &&) noexcept = default;
-    Exception &operator=(Exception &&) noexcept = default;
-    ~Exception() = default;
+    exception(exception &&) noexcept = default;
+    exception &operator=(exception &&) noexcept = default;
+    ~exception() = default;
 
     const char *what() const noexcept override;
 
@@ -45,64 +45,64 @@ export class CORE_API Exception: public std::exception {
 
 // This errors are usually related to problems which "probably" require code refactoring
 // to be fixed.
-export class CORE_API LogicError: public Exception {
+export class CORE_API logic_error: public exception {
   public:
-    explicit LogicError(std::string_view);
+    explicit logic_error(std::string_view);
 
     template<typename... SV>
-    LogicError(const SV &...args): Exception(args...) {}
+    logic_error(const SV &...args): exception(args...) {}
 };
 
 // This errors are usually related to problems that are relted to data or conditions
 // that happen only at run-time
-export class CORE_API RuntimeError: public Exception {
+export class CORE_API runtime_error: public exception {
   public:
-    explicit RuntimeError(std::string_view);
+    explicit runtime_error(std::string_view);
 
     template<typename... SV>
-    RuntimeError(const SV &...args): Exception(args...) {}
+    runtime_error(const SV &...args): exception(args...) {}
 };
 
 // Thrown when an operation is intentionally not implemented (e.g. proxy
 // weak_dispatch fallback). Default-constructible: call sites throw
 // `not_implemented{}` without a message.
-export class CORE_API not_implemented: public LogicError {
+export class CORE_API not_implemented: public logic_error {
   public:
-    not_implemented(): LogicError("not implemented") {}
+    not_implemented(): logic_error("not implemented") {}
 
     template<typename... SV>
-    explicit not_implemented(const SV &...args): LogicError(args...) {}
+    explicit not_implemented(const SV &...args): logic_error(args...) {}
 };
 
-// FsError — value-style error type carried by silicon.fs Result<T>.
-// Default-constructible: Result<T> 的成功分支会默认构造 error_ 成员。
-export class CORE_API FsError: public RuntimeError {
+// fs_error — value-style error type carried by silicon.fs result<T>.
+// Default-constructible: result<T> 的成功分支会默认构造 error_ 成员。
+export class CORE_API fs_error: public runtime_error {
   public:
-    FsError(): RuntimeError(std::string_view{}) {}
+    fs_error(): runtime_error(std::string_view{}) {}
 
     template<typename... SV>
-    explicit FsError(const SV &...args): RuntimeError(args...) {}
+    explicit fs_error(const SV &...args): runtime_error(args...) {}
 };
 
-// LLMError — value-style error type carried by silicon.llm Result<T>.
-// spec（llm/specs/llm.md）：`LLMError: { message }`；测试通过 r.error().message 断言。
-export struct LLMError {
+// llm_error — value-style error type carried by silicon.llm result<T>.
+// spec（llm/specs/llm.md）：`llm_error: { message }`；测试通过 r.error().message 断言。
+export struct llm_error {
     struct Impl {
       public:
         std::string message_;
     };
     std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
-    LLMError() = default;
-    explicit LLMError(std::string msg) { impl_->message_ = std::move(msg); }
-    LLMError(const LLMError &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    LLMError &operator=(const LLMError &o) {
+    llm_error() = default;
+    explicit llm_error(std::string msg) { impl_->message_ = std::move(msg); }
+    llm_error(const llm_error &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    llm_error &operator=(const llm_error &o) {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    LLMError(LLMError &&) noexcept = default;
-    LLMError &operator=(LLMError &&) noexcept = default;
-    ~LLMError() = default;
+    llm_error(llm_error &&) noexcept = default;
+    llm_error &operator=(llm_error &&) noexcept = default;
+    ~llm_error() = default;
 
     std::string &message() { return impl_->message_; }
     const std::string &message() const { return impl_->message_; }
@@ -111,11 +111,11 @@ export struct LLMError {
 } // namespace silicon::exception
 
 // 泛型结果类型（原 silicon.common 并入 core 后保留 silicon::common 命名空间）。
-// 错误类型 E 由调用方按领域指定（如 LLMError），保留语义区分。
+// 错误类型 E 由调用方按领域指定（如 llm_error），保留语义区分。
 namespace silicon::common {
 
 export template<typename T, typename E>
-class Result {
+class result {
     struct Impl {
       public:
         std::variant<T, E> v_;
@@ -123,16 +123,16 @@ class Result {
     std::shared_ptr<Impl> impl_;
 
   public:
-    Result(T val): impl_(std::make_shared<Impl>(Impl{std::variant<T, E>(std::in_place_index<0>, std::move(val))})) {}
-    Result(E err): impl_(std::make_shared<Impl>(Impl{std::variant<T, E>(std::in_place_index<1>, std::move(err))})) {}
-    Result(const Result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    Result &operator=(const Result &o) {
+    result(T val): impl_(std::make_shared<Impl>(Impl{std::variant<T, E>(std::in_place_index<0>, std::move(val))})) {}
+    result(E err): impl_(std::make_shared<Impl>(Impl{std::variant<T, E>(std::in_place_index<1>, std::move(err))})) {}
+    result(const result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    result &operator=(const result &o) {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    Result(Result &&) noexcept = default;
-    Result &operator=(Result &&) noexcept = default;
-    ~Result() = default;
+    result(result &&) noexcept = default;
+    result &operator=(result &&) noexcept = default;
+    ~result() = default;
 
     bool has_value() const { return std::holds_alternative<T>(impl_->v_); }
     explicit operator bool() const { return has_value(); }

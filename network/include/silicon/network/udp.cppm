@@ -28,20 +28,20 @@ import :core;
 export namespace silicon::network::udp {
 
 /// @brief Abstract interface for a UDP peer.
-class IUdpPeer {
+class i_udp_peer {
   public:
-    IUdpPeer() = default;
-    IUdpPeer(const IUdpPeer &) = delete;
-    IUdpPeer(IUdpPeer &&) = delete;
-    auto operator=(const IUdpPeer &) -> IUdpPeer & = delete;
-    auto operator=(IUdpPeer &&) -> IUdpPeer & = delete;
-    virtual ~IUdpPeer() = default;
+    i_udp_peer() = default;
+    i_udp_peer(const i_udp_peer &) = delete;
+    i_udp_peer(i_udp_peer &&) = delete;
+    auto operator=(const i_udp_peer &) -> i_udp_peer & = delete;
+    auto operator=(i_udp_peer &&) -> i_udp_peer & = delete;
+    virtual ~i_udp_peer() = default;
 
     virtual auto socket() noexcept -> network::socket & = 0;
     virtual auto socket() const noexcept -> const network::socket & = 0;
 };
 
-class peer final: public IUdpPeer {
+class peer final: public i_udp_peer {
   public:
     /**
      * Creates a udp peer that can send packets but not receive them.  This udp peer will not explicitly

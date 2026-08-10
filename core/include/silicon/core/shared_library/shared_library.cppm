@@ -6,13 +6,13 @@ module;
 export module silicon.library;
 
 namespace silicon::library {
-export class SharedLibrary final {
+export class shared_library final {
 
-    /// The SharedLibrary class dynamically
+    /// The shared_library class dynamically
     /// loads shared libraries at Run-time.
 
   public:
-    enum class Flags {
+    enum class flags {
         /// On platforms that use dlopen(), use RTLD_GLOBAL. This is the default
         /// if no flags are given.
         ///
@@ -30,67 +30,67 @@ export class SharedLibrary final {
     };
 
   public:
-    /// Creates a SharedLibrary object.
-    SharedLibrary();
+    /// Creates a shared_library object.
+    shared_library();
 
-    /// Destroys the SharedLibrary. The actual library
+    /// Destroys the shared_library. The actual library
     /// remains loaded.
-    virtual ~SharedLibrary();
+    virtual ~shared_library();
 
   public:
     /// Loads a shared library from the given path,
-    /// using the given flags. See the Flags enumeration
+    /// using the given flags. See the flags enumeration
     /// for valid values.
     /// Throws a LibraryAlreadyLoadedException if
     /// a library has already been loaded.
     /// Throws a LibraryLoadException if the library
     /// cannot be loaded.
-    void Load(const std::string &, int32_t flags = 0);
+    void load(const std::string &, int32_t flags = 0);
 
     /// Unloads a shared library.
-    void Unload();
+    void unload();
 
     /// Returns true iff a library has been loaded.
-    [[nodiscard]] bool IsLoaded() const;
+    [[nodiscard]] bool is_loaded() const;
 
     /// Returns true iff the loaded library contains
     /// a symbol with the given name.
-    bool HasSymbol(const std::string &);
+    bool has_symbol(const std::string &);
 
     /// Returns the address of the symbol with
     /// the given name. For functions, this
     /// is the entry point of the function.
     /// Throws a NotFoundException if the symbol
     /// does not exist.
-    void *GetSymbol(const std::string &);
+    void *get_symbol(const std::string &);
 
     /// Returns the path of the library, as
     /// specified in a call to load() or the
     /// constructor.
-    const std::string &GetPath() const;
+    const std::string &get_path() const;
 
     /// Returns the platform-specific filename prefix
     /// for shared libraries.
     /// Most platforms would return "lib" as prefix, while
     /// on Cygwin, the "cyg" prefix will be returned.
-    static std::string Prefix();
+    static std::string prefix();
 
     /// Returns the platform-specific filename suffix
     /// for shared libraries (including the period).
     /// In debug mode, the suffix also includes a
     /// "d" to specify the debug version of a library.
-    static std::string Suffix();
+    static std::string suffix();
 
     /// Returns the platform-specific filename
     /// for shared libraries by prefixing and suffixing name
     /// with prefix() and suffix()
-    static std::string GetOSName(const std::string &);
+    static std::string get_os_name(const std::string &);
 
   private:
-    SharedLibrary(const SharedLibrary &) = delete;
-    SharedLibrary &operator=(const SharedLibrary &) = delete;
+    shared_library(const shared_library &) = delete;
+    shared_library &operator=(const shared_library &) = delete;
 
-    void *FindSymbol(const std::string &);
+    void *find_symbol(const std::string &);
 
   private:
     struct Impl;

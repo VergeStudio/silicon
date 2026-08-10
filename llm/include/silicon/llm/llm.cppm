@@ -19,7 +19,7 @@ export namespace silicon::llm {
 
 // ── 值类型 ──────────────────────────────────────────────────────
 
-struct Message {
+struct message {
 
     struct Impl {
       public:
@@ -30,34 +30,34 @@ struct Message {
     std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
-    Message() = default;
-    /// 便利构造：保留原聚合初始化 `Message{"user", "hi"}` 的调用形态
-    Message(std::string r, std::string c, std::string tcid = {}) {
+    message() = default;
+    /// 便利构造：保留原聚合初始化 `message{"user", "hi"}` 的调用形态
+    message(std::string r, std::string c, std::string tcid = {}) {
         impl_->role_ = std::move(r);
         impl_->content_ = std::move(c);
         impl_->tool_call_id_ = std::move(tcid);
     }
-    Message(const Message &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    Message &operator=(const Message &o) {
+    message(const message &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    message &operator=(const message &o) {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    Message(Message &&) noexcept = default;
-    Message &operator=(Message &&) noexcept = default;
+    message(message &&) noexcept = default;
+    message &operator=(message &&) noexcept = default;
 
   public:
-    std::string &Role() { return impl_->role_; }
-    const std::string &Role() const { return impl_->role_; }
-    std::string &Content() { return impl_->content_; }
-    const std::string &Content() const { return impl_->content_; }
-    std::string &ToolCallId() { return impl_->tool_call_id_; }
-    const std::string &ToolCallId() const { return impl_->tool_call_id_; }
+    std::string &role() { return impl_->role_; }
+    const std::string &role() const { return impl_->role_; }
+    std::string &content() { return impl_->content_; }
+    const std::string &content() const { return impl_->content_; }
+    std::string &tool_call_id() { return impl_->tool_call_id_; }
+    const std::string &tool_call_id() const { return impl_->tool_call_id_; }
 
 };
 
-using Conversation = std::vector<Message>;
+using conversation = std::vector<message>;
 
-struct ModelRequestOptions {
+struct model_request_options {
 
     struct Impl {
       public:
@@ -69,28 +69,28 @@ struct ModelRequestOptions {
     std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
-    ModelRequestOptions() = default;
-    ModelRequestOptions(const ModelRequestOptions &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    ModelRequestOptions &operator=(const ModelRequestOptions &o) {
+    model_request_options() = default;
+    model_request_options(const model_request_options &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    model_request_options &operator=(const model_request_options &o) {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    ModelRequestOptions(ModelRequestOptions &&) noexcept = default;
-    ModelRequestOptions &operator=(ModelRequestOptions &&) noexcept = default;
+    model_request_options(model_request_options &&) noexcept = default;
+    model_request_options &operator=(model_request_options &&) noexcept = default;
 
   public:
-    std::string &Model() { return impl_->model_; }
-    const std::string &Model() const { return impl_->model_; }
-    double &Temperature() { return impl_->temperature_; }
-    const double &Temperature() const { return impl_->temperature_; }
-    int32_t &MaxTokens() { return impl_->max_tokens_; }
-    const int32_t &MaxTokens() const { return impl_->max_tokens_; }
-    std::map<std::string, std::string, std::less<>> &Extra() { return impl_->extra_; }
-    const std::map<std::string, std::string, std::less<>> &Extra() const { return impl_->extra_; }
+    std::string &model() { return impl_->model_; }
+    const std::string &model() const { return impl_->model_; }
+    double &temperature() { return impl_->temperature_; }
+    const double &temperature() const { return impl_->temperature_; }
+    int32_t &max_tokens() { return impl_->max_tokens_; }
+    const int32_t &max_tokens() const { return impl_->max_tokens_; }
+    std::map<std::string, std::string, std::less<>> &extra() { return impl_->extra_; }
+    const std::map<std::string, std::string, std::less<>> &extra() const { return impl_->extra_; }
 
 };
 
-struct ChatResponse {
+struct chat_response {
 
     struct Impl {
       public:
@@ -102,48 +102,48 @@ struct ChatResponse {
     std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
-    ChatResponse() = default;
-    ChatResponse(const ChatResponse &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    ChatResponse &operator=(const ChatResponse &o) {
+    chat_response() = default;
+    chat_response(const chat_response &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    chat_response &operator=(const chat_response &o) {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    ChatResponse(ChatResponse &&) noexcept = default;
-    ChatResponse &operator=(ChatResponse &&) noexcept = default;
+    chat_response(chat_response &&) noexcept = default;
+    chat_response &operator=(chat_response &&) noexcept = default;
 
   public:
-    std::string &Content() { return impl_->content_; }
-    const std::string &Content() const { return impl_->content_; }
-    std::string &FinishReason() { return impl_->finish_reason_; }
-    const std::string &FinishReason() const { return impl_->finish_reason_; }
-    int32_t &PromptTokens() { return impl_->prompt_tokens_; }
-    const int32_t &PromptTokens() const { return impl_->prompt_tokens_; }
-    int32_t &CompletionTokens() { return impl_->completion_tokens_; }
-    const int32_t &CompletionTokens() const { return impl_->completion_tokens_; }
+    std::string &content() { return impl_->content_; }
+    const std::string &content() const { return impl_->content_; }
+    std::string &finish_reason() { return impl_->finish_reason_; }
+    const std::string &finish_reason() const { return impl_->finish_reason_; }
+    int32_t &prompt_tokens() { return impl_->prompt_tokens_; }
+    const int32_t &prompt_tokens() const { return impl_->prompt_tokens_; }
+    int32_t &completion_tokens() { return impl_->completion_tokens_; }
+    const int32_t &completion_tokens() const { return impl_->completion_tokens_; }
 
 };
 
 template<typename T>
-using Result = silicon::common::Result<T, silicon::exception::LLMError>;
+using result = silicon::common::result<T, silicon::exception::llm_error>;
 
 // ── 接口 ─────────────────────────────────────────────────────────
 
-class IProvider {
+class i_provider {
   public:
-    virtual ~IProvider() = default;
-    virtual Result<ChatResponse> Chat(const Conversation &conv, const ModelRequestOptions &opts) = 0;
+    virtual ~i_provider() = default;
+    virtual result<chat_response> chat(const conversation &conv, const model_request_options &opts) = 0;
 };
 
-class IProtocolAdapter {
+class i_protocol_adapter {
   public:
-    virtual ~IProtocolAdapter() = default;
-    virtual std::string EncodeRequest(const Conversation &conv, const ModelRequestOptions &opts, const std::vector<std::string> &tool_defs) const = 0;
-    virtual Result<ChatResponse> DecodeResponse(std::string_view raw) const = 0;
+    virtual ~i_protocol_adapter() = default;
+    virtual std::string encode_request(const conversation &conv, const model_request_options &opts, const std::vector<std::string> &tool_defs) const = 0;
+    virtual result<chat_response> decode_response(std::string_view raw) const = 0;
 };
 
-// ── ITool ────────────────────────────────────────────────────────
+// ── i_tool ────────────────────────────────────────────────────────
 
-struct ToolCall {
+struct tool_call {
 
     struct Impl {
       public:
@@ -154,32 +154,32 @@ struct ToolCall {
     std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
-    ToolCall() = default;
-    /// 便利构造：保留原聚合初始化 `ToolCall{"1", "echo", "{}"}` 的调用形态
-    ToolCall(std::string i, std::string n, std::string args = {}) {
+    tool_call() = default;
+    /// 便利构造：保留原聚合初始化 `tool_call{"1", "echo", "{}"}` 的调用形态
+    tool_call(std::string i, std::string n, std::string args = {}) {
         impl_->id_ = std::move(i);
         impl_->name_ = std::move(n);
         impl_->arguments_ = std::move(args);
     }
-    ToolCall(const ToolCall &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    ToolCall &operator=(const ToolCall &o) {
+    tool_call(const tool_call &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    tool_call &operator=(const tool_call &o) {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    ToolCall(ToolCall &&) noexcept = default;
-    ToolCall &operator=(ToolCall &&) noexcept = default;
+    tool_call(tool_call &&) noexcept = default;
+    tool_call &operator=(tool_call &&) noexcept = default;
 
   public:
-    std::string &Id() { return impl_->id_; }
-    const std::string &Id() const { return impl_->id_; }
-    std::string &Name() { return impl_->name_; }
-    const std::string &Name() const { return impl_->name_; }
-    std::string &Arguments() { return impl_->arguments_; }
-    const std::string &Arguments() const { return impl_->arguments_; }
+    std::string &id() { return impl_->id_; }
+    const std::string &id() const { return impl_->id_; }
+    std::string &name() { return impl_->name_; }
+    const std::string &name() const { return impl_->name_; }
+    std::string &arguments() { return impl_->arguments_; }
+    const std::string &arguments() const { return impl_->arguments_; }
 
 };
 
-struct ToolOutput {
+struct tool_output {
 
     struct Impl {
       public:
@@ -190,135 +190,135 @@ struct ToolOutput {
     std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
-    ToolOutput() = default;
-    ToolOutput(const ToolOutput &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    ToolOutput &operator=(const ToolOutput &o) {
+    tool_output() = default;
+    tool_output(const tool_output &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    tool_output &operator=(const tool_output &o) {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    ToolOutput(ToolOutput &&) noexcept = default;
-    ToolOutput &operator=(ToolOutput &&) noexcept = default;
+    tool_output(tool_output &&) noexcept = default;
+    tool_output &operator=(tool_output &&) noexcept = default;
 
   public:
-    std::string &Content() { return impl_->content_; }
-    const std::string &Content() const { return impl_->content_; }
-    bool &Truncated() { return impl_->truncated_; }
-    const bool &Truncated() const { return impl_->truncated_; }
-    std::string &ManagedOutputPath() { return impl_->managed_output_path_; }
-    const std::string &ManagedOutputPath() const { return impl_->managed_output_path_; }
+    std::string &content() { return impl_->content_; }
+    const std::string &content() const { return impl_->content_; }
+    bool &truncated() { return impl_->truncated_; }
+    const bool &truncated() const { return impl_->truncated_; }
+    std::string &managed_output_path() { return impl_->managed_output_path_; }
+    const std::string &managed_output_path() const { return impl_->managed_output_path_; }
 
 };
 
-class ITool {
+class i_tool {
   public:
-    virtual ~ITool() = default;
-    virtual std::string_view Name() const = 0;
-    virtual std::string_view Description() const = 0;
-    virtual ToolOutput Execute(const ToolCall &call) = 0;
+    virtual ~i_tool() = default;
+    virtual std::string_view name() const = 0;
+    virtual std::string_view description() const = 0;
+    virtual tool_output execute(const tool_call &call) = 0;
 };
 
-class IToolRegistry {
+class i_tool_registry {
   public:
-    virtual ~IToolRegistry() = default;
-    virtual bool RegisterTool(std::unique_ptr<ITool> tool) = 0;
-    virtual ITool *GetTool(std::string_view name) const = 0;
-    virtual std::size_t ToolCount() const = 0;
+    virtual ~i_tool_registry() = default;
+    virtual bool register_tool(std::unique_ptr<i_tool> tool) = 0;
+    virtual i_tool *get_tool(std::string_view name) const = 0;
+    virtual std::size_t tool_count() const = 0;
 };
 
-// ── IProvider 注册表接口 ───────────────────────────────────────
+// ── i_provider 注册表接口 ───────────────────────────────────────
 
-class IProviderRegistry {
+class i_provider_registry {
   public:
-    virtual ~IProviderRegistry() = default;
-    virtual bool RegisterProvider(std::string id, std::unique_ptr<IProvider> provider) = 0;
-    virtual IProvider *GetProvider(std::string_view id) const = 0;
-    virtual std::vector<std::string> ListProviders() const = 0;
+    virtual ~i_provider_registry() = default;
+    virtual bool register_provider(std::string id, std::unique_ptr<i_provider> provider) = 0;
+    virtual i_provider *get_provider(std::string_view id) const = 0;
+    virtual std::vector<std::string> list_providers() const = 0;
 };
 
 // ── 具体实现（DI 就绪，仅依赖接口） ─────────────────────────────
 
 /// 内存工具注册表：重复 name 注册返回 false（不替换）。
-class ToolRegistry: public IToolRegistry {
+class tool_registry: public i_tool_registry {
 
     struct Impl {
       public:
-      std::map<std::string, std::unique_ptr<ITool>, std::less<>> tools_;
+      std::map<std::string, std::unique_ptr<i_tool>, std::less<>> tools_;
     };
     std::unique_ptr<Impl> impl_;
 
   public:
-    ToolRegistry();
-    bool RegisterTool(std::unique_ptr<ITool> tool) override;
-    ITool *GetTool(std::string_view name) const override;
-    std::size_t ToolCount() const override;
+    tool_registry();
+    bool register_tool(std::unique_ptr<i_tool> tool) override;
+    i_tool *get_tool(std::string_view name) const override;
+    std::size_t tool_count() const override;
 
 };
 
 /// 内存提供方注册表：重复 id 注册返回 false。
-class ProviderRegistry: public IProviderRegistry {
+class provider_registry: public i_provider_registry {
 
     struct Impl {
       public:
-      std::map<std::string, std::unique_ptr<IProvider>, std::less<>> providers_;
+      std::map<std::string, std::unique_ptr<i_provider>, std::less<>> providers_;
     };
     std::unique_ptr<Impl> impl_;
 
   public:
-    ProviderRegistry();
-    bool RegisterProvider(std::string id, std::unique_ptr<IProvider> provider) override;
-    IProvider *GetProvider(std::string_view id) const override;
-    std::vector<std::string> ListProviders() const override;
+    provider_registry();
+    bool register_provider(std::string id, std::unique_ptr<i_provider> provider) override;
+    i_provider *get_provider(std::string_view id) const override;
+    std::vector<std::string> list_providers() const override;
 
 };
 
-/// OpenAI 风格 JSON 协议适配器：Conversation/Options -> 请求 JSON；
-/// 线路 JSON -> ChatResponse（choices[0].message.content 等）。
-class JsonProtocolAdapter: public IProtocolAdapter {
+/// OpenAI 风格 JSON 协议适配器：conversation/Options -> 请求 JSON；
+/// 线路 JSON -> chat_response（choices[0].message.content 等）。
+class json_protocol_adapter: public i_protocol_adapter {
   public:
-    std::string EncodeRequest(
-            const Conversation &conv,
-            const ModelRequestOptions &opts,
+    std::string encode_request(
+            const conversation &conv,
+            const model_request_options &opts,
             const std::vector<std::string> &tool_defs
     ) const override;
-    Result<ChatResponse> DecodeResponse(std::string_view raw) const override;
+    result<chat_response> decode_response(std::string_view raw) const override;
 };
 
 /// 脚本化提供方：FIFO 返回预置响应，用于确定性 TDD。
-/// 队列耗尽返回 LLMError，绝不抛异常。
-class ScriptedProvider: public IProvider {
+/// 队列耗尽返回 llm_error，绝不抛异常。
+class scripted_provider: public i_provider {
 
     struct Impl {
       public:
-      std::queue<ChatResponse> queue_;
+      std::queue<chat_response> queue_;
     };
     std::unique_ptr<Impl> impl_;
 
   public:
-    ScriptedProvider();
-    void Enqueue(ChatResponse r);
-    std::size_t Remaining() const;
+    scripted_provider();
+    void enqueue(chat_response r);
+    std::size_t remaining() const;
 
-    Result<ChatResponse> Chat(const Conversation &, const ModelRequestOptions &) override;
+    result<chat_response> chat(const conversation &, const model_request_options &) override;
 
 };
 
-/// OpenAI 兼容 HTTP IProvider：通过本地 curl 调用 {base_url}/chat/completions。
-/// 配置来自环境变量（无 key 时 chat 返回 LLMError，由调用方提示用户）。
+/// OpenAI 兼容 HTTP i_provider：通过本地 curl 调用 {base_url}/chat/completions。
+/// 配置来自环境变量（无 key 时 chat 返回 llm_error，由调用方提示用户）。
 /// 选用 OpenAI 兼容协议，可对接 OpenAI / DeepSeek / Ollama / vLLM / LM Studio 等。
-class HttpProvider: public IProvider {
+class http_provider: public i_provider {
 
     struct Impl {
       public:
         std::string base_url_;
         std::string api_key_;
         std::string model_;
-        JsonProtocolAdapter adapter_;
+        json_protocol_adapter adapter_;
     };
     std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 
-    static std::string EnvOr(const char *name, std::string def);
+    static std::string env_or(const char *name, std::string def);
 
-    struct HttpResult {
+    struct http_result {
 
         struct Impl {
           public:
@@ -328,30 +328,30 @@ class HttpProvider: public IProvider {
         std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
       public:
-        HttpResult() = default;
-        HttpResult(const HttpResult &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-        HttpResult &operator=(const HttpResult &o) {
+        http_result() = default;
+        http_result(const http_result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+        http_result &operator=(const http_result &o) {
             if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
             return *this;
         }
-        HttpResult(HttpResult &&) noexcept = default;
-        HttpResult &operator=(HttpResult &&) noexcept = default;
+        http_result(http_result &&) noexcept = default;
+        http_result &operator=(http_result &&) noexcept = default;
 
       public:
-        int &Status() { return impl_->status_; }
-        const int &Status() const { return impl_->status_; }
-        std::string &Body() { return impl_->body_; }
-        const std::string &Body() const { return impl_->body_; }
+        int &status() { return impl_->status_; }
+        const int &status() const { return impl_->status_; }
+        std::string &body() { return impl_->body_; }
+        const std::string &body() const { return impl_->body_; }
     };
 
     // 用临时文件承载请求体，避开 JSON 中的引号转义问题；跨平台用 -H 传头。
-    HttpResult PostJson(const std::string &url, const std::string &body) const;
+    http_result post_json(const std::string &url, const std::string &body) const;
 
   public:
-    HttpProvider();
-    bool Configured() const;
-    std::string_view ModelName() const;
-    Result<ChatResponse> Chat(const Conversation &conv, const ModelRequestOptions &opts) override;
+    http_provider();
+    bool configured() const;
+    std::string_view model_name() const;
+    result<chat_response> chat(const conversation &conv, const model_request_options &opts) override;
 };
 
 } // namespace silicon::llm

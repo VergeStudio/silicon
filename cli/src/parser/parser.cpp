@@ -15,7 +15,7 @@ parse_result Parser::Parse(int argc, const char *const *argv) const {
     if(argc <= 0) return result;
     int i = 1;
     if(i < argc && argv[i][0] != '-') {
-        result.Command() = argv[i];
+        result.command() = argv[i];
         ++i;
     }
     while(i < argc) {
@@ -25,14 +25,14 @@ parse_result Parser::Parse(int argc, const char *const *argv) const {
             bool is_long = (arg.size() > 2 && arg[1] == '-');
             auto name = std::string(arg.substr(name_start));
             if(is_long && i + 1 < argc && argv[i + 1][0] != '-') {
-                result.Flags()[std::move(name)] = argv[i + 1];
+                result.flags()[std::move(name)] = argv[i + 1];
                 i += 2;
             } else {
-                result.Flags()[std::move(name)] = "true";
+                result.flags()[std::move(name)] = "true";
                 ++i;
             }
         } else {
-            result.Positional().emplace_back(argv[i]);
+            result.positional().emplace_back(argv[i]);
             ++i;
         }
     }

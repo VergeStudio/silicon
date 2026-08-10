@@ -8,130 +8,130 @@ import silicon.json;
 
 using namespace silicon::llm;
 
-// ── 测试夹具：具体 ITool / IProvider ───────────────────────────
+// ── 测试夹具：具体 i_tool / i_provider ───────────────────────────
 
-class EchoTool: public ITool {
+class EchoTool: public i_tool {
   public:
-    std::string_view Name() const override { return "echo"; }
-    std::string_view Description() const override { return "echoes input"; }
-    ToolOutput Execute(const ToolCall &call) override {
-        ToolOutput out;
-        out.Content() = "echo:" + call.Arguments();
+    std::string_view name() const override { return "echo"; }
+    std::string_view description() const override { return "echoes input"; }
+    tool_output execute(const tool_call &call) override {
+        tool_output out;
+        out.content() = "echo:" + call.arguments();
         return out;
     }
 };
 
-class ConstProvider: public IProvider {
+class ConstProvider: public i_provider {
     std::string text_;
 
   public:
     explicit ConstProvider(std::string t): text_(std::move(t)) {}
-    Result<ChatResponse> Chat(const Conversation &, const ModelRequestOptions &) override {
-        ChatResponse r;
-        r.Content() = text_;
-        r.FinishReason() = "stop";
-        r.PromptTokens() = 3;
-        r.CompletionTokens() = 7;
-        return Result<ChatResponse>(std::move(r));
+    result<chat_response> chat(const conversation &, const model_request_options &) override {
+        chat_response r;
+        r.content() = text_;
+        r.finish_reason() = "stop";
+        r.prompt_tokens() = 3;
+        r.completion_tokens() = 7;
+        return result<chat_response>(std::move(r));
     }
 };
 
-// ── IToolRegistry ──────────────────────────────────────────────
+// ── i_tool_registry ──────────────────────────────────────────────
 
-TEST_CASE("IToolRegistry 注册并按 name 查询") {
-    ToolRegistry reg;
-    CHECK(reg.ToolCount() == 0);
-    CHECK(reg.RegisterTool(std::make_unique<EchoTool>()));
-    CHECK(reg.ToolCount() == 1);
+TEST_CASE("i_tool_registry 注册并按 name 查询") {
+    tool_registry reg;
+    CHECK(reg.tool_count() == 0);
+    CHECK(reg.register_tool(std::make_unique<EchoTool>()));
+    CHECK(reg.tool_count() == 1);
 
-    auto *t = reg.GetTool("echo");
+    auto *t = reg.get_tool("echo");
     CHECK(t != nullptr);
-    CHECK(t->Name() == "echo");
+    CHECK(t->name() == "echo");
 
-    auto out = t->Execute(ToolCall{"1", "echo", "\"hi\""});
-    CHECK(out.Content() == "echo:\"hi\"");
+    auto out = t->execute(tool_call{"1", "echo", "\"hi\""});
+    CHECK(out.content() == "echo:\"hi\"");
 }
 
-TEST_CASE("IToolRegistry 重复 name 注册返回 false") {
-    ToolRegistry reg;
-    CHECK(reg.RegisterTool(std::make_unique<EchoTool>()));
-    CHECK_FALSE(reg.RegisterTool(std::make_unique<EchoTool>()));
-    CHECK(reg.ToolCount() == 1);
+TEST_CASE("i_tool_registry 重复 name 注册返回 false") {
+    tool_registry reg;
+    CHECK(reg.register_tool(std::make_unique<EchoTool>()));
+    CHECK_FALSE(reg.register_tool(std::make_unique<EchoTool>()));
+    CHECK(reg.tool_count() == 1);
 }
 
-TEST_CASE("IToolRegistry get_tool 未知 name 返回 nullptr") {
-    ToolRegistry reg;
-    CHECK(reg.GetTool("missing") == nullptr);
+TEST_CASE("i_tool_registry get_tool 未知 name 返回 nullptr") {
+    tool_registry reg;
+    CHECK(reg.get_tool("missing") == nullptr);
 }
 
-// ── IProviderRegistry ──────────────────────────────────────────
+// ── i_provider_registry ──────────────────────────────────────────
 
-TEST_CASE("IProviderRegistry 注册/查询/列举") {
-    ProviderRegistry reg;
-    CHECK(reg.RegisterProvider("openai", std::make_unique<ConstProvider>("a")));
-    CHECK(reg.RegisterProvider("anthropic", std::make_unique<ConstProvider>("b")));
-    CHECK(reg.ListProviders().size() == 2);
+TEST_CASE("i_provider_registry 注册/查询/列举") {
+    provider_registry reg;
+    CHECK(reg.register_provider("openai", std::make_unique<ConstProvider>("a")));
+    CHECK(reg.register_provider("anthropic", std::make_unique<ConstProvider>("b")));
+    CHECK(reg.list_providers().size() == 2);
 
-    auto *p = reg.GetProvider("openai");
+    auto *p = reg.get_provider("openai");
     CHECK(p != nullptr);
-    auto r = p->Chat({}, {});
+    auto r = p->chat({}, {});
     CHECK(r);
-    CHECK(r->Content() == "a");
+    CHECK(r->content() == "a");
 
-    CHECK(reg.GetProvider("missing") == nullptr);
+    CHECK(reg.get_provider("missing") == nullptr);
 }
 
-TEST_CASE("IProviderRegistry 重复 id 注册返回 false") {
-    ProviderRegistry reg;
-    CHECK(reg.RegisterProvider("openai", std::make_unique<ConstProvider>("a")));
-    CHECK_FALSE(reg.RegisterProvider("openai", std::make_unique<ConstProvider>("b")));
-    CHECK(reg.ListProviders().size() == 1);
+TEST_CASE("i_provider_registry 重复 id 注册返回 false") {
+    provider_registry reg;
+    CHECK(reg.register_provider("openai", std::make_unique<ConstProvider>("a")));
+    CHECK_FALSE(reg.register_provider("openai", std::make_unique<ConstProvider>("b")));
+    CHECK(reg.list_providers().size() == 1);
 }
 
-// ── ScriptedProvider ──────────────────────────────────────────
+// ── scripted_provider ──────────────────────────────────────────
 
-TEST_CASE("ScriptedProvider 按 FIFO 返回预置响应") {
-    ScriptedProvider p;
-    ChatResponse r1;
-    r1.Content() = "first";
-    ChatResponse r2;
-    r2.Content() = "second";
-    p.Enqueue(std::move(r1));
-    p.Enqueue(std::move(r2));
-    CHECK(p.Remaining() == 2);
+TEST_CASE("scripted_provider 按 FIFO 返回预置响应") {
+    scripted_provider p;
+    chat_response r1;
+    r1.content() = "first";
+    chat_response r2;
+    r2.content() = "second";
+    p.enqueue(std::move(r1));
+    p.enqueue(std::move(r2));
+    CHECK(p.remaining() == 2);
 
-    auto a = p.Chat({}, {});
-    auto b = p.Chat({}, {});
+    auto a = p.chat({}, {});
+    auto b = p.chat({}, {});
     CHECK(a);
     CHECK(b);
-    CHECK(a->Content() == "first");
-    CHECK(b->Content() == "second");
-    CHECK(p.Remaining() == 0);
+    CHECK(a->content() == "first");
+    CHECK(b->content() == "second");
+    CHECK(p.remaining() == 0);
 }
 
-TEST_CASE("ScriptedProvider 队列耗尽返回 LLMError") {
-    ScriptedProvider p;
-    auto r = p.Chat({}, {});
+TEST_CASE("scripted_provider 队列耗尽返回 llm_error") {
+    scripted_provider p;
+    auto r = p.chat({}, {});
     CHECK_FALSE(r);
     CHECK(r.error().message() == "no scripted response");
 }
 
-// ── JsonProtocolAdapter ───────────────────────────────────────
+// ── json_protocol_adapter ───────────────────────────────────────
 
-TEST_CASE("JsonProtocolAdapter::encode_request 含 model/messages/tools") {
-    JsonProtocolAdapter adapter;
-    Conversation conv;
-    conv.push_back(Message{"system", "be brief"});
-    conv.push_back(Message{"user", "hello"});
+TEST_CASE("json_protocol_adapter::encode_request 含 model/messages/tools") {
+    json_protocol_adapter adapter;
+    conversation conv;
+    conv.push_back(message{"system", "be brief"});
+    conv.push_back(message{"user", "hello"});
 
-    ModelRequestOptions opts;
-    opts.Model() = "gpt-4o";
-    opts.Temperature() = 0.2;
-    opts.MaxTokens() = 1024;
+    model_request_options opts;
+    opts.model() = "gpt-4o";
+    opts.temperature() = 0.2;
+    opts.max_tokens() = 1024;
 
     std::vector<std::string> tools = {R"({"name":"echo","description":"e"})"};
 
-    auto json = adapter.EncodeRequest(conv, opts, tools);
+    auto json = adapter.encode_request(conv, opts, tools);
     auto parsed = silicon::json::parse(json);
     CHECK(!parsed.is_discarded());
     CHECK(parsed.find("model")->get<std::string>() == "gpt-4o");
@@ -141,24 +141,24 @@ TEST_CASE("JsonProtocolAdapter::encode_request 含 model/messages/tools") {
     CHECK(parsed.find("tools")->size() == 1);
 }
 
-TEST_CASE("JsonProtocolAdapter::decode_response 还原 content/finish_reason/usage") {
-    JsonProtocolAdapter adapter;
+TEST_CASE("json_protocol_adapter::decode_response 还原 content/finish_reason/usage") {
+    json_protocol_adapter adapter;
     std::string raw = R"({
         "choices": [ { "message": { "content": "hi there" }, "finish_reason": "stop" } ],
         "usage": { "prompt_tokens": 11, "completion_tokens": 22 }
     })";
 
-    auto r = adapter.DecodeResponse(raw);
+    auto r = adapter.decode_response(raw);
     CHECK(r);
-    CHECK(r->Content() == "hi there");
-    CHECK(r->FinishReason() == "stop");
-    CHECK(r->PromptTokens() == 11);
-    CHECK(r->CompletionTokens() == 22);
+    CHECK(r->content() == "hi there");
+    CHECK(r->finish_reason() == "stop");
+    CHECK(r->prompt_tokens() == 11);
+    CHECK(r->completion_tokens() == 22);
 }
 
-TEST_CASE("JsonProtocolAdapter::decode_response 非法 JSON 返回 LLMError") {
-    JsonProtocolAdapter adapter;
-    auto r = adapter.DecodeResponse("{not json");
+TEST_CASE("json_protocol_adapter::decode_response 非法 JSON 返回 llm_error") {
+    json_protocol_adapter adapter;
+    auto r = adapter.decode_response("{not json");
     CHECK_FALSE(r);
     CHECK(r.error().message() == "invalid json response");
 }

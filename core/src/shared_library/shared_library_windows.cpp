@@ -22,20 +22,20 @@ import silicon.exception;
 
 namespace silicon::library {
 
-SharedLibrary::SharedLibrary() : impl_(std::make_unique<Impl>()) {
+shared_library::shared_library() : impl_(std::make_unique<Impl>()) {
 }
 
-void SharedLibrary::Load(const std::string &path, int32_t flags) {
+void shared_library::load(const std::string &path, int32_t flags) {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     impl_->handle_ = LoadLibrary(path.c_str());
     if (impl_->handle_ == nullptr) {
-        throw silicon::exception::RuntimeError("Could not load library: " + path);
+        throw silicon::exception::runtime_error("Could not load library: " + path);
     }
     impl_->path_ = path;
 }
 
-void SharedLibrary::Unload() {
+void shared_library::unload() {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     if (impl_->handle_ != nullptr) {
@@ -45,19 +45,19 @@ void SharedLibrary::Unload() {
     impl_->path_.clear();
 }
 
-bool SharedLibrary::IsLoaded() const {
+bool shared_library::is_loaded() const {
     return impl_->handle_ != nullptr;
 }
 
-const std::string &SharedLibrary::GetPath() const {
+const std::string &shared_library::get_path() const {
     return impl_->path_;
 }
 
-std::string SharedLibrary::Prefix() {
+std::string shared_library::prefix() {
     return "";
 }
 
-std::string SharedLibrary::Suffix() {
+std::string shared_library::suffix() {
 #if defined(_DEBUG) && !defined(CL_NO_SHARED_LIBRARY_DEBUG_SUFFIX)
     return "d.dll";
 #else
@@ -65,7 +65,7 @@ std::string SharedLibrary::Suffix() {
 #endif
 }
 
-void *SharedLibrary::FindSymbol(const std::string &name) {
+void *shared_library::find_symbol(const std::string &name) {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     if (impl_->handle_ != nullptr) {
