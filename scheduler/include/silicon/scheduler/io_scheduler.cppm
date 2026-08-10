@@ -34,8 +34,8 @@ export module silicon.scheduler:io_scheduler;
 // 本模块，故重新使用同模块分区 import。协程 task 类型来自独立模块
 // silicon.scheduler.task。
 import :concepts.range_of;
-import :detail.awaiter_list;
-import :detail.pipe;
+import :awaiter_list;
+import :pipe;
 import :expected;
 import :fd;
 import :poll;
@@ -48,9 +48,9 @@ import :thread_pool;
 
 // io_notifier / poll_info / timer_handle 已从 silicon.coroutine 迁入本模块，需显式
 // import 对应分区（分区间不可借道主接口，且本单元即为 :io_scheduler 分区）。
-import :detail.poll_info;
+import :poll_info;
 import :io_notifier;
-import :detail.timer_handle;
+import :timer_handle;
 
 // 本单元沿用 coroutine 的基础类型（fd_t / poll_op / poll_status / poll_stop_token /
 // time_point / when_any / expected ...）。using-directive 置于全局作用域：命名空间内
@@ -65,7 +65,7 @@ enum class timeout_status {
 };
 
 class io_scheduler: public IScheduler {
-    using timed_events = silicon::scheduler::detail::poll_info::timed_events;
+    using timed_events = silicon::scheduler::poll_info::timed_events;
 
     struct private_constructor {
         explicit private_constructor() = default;
@@ -175,7 +175,7 @@ class io_scheduler: public IScheduler {
             if(m_scheduler.m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
                 m_scheduler.m_p->m_size.fetch_add(1, std::memory_order::release);
                 m_awaiting_coroutine = awaiting_coroutine;
-                silicon::coroutine::detail::awaiter_list_push(m_scheduler.m_p->m_scheduled_ops, this);
+                silicon::coroutine::awaiter_list_push(m_scheduler.m_p->m_scheduled_ops, this);
 
                 // Trigger the event to wake-up the scheduler if this event isn't currently triggered.
                 bool expected{false};
@@ -444,11 +444,11 @@ class io_scheduler: public IScheduler {
         /// The io event notifier.
         ::silicon::scheduler::io_notifier m_io_notifier;
         /// The timer handle for timed events, e.g. yield_for() or scheduler_after().
-        silicon::scheduler::detail::timer_handle m_timer;
+        silicon::scheduler::timer_handle m_timer;
         /// The event loop pipe to trigger a shutdown.
-        silicon::coroutine::detail::pipe_t m_shutdown_pipe{};
+        silicon::coroutine::pipe_t m_shutdown_pipe{};
         /// The event loop schedule task pipe.
-        silicon::coroutine::detail::pipe_t m_schedule_pipe{};
+        silicon::coroutine::pipe_t m_schedule_pipe{};
         /// @brief Scheduled operations waiting tasks has entries.
         std::atomic<bool> m_schedule_pipe_triggered{false};
         /// @brief Scheduled operations waiting to be resumed.
@@ -472,7 +472,7 @@ class io_scheduler: public IScheduler {
 
         std::atomic<bool> m_io_processing{false};
 
-        std::vector<std::pair<silicon::scheduler::detail::poll_info *, silicon::coroutine::poll_status>> m_recent_events{};
+        std::vector<std::pair<silicon::scheduler::poll_info *, silicon::coroutine::poll_status>> m_recent_events{};
         std::vector<std::coroutine_handle<>> m_handles_to_resume{};
     };
 
@@ -499,10 +499,10 @@ class io_scheduler: public IScheduler {
 
     auto process_scheduled_execute_inline() -> void;
 
-    auto process_event_execute(silicon::scheduler::detail::poll_info *pi, poll_status status) -> void;
+    auto process_event_execute(silicon::scheduler::poll_info *pi, poll_status status) -> void;
     auto process_timeout_execute() -> void;
 
-    auto add_timer_token(time_point tp, silicon::scheduler::detail::poll_info &pi) -> timed_events::iterator;
+    auto add_timer_token(time_point tp, silicon::scheduler::poll_info &pi) -> timed_events::iterator;
     auto remove_timer_token(timed_events::iterator pos) -> void;
     auto update_timeout(time_point now) -> void;
 

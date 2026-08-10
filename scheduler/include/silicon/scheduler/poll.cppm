@@ -26,7 +26,7 @@ module;
 
 export module silicon.scheduler:poll;
 
-import :detail.pipe;
+import :pipe;
 import :fd;
 
 export namespace silicon::coroutine {

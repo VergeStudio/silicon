@@ -4,13 +4,13 @@ module;
 #include <atomic>
 
 
-export module silicon.scheduler:detail.awaiter_list;
+export module silicon.scheduler:awaiter_list;
 
 import :concepts.awaitable;
 
-export namespace silicon::coroutine::detail {
+export namespace silicon::coroutine {
 
-template<concepts::detail::awaiter_forward_list_entry awaiter_type>
+template<concepts::awaiter_forward_list_entry awaiter_type>
 auto awaiter_list_push(std::atomic<awaiter_type *> &list, awaiter_type *to_enqueue) -> void {
     awaiter_type *current = list.load(std::memory_order::acquire);
     do {
@@ -20,7 +20,7 @@ auto awaiter_list_push(std::atomic<awaiter_type *> &list, awaiter_type *to_enque
     ));
 }
 
-template<concepts::detail::awaiter_forward_list_entry awaiter_type>
+template<concepts::awaiter_forward_list_entry awaiter_type>
 auto awaiter_list_pop(std::atomic<awaiter_type *> &list) -> awaiter_type * {
     awaiter_type *waiter = list.load(std::memory_order::acquire);
     do {
@@ -34,7 +34,7 @@ auto awaiter_list_pop(std::atomic<awaiter_type *> &list) -> awaiter_type * {
     return waiter;
 }
 
-template<concepts::detail::awaiter_forward_list_entry awaiter_type>
+template<concepts::awaiter_forward_list_entry awaiter_type>
 auto awaiter_list_pop_all(std::atomic<awaiter_type *> &list) -> awaiter_type * {
     awaiter_type *head = list.load(std::memory_order::acquire);
 
@@ -50,7 +50,7 @@ auto awaiter_list_pop_all(std::atomic<awaiter_type *> &list) -> awaiter_type * {
     return head;
 }
 
-template<concepts::detail::awaiter_forward_list_entry awaiter_type>
+template<concepts::awaiter_forward_list_entry awaiter_type>
 auto awaiter_list_reverse(awaiter_type *curr) -> awaiter_type * {
     if(curr == nullptr || curr->m_next == nullptr) {
         return curr;
@@ -69,4 +69,4 @@ auto awaiter_list_reverse(awaiter_type *curr) -> awaiter_type * {
 }
 
 
-} // namespace silicon::coroutine::detail
+} // namespace silicon::coroutine

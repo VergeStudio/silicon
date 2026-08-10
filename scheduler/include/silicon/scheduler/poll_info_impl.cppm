@@ -9,12 +9,12 @@ module;
 #include <utility>
 
 
-export module silicon.scheduler:detail.poll_info_impl;
+export module silicon.scheduler:poll_info_impl;
 
 import :fd;
 import :poll;
 import :time;
-import :detail.poll_info;
+import :poll_info;
 
 // 基础 I/O 类型已随调度原语迁入本模块（命名空间仍为 silicon::coroutine），
 // 此处仅在本单元内引入简化书写，不 export。
@@ -28,13 +28,13 @@ using silicon::coroutine::poll_stop_token;
 using silicon::coroutine::time_point;
 } // namespace silicon::scheduler
 
-namespace silicon::scheduler::detail {
+namespace silicon::scheduler {
 
 /**
  * Full definition of `poll_info::Impl`, kept in a non-exported module partition so the
  * implementation state of a poll operation is invisible outside `silicon.scheduler`.
  *
- * The interface unit (`silicon.scheduler:detail.poll_info`) only forward-declares `Impl` and
+ * The interface unit (`silicon.scheduler:poll_info`) only forward-declares `Impl` and
  * declares the members that touch it out-of-line; the out-of-line definitions live in
  * `scheduler/src/detail/poll_info.cpp`.  Backend implementation units that dereference
  * `poll_info::Impl` import this partition directly.
@@ -61,4 +61,4 @@ struct poll_info::Impl {
     std::optional<poll_stop_token> m_cancel_trigger{std::nullopt};
 };
 
-} // namespace silicon::scheduler::detail
+} // namespace silicon::scheduler

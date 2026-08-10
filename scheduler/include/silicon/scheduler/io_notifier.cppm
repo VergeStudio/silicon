@@ -27,11 +27,11 @@ import :fd;
 import :poll;
 import :time;
 
-import :detail.poll_info;
+import :poll_info;
 
 // timer_handle 仅以引用形式出现在 watch_timer / unwatch_timer 的签名中（不完整类型即可），
-// 故只需前向声明，无需 import 整个 :detail.timer_handle 分区（避免分区间循环依赖）。
-namespace silicon::scheduler::detail {
+// 故只需前向声明，无需 import 整个 :timer_handle 分区（避免分区间循环依赖）。
+namespace silicon::scheduler {
 export class timer_handle;
 }
 
@@ -61,7 +61,7 @@ class io_notifier {
     struct Impl;
     std::unique_ptr<Impl> m_p;
 
-    friend class detail::timer_handle;
+    friend class timer_handle;
 
     // 单次 epoll_wait / kevent 的最大事件数；Windows 的 IOCP 完成包数量级不同，取较大值。
     static constexpr std::size_t m_max_events =
@@ -83,19 +83,19 @@ class io_notifier {
 
     ~io_notifier();
 
-    auto watch_timer(const detail::timer_handle &timer, std::chrono::nanoseconds duration) -> bool;
+    auto watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool;
 
     auto watch(fd_t fd, poll_op op, void *data, bool keep = false, bool is_cancel_event = false) -> bool;
 
-    auto watch(detail::poll_info &pi) -> bool;
+    auto watch(poll_info &pi) -> bool;
 
     auto unwatch(fd_t fd, poll_op op) -> bool;
 
-    auto unwatch(detail::poll_info &pi) -> bool;
+    auto unwatch(poll_info &pi) -> bool;
 
-    auto unwatch_timer(const detail::timer_handle &timer) -> bool;
+    auto unwatch_timer(const timer_handle &timer) -> bool;
 
-    auto next_events(std::vector<std::pair<detail::poll_info *, poll_status>> &ready_events,
+    auto next_events(std::vector<std::pair<poll_info *, poll_status>> &ready_events,
                      std::chrono::milliseconds timeout) -> void;
 
     auto native_handle() const ->

@@ -19,8 +19,8 @@ export import :concepts.buffer;
 export import :concepts.executor;
 export import :concepts.promise;
 export import :concepts.range_of;
-export import :detail.awaiter_list;
-export import :detail.pipe;
+export import :awaiter_list;
+export import :pipe;
 export import :expected;
 export import :fd;
 export import :poll;
@@ -28,9 +28,9 @@ export import :sync_wait;
 export import :time;
 
 // —— 事件循环基础设施 ——
-export import :detail.poll_info;
+export import :poll_info;
 export import :io_notifier;
-export import :detail.timer_handle;
+export import :timer_handle;
 export import :ischeduler;
 export import :thread_pool;
 export import :io_scheduler;

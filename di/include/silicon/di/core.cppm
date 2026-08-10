@@ -118,7 +118,7 @@ template <typename T> constexpr std::string_view raw_type_name();
 template <typename T> constexpr type_descriptor describe_type();
 inline void append_type_name(std::string& name, type_descriptor descriptor);
 
-namespace detail {
+
 
 constexpr size_t type_name_not_found = static_cast<size_t>(-1);
 
@@ -279,20 +279,20 @@ inline void append_described_type_name(std::string& name,
     }
 }
 
-} // namespace detail
+
 
 template <typename T> constexpr std::string_view raw_type_name() {
-    return detail::raw_type_name<T>();
+    return raw_type_name<T>();
 }
 
 template <typename T> constexpr type_descriptor describe_type() {
-    auto descriptor = detail::make_type_descriptor<std::remove_reference_t<T>>();
-    descriptor.reference = detail::make_type_reference_kind<T>();
+    auto descriptor = make_type_descriptor<std::remove_reference_t<T>>();
+    descriptor.reference = make_type_reference_kind<T>();
     return descriptor;
 }
 
 inline void append_type_name(std::string& name, type_descriptor descriptor) {
-    detail::append_described_type_name(name, descriptor);
+    append_described_type_name(name, descriptor);
 }
 
 } // export namespace silicon::di
@@ -353,7 +353,7 @@ struct arena_allocation_exception : exception {
 };
 #endif
 
-namespace detail {
+
 
 inline void append_text_part(std::string& message, type_descriptor descriptor) {
     append_type_name(message, descriptor);
@@ -523,7 +523,7 @@ type_index_out_of_range_exception make_type_index_out_of_range_exception(
     return type_index_out_of_range_exception(std::move(message));
 }
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -536,7 +536,7 @@ type_index_out_of_range_exception make_type_index_out_of_range_exception(
 
 
 export namespace silicon::di {
-namespace detail {
+
 template <typename T, typename Tag, bool IsConstructible = std::is_constructible_v<T> > struct annotated_base;
 
 template <typename T, typename Tag> struct annotated_base<T, Tag, true> {
@@ -562,12 +562,12 @@ private:
 template <typename T, typename Tag> struct annotated_base<T, Tag, false>: annotated_base<T&, Tag, false> {};
 }
 
-template <typename T, typename Tag> struct annotated: detail::annotated_base<T, Tag> {
-    annotated(T&& value): detail::annotated_base<T, Tag>(std::move(value)) {}
+template <typename T, typename Tag> struct annotated: annotated_base<T, Tag> {
+    annotated(T&& value): annotated_base<T, Tag>(std::move(value)) {}
 };
 
-template <typename T, typename Tag> struct annotated<T&, Tag>: detail::annotated_base<T&, Tag> {
-    annotated(T& value): detail::annotated_base<T&, Tag>(value) {}
+template <typename T, typename Tag> struct annotated<T&, Tag>: annotated_base<T&, Tag> {
+    annotated(T& value): annotated_base<T&, Tag>(value) {}
 };
 
 template <typename T>
@@ -609,7 +609,7 @@ struct annotated_traits<annotated<T, Tag>*> {
 export namespace silicon::di {
 template <typename T> struct key;
 
-namespace detail {
+
 template <typename T, typename Key, bool IsConstructible = std::is_constructible_v<T>>
 struct keyed_base;
 
@@ -650,16 +650,16 @@ struct keyed_base<T, Key, false> : keyed_base<T&, Key, false> {
     explicit keyed_base(T& value)
         : keyed_base<T&, Key, false>(value) {}
 };
-} // namespace detail
+
 
 template <typename T, typename Key>
-struct keyed : detail::keyed_base<T, Key> {
-    using detail::keyed_base<T, Key>::keyed_base;
+struct keyed : keyed_base<T, Key> {
+    using keyed_base<T, Key>::keyed_base;
 };
 
 template <typename T, typename Key>
-struct keyed<T&, Key> : detail::keyed_base<T&, Key> {
-    using detail::keyed_base<T&, Key>::keyed_base;
+struct keyed<T&, Key> : keyed_base<T&, Key> {
+    using keyed_base<T&, Key>::keyed_base;
 };
 
 template <typename T>
@@ -704,7 +704,7 @@ struct is_keyed : std::bool_constant<!std::is_void_v<keyed_key_t<T>>> {};
 template <typename T>
 inline constexpr bool is_keyed_v = is_keyed<T>::value;
 
-namespace detail {
+
 
 template <typename T> struct is_typed_key : std::false_type {};
 
@@ -719,7 +719,7 @@ struct keyed_binding_identity : Binding {
     using Binding::Binding;
 };
 
-} // namespace detail
+
 
 } // export namespace silicon::di
 
@@ -738,7 +738,7 @@ template <typename T> struct type_list_iterator {
     using type = T;
 };
 
-namespace detail {
+
 template <typename Accumulated, typename... Lists> struct type_list_cat_impl;
 
 template <typename... Accumulated>
@@ -751,10 +751,10 @@ struct type_list_cat_impl<type_list<Accumulated...>, type_list<Head...>,
                           Tail...>
     : type_list_cat_impl<type_list<Accumulated..., Head...>, Tail...> {
 };
-} // namespace detail
+
 
 template <typename... Lists> struct type_list_cat {
-    using type = typename detail::type_list_cat_impl<type_list<>, Lists...>::type;
+    using type = typename type_list_cat_impl<type_list<>, Lists...>::type;
 };
 
 template <typename... Lists>
@@ -792,7 +792,7 @@ struct type_list_contains<T, type_list<Head, Tail...>>
 template <typename T, typename List>
 inline constexpr bool type_list_contains_v = type_list_contains<T, List>::value;
 
-namespace detail {
+
 template <typename Accumulated, typename Remaining>
 struct type_list_unique_impl;
 
@@ -813,11 +813,11 @@ struct type_list_unique_impl<type_list<Accumulated...>,
     using type = typename type_list_unique_impl<next_accumulated,
                                                 type_list<Tail...>>::type;
 };
-} // namespace detail
+
 
 template <typename List>
 using type_list_unique_t =
-    typename detail::type_list_unique_impl<type_list<>, List>::type;
+    typename type_list_unique_impl<type_list<>, List>::type;
 
 template <typename T> struct to_type_list {
     using type = T;
@@ -879,7 +879,7 @@ inline constexpr bool is_pointer_like_type_v =
 
 template <typename T, typename = void> struct copy_constructible_traits;
 
-namespace detail {
+
 template <typename T, bool IsCollection>
 struct copy_constructible_with_collection {
     static constexpr bool value = std::is_copy_constructible_v<T>;
@@ -909,10 +909,10 @@ struct copy_constructible_base<
         copy_constructible_with_collection<
             value_type, collection_type::is_collection>::value;
 };
-} // namespace detail
+
 
 template <typename T, typename>
-struct copy_constructible_traits : detail::copy_constructible_base<T> {};
+struct copy_constructible_traits : copy_constructible_base<T> {};
 
 template <typename T>
 inline constexpr bool is_copy_constructible_v =
@@ -931,7 +931,7 @@ template <typename T>
 inline constexpr bool is_alternative_type_v =
     alternative_type_traits<std::remove_cv_t<T>>::enabled;
 
-namespace detail {
+
 template <typename List, typename Selected> struct type_list_count;
 
 template <typename Selected, typename... Alternatives>
@@ -987,7 +987,7 @@ struct alternative_type_interface_types<
         type_list_cat_t<type_list<std::remove_cv_t<Type>>,
                         alternative_type_alternatives_t<Type>>;
 };
-} // namespace detail
+
 
 template <typename... Alternatives>
 struct alternative_type_traits<std::variant<Alternatives...>> {
@@ -1014,14 +1014,14 @@ struct alternative_type_traits<std::variant<Alternatives...>> {
 
 template <typename Type, typename Interface>
 inline constexpr bool is_alternative_type_interface_compatible_v =
-    detail::alternative_type_count<std::remove_cv_t<Type>,
+    alternative_type_count<std::remove_cv_t<Type>,
                                    std::remove_cv_t<Interface>>::value == 1;
 
 template <typename Type, typename Selected>
 struct construction_traits<
     Type, Selected,
     std::enable_if_t<is_alternative_type_v<Type> &&
-                     (detail::alternative_type_count<Type, Selected>::value ==
+                     (alternative_type_count<Type, Selected>::value ==
                       1)>> {
     static constexpr bool enabled = true;
 
@@ -1074,7 +1074,7 @@ template <typename StorageTag, typename Type, typename U>
 struct storage_traits<StorageTag, const Type&, U>
     : storage_traits<StorageTag, Type, U> {};
 
-namespace detail {
+
 template <typename T, typename... Args> T make_nested(Args&&... args);
 
 template <typename T, size_t N, typename... Args>
@@ -1221,7 +1221,7 @@ struct array_like_exact_interface_type<
     std::shared_ptr<Array>, std::enable_if_t<std::is_array_v<Array>>> {
     using type = typename type_traits<std::shared_ptr<Array>>::value_type;
 };
-} // namespace detail
+
 
 
 template <typename T> struct type_traits<T*> {
@@ -1253,7 +1253,7 @@ template <typename T> struct type_traits<T*> {
         if constexpr (std::is_same_v<TargetType, rebind_t<T>>)
             return factory.resolve(context);
         else
-            throw detail::make_type_not_convertible_exception(requested_type,
+            throw make_type_not_convertible_exception(requested_type,
                                                               registered_type,
                                                               context);
     }
@@ -1288,7 +1288,7 @@ template <> struct type_traits<void*> {
         if constexpr (std::is_same_v<TargetType, rebind_t<void>>)
             return factory.resolve(context);
         else
-            throw detail::make_type_not_convertible_exception(requested_type,
+            throw make_type_not_convertible_exception(requested_type,
                                                               registered_type,
                                                               context);
     }
@@ -1323,7 +1323,7 @@ template <> struct type_traits<const void*> {
         if constexpr (std::is_same_v<TargetType, rebind_t<const void>>)
             return factory.resolve(context);
         else
-            throw detail::make_type_not_convertible_exception(requested_type,
+            throw make_type_not_convertible_exception(requested_type,
                                                               registered_type,
                                                               context);
     }
@@ -1368,7 +1368,7 @@ struct type_traits<
 
     template <typename... Args>
     static std::unique_ptr<Array, Deleter> make(Args&&... args) {
-        return std::unique_ptr<Array, Deleter>(detail::make_dynamic_array<value_type>(
+        return std::unique_ptr<Array, Deleter>(make_dynamic_array<value_type>(
             std::forward<Args>(args)...));
     }
 
@@ -1383,7 +1383,7 @@ struct type_traits<
         if constexpr (std::is_same_v<TargetType, rebind_t<value_type>>)
             return factory.resolve(context);
         else
-            throw detail::make_type_not_convertible_exception(requested_type,
+            throw make_type_not_convertible_exception(requested_type,
                                                               registered_type,
                                                               context);
     }
@@ -1435,7 +1435,7 @@ struct type_traits<std::unique_ptr<T, Deleter>,
     static std::unique_ptr<T, Deleter> make(Args&&... args) {
         if constexpr (type_traits<T>::enabled && !std::is_pointer_v<T>)
             return std::unique_ptr<T, Deleter>(
-                new T(detail::make_nested<T>(std::forward<Args>(args)...)));
+                new T(make_nested<T>(std::forward<Args>(args)...)));
         // Work around direct-initialization in smart-pointer-backed factories.
         else if constexpr (std::is_constructible_v<T, Args...>)
             return std::unique_ptr<T, Deleter>(
@@ -1456,7 +1456,7 @@ struct type_traits<std::unique_ptr<T, Deleter>,
         if constexpr (std::is_same_v<TargetType, rebind_t<T>>)
             return factory.resolve(context);
         else
-            throw detail::make_type_not_convertible_exception(requested_type,
+            throw make_type_not_convertible_exception(requested_type,
                                                               registered_type,
                                                               context);
     }
@@ -1496,7 +1496,7 @@ struct type_traits<
     static void reset(std::shared_ptr<Array>& wrapper) { wrapper.reset(); }
 
     template <typename... Args> static std::shared_ptr<Array> make(Args&&... args) {
-        return std::shared_ptr<Array>(detail::make_dynamic_array<value_type>(
+        return std::shared_ptr<Array>(make_dynamic_array<value_type>(
             std::forward<Args>(args)...));
     }
 
@@ -1550,7 +1550,7 @@ struct type_traits<std::shared_ptr<T>, std::enable_if_t<!std::is_array_v<T>>> {
     template <typename... Args> static std::shared_ptr<T> make(Args&&... args) {
         if constexpr (type_traits<T>::enabled && !std::is_pointer_v<T>)
             return std::make_shared<T>(
-                detail::make_nested<T>(std::forward<Args>(args)...));
+                make_nested<T>(std::forward<Args>(args)...));
         // Work around direct-initialization in std::make_shared().
         else if constexpr (std::is_constructible_v<T, Args...>)
             return std::make_shared<T>(std::forward<Args>(args)...);
@@ -1609,7 +1609,7 @@ template <typename T> struct type_traits<std::optional<T>> {
     template <typename... Args> static std::optional<T> make(Args&&... args) {
         if constexpr (type_traits<T>::enabled && !std::is_pointer_v<T>)
             return std::optional<T>{std::in_place,
-                                    detail::make_nested<T>(
+                                    make_nested<T>(
                                         std::forward<Args>(args)...)};
         else if constexpr (std::is_constructible_v<T, Args...>)
             return std::optional<T>{std::in_place, std::forward<Args>(args)...};
@@ -1625,17 +1625,17 @@ template <typename T> struct type_traits<std::optional<T>> {
         if constexpr (std::is_same_v<TargetType, rebind_t<T>>)
             return factory.resolve(context);
         else
-            throw detail::make_type_not_convertible_exception(requested_type,
+            throw make_type_not_convertible_exception(requested_type,
                                                               registered_type,
                                                               context);
     }
 };
 
-namespace detail {
+
 template <typename T, typename... Args> T make_nested(Args&&... args) {
     return type_traits<T>::make(std::forward<Args>(args)...);
 }
-} // namespace detail
+
 
 } // export namespace silicon::di
 
@@ -1699,7 +1699,7 @@ template <class T> using normalized_type_t = typename normalized_type<T>::type;
 
 
 export namespace silicon::di {
-namespace detail {
+
 template <class T> struct collection_traits {
     static const bool is_collection = false;
     static const bool has_fixed_size_construct = false;
@@ -1764,10 +1764,10 @@ struct collection_traits<std::map<Key, Value, Compare, Allocator>> {
     }
 };
 
-} // namespace detail
+
 
 template <class T>
-struct collection_traits : detail::collection_traits<normalized_type_t<T>> {};
+struct collection_traits : collection_traits<normalized_type_t<T>> {};
 } // export namespace silicon::di
 
 
@@ -1779,7 +1779,7 @@ struct collection_traits : detail::collection_traits<normalized_type_t<T>> {};
 
 
 
-export namespace silicon::di::detail {
+export namespace silicon::di {
 
 struct binding_collection_append {
     template <typename Collection, typename Value>
@@ -1827,7 +1827,7 @@ T construct_binding_collection(PrimaryCountFn&& primary_count,
     const std::size_t total = std::forward<PrimaryCountFn>(primary_count)() +
                               std::forward<SecondaryCountFn>(secondary_count)();
     if (total == 0) {
-        throw detail::make_collection_type_not_found_exception<T,
+        throw make_collection_type_not_found_exception<T,
                                                                resolve_type>();
     }
 
@@ -1840,7 +1840,7 @@ T construct_binding_collection(PrimaryCountFn&& primary_count,
     return results;
 }
 
-} // export namespace silicon::di::detail
+} // export namespace silicon::di
 
 
 // ==============================================================================
@@ -1851,7 +1851,7 @@ T construct_binding_collection(PrimaryCountFn&& primary_count,
 
 
 export namespace silicon::di {
-namespace detail {
+
 // Detect completeness through overload resolution instead of a partial
 // specialization. MSVC x64 accepts the specialization-based probe for some
 // forward declarations that still need to be rejected during registration.
@@ -1870,9 +1870,9 @@ inline constexpr bool is_complete_v = is_complete<T>::value;
 template <typename T>
 inline constexpr bool requires_complete_type_v =
     !std::is_void_v<T> && !std::is_function_v<T>;
-} // namespace detail
 
-template <typename T, typename = void> struct is_complete : detail::is_complete<T> {};
+
+template <typename T, typename = void> struct is_complete : is_complete<T> {};
 } // export namespace silicon::di
 
 
@@ -1885,7 +1885,7 @@ template <typename T, typename = void> struct is_complete : detail::is_complete<
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 template <typename T, bool = is_complete<T>::value>
 struct default_auto_constructible : std::false_type {};
@@ -1894,10 +1894,10 @@ template <typename T>
 struct default_auto_constructible<T, true>
     : std::bool_constant<std::is_aggregate_v<T>> {};
 
-} // namespace detail
+
 
 template <typename T>
-struct is_auto_constructible : detail::default_auto_constructible<T> {};
+struct is_auto_constructible : default_auto_constructible<T> {};
 
 } // export namespace silicon::di
 
@@ -1920,7 +1920,7 @@ template <class T, class = void> struct leaf_type;
 template <class T, class U, class = void> struct rebind_type;
 template <class T, class U, class = void> struct rebind_leaf_type;
 
-namespace detail {
+
 template <class T> struct decoration_traits {
     using type = T;
 
@@ -2089,22 +2089,22 @@ struct resolved_base<
                                     runtime_type>>> {
     using type = typename rebind_leaf_type<T, typename leaf_type<U>::type>::type;
 };
-} // namespace detail
+
 
 template <class T, class> struct leaf_type {
   private:
-    using outer = detail::outer_traits<T>;
+    using outer = outer_traits<T>;
 
   public:
-    using type = typename detail::leaf_base<typename outer::type>::type;
+    using type = typename leaf_base<typename outer::type>::type;
 };
 
 template <class T> using leaf_type_t = typename leaf_type<T>::type;
 
 template <class T, class U, class> struct rebind_type {
   private:
-    using outer = detail::outer_traits<T>;
-    using rebound = typename detail::rebind_base<typename outer::type, U>::type;
+    using outer = outer_traits<T>;
+    using rebound = typename rebind_base<typename outer::type, U>::type;
 
   public:
     using type = typename outer::template rebind_t<rebound>;
@@ -2115,8 +2115,8 @@ using rebind_type_t = typename rebind_type<T, U>::type;
 
 template <class T, class U, class> struct rebind_leaf_type {
   private:
-    using outer = detail::outer_traits<T>;
-    using rebound = typename detail::rebind_leaf_base<typename outer::type, U>::type;
+    using outer = outer_traits<T>;
+    using rebound = typename rebind_leaf_base<typename outer::type, U>::type;
 
   public:
     using type = typename outer::template rebind_t<rebound>;
@@ -2127,8 +2127,8 @@ using rebind_leaf_t = typename rebind_leaf_type<T, U>::type;
 
 template <class T, class = void> struct lookup_type {
   private:
-    using outer = detail::outer_traits<T>;
-    using rebound = typename detail::lookup_base<typename outer::type, runtime_type>::type;
+    using outer = outer_traits<T>;
+    using rebound = typename lookup_base<typename outer::type, runtime_type>::type;
 
   public:
     using type = typename outer::template rebind_t<rebound>;
@@ -2139,8 +2139,8 @@ using lookup_type_t = typename lookup_type<T>::type;
 
 template <class T, class U, class = void> struct resolved_type {
   private:
-    using outer = detail::outer_traits<T>;
-    using rebound = typename detail::resolved_base<typename outer::type, U>::type;
+    using outer = outer_traits<T>;
+    using rebound = typename resolved_base<typename outer::type, U>::type;
 
   public:
     using type = typename outer::template rebind_t<rebound>;
@@ -2173,20 +2173,20 @@ inline constexpr bool is_exact_lookup_v = is_exact_lookup<T>::value;
 
 
 export namespace silicon::di {
-namespace detail {
+
 template <typename Source, typename Target>
 inline constexpr bool is_handle_rebindable_v =
     type_traits<Source>::enabled && type_traits<Source>::is_pointer_like &&
     type_traits<Source>::template is_handle_rebindable<Target>;
-} // namespace detail
+
 
 template <typename Storage, typename Interface>
 inline constexpr bool is_interface_storage_rebindable_v =
-    detail::is_handle_rebindable_v<
+    is_handle_rebindable_v<
         Storage, rebind_leaf_t<Storage,
                                typename annotated_traits<Interface>::type>>;
 
-namespace detail {
+
 template <typename Storage, typename InterfaceList>
 struct use_interface_as_stored_leaf;
 
@@ -2215,7 +2215,7 @@ struct use_interface_as_stored_leaf<Storage, type_list<Interface>>
 template <typename Storage, typename InterfaceList>
 inline constexpr bool use_interface_as_stored_leaf_v =
     use_interface_as_stored_leaf<Storage, InterfaceList>::value;
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -2258,12 +2258,12 @@ template <typename T> struct constructor_traits<T*> {
 
 template <typename T, size_t N> struct constructor_traits<T[N]> {
     template <typename... Args> static T* construct(Args&&... args) {
-        return detail::make_bounded_array<T, N>(std::forward<Args>(args)...);
+        return make_bounded_array<T, N>(std::forward<Args>(args)...);
     }
 
     template <typename... Args>
     static void construct(void* ptr, Args&&... args) {
-        detail::construct_bounded_array<T, N>(ptr,
+        construct_bounded_array<T, N>(ptr,
                                               std::forward<Args>(args)...);
     }
 };
@@ -2293,7 +2293,7 @@ struct constructor_traits<
     }
 };
 
-namespace detail {
+
 template <typename Type, typename Selected, typename = void>
 struct construction_dispatch {
     template <typename... Args> static auto construct(Args&&... args) {
@@ -2341,7 +2341,7 @@ struct construction_dispatch<
             constructor_traits<Selected>::construct(std::forward<Args>(args)...)));
     }
 };
-} // namespace detail
+
 
 } // export namespace silicon::di
 
@@ -2370,19 +2370,19 @@ template <typename T>
 inline constexpr bool has_constructor_typedef_v =
     has_constructor_typedef<T>{};
 
-namespace detail {
+
 enum class constructor_kind { kConcrete, kGeneric, kInvalid };
 
 template <typename T, bool = has_constructor_typedef_v<T>>
 struct constructor_typedef_impl : T::di_constructor_type {};
 
 template <typename T> struct constructor_typedef_impl<T, false> {};
-} // namespace detail
+
 
 template <typename T>
-struct constructor_typedef : detail::constructor_typedef_impl<T> {
-    static constexpr detail::constructor_kind kind =
-        detail::constructor_kind::kConcrete;
+struct constructor_typedef : constructor_typedef_impl<T> {
+    static constexpr constructor_kind kind =
+        constructor_kind::kConcrete;
 };
 
 } // export namespace silicon::di
@@ -2398,7 +2398,7 @@ template <typename T> struct constructor_detection_traits {
     static constexpr size_t max_arity = SILICON_DI_CONSTRUCTOR_DETECTION_ARGS;
 };
 
-namespace detail {
+
 struct automatic {};
 
 template <typename Detection, typename = void>
@@ -2708,7 +2708,7 @@ template <typename T, typename Tag, size_t Arity> struct constructor_methods {
         // `Is...` only drives the pack expansion; the runtime construction
         // path still receives `Arity` copies of the same constructor argument
         // adapter without first materializing a type_list of placeholders.
-        return detail::construction_dispatch<Type, T>::construct(
+        return construction_dispatch<Type, T>::construct(
             ((void)Is, constructor_argument_impl<T, Context, Container, Tag>(
                            ctx, container))...);
     }
@@ -2716,7 +2716,7 @@ template <typename T, typename Tag, size_t Arity> struct constructor_methods {
     template <typename Type, typename Context, typename Container, size_t... Is>
     static void construct_impl(void* ptr, Context& ctx, Container& container,
                                std::index_sequence<Is...>) {
-        detail::construction_dispatch<Type, T>::construct(
+        construction_dispatch<Type, T>::construct(
             ptr, ((void)Is,
                   constructor_argument_impl<T, Context, Container, Tag>(
                       ctx, container))...);
@@ -2829,18 +2829,18 @@ struct constructor_detection {
     }
 };
 
-} // namespace detail
 
-template <typename T, typename DetectionType = detail::automatic>
+
+template <typename T, typename DetectionType = automatic>
 struct constructor_detection {
   private:
     using detection_type = std::conditional_t<
         has_constructor_typedef_v<T>, constructor_typedef<T>,
-        detail::default_constructor_detection<T, DetectionType>>;
+        default_constructor_detection<T, DetectionType>>;
 
   public:
-    using arguments = detail::constructor_detection_arguments_t<detection_type>;
-    static constexpr detail::constructor_kind kind = detection_type::kind;
+    using arguments = constructor_detection_arguments_t<detection_type>;
+    static constexpr constructor_kind kind = detection_type::kind;
     static constexpr size_t arity = detection_type::arity;
 
     template <typename Type, typename Context, typename Container>
@@ -2870,18 +2870,18 @@ template <typename T, typename... Args> struct constructor<T(Args...)> {
     using arguments = type_list<Args...>;
     static constexpr size_t arity = sizeof...(Args);
     static constexpr bool valid =
-        detail::is_list_initializable_v<T, Args...> ||
-        detail::is_direct_initializable_v<T, Args...>;
+        is_list_initializable_v<T, Args...> ||
+        is_direct_initializable_v<T, Args...>;
 
     template <typename Type, typename Context, typename Container>
     static auto construct(Context& ctx, Container& container) {
-        return detail::construction_dispatch<Type, T>::construct(
+        return construction_dispatch<Type, T>::construct(
             ctx.template resolve<Args>(container)...);
     }
 
     template <typename Type, typename Context, typename Container>
     static void construct(void* ptr, Context& ctx, Container& container) {
-        detail::construction_dispatch<Type, T>::construct(
+        construction_dispatch<Type, T>::construct(
             ptr, ctx.template resolve<Args>(container)...);
     }
 };
@@ -2897,7 +2897,7 @@ template <typename T, typename... Args> struct constructor<T(Args...)> {
 
 
 export namespace silicon::di {
-namespace detail {
+
 template <typename StorageTag, typename Type, typename U> struct conversions;
 template <typename StorageTag, typename Type, typename StoredType,
           typename Factory, typename Conversions>
@@ -2913,7 +2913,7 @@ struct storage_interface_requirements : std::bool_constant<true> {};
 template <typename Storage, typename Type, typename TypeInterface>
 inline constexpr bool storage_interface_requirements_v =
     storage_interface_requirements<Storage, Type, TypeInterface>::value;
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -2929,7 +2929,7 @@ inline constexpr bool storage_interface_requirements_v =
 export namespace silicon::di {
 template <typename... Args> struct interfaces;
 
-namespace detail {
+
 template <typename Alternative, typename Interface, typename = void>
 struct alternative_provides_interface
     : std::bool_constant<std::is_same_v<
@@ -3009,12 +3009,12 @@ struct interface_registration_requirements {
         is_complete_v<normalized_interface_type>;
 
     static constexpr bool array_shape_matches = [] {
-        if constexpr (!detail::is_array_like_type_v<Type> ||
+        if constexpr (!is_array_like_type_v<Type> ||
                       !std::is_array_v<interface_type>) {
             return true;
         } else {
             using exact_interface_type =
-                detail::array_like_exact_interface_type_t<Type>;
+                array_like_exact_interface_type_t<Type>;
             return std::is_same_v<std::remove_cv_t<interface_type>,
                                   std::remove_cv_t<exact_interface_type>> ||
                    (std::is_array_v<Type> && (std::rank_v<Type> > 1) &&
@@ -3024,7 +3024,7 @@ struct interface_registration_requirements {
     }();
 
     static constexpr bool array_element_matches = [] {
-        if constexpr (!detail::is_array_like_type_v<Type> ||
+        if constexpr (!is_array_like_type_v<Type> ||
                       std::is_array_v<interface_type>) {
             return true;
         } else {
@@ -3063,7 +3063,7 @@ struct interface_registration_requirements {
                       "registered types must be complete");
         static_assert(interface_type_is_complete,
                       "registered interfaces must be complete");
-        if constexpr (detail::is_array_like_type_v<Type>) {
+        if constexpr (is_array_like_type_v<Type>) {
             if constexpr (std::is_array_v<interface_type>) {
                 static_assert(
                     array_shape_matches,
@@ -3076,7 +3076,7 @@ struct interface_registration_requirements {
         }
 
         if constexpr (registered_type_is_complete) {
-            if constexpr ((!detail::is_array_like_type_v<Type>) ||
+            if constexpr ((!is_array_like_type_v<Type>) ||
                           (std::is_array_v<interface_type> && array_shape_matches) ||
                           (!std::is_array_v<interface_type> && array_element_matches)) {
                 static_assert(
@@ -3112,7 +3112,7 @@ struct registration_requirements<Storage, type_list<TypeInterfaces...>, Type> {
          ...);
     }
 };
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -3126,7 +3126,7 @@ struct registration_requirements<Storage, type_list<TypeInterfaces...>, Type> {
 
 export namespace silicon::di {
 
-namespace detail {
+
 template <typename T>
 using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
@@ -3325,14 +3325,14 @@ template <typename Signature, typename T> struct callable_factory {
   private:
     T fn_;
 };
-} // namespace detail
+
 
 template <typename Signature = void, typename T> auto callable(T&& fn) {
-    using fn_type = detail::remove_cvref_t<T>;
+    using fn_type = remove_cvref_t<T>;
     using dispatch_signature =
-        detail::callable_dispatch_signature_t<Signature, fn_type>;
+        callable_dispatch_signature_t<Signature, fn_type>;
 
-    return detail::callable_factory<dispatch_signature, fn_type>(
+    return callable_factory<dispatch_signature, fn_type>(
         std::forward<T>(fn));
 }
 
@@ -3346,13 +3346,13 @@ export namespace silicon::di {
 template <typename T, T fn> struct function_decl {
     template <typename Type, typename Context, typename Container>
     static auto construct(Context& ctx, Container& container) {
-        return detail::callable_invoke<
-            detail::callable_signature_t<T>>::construct(fn, ctx, container);
+        return callable_invoke<
+            callable_signature_t<T>>::construct(fn, ctx, container);
     }
 
     template <typename Type, typename Context, typename Container>
     static void construct(void* ptr, Context& ctx, Container& container) {
-        detail::callable_invoke<detail::callable_signature_t<T>>::
+        callable_invoke<callable_signature_t<T>>::
             template construct<Type>(ptr, fn, ctx, container);
     }
 };
@@ -3373,7 +3373,7 @@ template <auto fn> struct function : function_decl<decltype(fn), fn> {};
 
 export namespace silicon::di {
 
-namespace detail {
+
 template <typename, typename = void> struct has_factory_arguments : std::false_type {};
 
 template <typename Factory>
@@ -3415,7 +3415,7 @@ struct factory_arguments_or_void<Factory,
 template <typename Factory>
 using factory_arguments_or_void_t =
     typename factory_arguments_or_void<Factory>::type;
-} // namespace detail
+
 
 template <typename Factory, typename = void> struct factory_traits {
     using dependencies = void;
@@ -3426,8 +3426,8 @@ template <typename Factory, typename = void> struct factory_traits {
 template <typename Factory>
 struct factory_traits<
     Factory,
-    std::enable_if_t<detail::has_factory_arguments<Factory>::value &&
-                     !detail::is_plain_constructor_factory<Factory>::value>> {
+    std::enable_if_t<has_factory_arguments<Factory>::value &&
+                     !is_plain_constructor_factory<Factory>::value>> {
     using dependencies = typename Factory::arguments;
     static constexpr bool has_explicit_dependencies = true;
     static constexpr bool is_compile_time_bindable = true;
@@ -3435,16 +3435,16 @@ struct factory_traits<
 
 template <typename T>
 struct factory_traits<constructor<T>, std::enable_if_t<!std::is_function_v<T>>> {
-    using dependencies = detail::factory_arguments_or_void_t<constructor<T>>;
+    using dependencies = factory_arguments_or_void_t<constructor<T>>;
     static constexpr bool has_explicit_dependencies = false;
     static constexpr bool is_compile_time_bindable =
-        constructor<T>::kind == detail::constructor_kind::kConcrete;
+        constructor<T>::kind == constructor_kind::kConcrete;
 };
 
 template <typename T, T fn>
 struct factory_traits<function_decl<T, fn>> {
     using dependencies =
-        detail::callable_dependencies_t<detail::callable_signature_t<T>>;
+        callable_dependencies_t<callable_signature_t<T>>;
     static constexpr bool has_explicit_dependencies = true;
     static constexpr bool is_compile_time_bindable = true;
 };
@@ -3454,8 +3454,8 @@ struct factory_traits<function<fn>>
     : factory_traits<function_decl<decltype(fn), fn>> {};
 
 template <typename Signature, typename T>
-struct factory_traits<detail::callable_factory<Signature, T>> {
-    using dependencies = detail::callable_dependencies_t<Signature>;
+struct factory_traits<callable_factory<Signature, T>> {
+    using dependencies = callable_dependencies_t<Signature>;
     static constexpr bool has_explicit_dependencies = true;
     static constexpr bool is_compile_time_bindable = false;
 };
@@ -3557,7 +3557,7 @@ template <typename... Args> struct dependencies<type_list<Args...>> {
     template <typename U> using rebind_t = dependencies<U>;
 };
 
-namespace detail {
+
 template <typename Type, typename = void> struct deduced_interface_types {
     using type = type_list<std::remove_cv_t<std::remove_reference_t<Type>>>;
 };
@@ -3750,10 +3750,10 @@ struct deduced_interface_type {
 template <typename StorageType, typename ScopeType>
 struct deduced_interface_type<
     StorageType, ScopeType,
-    std::void_t<typename ::silicon::di::detail::alternative_type_interface_types<
+    std::void_t<typename ::silicon::di::alternative_type_interface_types<
         std::remove_cv_t<std::remove_reference_t<StorageType>>>::type>> {
     using type = ::silicon::di::interfaces<
-        typename ::silicon::di::detail::deduced_interface_types<
+        typename ::silicon::di::deduced_interface_types<
             std::remove_cv_t<std::remove_reference_t<StorageType>>>::type>;
 };
 
@@ -3767,7 +3767,7 @@ struct deduced_interface_type<
                          std::remove_reference_t<StorageType>>>::is_value_borrowable &&
                      is_alternative_type_v<std::remove_cv_t<leaf_type_t<StorageType>>>>> {
     using type = ::silicon::di::interfaces<
-        typename ::silicon::di::detail::deduced_interface_types<
+        typename ::silicon::di::deduced_interface_types<
             std::remove_cv_t<leaf_type_t<StorageType>>>::type>;
 };
 
@@ -3824,7 +3824,7 @@ using registration_conversions_t = std::conditional_t<
     !std::is_same_v<typename ParsedArgs::conversions_type,
                     ::silicon::di::conversions<void>>,
     typename ParsedArgs::conversions_type,
-    ::silicon::di::conversions<detail::conversions<
+    ::silicon::di::conversions<conversions<
         typename registration_scope_t<ParsedArgs>::type,
         typename registration_storage_t<ParsedArgs>::type, runtime_type>>>;
 
@@ -3859,7 +3859,7 @@ using registration_key_t = std::conditional_t<
     typename ParsedArgs::key_type,
     ::silicon::di::key<void>>;
 
-} // namespace detail
+
 
 // TODO:
 // the default factory is hardcoded
@@ -3868,39 +3868,39 @@ template <typename... Args> struct type_registration {
   private:
     // Parse the explicit registration wrappers once, then derive any defaults
     // from that cached result instead of rescanning Args... for each role.
-    using parsed_args = detail::parse_registration_args_t<Args...>;
+    using parsed_args = parse_registration_args_t<Args...>;
 
   public:
     // Scope has to be scpecified as there is no way how to deduce it
-    using scope_type = detail::registration_scope_t<parsed_args>;
-    static_assert((detail::is_supported_registration_arg_v<Args> && ...),
+    using scope_type = registration_scope_t<parsed_args>;
+    static_assert((is_supported_registration_arg_v<Args> && ...),
                   "type_registration expects scope/storage/factory/interfaces/key/conversions/dependencies/bindings wrappers");
     static_assert(!std::is_same_v<scope_type, scope<void>>,
                   "failed to deduce a scope type");
 
     // Storage can be deduced from Factory
-    using storage_type = detail::registration_storage_t<parsed_args>;
+    using storage_type = registration_storage_t<parsed_args>;
     static_assert(!std::is_same_v<storage_type, storage<void>>,
                   "failed to deduce a storage type");
 
     // Factory can be deduced from Storage
-    using factory_type = detail::registration_factory_t<parsed_args>;
+    using factory_type = registration_factory_t<parsed_args>;
     static_assert(!std::is_same_v<factory_type, factory<void>>,
                   "failed to deduce a factory type");
 
     // Interface can be deduced from Storage or Factory
-    using interface_type = detail::registration_interface_t<parsed_args>;
+    using interface_type = registration_interface_t<parsed_args>;
     static_assert(!std::is_same_v<interface_type, interfaces<void>>,
                   "failed to deduce an interface type");
 
-    using key_type = detail::registration_key_t<parsed_args>;
+    using key_type = registration_key_t<parsed_args>;
 
     // Conversions are deduced from Storage and Scope
-    using conversions_type = detail::registration_conversions_t<parsed_args>;
+    using conversions_type = registration_conversions_t<parsed_args>;
     static_assert(!std::is_same_v<conversions_type, conversions<void>>,
                   "failed to deduce a conversions type");
 
-    using dependencies_type = detail::registration_dependencies_t<parsed_args>;
+    using dependencies_type = registration_dependencies_t<parsed_args>;
     using bindings_type = typename parsed_args::bindings_type;
 };
 
@@ -3917,7 +3917,7 @@ template <typename... Args> struct type_registration {
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 template <typename Interface, typename BindingModel> struct binding {
     using interface_type = Interface;
@@ -4001,7 +4001,7 @@ template <typename BindingModel>
 using binding_expansion =
     binding_expansion_impl<BindingModel, typename BindingModel::interface_types>;
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 // --- core/binding_selection.h ---
@@ -4009,7 +4009,7 @@ using binding_expansion =
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 enum class binding_selection_status {
     kFound,
@@ -4114,7 +4114,7 @@ make_runtime_selection(Visitor&& visit_candidates) {
     return runtime_binding_selection<Binding, State>::ambiguity();
 }
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 // --- core/binding_resolution_policy.h ---
@@ -4125,7 +4125,7 @@ make_runtime_selection(Visitor&& visit_candidates) {
 #pragma warning(disable : 4702)
 #endif
 
-export namespace silicon::di::detail {
+export namespace silicon::di {
 
 enum class binding_resolution_policy {
     kPreferPrimary,
@@ -4366,7 +4366,7 @@ template <typename LookupRequest> struct missing_binding_source {
     }
 };
 
-} // export namespace silicon::di::detail
+} // export namespace silicon::di
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -4400,7 +4400,7 @@ template <typename T> struct invoke {
     template <typename Context, typename Container, typename Callable>
     static decltype(auto) construct(Context& ctx, Container& container,
                                     Callable&& callable) {
-        return detail::callable_invoke<detail::callable_signature_t<T>>::
+        return callable_invoke<callable_signature_t<T>>::
             construct(std::forward<Callable>(callable), ctx, container);
     }
 };
@@ -4474,7 +4474,7 @@ struct index;
 template <typename Key, typename Value, typename Allocator, typename Tag>
 struct index_collection;
 
-namespace detail {
+
 template <typename Entry> struct index_entry;
 
 template <typename Key, typename Tag> struct index_entry<type_list<Key, Tag>> {
@@ -4566,17 +4566,17 @@ struct index_impl<type_list<Entries...>, Value, Allocator> {
                                             typename index_entry<Entries>::tag>>...>
         indexes_;
 };
-} // namespace detail
+
 
 template <typename Arg, typename... Entries>
 struct index_tag<Arg, std::tuple<Entries...>>
-    : detail::index_tag_impl<Arg, type_list<to_type_list_t<Entries>...>> {};
+    : index_tag_impl<Arg, type_list<to_type_list_t<Entries>...>> {};
 
 template <typename Value, typename Allocator, typename... Entries>
 struct index<std::tuple<Entries...>, Value, Allocator>
-    : detail::index_impl<type_list<to_type_list_t<Entries>...>, Value,
+    : index_impl<type_list<to_type_list_t<Entries>...>, Value,
                          Allocator> {
-    using detail::index_impl<type_list<to_type_list_t<Entries>...>, Value,
+    using index_impl<type_list<to_type_list_t<Entries>...>, Value,
                              Allocator>::index_impl;
 };
 
@@ -4904,17 +4904,17 @@ bool operator != (const arena_allocator<T, Arena, AlignmentT>& x, const arena_al
 
 // --- resolution/resolving_frame_fwd.h ---
 
-export namespace silicon::di::detail {
+export namespace silicon::di {
 
 class resolving_frame;
 
-} // export namespace silicon::di::detail
+} // export namespace silicon::di
 
 // --- resolution/resolving_frame.h ---
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 class context_path_state;
 
@@ -4937,7 +4937,7 @@ class resolving_frame {
     type_descriptor type_;
 };
 
-} // namespace detail
+
 
 } // export namespace silicon::di
 
@@ -4952,7 +4952,7 @@ class resolving_frame {
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 struct context_destructible {
     void* instance;
@@ -5124,7 +5124,7 @@ struct fixed_context_closure : context_closure_base {
 class context_path_state {
   public:
     template <typename T>
-    detail::resolving_frame track_type();
+    resolving_frame track_type();
 
     bool has_type_path() const;
 
@@ -5137,7 +5137,7 @@ class context_path_state {
   protected:
     friend class resolving_frame;
 
-    detail::resolving_frame* active_resolving_frame_ = nullptr;
+    resolving_frame* active_resolving_frame_ = nullptr;
 };
 
 class context_state : public context_path_state {
@@ -5214,12 +5214,12 @@ class context_state : public context_path_state {
     context_closure closure_;
 };
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
@@ -5282,11 +5282,11 @@ inline void context_path_state::append_type_path(std::string& message) const {
 }
 
 template <typename T>
-detail::resolving_frame context_path_state::track_type() {
-    return detail::resolving_frame(*this, describe_type<T>());
+resolving_frame context_path_state::track_type() {
+    return resolving_frame(*this, describe_type<T>());
 }
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -5328,7 +5328,7 @@ struct type_conversion_traits<Target*, Source*> {
 
 
 export namespace silicon::di {
-namespace detail {
+
 template <typename T, typename... Args>
 void construct_class_instance(void* ptr, Args&&... args) {
     new (ptr) T(std::forward<Args>(args)...);
@@ -5342,7 +5342,7 @@ construct_class_instance(void* ptr, Source&& source) {
                 T, std::remove_reference_t<Source>>::convert(
         std::forward<Source>(source)));
 }
-} // namespace detail
+
 
 template <typename... Types> struct conversion_cache;
 
@@ -5357,7 +5357,7 @@ template <typename T> struct conversion_cache_entry {
             return *instance;
         }
 
-        detail::construct_class_instance<T>(instance,
+        construct_class_instance<T>(instance,
                                             std::forward<Args>(args)...);
         initialized_ = true;
         return *instance;
@@ -5483,7 +5483,7 @@ template <typename Container> class runtime_binding_interface {
 
 
 export namespace silicon::di {
-namespace detail {
+
 template <typename Type> void destroy_object_value(Type& value) {
     if constexpr (std::is_array_v<Type>) {
         for (std::size_t i = std::extent_v<Type>; i > 0; --i) {
@@ -5493,7 +5493,7 @@ template <typename Type> void destroy_object_value(Type& value) {
         value.~Type();
     }
 }
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -5511,7 +5511,7 @@ template <typename Type> void destroy_object_value(Type& value) {
 #endif
 
 export namespace silicon::di {
-namespace detail {
+
 template <typename Source> class rvalue_source {
   public:
     using value_type = Source;
@@ -5719,7 +5719,7 @@ pointer_source<Source> make_resolved_source(Source* source) {
     return make_pointer_source(source);
 }
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 #ifdef _MSC_VER
@@ -5742,7 +5742,7 @@ pointer_source<Source> make_resolved_source(Source* source) {
 #endif
 
 export namespace silicon::di {
-namespace detail {
+
 template <typename Target, typename Source>
 inline constexpr bool is_same_handle_shape_v =
     std::is_same_v<rebind_leaf_t<Target, runtime_type>,
@@ -6112,7 +6112,7 @@ Target* resolve_borrowed_materialized_alternative_pointer(
             std::forward<SourceCapability>(source)),
         requested_type, registered_type);
 }
-} // namespace detail
+
 
 // TODO: this file is really terrible, I need to look at how to deduplicate it
 
@@ -6125,7 +6125,7 @@ struct type_conversion {
 };
 
 template <typename Target, typename Source>
-struct type_conversion<Target, detail::rvalue_source<Source>,
+struct type_conversion<Target, rvalue_source<Source>,
                        std::enable_if_t<!std::is_pointer_v<Source> &&
                                         !is_alternative_type_v<Source>>> {
     template <typename Factory, typename Context, typename SourceCapability>
@@ -6137,19 +6137,19 @@ struct type_conversion<Target, detail::rvalue_source<Source>,
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::rvalue_source<Source>,
+    Target, rvalue_source<Source>,
     std::enable_if_t<
         is_alternative_type_v<Source> &&
         !std::is_pointer_v<Target> &&
-        !std::is_same_v<detail::unqualified_t<Target>,
-                        detail::unqualified_t<Source>> &&
-        (detail::alternative_type_count<Source,
-                                        detail::unqualified_t<Target>>::value == 1)>> {
+        !std::is_same_v<unqualified_t<Target>,
+                        unqualified_t<Source>> &&
+        (alternative_type_count<Source,
+                                        unqualified_t<Target>>::value == 1)>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target apply(Factory&, Context&, SourceCapability&& source,
                         type_descriptor requested_type,
                         type_descriptor registered_type) {
-        return detail::resolve_materialized_alternative_value<Target>(
+        return resolve_materialized_alternative_value<Target>(
             std::forward<SourceCapability>(source), requested_type,
             registered_type);
     }
@@ -6157,10 +6157,10 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::rvalue_source<Source>,
+    Target, rvalue_source<Source>,
     std::enable_if_t<is_alternative_type_v<Source> &&
-                     std::is_same_v<detail::unqualified_t<Target>,
-                                    detail::unqualified_t<Source>>>> {
+                     std::is_same_v<unqualified_t<Target>,
+                                    unqualified_t<Source>>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static decltype(auto) apply(Factory&, Context&, SourceCapability&& source,
                                 type_descriptor, type_descriptor) {
@@ -6170,95 +6170,95 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::rvalue_source<Source>,
+    Target, rvalue_source<Source>,
     std::enable_if_t<
         is_alternative_type_v<Source> &&
         !std::is_pointer_v<Target> &&
-        !std::is_same_v<detail::unqualified_t<Target>,
-                        detail::unqualified_t<Source>> &&
-        (detail::alternative_type_count<Source,
-                                        detail::unqualified_t<Target>>::value != 1)>> {
+        !std::is_same_v<unqualified_t<Target>,
+                        unqualified_t<Source>> &&
+        (alternative_type_count<Source,
+                                        unqualified_t<Target>>::value != 1)>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target apply(Factory&, Context&, SourceCapability&&,
                         type_descriptor requested_type,
                         type_descriptor registered_type) {
-        throw detail::make_type_not_convertible_exception(requested_type,
+        throw make_type_not_convertible_exception(requested_type,
                                                           registered_type);
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::rvalue_source<Source*>,
+    Target*, rvalue_source<Source*>,
     std::enable_if_t<std::is_array_v<Target> &&
                      std::is_same_v<std::remove_cv_t<Source>,
                                     std::remove_cv_t<Target>>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_value(std::forward<SourceCapability>(source));
+        return materialized_value(std::forward<SourceCapability>(source));
     }
 };
 
 template <typename Target, size_t N, typename Source>
 struct type_conversion<
-    Target (*)[N], detail::rvalue_source<Source*>,
+    Target (*)[N], rvalue_source<Source*>,
     std::enable_if_t<std::is_same_v<std::remove_cv_t<Source>,
                                     std::remove_cv_t<Target>>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target (*apply(Factory&, Context&, SourceCapability&& source,
                           type_descriptor, type_descriptor))[N] {
         return reinterpret_cast<Target(*)[N]>(
-            detail::materialized_value(std::forward<SourceCapability>(source)));
+            materialized_value(std::forward<SourceCapability>(source)));
     }
 };
 
 template <typename Target, typename Source>
-struct type_conversion<Target*, detail::rvalue_source<Source*>,
+struct type_conversion<Target*, rvalue_source<Source*>,
                        std::enable_if_t<!std::is_array_v<Target>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_value(std::forward<SourceCapability>(source));
+        return materialized_value(std::forward<SourceCapability>(source));
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::rvalue_source<Source*>,
+    Target, rvalue_source<Source*>,
     std::enable_if_t<is_pointer_like_type_v<Target> &&
-                     detail::has_type_from_pointer_v<Target, Source*>>> {
+                     has_type_from_pointer_v<Target, Source*>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target apply(Factory&, Context&, SourceCapability&& source,
                         type_descriptor, type_descriptor) {
-        return detail::resolve_materialized_handle_from_pointer<Target>(
+        return resolve_materialized_handle_from_pointer<Target>(
             std::forward<SourceCapability>(source));
     }
 };
 
 template <typename Array, typename Source, typename Deleter>
 struct type_conversion<
-    std::unique_ptr<Array, Deleter>, detail::rvalue_source<Source*>,
+    std::unique_ptr<Array, Deleter>, rvalue_source<Source*>,
     std::enable_if_t<(std::rank_v<Array> > 1) &&
                      (std::extent_v<Array, 0> != 0)>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static std::unique_ptr<Array, Deleter>
     apply(Factory&, Context&, SourceCapability&&, type_descriptor requested_type,
           type_descriptor registered_type) {
-        throw detail::make_type_not_convertible_exception(requested_type,
+        throw make_type_not_convertible_exception(requested_type,
                                                           registered_type);
     }
 };
 
 template <typename Array, typename Source>
-struct type_conversion<std::shared_ptr<Array>, detail::rvalue_source<Source*>,
+struct type_conversion<std::shared_ptr<Array>, rvalue_source<Source*>,
                        std::enable_if_t<(std::rank_v<Array> > 1) &&
                                         (std::extent_v<Array, 0> != 0)>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static std::shared_ptr<Array>
     apply(Factory&, Context&, SourceCapability&&, type_descriptor requested_type,
           type_descriptor registered_type) {
-        throw detail::make_type_not_convertible_exception(requested_type,
+        throw make_type_not_convertible_exception(requested_type,
                                                           registered_type);
     }
 };
@@ -6267,20 +6267,20 @@ template <typename Target, typename SourceCapability>
 struct type_conversion<
     Target, SourceCapability,
     std::enable_if_t<
-        detail::materialized_source_traits_t<SourceCapability>::reference_like &&
-        is_alternative_type_v<detail::source_value_type_t<SourceCapability>> &&
+        materialized_source_traits_t<SourceCapability>::reference_like &&
+        is_alternative_type_v<source_value_type_t<SourceCapability>> &&
         !std::is_pointer_v<Target> &&
         !std::is_same_v<
-            detail::unqualified_t<Target>,
-            detail::unqualified_t<detail::source_value_type_t<SourceCapability>>> &&
-        (detail::alternative_type_count<
-             detail::source_value_type_t<SourceCapability>,
-             detail::unqualified_t<Target>>::value == 1)>> {
+            unqualified_t<Target>,
+            unqualified_t<source_value_type_t<SourceCapability>>> &&
+        (alternative_type_count<
+             source_value_type_t<SourceCapability>,
+             unqualified_t<Target>>::value == 1)>> {
     template <typename Factory, typename Context, typename Capability>
     static Target& apply(Factory&, Context&, Capability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_materialized_alternative_reference<Target>(
+        return resolve_materialized_alternative_reference<Target>(
             std::forward<Capability>(source),
             requested_type, registered_type);
     }
@@ -6290,15 +6290,15 @@ template <typename Target, typename SourceCapability>
 struct type_conversion<
     Target, SourceCapability,
     std::enable_if_t<
-        detail::materialized_source_traits_t<SourceCapability>::reference_like &&
-        is_alternative_type_v<detail::source_value_type_t<SourceCapability>> &&
+        materialized_source_traits_t<SourceCapability>::reference_like &&
+        is_alternative_type_v<source_value_type_t<SourceCapability>> &&
         std::is_same_v<
-            detail::unqualified_t<Target>,
-            detail::unqualified_t<detail::source_value_type_t<SourceCapability>>>>> {
+            unqualified_t<Target>,
+            unqualified_t<source_value_type_t<SourceCapability>>>>> {
     template <typename Factory, typename Context, typename Capability>
     static Target& apply(Factory&, Context&, Capability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_reference(source);
+        return materialized_reference(source);
     }
 };
 
@@ -6306,34 +6306,34 @@ template <typename Target, typename SourceCapability>
 struct type_conversion<
     Target, SourceCapability,
     std::enable_if_t<
-        detail::materialized_source_traits_t<SourceCapability>::reference_like &&
-        is_alternative_type_v<detail::source_value_type_t<SourceCapability>> &&
+        materialized_source_traits_t<SourceCapability>::reference_like &&
+        is_alternative_type_v<source_value_type_t<SourceCapability>> &&
         !std::is_pointer_v<Target> &&
         !std::is_same_v<
-            detail::unqualified_t<Target>,
-            detail::unqualified_t<detail::source_value_type_t<SourceCapability>>> &&
-        (detail::alternative_type_count<
-             detail::source_value_type_t<SourceCapability>,
-             detail::unqualified_t<Target>>::value != 1)>> {
+            unqualified_t<Target>,
+            unqualified_t<source_value_type_t<SourceCapability>>> &&
+        (alternative_type_count<
+             source_value_type_t<SourceCapability>,
+             unqualified_t<Target>>::value != 1)>> {
     template <typename Factory, typename Context, typename Capability>
     static Target& apply(Factory&, Context&, Capability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_alternative_borrowed_reference<Target>(
-            detail::materialized_reference(source), requested_type,
+        return resolve_alternative_borrowed_reference<Target>(
+            materialized_reference(source), requested_type,
             registered_type);
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<!type_traits<Source>::enabled && !std::is_pointer_v<Target> &&
                      !is_alternative_type_v<Source>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target& apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_reference(source);
+        return materialized_reference(source);
     }
 };
 
@@ -6341,19 +6341,19 @@ template <typename Target, typename SourceCapability>
 struct type_conversion<
     Target*, SourceCapability,
     std::enable_if_t<
-        detail::materialized_source_traits_t<SourceCapability>::reference_like &&
-        is_alternative_type_v<detail::source_value_type_t<SourceCapability>> &&
+        materialized_source_traits_t<SourceCapability>::reference_like &&
+        is_alternative_type_v<source_value_type_t<SourceCapability>> &&
         !std::is_same_v<
-            detail::unqualified_t<Target>,
-            detail::unqualified_t<detail::source_value_type_t<SourceCapability>>> &&
-        (detail::alternative_type_count<
-             detail::source_value_type_t<SourceCapability>,
-             detail::unqualified_t<Target>>::value == 1)>> {
+            unqualified_t<Target>,
+            unqualified_t<source_value_type_t<SourceCapability>>> &&
+        (alternative_type_count<
+             source_value_type_t<SourceCapability>,
+             unqualified_t<Target>>::value == 1)>> {
     template <typename Factory, typename Context, typename Capability>
     static Target* apply(Factory&, Context&, Capability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_materialized_alternative_pointer<Target>(
+        return resolve_materialized_alternative_pointer<Target>(
             std::forward<Capability>(source),
             requested_type, registered_type);
     }
@@ -6363,16 +6363,16 @@ template <typename Target, typename SourceCapability>
 struct type_conversion<
     Target*, SourceCapability,
     std::enable_if_t<
-        detail::materialized_source_traits_t<SourceCapability>::reference_like &&
-        is_alternative_type_v<detail::source_value_type_t<SourceCapability>> &&
+        materialized_source_traits_t<SourceCapability>::reference_like &&
+        is_alternative_type_v<source_value_type_t<SourceCapability>> &&
         std::is_same_v<
-            detail::unqualified_t<Target>,
-            detail::unqualified_t<detail::source_value_type_t<SourceCapability>>>>> {
+            unqualified_t<Target>,
+            unqualified_t<source_value_type_t<SourceCapability>>>>> {
     template <typename Factory, typename Context, typename Capability>
     static Target* apply(Factory&, Context&, Capability&& source,
                          type_descriptor, type_descriptor) {
         return std::addressof(
-            detail::materialized_reference(source));
+            materialized_reference(source));
     }
 };
 
@@ -6380,27 +6380,27 @@ template <typename Target, typename SourceCapability>
 struct type_conversion<
     Target*, SourceCapability,
     std::enable_if_t<
-        detail::materialized_source_traits_t<SourceCapability>::reference_like &&
-        is_alternative_type_v<detail::source_value_type_t<SourceCapability>> &&
+        materialized_source_traits_t<SourceCapability>::reference_like &&
+        is_alternative_type_v<source_value_type_t<SourceCapability>> &&
         !std::is_same_v<
-            detail::unqualified_t<Target>,
-            detail::unqualified_t<detail::source_value_type_t<SourceCapability>>> &&
-        (detail::alternative_type_count<
-             detail::source_value_type_t<SourceCapability>,
-             detail::unqualified_t<Target>>::value != 1)>> {
+            unqualified_t<Target>,
+            unqualified_t<source_value_type_t<SourceCapability>>> &&
+        (alternative_type_count<
+             source_value_type_t<SourceCapability>,
+             unqualified_t<Target>>::value != 1)>> {
     template <typename Factory, typename Context, typename Capability>
     static Target* apply(Factory&, Context&, Capability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_alternative_borrowed_pointer<Target>(
-            detail::materialized_reference(source), requested_type,
+        return resolve_alternative_borrowed_pointer<Target>(
+            materialized_reference(source), requested_type,
             registered_type);
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<
         std::is_lvalue_reference_v<Target> &&
         is_pointer_like_type_v<
@@ -6411,13 +6411,13 @@ struct type_conversion<
     template <typename Factory, typename Context, typename SourceCapability>
     static Target apply(Factory&, Context&, SourceCapability&& source,
                         type_descriptor, type_descriptor) {
-        return detail::materialized_reference(source);
+        return materialized_reference(source);
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<
         std::is_lvalue_reference_v<Target> &&
         is_pointer_like_type_v<
@@ -6433,7 +6433,7 @@ struct type_conversion<
                         type_descriptor registered_type) {
         using target_handle =
             std::remove_cv_t<std::remove_reference_t<Target>>;
-        return detail::resolve_handle_or_borrow<target_handle, Source>(
+        return resolve_handle_or_borrow<target_handle, Source>(
             factory, context, std::forward<SourceCapability>(source),
             requested_type, registered_type);
     }
@@ -6441,16 +6441,16 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<type_traits<Target>::enabled &&
                      type_traits<Source>::enabled &&
                      !is_pointer_like_type_v<Target> &&
-                     detail::is_same_handle_shape_v<Target, Source>>> {
+                     is_same_handle_shape_v<Target, Source>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target& apply(Factory&, Context&, SourceCapability&& source,
                          [[maybe_unused]] type_descriptor requested_type,
                          [[maybe_unused]] type_descriptor registered_type) {
-        return detail::resolve_materialized_convertible_reference<Target>(
+        return resolve_materialized_convertible_reference<Target>(
             std::forward<SourceCapability>(source), requested_type,
             registered_type);
     }
@@ -6458,16 +6458,16 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::lvalue_source<Source>,
+    Target*, lvalue_source<Source>,
     std::enable_if_t<type_traits<Target>::enabled &&
                      type_traits<Source>::enabled &&
                      !is_pointer_like_type_v<Target> &&
-                     detail::is_same_handle_shape_v<Target, Source>>> {
+                     is_same_handle_shape_v<Target, Source>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          [[maybe_unused]] type_descriptor requested_type,
                          [[maybe_unused]] type_descriptor registered_type) {
-        return detail::resolve_materialized_convertible_pointer<Target>(
+        return resolve_materialized_convertible_pointer<Target>(
             std::forward<SourceCapability>(source), requested_type,
             registered_type);
     }
@@ -6475,28 +6475,28 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<!std::is_pointer_v<Target> &&
-                     detail::is_borrowed_alternative_type_v<Source, Target>>> {
+                     is_borrowed_alternative_type_v<Source, Target>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target& apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::resolve_borrowed_materialized_value(
+        return resolve_borrowed_materialized_value(
             std::forward<SourceCapability>(source));
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<
         !std::is_pointer_v<Target> &&
-        detail::is_borrowed_alternative_type_alternative_v<Source, Target>>> {
+        is_borrowed_alternative_type_alternative_v<Source, Target>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target& apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_borrowed_materialized_alternative_reference<
+        return resolve_borrowed_materialized_alternative_reference<
             Target>(std::forward<SourceCapability>(source), requested_type,
                     registered_type);
     }
@@ -6504,19 +6504,19 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<!type_traits<Target>::enabled && !std::is_pointer_v<Target> &&
                      type_traits<Source>::enabled &&
                      type_traits<Source>::is_value_borrowable &&
-                     !detail::is_borrowed_alternative_type_v<Source, Target> &&
-                     !detail::is_borrowed_alternative_type_alternative_v<Source,
+                     !is_borrowed_alternative_type_v<Source, Target> &&
+                     !is_borrowed_alternative_type_alternative_v<Source,
                                                                          Target>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target& apply(Factory&, Context&,
                          SourceCapability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_borrowed_materialized_reference<Target>(
+        return resolve_borrowed_materialized_reference<Target>(
             std::forward<SourceCapability>(source), requested_type,
             registered_type);
     }
@@ -6524,39 +6524,39 @@ struct type_conversion<
 
 template <typename Target, size_t N, typename Source>
 struct type_conversion<
-    Target[N], detail::pointer_source<Source>,
+    Target[N], pointer_source<Source>,
     std::enable_if_t<std::is_same_v<std::remove_cv_t<Source>,
                                     std::remove_cv_t<Target>>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target (&apply(Factory&, Context&, SourceCapability&& source,
                           type_descriptor, type_descriptor))[N] {
         return *reinterpret_cast<Target(*)[N]>(
-            detail::materialized_pointer(source));
+            materialized_pointer(source));
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::lvalue_source<Source>,
-    std::enable_if_t<detail::is_borrowed_alternative_type_v<Source, Target>>> {
+    Target*, lvalue_source<Source>,
+    std::enable_if_t<is_borrowed_alternative_type_v<Source, Target>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::resolve_borrowed_materialized_value_pointer<Target>(
+        return resolve_borrowed_materialized_value_pointer<Target>(
             std::forward<SourceCapability>(source));
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::lvalue_source<Source>,
+    Target*, lvalue_source<Source>,
     std::enable_if_t<
-        detail::is_borrowed_alternative_type_alternative_v<Source, Target>>> {
+        is_borrowed_alternative_type_alternative_v<Source, Target>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_borrowed_materialized_alternative_pointer<Target>(
+        return resolve_borrowed_materialized_alternative_pointer<Target>(
             std::forward<SourceCapability>(source), requested_type,
             registered_type);
     }
@@ -6564,19 +6564,19 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::lvalue_source<Source>,
+    Target*, lvalue_source<Source>,
     std::enable_if_t<!type_traits<Target>::enabled &&
                      type_traits<Source>::enabled &&
                      type_traits<Source>::is_value_borrowable &&
-                     !detail::is_borrowed_alternative_type_v<Source, Target> &&
-                     !detail::is_borrowed_alternative_type_alternative_v<Source,
+                     !is_borrowed_alternative_type_v<Source, Target> &&
+                     !is_borrowed_alternative_type_alternative_v<Source,
                                                                          Target>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&,
                          SourceCapability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_borrowed_materialized_pointer<Target>(
+        return resolve_borrowed_materialized_pointer<Target>(
             std::forward<SourceCapability>(source), requested_type,
             registered_type);
     }
@@ -6584,33 +6584,33 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::pointer_source<Source>,
+    Target*, pointer_source<Source>,
     std::enable_if_t<std::is_array_v<Target> &&
                      std::is_same_v<std::remove_cv_t<Source>,
                                     std::remove_cv_t<Target>>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_pointer(source);
+        return materialized_pointer(source);
     }
 };
 
 template <typename Target, size_t N, typename Source>
 struct type_conversion<
-    Target (*)[N], detail::pointer_source<Source>,
+    Target (*)[N], pointer_source<Source>,
     std::enable_if_t<std::is_same_v<std::remove_cv_t<Source>,
                                     std::remove_cv_t<Target>>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target (*apply(Factory&, Context&, SourceCapability&& source,
                           type_descriptor, type_descriptor))[N] {
         return reinterpret_cast<Target(*)[N]>(
-            detail::materialized_pointer(source));
+            materialized_pointer(source));
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::lvalue_source<Source>,
+    Target*, lvalue_source<Source>,
     std::enable_if_t<!type_traits<Target>::enabled &&
                      type_traits<Source>::enabled &&
                      !type_traits<Source>::is_value_borrowable>> {
@@ -6618,7 +6618,7 @@ struct type_conversion<
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          [[maybe_unused]] type_descriptor requested_type,
                          [[maybe_unused]] type_descriptor registered_type) {
-        return detail::resolve_materialized_get_pointer<Target, Source>(
+        return resolve_materialized_get_pointer<Target, Source>(
             std::forward<SourceCapability>(source), requested_type,
             registered_type);
     }
@@ -6626,31 +6626,31 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<is_pointer_like_type_v<Target> &&
                      std::is_same_v<Target, Source>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target& apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_reference(source);
+        return materialized_reference(source);
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::lvalue_source<Source>,
+    Target*, lvalue_source<Source>,
     std::enable_if_t<is_pointer_like_type_v<Target> &&
                      std::is_same_v<Target, Source>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return std::addressof(detail::materialized_reference(source));
+        return std::addressof(materialized_reference(source));
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::lvalue_source<Source>,
+    Target, lvalue_source<Source>,
     std::enable_if_t<is_pointer_like_type_v<Target> &&
                      is_pointer_like_type_v<Source> &&
                      !std::is_same_v<Target, Source>>> {
@@ -6659,7 +6659,7 @@ struct type_conversion<
                          SourceCapability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_handle_or_borrow<Target, Source>(
+        return resolve_handle_or_borrow<Target, Source>(
             factory, context, std::forward<SourceCapability>(source),
             requested_type, registered_type);
     }
@@ -6667,7 +6667,7 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::lvalue_source<Source>,
+    Target*, lvalue_source<Source>,
     std::enable_if_t<is_pointer_like_type_v<Target> &&
                      is_pointer_like_type_v<Source> &&
                      !std::is_same_v<Target, Source>>> {
@@ -6676,7 +6676,7 @@ struct type_conversion<
                          SourceCapability&& source,
                          type_descriptor requested_type,
                          type_descriptor registered_type) {
-        return detail::resolve_handle_or_borrow_pointer<Target, Source>(
+        return resolve_handle_or_borrow_pointer<Target, Source>(
             factory, context, std::forward<SourceCapability>(source),
             requested_type, registered_type);
     }
@@ -6684,19 +6684,19 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::pointer_source<Source>,
+    Target*, pointer_source<Source>,
     std::enable_if_t<!std::is_array_v<Target> &&
                      !is_alternative_type_v<Source>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_pointer(source);
+        return materialized_pointer(source);
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::pointer_source<Source>,
+    Target, pointer_source<Source>,
     std::enable_if_t<std::is_lvalue_reference_v<Target> &&
                      std::is_array_v<std::remove_reference_t<Target>>>> {
     template <typename Factory, typename Context, typename SourceCapability>
@@ -6709,7 +6709,7 @@ struct type_conversion<
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target, detail::pointer_source<Source>,
+    Target, pointer_source<Source>,
     std::enable_if_t<!is_pointer_like_type_v<Target> &&
                      !std::is_pointer_v<Target> &&
                      !std::is_array_v<std::remove_reference_t<Target>> &&
@@ -6717,20 +6717,20 @@ struct type_conversion<
     template <typename Factory, typename Context, typename SourceCapability>
     static Target& apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_reference(source);
+        return materialized_reference(source);
     }
 };
 
 template <typename Target, typename Source>
 struct type_conversion<
-    Target*, detail::lvalue_source<Source>,
+    Target*, lvalue_source<Source>,
     std::enable_if_t<!type_traits<Source>::enabled &&
                      !is_pointer_like_type_v<Target> &&
                      !is_alternative_type_v<Source>>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static Target* apply(Factory&, Context&, SourceCapability&& source,
                          type_descriptor, type_descriptor) {
-        return detail::materialized_pointer(source);
+        return materialized_pointer(source);
     }
 };
 } // export namespace silicon::di
@@ -6742,7 +6742,7 @@ struct type_conversion<
 // --- resolution/recursion_guard.h ---
 
 
-export namespace silicon::di::detail {
+export namespace silicon::di {
 
 template <typename T,
           bool DefaultConstructible = std::is_default_constructible_v<T>>
@@ -6753,7 +6753,7 @@ struct recursion_guard {
         // Track the active type path first so recursion exceptions can report
         // the full resolution chain, including the repeated type.
         if (visited_) {
-            throw detail::make_type_recursion_exception<T>(context);
+            throw make_type_recursion_exception<T>(context);
         }
         visited_ = true;
     }
@@ -6770,7 +6770,7 @@ struct recursion_guard {
     }
 
   private:
-    detail::resolving_frame frame_guard_;
+    resolving_frame frame_guard_;
     bool active_ = true;
     static thread_local bool visited_;
 };
@@ -6821,7 +6821,7 @@ template <typename T> class recursion_guard_wrapper {
     bool active_ = false;
 };
 
-} // export namespace silicon::di::detail
+} // export namespace silicon::di
 
 
 // ==============================================================================
@@ -6837,14 +6837,14 @@ export namespace silicon::di {
 template <typename...>
 inline constexpr bool always_false_v = false;
 
-namespace detail {
+
 struct no_materialization_scope {
     no_materialization_scope() = default;
 
     template <typename... Args>
     explicit no_materialization_scope(Args&&...) {}
 };
-} // namespace detail
+
 
 template <typename StorageTag, typename Type> struct storage_materialization_traits {
     template <typename Leaf, typename Context, typename Storage>
@@ -6876,7 +6876,7 @@ struct resolution_traits {
     using conversion_types = type_list<>;
 };
 
-namespace detail {
+
 template <typename AccessTraits, typename ResolutionTraits>
 struct combined_storage_types {
     using value_types = type_list_cat_t<typename AccessTraits::value_types,
@@ -7067,23 +7067,23 @@ struct static_conversion_destructible_slots<
     Storage, std::void_t<typename Storage::conversions>>
     : static_conversion_destructible_slots_base<typename Storage::conversions> {
 };
-} // namespace detail
+
 
 template <typename Storage>
 inline constexpr std::size_t static_conversion_temporary_slots_v =
-    detail::static_conversion_temporary_slots<Storage>::value;
+    static_conversion_temporary_slots<Storage>::value;
 
 template <typename Storage>
 inline constexpr std::size_t static_conversion_temporary_size_v =
-    detail::static_conversion_temporary_size<Storage>::value;
+    static_conversion_temporary_size<Storage>::value;
 
 template <typename Storage>
 inline constexpr std::size_t static_conversion_temporary_align_v =
-    detail::static_conversion_temporary_align<Storage>::value;
+    static_conversion_temporary_align<Storage>::value;
 
 template <typename Storage>
 inline constexpr std::size_t static_conversion_destructible_slots_v =
-    detail::static_conversion_destructible_slots<Storage>::value;
+    static_conversion_destructible_slots<Storage>::value;
 
 template <typename StorageTag, typename Type, typename U, typename = void>
 struct type_storage_traits;
@@ -7092,32 +7092,32 @@ template <typename StorageTag, typename Type, typename U>
 struct type_storage_traits<
     StorageTag, Type, U,
     std::enable_if_t<storage_traits<StorageTag, Type, U>::enabled>>
-    : detail::combined_storage_types<storage_traits<StorageTag, Type, U>,
+    : combined_storage_types<storage_traits<StorageTag, Type, U>,
                                      resolution_traits<StorageTag, Type, U>> {
   private:
     using combined_types =
-        detail::combined_storage_types<storage_traits<StorageTag, Type, U>,
+        combined_storage_types<storage_traits<StorageTag, Type, U>,
                                        resolution_traits<StorageTag, Type, U>>;
 
   public:
     static constexpr bool is_stable =
         storage_traits<StorageTag, Type, U>::is_stable;
     static constexpr std::size_t static_conversion_temporary_slots =
-        detail::has_distinct_conversion_type_v<
+        has_distinct_conversion_type_v<
             Type, typename combined_types::conversion_types> &&
                 !is_stable
             ? 1
             : 0;
     static constexpr std::size_t static_conversion_temporary_size =
-        !is_stable ? detail::max_distinct_conversion_size_v<
+        !is_stable ? max_distinct_conversion_size_v<
                          Type, typename combined_types::conversion_types>
                    : 0;
     static constexpr std::size_t static_conversion_temporary_align =
-        !is_stable ? detail::max_distinct_conversion_align_v<
+        !is_stable ? max_distinct_conversion_align_v<
                          Type, typename combined_types::conversion_types>
                    : 0;
     static constexpr std::size_t static_conversion_destructible_slots =
-        !is_stable && detail::has_nontrivial_distinct_conversion_destructor_v<
+        !is_stable && has_nontrivial_distinct_conversion_destructor_v<
                           Type, typename combined_types::conversion_types>
             ? 1
             : 0;
@@ -7177,7 +7177,7 @@ using resolve_result_t =
 #endif
 
 export namespace silicon::di {
-namespace detail {
+
 
 template <typename Storage, typename T, typename Context, typename Source,
           typename = void>
@@ -7522,7 +7522,7 @@ decltype(auto) apply_binding_conversion_from_source(
 template <typename Target, typename Context, typename Instance>
 void* resolve_binding_address_from_instance(Context& context,
                                             Instance&& instance) {
-    return detail::get_address_as<Target>(
+    return get_address_as<Target>(
         context, std::forward<decltype(instance)>(instance));
 }
 
@@ -7568,15 +7568,15 @@ void* dispatch_binding_request(Binding& binding, Context& context,
     std::unreachable();
 }
 
-} // namespace detail
+
 
 template <typename T, typename RTTI, typename Binding, typename Context>
 T resolve_binding_request(Binding& binding, Context& context,
                           instance_cache_sink cache = {}) {
-    auto request = detail::make_binding_request<T, RTTI>(cache);
+    auto request = make_binding_request<T, RTTI>(cache);
     void* ptr =
-        detail::dispatch_binding_request<RTTI>(binding, context, request);
-    return detail::convert_resolved_binding<T>(ptr);
+        dispatch_binding_request<RTTI>(binding, context, request);
+    return convert_resolved_binding<T>(ptr);
 }
 
 template <typename RTTI, typename Factory, typename Context, typename... Types>
@@ -7595,7 +7595,7 @@ void* resolve_binding_capability_address(Factory& factory, Context& context,
          ...);
 
     if (!matched) {
-        throw detail::make_type_not_convertible_exception(
+        throw make_type_not_convertible_exception(
             requested_type, registered_type, context);
     }
 
@@ -7655,12 +7655,12 @@ template <typename Request, typename Context>
     throw_missing_rvalue_conversion<Request>(
         has_normalized_request,
         [&]() {
-            return detail::make_type_not_convertible_exception(
+            return make_type_not_convertible_exception(
                 describe_type<Request>(),
                 describe_type<normalized_request_type>(), context);
         },
         [&]() {
-            return detail::make_type_not_found_exception<Request>(context);
+            return make_type_not_found_exception<Request>(context);
         });
 }
 
@@ -7670,11 +7670,11 @@ template <typename Request>
     throw_missing_rvalue_conversion<Request>(
         has_normalized_request,
         [&]() {
-            return detail::make_type_not_convertible_exception(
+            return make_type_not_convertible_exception(
                 describe_type<Request>(),
                 describe_type<normalized_request_type>());
         },
-        [&]() { return detail::make_type_not_found_exception<Request>(); });
+        [&]() { return make_type_not_found_exception<Request>(); });
 }
 
 template <typename Request, typename ResolveExact, typename ResolveNormalized>
@@ -7710,7 +7710,7 @@ construct_request_or_wrap_normalized(ResolveExact&& resolve_exact,
 
 export namespace silicon::di {
 
-class runtime_context : public detail::context_state {
+class runtime_context : public context_state {
   public:
     template <typename T, typename Container>
     T resolve(Container& container) {
@@ -7732,7 +7732,7 @@ class runtime_context : public detail::context_state {
         arena_allocator<void> alloc(active_closure.arena_storage());
         auto allocator = allocator_traits::rebind<temporary_type>(alloc);
         auto instance = allocator_traits::allocate(allocator, 1);
-        detail::default_constructor_detection<temporary_type, DetectionTag>()
+        default_constructor_detection<temporary_type, DetectionTag>()
             .template construct<temporary_type>(instance, *this, container);
         if constexpr (!std::is_trivially_destructible_v<temporary_type>) {
             register_destructor(instance);
@@ -7822,7 +7822,7 @@ template <typename T> struct runtime_binding_state_traits<std::shared_ptr<T>> {
     static T& ref(std::shared_ptr<T>& state) { return *state; }
 };
 
-namespace detail {
+
 template <typename Storage> using registered_type_t = typename Storage::type;
 
 template <typename Type, typename Storage>
@@ -7833,7 +7833,7 @@ template <typename Types>
 inline constexpr bool runtime_binding_has_conversion_cache_v =
     type_list_size_v<Types> != 0;
 
-} // namespace detail
+
 
 // TODO: the container here is just for RTTI, but it is needed to get the
 // inner container type and that is very hard. Perhaps pass RTTI and inner
@@ -7841,11 +7841,11 @@ inline constexpr bool runtime_binding_has_conversion_cache_v =
 template <typename Container, typename Type, typename Storage, typename State>
 class runtime_binding
     : public runtime_binding_interface<Container>,
-      private detail::binding_conversion_cache_base<
+      private binding_conversion_cache_base<
           Storage::conversions::is_stable &&
-              detail::runtime_binding_has_conversion_cache_v<
-                  detail::runtime_binding_conversion_types_t<Type, Storage>>,
-          detail::runtime_binding_conversion_types_t<Type, Storage>> {
+              runtime_binding_has_conversion_cache_v<
+                  runtime_binding_conversion_types_t<Type, Storage>>,
+          runtime_binding_conversion_types_t<Type, Storage>> {
   public:
     using storage_type = Storage;
     using state_traits = runtime_binding_state_traits<State>;
@@ -7855,7 +7855,7 @@ class runtime_binding
     using type_index = typename rtti_type::type_index;
     using request_type = instance_request<rtti_type>;
     using conversion_types =
-        detail::runtime_binding_conversion_types_t<Type, Storage>;
+        runtime_binding_conversion_types_t<Type, Storage>;
     using exact_value_types = std::conditional_t<
         type_traits<Type>::enabled && !std::is_pointer_v<Type>,
         type_list<Type>, type_list<>>;
@@ -7875,14 +7875,14 @@ class runtime_binding
     using pointer_capability_types = type_list_cat_t<
         exact_pointer_types, typename Storage::conversions::pointer_types>;
     static constexpr bool has_conversion_cache =
-        detail::runtime_binding_has_conversion_cache_v<conversion_types>;
+        runtime_binding_has_conversion_cache_v<conversion_types>;
     static constexpr bool uses_cached_conversions =
         Storage::conversions::is_stable && has_conversion_cache;
     using materialization_traits =
         storage_materialization_traits<typename Storage::tag_type,
                                        typename Storage::type>;
     using conversion_cache_base =
-        detail::binding_conversion_cache_base<uses_cached_conversions,
+        binding_conversion_cache_base<uses_cached_conversions,
                                               conversion_types>;
 
   private:
@@ -7904,7 +7904,7 @@ class runtime_binding
         }
     };
 
-    detail::context_closure closure_;
+    context_closure closure_;
     // `state_` must be destroyed before binding state so shared storage can
     // tear down cached instances before preserved construction temporaries.
     State state_;
@@ -7916,14 +7916,14 @@ class runtime_binding
     }
 
     static constexpr type_descriptor registered_type() {
-        return describe_type<detail::registered_type_t<Storage>>();
+        return describe_type<registered_type_t<Storage>>();
     }
 
   public:
     template <typename T, typename Context, typename Source>
     decltype(auto) resolve_conversion(Context& context, Source&& source) {
         binding_activation activation{*this};
-        return detail::resolve_binding_conversion<T>(
+        return resolve_binding_conversion<T>(
             get_storage(), activation, context, std::forward<Source>(source));
     }
 
@@ -7988,18 +7988,18 @@ class runtime_binding
     void* resolve_address(Context& context, type_descriptor requested_type,
                           type_descriptor registered_type) {
         if constexpr (is_exact_lookup_v<T>) {
-            if (!detail::matches_exact_lookup<resolved_type_t<T, Type>>(
+            if (!matches_exact_lookup<resolved_type_t<T, Type>>(
                     requested_type)) {
-                throw detail::make_type_not_convertible_exception(
+                throw make_type_not_convertible_exception(
                     requested_type, registered_type, context);
             }
         }
 
         using Target = std::remove_reference_t<resolved_type_t<T, Type>>;
-        return detail::materialize_binding_resolution_source(
+        return materialize_binding_resolution_source(
             context, get_storage(), get_resolution_container(), closure_,
             [&](auto&& source) -> void* {
-                return detail::resolve_binding_address_from_source<Target>(
+                return resolve_binding_address_from_source<Target>(
                     *this, context, std::forward<decltype(source)>(source),
                     requested_type, registered_type);
             });
@@ -8009,7 +8009,7 @@ class runtime_binding
 #endif
 
     template <typename Context> decltype(auto) resolve(Context& context) {
-        return detail::materialize_binding_resolution_source(
+        return materialize_binding_resolution_source(
             context, get_storage(), get_resolution_container(), closure_,
             [](auto&& source) -> decltype(auto) {
                 return std::forward<decltype(source)>(source).get();
@@ -8019,10 +8019,10 @@ class runtime_binding
     template <typename T, typename Context>
     decltype(auto) resolve(Context& context) {
         binding_activation activation{*this};
-        return detail::materialize_binding_resolution_source(
+        return materialize_binding_resolution_source(
             context, get_storage(), get_resolution_container(), closure_,
             [&](auto&& source) -> decltype(auto) {
-                return detail::resolve_binding_value<T>(
+                return resolve_binding_value<T>(
                     activation, context,
                     std::forward<decltype(source)>(source));
             });
@@ -8512,7 +8512,7 @@ struct dynamic_container_traits {
     static constexpr bool cache_enabled = true;
 };
 
-namespace detail {
+
 
 template <typename T, typename = void>
 struct is_runtime_container_traits : std::false_type {};
@@ -8535,7 +8535,7 @@ inline constexpr bool is_tagged_container_v =
                         type_list<typename Traits::tag_type, void>>,
                     Traits>;
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 // --- runtime/registration_api.h ---
@@ -8543,7 +8543,7 @@ inline constexpr bool is_tagged_container_v =
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 template <typename Derived> class runtime_registration_api {
     Derived& self() { return static_cast<Derived&>(*this); }
@@ -8592,11 +8592,11 @@ template <typename Derived> class runtime_registration_api {
 
     template <typename... TypeArgs> auto& register_type_collection() {
         return register_type_collection<TypeArgs...>(
-            detail::binding_collection_append{});
+            binding_collection_append{});
     }
 };
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -8612,7 +8612,7 @@ export namespace silicon::di {
 
 template <typename... Args> using bind = type_registration<Args...>;
 
-namespace detail {
+
 
 enum class dependency_resolution_status {
     kResolved,
@@ -9434,31 +9434,31 @@ struct static_registry_dependency_diagnostics
       binding_inferred_ambiguity_diagnostic<BindingModels,
                                             InterfaceBindings>... {};
 
-} // namespace detail
+
 
 template <typename... Registrations> struct static_registry {
     using registration_types = type_list<Registrations...>;
-    using binding_models = type_list<detail::binding_model<Registrations>...>;
+    using binding_models = type_list<binding_model<Registrations>...>;
     using interface_bindings =
-        detail::static_registry_bindings_t<Registrations...>;
+        static_registry_bindings_t<Registrations...>;
 
     static constexpr bool registrations_valid =
-        (detail::binding_model<Registrations>::valid && ...);
+        (binding_model<Registrations>::valid && ...);
     static constexpr bool factories_are_compile_time_bindable =
-        (detail::binding_factory_is_compile_time_bindable<
-             detail::binding_model<Registrations>>::value &&
+        (binding_factory_is_compile_time_bindable<
+             binding_model<Registrations>>::value &&
          ...);
     static constexpr bool declared_dependencies_are_resolved =
-        (detail::binding_declared_dependencies_resolved<
-             detail::binding_model<Registrations>, interface_bindings>::value &&
+        (binding_declared_dependencies_resolved<
+             binding_model<Registrations>, interface_bindings>::value &&
          ...);
     static constexpr bool inferred_dependencies_are_resolved =
-        (detail::binding_inferred_dependencies_resolved<
-             detail::binding_model<Registrations>, interface_bindings>::value &&
+        (binding_inferred_dependencies_resolved<
+             binding_model<Registrations>, interface_bindings>::value &&
          ...);
     static constexpr bool inferred_dependencies_are_unambiguous =
-        (detail::binding_inferred_dependencies_unambiguous<
-             detail::binding_model<Registrations>, interface_bindings>::value &&
+        (binding_inferred_dependencies_unambiguous<
+             binding_model<Registrations>, interface_bindings>::value &&
          ...);
     static constexpr bool dependencies_are_resolved =
         declared_dependencies_are_resolved &&
@@ -9477,23 +9477,23 @@ template <typename... Registrations> struct static_registry {
     template <typename Interface, typename Key = void>
     using binding_lookup_key_t =
         std::conditional_t<std::is_void_v<Key>,
-                           detail::binding_request_key_t<Interface>, Key>;
+                           binding_request_key_t<Interface>, Key>;
 
     template <typename Interface, typename Key = void>
-    using exact_bindings_t = detail::bindings_t<
-        detail::binding_exact_request_interface_t<Interface>,
+    using exact_bindings_t = bindings_t<
+        binding_exact_request_interface_t<Interface>,
         binding_lookup_key_t<Interface, Key>, interface_bindings>;
 
     template <typename Interface, typename Key = void>
-    using normalized_bindings_t = detail::bindings_t<
-        detail::binding_request_interface_t<Interface>,
+    using normalized_bindings_t = bindings_t<
+        binding_request_interface_t<Interface>,
         binding_lookup_key_t<Interface, Key>, interface_bindings>;
 
     template <typename Interface, typename Key = void,
               bool SameLookup =
-                  std::is_same_v<detail::binding_exact_request_interface_t<
+                  std::is_same_v<binding_exact_request_interface_t<
                                      Interface>,
-                                 detail::binding_request_interface_t<Interface>>>
+                                 binding_request_interface_t<Interface>>>
     struct selected_bindings {
         using exact = exact_bindings_t<Interface, Key>;
         using type =
@@ -9511,7 +9511,7 @@ template <typename... Registrations> struct static_registry {
     using bindings = typename selected_bindings<Interface, Key>::type;
 
     template <typename Interface, typename Key = void>
-    using binding = typename detail::single_binding<bindings<Interface, Key>>::type;
+    using binding = typename single_binding<bindings<Interface, Key>>::type;
 
     template <typename Interface>
     using model = typename binding<Interface>::binding_model_type;
@@ -9521,7 +9521,7 @@ template <typename... Registrations> struct static_registry {
 
     template <typename Interface>
     using dependency_bindings =
-        detail::resolved_dependency_bindings_t<model<Interface>,
+        resolved_dependency_bindings_t<model<Interface>,
                                                interface_bindings>;
 };
 
@@ -9537,7 +9537,7 @@ struct shared;
 struct unique;
 struct shared_cyclical;
 
-namespace detail {
+
 
 template <typename Binding, typename DependencyBindings> struct graph_node {
     using binding_type = Binding;
@@ -10774,7 +10774,7 @@ template <typename StaticRegistry>
 using static_execution_traits =
     basic_static_execution_traits<StaticRegistry, false>;
 
-} // namespace detail
+
 
 template <typename StaticSource, typename = void> struct static_graph;
 
@@ -10785,28 +10785,28 @@ struct static_graph<StaticSource,
 
 template <typename... Registrations>
 struct static_graph<static_registry<Registrations...>, void>
-    : private detail::static_registry_dependency_diagnostics<
+    : private static_registry_dependency_diagnostics<
           typename static_registry<Registrations...>::interface_bindings,
-          detail::binding_model<Registrations>...> {
+          binding_model<Registrations>...> {
     using static_registry_type = static_registry<Registrations...>;
     using interface_bindings =
         typename static_registry_type::interface_bindings;
     using nodes =
-        detail::static_graph_nodes_t<interface_bindings, static_registry_type>;
+        static_graph_nodes_t<interface_bindings, static_registry_type>;
 
     static_assert(static_registry_type::valid,
                   "static_graph requires a valid compile-time bindings source");
 
     static constexpr bool resolvable =
-        detail::graph_analysis<static_registry_type>::resolvable;
+        graph_analysis<static_registry_type>::resolvable;
     static constexpr bool contains_cycle =
-        detail::graph_analysis<static_registry_type>::contains_cycle;
+        graph_analysis<static_registry_type>::contains_cycle;
     static constexpr bool acyclic =
-        detail::graph_analysis<static_registry_type>::acyclic;
-    using topological_bindings = typename detail::graph_analysis<
+        graph_analysis<static_registry_type>::acyclic;
+    using topological_bindings = typename graph_analysis<
         static_registry_type>::topological_bindings;
     using topological_nodes =
-        detail::static_graph_nodes_t<topological_bindings,
+        static_graph_nodes_t<topological_bindings,
                                      static_registry_type>;
 
     template <typename Interface>
@@ -10814,7 +10814,7 @@ struct static_graph<static_registry<Registrations...>, void>
 
     template <typename Interface>
     using node =
-        detail::static_graph_node_t<binding<Interface>, static_registry_type>;
+        static_graph_node_t<binding<Interface>, static_registry_type>;
 
     template <typename Interface>
     using dependency_bindings =
@@ -10822,7 +10822,7 @@ struct static_graph<static_registry<Registrations...>, void>
 
     template <typename Interface>
     using dependency_nodes =
-        detail::dependency_graph_nodes_t<dependency_bindings<Interface>,
+        dependency_graph_nodes_t<dependency_bindings<Interface>,
                                          static_registry_type>;
 };
 
@@ -10838,13 +10838,13 @@ struct static_graph<static_registry<Registrations...>, void>
 #endif
 
 export namespace silicon::di {
-namespace detail {
+
 
 template <bool RuntimeDependencies, typename... Registrations>
 class basic_static_activation_set;
 
 template <typename Registration> struct binding_storage_slot {
-    using binding_model = detail::binding_model<Registration>;
+    using binding_model = binding_model<Registration>;
     using storage_type = typename binding_model::storage_type;
 
     storage_type storage;
@@ -10892,7 +10892,7 @@ template <typename Closure, typename Registration> struct binding_closure_slot {
 
 template <bool RuntimeDependencies, typename Registration,
           typename BindingsType =
-              typename detail::binding_model<Registration>::bindings_type>
+              typename binding_model<Registration>::bindings_type>
 struct local_binding_scope_slot {};
 
 template <bool RuntimeDependencies, typename Registration,
@@ -10904,12 +10904,12 @@ struct local_binding_scope_slot<RuntimeDependencies, Registration,
 };
 
 template <typename Registration, bool Enabled = binding_has_conversion_cache_v<
-                                     detail::binding_model<Registration>>>
+                                     binding_model<Registration>>>
 struct binding_conversion_cache_slot;
 
 template <typename Registration, bool Enabled>
 struct registration_conversion_types {
-    using binding_model = detail::binding_model<Registration>;
+    using binding_model = binding_model<Registration>;
     using storage_type = typename binding_model::storage_type;
     using conversions_type = typename storage_type::conversions;
     using type = typename conversions_type::conversion_types;
@@ -10923,7 +10923,7 @@ using registration_conversion_cache_base = binding_conversion_cache_base<
 template <typename Registration, bool Enabled>
 struct binding_conversion_cache_slot
     : registration_conversion_cache_base<Registration, Enabled> {
-    using binding_model = detail::binding_model<Registration>;
+    using binding_model = binding_model<Registration>;
     using conversions_type = typename binding_model::storage_type::conversions;
     using base_type = registration_conversion_cache_base<Registration, Enabled>;
 
@@ -10935,40 +10935,40 @@ struct basic_static_activation_closure;
 
 template <typename... Registrations>
 struct basic_static_activation_closure<false, Registrations...> {
-    using type = detail::static_context_closure<
-        detail::basic_static_execution_traits<static_registry<Registrations...>,
+    using type = static_context_closure<
+        basic_static_execution_traits<static_registry<Registrations...>,
                                               false>::max_destructible_slots,
-        detail::basic_static_execution_traits<static_registry<Registrations...>,
+        basic_static_execution_traits<static_registry<Registrations...>,
                                               false>::max_temporary_slots,
-        detail::basic_static_execution_traits<static_registry<Registrations...>,
+        basic_static_execution_traits<static_registry<Registrations...>,
                                               false>::max_temporary_size == 0
             ? 1
-            : detail::basic_static_execution_traits<
+            : basic_static_execution_traits<
                   static_registry<Registrations...>, false>::max_temporary_size,
-        detail::basic_static_execution_traits<static_registry<Registrations...>,
+        basic_static_execution_traits<static_registry<Registrations...>,
                                               false>::max_temporary_align == 0
             ? alignof(std::max_align_t)
-            : detail::basic_static_execution_traits<
+            : basic_static_execution_traits<
                   static_registry<Registrations...>,
                   false>::max_temporary_align>;
 };
 
 template <typename... Registrations>
 struct basic_static_activation_closure<true, Registrations...> {
-    using type = detail::fixed_context_closure<
-        detail::basic_static_execution_traits<static_registry<Registrations...>,
+    using type = fixed_context_closure<
+        basic_static_execution_traits<static_registry<Registrations...>,
                                               true>::max_destructible_slots,
-        detail::basic_static_execution_traits<static_registry<Registrations...>,
+        basic_static_execution_traits<static_registry<Registrations...>,
                                               true>::max_temporary_slots,
-        detail::basic_static_execution_traits<static_registry<Registrations...>,
+        basic_static_execution_traits<static_registry<Registrations...>,
                                               true>::max_temporary_size == 0
             ? 1
-            : detail::basic_static_execution_traits<
+            : basic_static_execution_traits<
                   static_registry<Registrations...>, true>::max_temporary_size,
-        detail::basic_static_execution_traits<static_registry<Registrations...>,
+        basic_static_execution_traits<static_registry<Registrations...>,
                                               true>::max_temporary_align == 0
             ? alignof(std::max_align_t)
-            : detail::basic_static_execution_traits<
+            : basic_static_execution_traits<
                   static_registry<Registrations...>,
                   true>::max_temporary_align>;
 };
@@ -11184,13 +11184,13 @@ struct static_binding_resolver {
             // stack-local pointer variable instead of the bound object.
             ptr = resolve_request_address<Request, capability>(context);
         } else {
-            throw detail::make_type_not_convertible_exception(
+            throw make_type_not_convertible_exception(
                 describe_type<Request>(), registered_type(), context);
         }
         if constexpr (storage_type::conversions::is_stable) {
             cache(ptr);
         }
-        return detail::convert_resolved_binding<Request>(ptr);
+        return convert_resolved_binding<Request>(ptr);
     }
 
     template <typename Request, typename Context, typename Fn>
@@ -11207,7 +11207,7 @@ struct static_binding_resolver {
             return consume_request<Request, capability>(context,
                                                         std::forward<Fn>(fn));
         } else {
-            throw detail::make_type_not_convertible_exception(
+            throw make_type_not_convertible_exception(
                 describe_type<Request>(), registered_type(), context);
         }
     }
@@ -11225,31 +11225,31 @@ struct static_binding_resolver {
                                                                        host};
         if constexpr (uses_stored_request_identity) {
             if constexpr (!State::runtime_dependencies) {
-                return detail::materialize_binding_source(
+                return materialize_binding_source(
                     context,
                     state.template get_storage_for_model<binding_model_type>(),
                     activation, [&](auto&& source) -> void* {
                         auto&& instance =
-                            detail::resolve_binding_request<Request,
+                            resolve_binding_request<Request,
                                                             storage_type>(
                                 activation, context,
                                 std::forward<decltype(source)>(source));
-                        return detail::get_address_as<target_type>(
+                        return get_address_as<target_type>(
                             context,
                             std::forward<decltype(instance)>(instance));
                     });
             } else {
-                return detail::forward_binding_request<Request>(
+                return forward_binding_request<Request>(
                     context,
                     state.template get_storage_for_model<binding_model_type>(),
                     activation, activation, [&](auto&& instance) -> void* {
-                        return detail::get_address_as<target_type>(
+                        return get_address_as<target_type>(
                             context,
                             std::forward<decltype(instance)>(instance));
                     });
             }
         } else {
-            return detail::forward_binding_resolution_request<
+            return forward_binding_resolution_request<
                 conversion_request_type>(
                 context,
                 state.template get_storage_for_model<binding_model_type>(),
@@ -11257,7 +11257,7 @@ struct static_binding_resolver {
                 state.template get_closure<
                     typename binding_model_type::registration_type>(),
                 activation, [&](auto&& instance) -> void* {
-                    return detail::get_address_as<target_type>(
+                    return get_address_as<target_type>(
                         context, std::forward<decltype(instance)>(instance));
                 });
         }
@@ -11272,21 +11272,21 @@ struct static_binding_resolver {
             binding_activation<State, Host, binding_model_type> activation{
                 state, host};
             if constexpr (!State::runtime_dependencies) {
-                return detail::materialize_binding_source(
+                return materialize_binding_source(
                     context,
                     state.template get_storage_for_model<binding_model_type>(),
                     activation, [&](auto&& source) -> decltype(auto) {
                         auto&& instance =
-                            detail::resolve_binding_request<Request,
+                            resolve_binding_request<Request,
                                                             storage_type>(
                                 activation, context,
                                 std::forward<decltype(source)>(source));
-                        return detail::consume_resolved_binding<Request>(
+                        return consume_resolved_binding<Request>(
                             std::forward<decltype(instance)>(instance),
                             std::forward<Fn>(fn));
                     });
             } else {
-                return detail::consume_binding_request<Request>(
+                return consume_binding_request<Request>(
                     context,
                     state.template get_storage_for_model<binding_model_type>(),
                     activation, activation, std::forward<Fn>(fn));
@@ -11294,7 +11294,7 @@ struct static_binding_resolver {
         } else {
             binding_activation<State, Host, binding_model_type> activation{
                 state, host};
-            return detail::consume_binding_resolution_request<Request>(
+            return consume_binding_resolution_request<Request>(
                 context,
                 state.template get_storage_for_model<binding_model_type>(),
                 activation,
@@ -11309,7 +11309,7 @@ template <typename T, typename BindingModel, typename State, typename Context,
           typename Source>
 decltype(auto) evaluate_static_conversion(State& state, Context& context,
                                           Source&& source) {
-    return detail::resolve_binding_conversion<T>(
+    return resolve_binding_conversion<T>(
         state.template get_storage_for_model<BindingModel>(),
         state.template get_conversion_cache_for_model<BindingModel>(), context,
         std::forward<Source>(source));
@@ -11320,11 +11320,11 @@ template <typename T, typename BindingModel, typename State, typename Host,
 decltype(auto) evaluate_static_binding(State& state, Host& host,
                                        Context& context) {
     binding_activation<State, Host, BindingModel> activation{state, host};
-    return detail::materialize_tracked_binding_source(
+    return materialize_tracked_binding_source(
         context, state.template get_storage_for_model<BindingModel>(),
         activation,
         [&](auto&& source) -> decltype(auto) {
-            return detail::resolve_binding_value<T>(
+            return resolve_binding_value<T>(
                 activation, context, std::forward<decltype(source)>(source));
         });
 }
@@ -11447,20 +11447,20 @@ class basic_static_activation_set_base
     template <typename T, typename BindingModel, typename Context,
               typename Source>
     decltype(auto) resolve_conversion(Context& context, Source&& source) {
-        return detail::evaluate_static_conversion<T, BindingModel>(
+        return evaluate_static_conversion<T, BindingModel>(
             derived(), context, std::forward<Source>(source));
     }
 
     template <typename T, typename BindingModel, typename Host,
               typename Context>
     decltype(auto) resolve_binding_type(Host& host, Context& context) {
-        return detail::evaluate_static_binding<T, BindingModel>(derived(), host,
+        return evaluate_static_binding<T, BindingModel>(derived(), host,
                                                                 context);
     }
 
     template <typename InterfaceBinding, typename Host>
     auto make_binding_resolver(Host& host) {
-        return detail::make_static_binding_resolver<InterfaceBinding>(
+        return make_static_binding_resolver<InterfaceBinding>(
             derived(), host);
     }
 
@@ -11486,15 +11486,15 @@ class basic_static_activation_set_base
                 host.template append_collection<R, Key>(results, context,
                                                         append);
             if (local_count + host_count == 0) {
-                throw detail::make_collection_type_not_found_exception<
+                throw make_collection_type_not_found_exception<
                     R, typename collection_type::resolve_type>();
             }
             return results;
         } else {
-            using selection = detail::static_binding_t<
+            using selection = static_binding_t<
                 typename LocalRegistry::template bindings<R, Key>>;
             if constexpr (selection::status ==
-                          detail::binding_selection_status::kFound) {
+                          binding_selection_status::kFound) {
                 using binding = typename selection::binding_type;
                 auto& local_scope =
                     derived()
@@ -11518,7 +11518,7 @@ class basic_static_activation_set_base
               typename Host, typename Fn, typename Context>
     std::size_t append_static_collection(T& results, Host& host,
                                          Context& context, Fn&& fn) {
-        return detail::append_static_collection_impl<T, Key,
+        return append_static_collection_impl<T, Key,
                                                      StaticRegistryType>(
             derived(), results, host, context, std::forward<Fn>(fn));
     }
@@ -11526,7 +11526,7 @@ class basic_static_activation_set_base
     template <typename T, typename Key, typename StaticRegistryType,
               typename Host, typename Fn, typename Context>
     T construct_static_collection(Host& host, Context& context, Fn&& fn) {
-        return detail::construct_static_collection_impl<T, Key,
+        return construct_static_collection_impl<T, Key,
                                                         StaticRegistryType>(
             derived(), host, context, std::forward<Fn>(fn));
     }
@@ -11534,7 +11534,7 @@ class basic_static_activation_set_base
     template <typename T, typename Key, typename StaticRegistryType,
               typename Host, typename Context>
     T construct_static_collection(Host& host, Context& context) {
-        return detail::construct_static_collection_default_impl<
+        return construct_static_collection_default_impl<
             T, Key, StaticRegistryType>(derived(), host, context);
     }
 
@@ -11609,7 +11609,7 @@ template <typename StorageState, typename... Registrations>
 using binding_scope_ref =
     basic_static_activation_set_ref<true, StorageState, Registrations...>;
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 #ifdef _MSC_VER
@@ -11621,7 +11621,7 @@ using binding_scope_ref =
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 template <typename Host, typename StaticRegistry> class binding_resolution;
 
@@ -11690,7 +11690,7 @@ class binding_resolution<Host, static_registry<Registrations...>>
         constexpr std::size_t static_count =
             type_list_size_v<typename static_registry_type::template bindings<
                 normalized_type_t<resolve_type>, Key>>;
-        return detail::construct_binding_collection<T>(
+        return construct_binding_collection<T>(
             [&] { return host_->template count_collection<T, Key>(); },
             [&] { return static_count; },
             [&](auto& results, auto&& append) {
@@ -11712,16 +11712,16 @@ class binding_resolution<Host, static_registry<Registrations...>>
     static_assert(static_registry_type::valid,
                   "register_type bindings<...> requires a valid compile-time "
                   "bindings source");
-    static_assert(detail::graph_analysis<static_registry_type, true>::resolvable,
+    static_assert(graph_analysis<static_registry_type, true>::resolvable,
                   "register_type bindings<...> requires a resolvable "
                   "compile-time binding graph");
-    static_assert((detail::binding_factory_is_default_constructible<
-                       detail::binding_model<Registrations>>::value &&
+    static_assert((binding_factory_is_default_constructible<
+                       binding_model<Registrations>>::value &&
                    ...),
                   "register_type bindings<...> requires default-constructible "
                   "local factories");
-    static_assert((detail::binding_storage_is_default_constructible<
-                       detail::binding_model<Registrations>>::value &&
+    static_assert((binding_storage_is_default_constructible<
+                       binding_model<Registrations>>::value &&
                    ...),
                   "register_type bindings<...> requires default-constructible "
                   "local storage objects");
@@ -11736,17 +11736,17 @@ class binding_resolution<Host, static_registry<Registrations...>>
     R resolve(runtime_context& context) {
         if constexpr (collection_traits<R>::is_collection) {
             return construct_collection<R, Key>(
-                context, detail::binding_collection_append{});
+                context, binding_collection_append{});
         } else {
             using request_type = R;
             local_binding_source<T, RemoveRvalueReferences, Key, request_type>
                 local{*this};
             host_binding_source<T, RemoveRvalueReferences, Key, request_type>
                 host{*host_};
-            auto sources = detail::make_two_binding_sources(
+            auto sources = make_two_binding_sources(
                 local, host, host,
-                detail::binding_resolution_policy::kPreferPrimary);
-            return detail::resolve_from_binding_sources<T, request_type>(
+                binding_resolution_policy::kPreferPrimary);
+            return resolve_from_binding_sources<T, request_type>(
                 context, sources);
         }
     }
@@ -11769,7 +11769,7 @@ class binding_resolution<Host, static_registry<Registrations...>>
     Host* host_;
 };
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -11782,20 +11782,20 @@ class binding_resolution<Host, static_registry<Registrations...>>
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 template <typename StaticRegistry, typename ParentContainer>
 class container_with_static_bindings;
 
-} // namespace detail
+
 
 template <typename ContainerTraits, typename Allocator, typename ParentRegistry,
           typename ResolveRoot>
 class runtime_registry : public allocator_base<Allocator> {
     friend class runtime_context;
-    template <typename, typename> friend class detail::binding_resolution;
+    template <typename, typename> friend class binding_resolution;
     template <typename, typename>
-    friend class detail::container_with_static_bindings;
+    friend class container_with_static_bindings;
     template <typename, typename, typename> friend class runtime_container;
     template <typename ContainerTraitsT, typename AllocatorT,
               typename ParentRegistryT, typename ResolveRootT>
@@ -11841,7 +11841,7 @@ class runtime_registry : public allocator_base<Allocator> {
 
         if constexpr (!std::is_same_v<void, ParentRegistry>) {
             static_assert(
-                !detail::is_tagged_container_v<container_traits_type> ||
+                !is_tagged_container_v<container_traits_type> ||
                     !std::is_same_v<typename container_traits_type::tag_type,
                                     typename parent_registry_type::
                                         container_traits_type::tag_type>,
@@ -11932,7 +11932,7 @@ class runtime_registry : public allocator_base<Allocator> {
 
     template <typename... TypeArgs> auto& register_type_collection() {
         return register_type_collection<TypeArgs...>(
-            detail::binding_collection_append{});
+            binding_collection_append{});
     }
 
     template <typename... TypeArgs, typename Parent, typename Arg,
@@ -11982,7 +11982,7 @@ class runtime_registry : public allocator_base<Allocator> {
     template <typename T, typename IdType = none_t,
               typename R = request_result_t<T>>
     R resolve_runtime_request(IdType&& id = IdType()) {
-        if constexpr (detail::is_typed_key_v<IdType> &&
+        if constexpr (is_typed_key_v<IdType> &&
                       collection_traits<R>::is_collection) {
             return construct_collection_runtime_request<R>(
                 std::decay_t<IdType>{});
@@ -11992,7 +11992,7 @@ class runtime_registry : public allocator_base<Allocator> {
                     if (auto* state = runtime_bindings_if_present()) {
                         void* cache = state->type_cache.template get<T>();
                         if (cache) {
-                            return detail::convert_resolved_binding<
+                            return convert_resolved_binding<
                                 request_interface_t<T>>(cache);
                         }
                     }
@@ -12001,7 +12001,7 @@ class runtime_registry : public allocator_base<Allocator> {
                         auto data = state->type_bindings.template get<
                             normalized_type_t<T>>();
                         if (data) {
-                            if constexpr (detail::is_typed_key_v<IdType>) {
+                            if constexpr (is_typed_key_v<IdType>) {
                                 registered_binding_entry* candidate = nullptr;
                                 for (auto&& p : data->bindings) {
                                     auto& entry = p.second;
@@ -12020,7 +12020,7 @@ class runtime_registry : public allocator_base<Allocator> {
                                 }
 
                                 if (candidate && candidate->cache) {
-                                    return detail::convert_resolved_binding<
+                                    return convert_resolved_binding<
                                         request_interface_t<T>>(
                                         candidate->cache);
                                 }
@@ -12032,7 +12032,7 @@ class runtime_registry : public allocator_base<Allocator> {
 
                                 if (indexed) {
                                     if (indexed->cache) {
-                                        return detail::convert_resolved_binding<
+                                        return convert_resolved_binding<
                                             request_interface_t<T>>(
                                             indexed->cache);
                                     }
@@ -12056,7 +12056,7 @@ class runtime_registry : public allocator_base<Allocator> {
         if constexpr (std::is_same_v<Factory,
                                      constructor<normalized_type_t<T>>>) {
             if (binding_status<T>() !=
-                detail::binding_selection_status::kNotFound) {
+                binding_selection_status::kNotFound) {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
@@ -12072,7 +12072,7 @@ class runtime_registry : public allocator_base<Allocator> {
                     return resolve<T, false>(context, none_t{});
                 }
             } else if (binding_status<normalized_type_t<T>>() !=
-                       detail::binding_selection_status::kNotFound) {
+                       binding_selection_status::kNotFound) {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
@@ -12100,7 +12100,7 @@ class runtime_registry : public allocator_base<Allocator> {
 
     template <typename T> T construct_collection_runtime_request() {
         return construct_collection_runtime_request<T>(
-            detail::binding_collection_append{});
+            binding_collection_append{});
     }
 
     template <typename T, typename Fn>
@@ -12112,7 +12112,7 @@ class runtime_registry : public allocator_base<Allocator> {
     template <typename T, typename Key>
     T construct_collection_runtime_request(key<Key>) {
         return construct_collection_runtime_request<T>(
-            detail::binding_collection_append{}, key<Key>{});
+            binding_collection_append{}, key<Key>{});
     }
 
     template <typename T, typename Fn, typename Key>
@@ -12140,7 +12140,7 @@ class runtime_registry : public allocator_base<Allocator> {
         const std::size_t count =
             count_runtime_collection<T>(collection_key<Key>());
         if (count == 0) {
-            throw detail::make_collection_type_not_found_exception<
+            throw make_collection_type_not_found_exception<
                 T, resolve_type>();
         }
 
@@ -12155,21 +12155,21 @@ class runtime_registry : public allocator_base<Allocator> {
         using callable_type =
             std::remove_cv_t<std::remove_reference_t<Callable>>;
         using dispatch_signature =
-            detail::callable_dispatch_signature_t<Signature, callable_type>;
+            callable_dispatch_signature_t<Signature, callable_type>;
 
         runtime_context context;
         auto type_guard = context.template track_type<callable_type>();
-        return detail::callable_invoke<dispatch_signature>::construct(
+        return callable_invoke<dispatch_signature>::construct(
             std::forward<Callable>(callable), context, *resolve_root());
     }
 
     template <typename Request, typename Key = void>
-    detail::binding_selection_status binding_status() {
+    binding_selection_status binding_status() {
         return binding_status_for_id<Request>(collection_key<Key>());
     }
 
     template <typename Request, typename IdType>
-    detail::binding_selection_status binding_status_for_id(IdType&& id) {
+    binding_selection_status binding_status_for_id(IdType&& id) {
         using exact_type =
             std::remove_cv_t<std::remove_reference_t<request_interface_t<Request>>>;
         using lookup_type = normalized_type_t<Request>;
@@ -12268,7 +12268,7 @@ class runtime_registry : public allocator_base<Allocator> {
     };
 
     using index_definition_list_type = to_type_list_t<index_definition_type>;
-    using index_type = detail::index_impl<index_definition_list_type,
+    using index_type = index_impl<index_definition_list_type,
                                           index_data, allocator_type>;
 
     struct runtime_type_bindings : index_type {
@@ -12295,7 +12295,7 @@ class runtime_registry : public allocator_base<Allocator> {
     using runtime_binding_interface_type =
         runtime_binding_interface<container_type>;
     using runtime_selection =
-        detail::runtime_binding_selection<runtime_binding_interface_type,
+        runtime_binding_selection<runtime_binding_interface_type,
                                           binding_cache_state*>;
     template <typename Key>
     using collection_key_t =
@@ -12365,7 +12365,7 @@ class runtime_registry : public allocator_base<Allocator> {
         } else {
             if constexpr (cache_enabled && CheckCache) {
                 if (selection.state->cache) {
-                    return detail::convert_resolved_binding<
+                    return convert_resolved_binding<
                         request_interface_t<T>>(selection.state->cache);
                 }
             }
@@ -12390,7 +12390,7 @@ class runtime_registry : public allocator_base<Allocator> {
                     return resolve_root()
                         ->template resolve<T, RemoveRvalueReferences, true>(
                             context, none_t{});
-                } else if constexpr (detail::is_typed_key_v<IdType>) {
+                } else if constexpr (is_typed_key_v<IdType>) {
                     return resolve_root()
                         ->template resolve<T, RemoveRvalueReferences, true>(
                             context, std::decay_t<IdType>{});
@@ -12401,25 +12401,25 @@ class runtime_registry : public allocator_base<Allocator> {
             }
         }
 
-        if constexpr (MayAutoConstruct && detail::is_typed_key_v<IdType> &&
+        if constexpr (MayAutoConstruct && is_typed_key_v<IdType> &&
                       collection_traits<R>::is_collection) {
             return this->template construct_collection_runtime_request<R>(
-                detail::binding_collection_append{}, std::decay_t<IdType>{});
+                binding_collection_append{}, std::decay_t<IdType>{});
         } else if constexpr (MayAutoConstruct &&
                              is_auto_constructible<std::decay_t<T>>::value) {
             if constexpr (constructor<Type>::kind ==
-                          detail::constructor_kind::kConcrete) {
+                          constructor_kind::kConcrete) {
                 return auto_construct<T>(context);
             } else if constexpr (is_none_v<std::decay_t<IdType>>) {
-                throw detail::make_type_not_found_exception<T>(context);
+                throw make_type_not_found_exception<T>(context);
             } else {
-                throw detail::make_type_not_found_exception<
+                throw make_type_not_found_exception<
                     T, std::decay_t<IdType>>(context);
             }
         } else if constexpr (is_none_v<std::decay_t<IdType>>) {
-            throw detail::make_type_not_found_exception<T>(context);
+            throw make_type_not_found_exception<T>(context);
         } else {
-            throw detail::make_type_not_found_exception<T,
+            throw make_type_not_found_exception<T,
                                                         std::decay_t<IdType>>(
                 context);
         }
@@ -12497,7 +12497,7 @@ class runtime_registry : public allocator_base<Allocator> {
     runtime_selection select_runtime_binding(runtime_type_bindings* data,
                                              IdType&& id) {
         if constexpr (is_none_v<std::decay_t<IdType>>) {
-            return detail::make_runtime_selection<
+            return make_runtime_selection<
                 runtime_binding_interface_type, binding_cache_state*>(
                 [&](auto&& select) {
                     if (!data) {
@@ -12509,8 +12509,8 @@ class runtime_registry : public allocator_base<Allocator> {
                         select(*entry.binding, &entry);
                     }
                 });
-        } else if constexpr (detail::is_typed_key_v<IdType>) {
-            return detail::make_runtime_selection<
+        } else if constexpr (is_typed_key_v<IdType>) {
+            return make_runtime_selection<
                 runtime_binding_interface_type, binding_cache_state*>(
                 [&](auto&& select) {
                     if (!data) {
@@ -12535,7 +12535,7 @@ class runtime_registry : public allocator_base<Allocator> {
                 data ? data->template get_index<index_key_type>(get_allocator())
                            .find(id)
                      : nullptr;
-            return detail::make_runtime_selection<
+            return make_runtime_selection<
                 runtime_binding_interface_type, binding_cache_state*>(
                 indexed ? indexed->binding : nullptr, indexed);
         }
@@ -12544,19 +12544,19 @@ class runtime_registry : public allocator_base<Allocator> {
     template <typename... TypeArgs, typename Parent, typename Arg,
               typename IdType>
     auto& register_type_impl(Parent* parent, Arg&& arg, IdType&& id) {
-        static_assert(!detail::has_explicit_void_interface_v<TypeArgs...>,
+        static_assert(!has_explicit_void_interface_v<TypeArgs...>,
                       "interfaces<void> is not a valid registration target");
         using registration =
             std::conditional_t<!is_none_v<std::decay_t<Arg>>,
                                type_registration<TypeArgs..., factory<Arg>>,
                                type_registration<TypeArgs...>>;
-        using binding_model = detail::binding_model<registration>;
+        using binding_model = binding_model<registration>;
         using bindings_type = typename binding_model::bindings_type;
         using instance_container_type =
             registration_container_type<registration>;
         using resolution_container_type = std::conditional_t<
             std::is_void_v<bindings_type>, instance_container_type,
-            detail::binding_resolution<resolve_root_type, bindings_type>>;
+            binding_resolution<resolve_root_type, bindings_type>>;
         (void)arg;
         using interface_types = typename binding_model::interface_types;
         static constexpr bool storage_tag_is_complete =
@@ -12588,7 +12588,7 @@ class runtime_registry : public allocator_base<Allocator> {
                     storage_type, runtime_binding_state_type>;
                 using registered_binding_type = std::conditional_t<
                     is_none_v<key_id_type>, runtime_binding_type,
-                    detail::keyed_binding_identity<key_id_type,
+                    keyed_binding_identity<key_id_type,
                                                    runtime_binding_type>>;
 
                 if constexpr (!is_none_v<std::decay_t<Arg>>) {
@@ -12630,7 +12630,7 @@ class runtime_registry : public allocator_base<Allocator> {
                             std::shared_ptr<runtime_binding_state_type>>;
                         using registered_binding_type = std::conditional_t<
                             is_none_v<key_id_type>, runtime_binding_type,
-                            detail::keyed_binding_identity<
+                            keyed_binding_identity<
                                 key_id_type, runtime_binding_type>>;
 
                         register_type_binding<interface_type, storage_type>(
@@ -12680,10 +12680,10 @@ class runtime_registry : public allocator_base<Allocator> {
         }();
         if (!inserted_binding.second) {
             if constexpr (is_none_v<std::decay_t<KeyIdType>>) {
-                throw detail::make_type_already_registered_exception<
+                throw make_type_already_registered_exception<
                     TypeInterface, typename TypeStorage::type>();
             } else {
-                throw detail::make_type_index_already_registered_exception<
+                throw make_type_index_already_registered_exception<
                     TypeInterface, typename TypeStorage::type,
                     std::decay_t<KeyIdType>>();
             }
@@ -12699,7 +12699,7 @@ class runtime_registry : public allocator_base<Allocator> {
                     data.bindings.template erase<binding_registration_key>();
                 assert(erased);
                 (void)erased;
-                throw detail::make_type_index_already_registered_exception<
+                throw make_type_index_already_registered_exception<
                     TypeInterface, typename TypeStorage::type, IdType>();
             }
         }
@@ -12720,7 +12720,7 @@ class runtime_registry : public allocator_base<Allocator> {
             if (auto* state = runtime_bindings_if_present()) {
                 void* cache = state->type_cache.template get<T>();
                 if (cache) {
-                    return detail::convert_resolved_binding<
+                    return convert_resolved_binding<
                         request_interface_t<T>>(cache);
                 }
             }
@@ -12730,8 +12730,8 @@ class runtime_registry : public allocator_base<Allocator> {
         missing_runtime_binding<T, RemoveRvalueReferences, MayAutoConstruct,
                                 IdType>
             missing{*this, id};
-        auto sources = detail::make_selected_binding_sources(selected, missing);
-        return detail::resolve_from_binding_sources<T, R>(context, sources);
+        auto sources = make_selected_binding_sources(selected, missing);
+        return resolve_from_binding_sources<T, R>(context, sources);
     }
 
     template <typename T>
@@ -12741,7 +12741,7 @@ class runtime_registry : public allocator_base<Allocator> {
         static_assert(is_complete<Type>::value,
                       "auto-construction requires a complete type");
 
-        using type_detection = detail::automatic;
+        using type_detection = automatic;
         return context.template construct_temporary<request_interface_t<T>,
                                                     type_detection>(
             *resolve_root());
@@ -12798,7 +12798,7 @@ class runtime_registry : public allocator_base<Allocator> {
 
     template <class Storage, class TypeInterface, class Type>
     void check_interface_requirements() {
-        detail::interface_registration_requirements<Storage, TypeInterface,
+        interface_registration_requirements<Storage, TypeInterface,
                                                     Type>::assert_valid();
     }
 
@@ -12904,7 +12904,7 @@ template <typename ContainerTraits = dynamic_container_traits,
           typename Allocator = typename ContainerTraits::allocator_type,
           typename ParentContainer = void>
 class runtime_container
-    : public detail::runtime_registration_api<
+    : public runtime_registration_api<
           runtime_container<ContainerTraits, Allocator, ParentContainer>> {
     using self_type =
         runtime_container<ContainerTraits, Allocator, ParentContainer>;
@@ -12912,7 +12912,7 @@ class runtime_container
         runtime_registry<ContainerTraits, Allocator, void, self_type>;
 
     friend class runtime_context;
-    template <typename, typename> friend class detail::binding_resolution;
+    template <typename, typename> friend class binding_resolution;
 
   public:
     using container_traits_type = ContainerTraits;
@@ -12955,10 +12955,10 @@ class runtime_container
     R resolve(IdType&& id = IdType()) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(id) ==
-                detail::binding_selection_status::kNotFound) {
+                binding_selection_status::kNotFound) {
             if constexpr (is_none_v<std::decay_t<IdType>>) {
                 return parent_->template resolve<T>();
-            } else if constexpr (detail::is_typed_key_v<IdType>) {
+            } else if constexpr (is_typed_key_v<IdType>) {
                 return parent_->template resolve<T>(std::decay_t<IdType>{});
             } else {
                 return parent_->template resolve<T>(std::forward<IdType>(id));
@@ -12973,7 +12973,7 @@ class runtime_container
     R resolve(runtime_context& context) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(none_t{}) ==
-                detail::binding_selection_status::kNotFound) {
+                binding_selection_status::kNotFound) {
             return parent_->template resolve<T, RemoveRvalueReferences,
                                              CheckCache>(context);
         }
@@ -12994,7 +12994,7 @@ class runtime_container
     R resolve(runtime_context& context, key<Key>) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(key<Key>{}) ==
-                detail::binding_selection_status::kNotFound) {
+                binding_selection_status::kNotFound) {
             return parent_->template resolve<T, RemoveRvalueReferences,
                                              CheckCache>(context, key<Key>{});
         }
@@ -13041,14 +13041,14 @@ class runtime_container
     }
 
   private:
-    friend class detail::runtime_registration_api<self_type>;
+    friend class runtime_registration_api<self_type>;
 
     registry_type& runtime_registry_ref() { return runtime_registry_; }
 
     self_type& runtime_registration_parent() { return *this; }
 
     template <typename Request, typename Key = void>
-    detail::binding_selection_status binding_status() {
+    binding_selection_status binding_status() {
         return runtime_registry_.template binding_status<Request, Key>();
     }
 
@@ -13090,7 +13090,7 @@ export namespace silicon::di {
 template <typename StaticRegistry, bool RuntimeDependencies>
 class basic_static_context;
 
-namespace detail {
+
 
 template <typename StaticRegistry, bool RuntimeDependencies>
 struct static_context_closure_selector;
@@ -13098,8 +13098,8 @@ struct static_context_closure_selector;
 template <typename StaticRegistry>
 struct static_context_closure_selector<StaticRegistry, false> {
     using execution_traits =
-        detail::basic_static_execution_traits<StaticRegistry, false>;
-    using type = detail::static_context_closure<
+        basic_static_execution_traits<StaticRegistry, false>;
+    using type = static_context_closure<
         execution_traits::max_destructible_slots,
         execution_traits::max_temporary_slots,
         execution_traits::max_temporary_size == 0
@@ -13113,8 +13113,8 @@ struct static_context_closure_selector<StaticRegistry, false> {
 template <typename StaticRegistry>
 struct static_context_closure_selector<StaticRegistry, true> {
     using execution_traits =
-        detail::basic_static_execution_traits<StaticRegistry, true>;
-    using type = detail::fixed_context_closure<
+        basic_static_execution_traits<StaticRegistry, true>;
+    using type = fixed_context_closure<
         execution_traits::max_destructible_slots,
         execution_traits::max_temporary_slots,
         execution_traits::max_temporary_size == 0
@@ -13128,12 +13128,12 @@ struct static_context_closure_selector<StaticRegistry, true> {
 template <typename StaticRegistry>
 using binding_context = basic_static_context<StaticRegistry, true>;
 
-} // namespace detail
+
 
 template <typename StaticRegistry, bool RuntimeDependencies = false>
-class basic_static_context : public detail::context_path_state {
+class basic_static_context : public context_path_state {
     using execution_traits =
-        detail::basic_static_execution_traits<StaticRegistry,
+        basic_static_execution_traits<StaticRegistry,
                                               RuntimeDependencies>;
     static constexpr std::size_t closure_capacity_ =
         execution_traits::max_preserved_closure_depth + 1;
@@ -13149,7 +13149,7 @@ class basic_static_context : public detail::context_path_state {
         execution_traits::max_temporary_align == 0
             ? alignof(std::max_align_t)
             : execution_traits::max_temporary_align;
-    using closure_type = typename detail::static_context_closure_selector<
+    using closure_type = typename static_context_closure_selector<
         StaticRegistry, RuntimeDependencies>::type;
 
   public:
@@ -13177,7 +13177,7 @@ class basic_static_context : public detail::context_path_state {
         using temporary_type = normalized_type_t<T>;
 
         auto* instance = allocate_temporary_storage<temporary_type>();
-        detail::default_constructor_detection<temporary_type, DetectionTag>()
+        default_constructor_detection<temporary_type, DetectionTag>()
             .template construct<temporary_type>(instance, *this, container);
         if constexpr (!std::is_trivially_destructible_v<temporary_type>) {
             register_destructor(instance);
@@ -13287,7 +13287,7 @@ template <typename Tag = void> struct static_container_traits {
 template <typename StaticSource, typename ParentContainer = void>
 class static_container;
 
-namespace detail {
+
 
 template <typename StaticRegistry, typename ParentContainer = void>
 class container_with_static_bindings;
@@ -13318,7 +13318,7 @@ struct bindings_wrapper_registry<::silicon::di::bindings<Args...>> {
 template <typename T>
 using bindings_wrapper_registry_t = typename bindings_wrapper_registry<T>::type;
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 // --- static/resolution.h ---
@@ -13326,7 +13326,7 @@ using bindings_wrapper_registry_t = typename bindings_wrapper_registry<T>::type;
 
 
 export namespace silicon::di {
-namespace detail {
+
 
 template <typename StaticRegistry, bool DependenciesResolved>
 struct static_container_graph_type;
@@ -13394,7 +13394,7 @@ construct_static_binding_value(ResolveNormalized&& resolve_normalized) {
     }
 }
 
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -13423,7 +13423,7 @@ struct external {};
 template <typename Type> struct storage_materialization_traits<external, Type> {
     template <typename Leaf, typename Context, typename Storage>
     static auto make_guard(Context&, const Storage&) {
-        return detail::no_materialization_scope();
+        return no_materialization_scope();
     }
 
     template <typename Storage>
@@ -13434,7 +13434,7 @@ template <typename Type> struct storage_materialization_traits<external, Type> {
     template <typename Context, typename Storage, typename Container>
     static auto materialize_source(Context& context, Storage& storage,
                                    Container& container) {
-        return detail::make_resolved_source(storage.resolve(context, container));
+        return make_resolved_source(storage.resolve(context, container));
     }
 };
 
@@ -13473,7 +13473,7 @@ struct storage_traits<external, T[], U> {
     using value_types = type_list<>;
     using lvalue_reference_types = type_list<>;
     using rvalue_reference_types = type_list<>;
-    using pointer_types = type_list<typename detail::wrapper_rebind_leaf<T, U>::type*>;
+    using pointer_types = type_list<typename wrapper_rebind_leaf<T, U>::type*>;
     using conversion_types = type_list<>;
 };
 
@@ -13482,9 +13482,9 @@ struct storage_traits<external, T[N], U> {
     static constexpr bool enabled = true;
     static constexpr bool is_stable = true;
 
-    using rebound_row_type = typename detail::wrapper_rebind_leaf<T, U>::type;
+    using rebound_row_type = typename wrapper_rebind_leaf<T, U>::type;
     using rebound_exact_type =
-        typename detail::wrapper_rebind_leaf<T[N], U>::type;
+        typename wrapper_rebind_leaf<T[N], U>::type;
 
     using value_types = type_list<>;
     using lvalue_reference_types = type_list<exact_lookup<rebound_exact_type>&>;
@@ -13502,9 +13502,9 @@ struct storage_traits<
     static constexpr bool is_stable = true;
 
     using handle_type =
-        detail::wrapper_rebind_leaf_t<std::unique_ptr<Array, Deleter>, U>;
+        wrapper_rebind_leaf_t<std::unique_ptr<Array, Deleter>, U>;
     using pointer_types =
-        typename detail::smart_array_pointer_types<
+        typename smart_array_pointer_types<
             handle_type, std::remove_extent_t<Array>, U>::type;
 
     using value_types = type_list<>;
@@ -13520,8 +13520,8 @@ struct storage_traits<external, std::unique_ptr<T, Deleter>, U,
     static constexpr bool is_stable = true;
 
     using handle_type =
-        detail::wrapper_rebind_leaf_t<std::unique_ptr<T, Deleter>, U>;
-    using types = detail::wrapper_storage_types<handle_type>;
+        wrapper_rebind_leaf_t<std::unique_ptr<T, Deleter>, U>;
+    using types = wrapper_storage_types<handle_type>;
 
     using value_types = type_list<>;
     using lvalue_reference_types = typename types::lvalue_reference_types;
@@ -13537,9 +13537,9 @@ struct storage_traits<
     static constexpr bool enabled = true;
     static constexpr bool is_stable = true;
 
-    using handle_type = detail::wrapper_rebind_leaf_t<std::shared_ptr<Array>, U>;
+    using handle_type = wrapper_rebind_leaf_t<std::shared_ptr<Array>, U>;
     using pointer_types =
-        typename detail::smart_array_pointer_types<
+        typename smart_array_pointer_types<
             handle_type, std::remove_extent_t<Array>, U>::type;
 
     using value_types = type_list<handle_type>;
@@ -13554,8 +13554,8 @@ struct storage_traits<external, std::shared_ptr<T>, U,
     static constexpr bool enabled = true;
     static constexpr bool is_stable = true;
 
-    using handle_type = detail::wrapper_rebind_leaf_t<std::shared_ptr<T>, U>;
-    using types = detail::wrapper_storage_types<handle_type>;
+    using handle_type = wrapper_rebind_leaf_t<std::shared_ptr<T>, U>;
+    using types = wrapper_storage_types<handle_type>;
 
     using value_types = typename types::copyable_value_types;
     using lvalue_reference_types = typename types::lvalue_reference_types;
@@ -13577,7 +13577,7 @@ struct storage_traits<external, std::optional<T>, U> {
     using conversion_types = type_list<>;
 };
 
-namespace detail {
+
 template <typename Type, typename U> struct conversions<external, Type, U>
     : type_storage_traits<external, Type, U> {};
 
@@ -13681,7 +13681,7 @@ class storage<external, Type, StoredType, Factory, Conversions>
 
     void reset() override {}
 };
-} // namespace detail
+
 } // export namespace silicon::di
 
 // --- storage/shared.h ---
@@ -13695,7 +13695,7 @@ struct shared {};
 template <typename Type> struct storage_materialization_traits<shared, Type> {
     template <typename Leaf, typename Context, typename Storage>
     static auto make_guard(Context& context, const Storage& storage) {
-        return detail::recursion_guard_wrapper<Leaf>(
+        return recursion_guard_wrapper<Leaf>(
             context, !storage.is_resolved());
     }
 
@@ -13711,7 +13711,7 @@ template <typename Type> struct storage_materialization_traits<shared, Type> {
     template <typename Context, typename Storage, typename Container>
     static auto materialize_source(Context& context, Storage& storage,
                                    Container& container) {
-        return detail::make_resolved_source(storage.resolve(context, container));
+        return make_resolved_source(storage.resolve(context, container));
     }
 };
 
@@ -13750,7 +13750,7 @@ struct storage_traits<shared, T[], U> {
     using value_types = type_list<>;
     using lvalue_reference_types = type_list<>;
     using rvalue_reference_types = type_list<>;
-    using pointer_types = type_list<typename detail::wrapper_rebind_leaf<T, U>::type*>;
+    using pointer_types = type_list<typename wrapper_rebind_leaf<T, U>::type*>;
     using conversion_types = type_list<>;
 };
 
@@ -13759,9 +13759,9 @@ struct storage_traits<shared, T[N], U> {
     static constexpr bool enabled = true;
     static constexpr bool is_stable = true;
 
-    using rebound_row_type = typename detail::wrapper_rebind_leaf<T, U>::type;
+    using rebound_row_type = typename wrapper_rebind_leaf<T, U>::type;
     using rebound_exact_type =
-        typename detail::wrapper_rebind_leaf<T[N], U>::type;
+        typename wrapper_rebind_leaf<T[N], U>::type;
 
     using value_types = type_list<>;
     using lvalue_reference_types = type_list<exact_lookup<rebound_exact_type>&>;
@@ -13779,9 +13779,9 @@ struct storage_traits<
     static constexpr bool is_stable = true;
 
     using handle_type =
-        detail::wrapper_rebind_leaf_t<std::unique_ptr<Array, Deleter>, U>;
+        wrapper_rebind_leaf_t<std::unique_ptr<Array, Deleter>, U>;
     using pointer_types =
-        typename detail::smart_array_pointer_types<
+        typename smart_array_pointer_types<
             handle_type, std::remove_extent_t<Array>, U>::type;
 
     using value_types = type_list<>;
@@ -13797,8 +13797,8 @@ struct storage_traits<shared, std::unique_ptr<T, Deleter>, U,
     static constexpr bool is_stable = true;
 
     using handle_type =
-        detail::wrapper_rebind_leaf_t<std::unique_ptr<T, Deleter>, U>;
-    using types = detail::wrapper_storage_types<handle_type>;
+        wrapper_rebind_leaf_t<std::unique_ptr<T, Deleter>, U>;
+    using types = wrapper_storage_types<handle_type>;
 
     using value_types = type_list<U>;
     using lvalue_reference_types = typename types::lvalue_reference_types;
@@ -13814,9 +13814,9 @@ struct storage_traits<
     static constexpr bool enabled = true;
     static constexpr bool is_stable = true;
 
-    using handle_type = detail::wrapper_rebind_leaf_t<std::shared_ptr<Array>, U>;
+    using handle_type = wrapper_rebind_leaf_t<std::shared_ptr<Array>, U>;
     using pointer_types =
-        typename detail::smart_array_pointer_types<
+        typename smart_array_pointer_types<
             handle_type, std::remove_extent_t<Array>, U>::type;
 
     using value_types = type_list<handle_type>;
@@ -13831,8 +13831,8 @@ struct storage_traits<shared, std::shared_ptr<T>, U,
     static constexpr bool enabled = true;
     static constexpr bool is_stable = true;
 
-    using handle_type = detail::wrapper_rebind_leaf_t<std::shared_ptr<T>, U>;
-    using types = detail::wrapper_storage_types<handle_type>;
+    using handle_type = wrapper_rebind_leaf_t<std::shared_ptr<T>, U>;
+    using types = wrapper_storage_types<handle_type>;
 
     using value_types =
         type_list_cat_t<type_list<U>, typename types::copyable_value_types>;
@@ -13855,7 +13855,7 @@ struct storage_traits<shared, std::optional<T>, U> {
     using conversion_types = type_list<>;
 };
 
-namespace detail {
+
 template <typename Type, typename U> struct conversions<shared, Type, U>
     : type_storage_traits<shared, Type, U> {};
 
@@ -14081,7 +14081,7 @@ class storage<shared, Type, StoredType, Factory, Conversions>
     bool is_resolved() const { return !instance_.empty(); }
     void reset() override { instance_.reset(); }
 };
-} // namespace detail
+
 } // export namespace silicon::di
 
 // --- storage/shared_cyclical.h ---
@@ -14096,7 +14096,7 @@ template <typename Type>
 struct storage_materialization_traits<shared_cyclical, Type> {
     template <typename Leaf, typename Context, typename Storage>
     static auto make_guard(Context&, const Storage&) {
-        return detail::no_materialization_scope();
+        return no_materialization_scope();
     }
 
     template <typename Storage>
@@ -14107,7 +14107,7 @@ struct storage_materialization_traits<shared_cyclical, Type> {
     template <typename Context, typename Storage, typename Container>
     static auto materialize_source(Context& context, Storage& storage,
                                    Container& container) {
-        return detail::make_resolved_source(storage.resolve(context, container));
+        return make_resolved_source(storage.resolve(context, container));
     }
 };
 
@@ -14174,7 +14174,7 @@ template <typename Base, typename Derived>
 inline constexpr bool is_virtual_base_of_v =
     is_virtual_base_of<Base, Derived>::value;
 
-namespace detail {
+
 template <typename Type, typename U> struct conversions<shared_cyclical, Type, U>
     : type_storage_traits<shared_cyclical, Type, U> {};
 
@@ -14407,7 +14407,7 @@ class storage<shared_cyclical, Type, StoredType, Factory, Conversions>
         conversions_.clear();
     }
 };
-} // namespace detail
+
 } // export namespace silicon::di
 
 // --- storage/unique.h ---
@@ -14420,7 +14420,7 @@ struct unique {};
 template <typename Type> struct storage_materialization_traits<unique, Type> {
     template <typename Leaf, typename Context, typename Storage>
     static auto make_guard(Context& context, const Storage&) {
-        return detail::recursion_guard<Leaf>(context);
+        return recursion_guard<Leaf>(context);
     }
 
     template <typename Storage>
@@ -14433,7 +14433,7 @@ template <typename Type> struct storage_materialization_traits<unique, Type> {
                                    Container& container) {
         using source_type = std::remove_cv_t<std::remove_reference_t<
             decltype(storage.resolve(context, container))>>;
-        return detail::make_rvalue_source<source_type>(
+        return make_rvalue_source<source_type>(
             std::in_place, [&](void* ptr) {
                 new (ptr) source_type(storage.resolve(context, container));
             });
@@ -14486,15 +14486,15 @@ struct storage_traits<unique, T[], U> {
     static constexpr bool is_stable = false;
 
     using rebound_unique_handle =
-        detail::wrapper_rebind_leaf_t<std::unique_ptr<T[]>, U>;
+        wrapper_rebind_leaf_t<std::unique_ptr<T[]>, U>;
     using rebound_shared_handle =
-        detail::wrapper_rebind_leaf_t<std::shared_ptr<T[]>, U>;
+        wrapper_rebind_leaf_t<std::shared_ptr<T[]>, U>;
 
     using value_types = type_list<rebound_unique_handle, rebound_shared_handle>;
     using lvalue_reference_types = type_list<>;
     using rvalue_reference_types =
         type_list<rebound_unique_handle&&, rebound_shared_handle&&>;
-    using pointer_types = type_list<typename detail::wrapper_rebind_leaf<T, U>::type*>;
+    using pointer_types = type_list<typename wrapper_rebind_leaf<T, U>::type*>;
     using conversion_types =
         type_list<rebound_unique_handle, rebound_shared_handle>;
 };
@@ -14505,12 +14505,12 @@ struct storage_traits<unique, T[N], U> {
     static constexpr bool is_stable = false;
 
     using rebound_unique_handle =
-        detail::wrapper_rebind_leaf_t<std::unique_ptr<T[]>, U>;
+        wrapper_rebind_leaf_t<std::unique_ptr<T[]>, U>;
     using rebound_shared_handle =
-        detail::wrapper_rebind_leaf_t<std::shared_ptr<T[]>, U>;
-    using rebound_row_type = typename detail::wrapper_rebind_leaf<T, U>::type;
+        wrapper_rebind_leaf_t<std::shared_ptr<T[]>, U>;
+    using rebound_row_type = typename wrapper_rebind_leaf<T, U>::type;
     using rebound_exact_type =
-        typename detail::wrapper_rebind_leaf<T[N], U>::type;
+        typename wrapper_rebind_leaf<T[N], U>::type;
 
     using value_types = type_list<rebound_unique_handle, rebound_shared_handle>;
     using lvalue_reference_types = type_list<>;
@@ -14530,9 +14530,9 @@ struct storage_traits<
     static constexpr bool is_stable = false;
 
     using rebound_handle =
-        detail::wrapper_rebind_leaf_t<std::unique_ptr<Array, Deleter>, U>;
+        wrapper_rebind_leaf_t<std::unique_ptr<Array, Deleter>, U>;
     using shared_handle =
-        detail::wrapper_rebind_leaf_t<std::shared_ptr<Array>, U>;
+        wrapper_rebind_leaf_t<std::shared_ptr<Array>, U>;
 
     using value_types = type_list<rebound_handle, shared_handle>;
     using lvalue_reference_types = type_list<>;
@@ -14548,8 +14548,8 @@ struct storage_traits<unique, std::unique_ptr<T, Deleter>, U,
     static constexpr bool is_stable = false;
 
     using rebound_handle =
-        detail::wrapper_rebind_leaf_t<std::unique_ptr<T, Deleter>, U>;
-    using inner_handle = detail::wrapper_rebind_leaf_t<T, U>;
+        wrapper_rebind_leaf_t<std::unique_ptr<T, Deleter>, U>;
+    using inner_handle = wrapper_rebind_leaf_t<T, U>;
 
     using value_types = type_list<rebound_handle, std::shared_ptr<inner_handle>>;
     using lvalue_reference_types = type_list<>;
@@ -14567,7 +14567,7 @@ struct storage_traits<
     static constexpr bool enabled = true;
     static constexpr bool is_stable = false;
 
-    using rebound_handle = detail::wrapper_rebind_leaf_t<std::shared_ptr<Array>, U>;
+    using rebound_handle = wrapper_rebind_leaf_t<std::shared_ptr<Array>, U>;
 
     using value_types = type_list<rebound_handle>;
     using lvalue_reference_types = type_list<>;
@@ -14582,7 +14582,7 @@ struct storage_traits<unique, std::shared_ptr<T>, U,
     static constexpr bool enabled = true;
     static constexpr bool is_stable = false;
 
-    using rebound_handle = detail::wrapper_rebind_leaf_t<std::shared_ptr<T>, U>;
+    using rebound_handle = wrapper_rebind_leaf_t<std::shared_ptr<T>, U>;
 
     using value_types = type_list<rebound_handle>;
     using lvalue_reference_types = type_list<>;
@@ -14618,7 +14618,7 @@ struct storage_traits<
     using conversion_types = type_list<>;
 };
 
-namespace detail {
+
 template <typename Type, typename U> struct conversions<unique, Type, U>
     : type_storage_traits<unique, Type, U> {};
 
@@ -14657,7 +14657,7 @@ class storage<unique, Type[N], StoredType, Factory, Conversions> : Factory {
         return Factory::template construct<Type[N]>(context, container);
     }
 };
-} // namespace detail
+
 } // export namespace silicon::di
 
 
@@ -14676,7 +14676,7 @@ class storage<unique, Type[N], StoredType, Factory, Conversions> : Factory {
 
 export namespace silicon::di {
 
-namespace detail {
+
 
 struct static_container_no_dependency_diagnostics {};
 
@@ -15044,13 +15044,13 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
     parent_container_type* parent_ = nullptr;
 };
 
-} // namespace detail
+
 
 template <typename StaticSource, typename ParentContainer>
 class static_container
-    : public detail::static_container_impl<
+    : public static_container_impl<
           static_bindings_source_t<StaticSource>, ParentContainer> {
-    using base_type = detail::static_container_impl<
+    using base_type = static_container_impl<
         static_bindings_source_t<StaticSource>, ParentContainer>;
 
   public:
@@ -15073,7 +15073,7 @@ class static_container
 #endif
 
 export namespace silicon::di {
-namespace detail {
+
 template <typename... Ts>
 inline constexpr bool container_dependent_false_v = false;
 
@@ -15114,13 +15114,13 @@ template <typename Parent, typename T, bool RemoveRvalueReferences,
 inline constexpr bool parent_context_resolve_supported_v =
     parent_context_resolve_supported<Parent, T, RemoveRvalueReferences,
                                      CheckCache, Key>::value;
-} // namespace detail
+
 
 template <typename ParentContainer, typename... Registrations>
-class detail::container_with_static_bindings<static_registry<Registrations...>,
+class container_with_static_bindings<static_registry<Registrations...>,
                                              ParentContainer>
-    : public detail::runtime_registration_api<
-          detail::container_with_static_bindings<
+    : public runtime_registration_api<
+          container_with_static_bindings<
               static_registry<Registrations...>, ParentContainer>> {
     // 显式限定：类属 detail 命名空间，非限定 friend 指向外层 silicon::di 的类型
     // 属 Microsoft 扩展（-Werror,-Wmicrosoft-unqualified-friend）。
@@ -15128,23 +15128,23 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     using static_registry_type_ = static_registry<Registrations...>;
     using self_type =
-        detail::container_with_static_bindings<static_registry_type_,
+        container_with_static_bindings<static_registry_type_,
                                                ParentContainer>;
     using runtime_base =
         runtime_registry<dynamic_container_traits,
                          typename dynamic_container_traits::allocator_type,
                          self_type, self_type>;
-    using static_state = detail::static_storage_state<Registrations...>;
+    using static_state = static_storage_state<Registrations...>;
     using static_resolution_ref =
-        detail::static_binding_scope_ref<static_state, Registrations...>;
+        static_binding_scope_ref<static_state, Registrations...>;
     using binding_resolution_ref =
-        detail::binding_scope_ref<static_state, Registrations...>;
+        binding_scope_ref<static_state, Registrations...>;
     using static_context_type = static_context<static_registry_type_>;
     static constexpr bool has_parent_v = !std::is_void_v<ParentContainer>;
     using parent_container_type = ParentContainer;
 
     template <typename T, typename Key>
-    using static_selection_t = detail::static_binding_t<
+    using static_selection_t = static_binding_t<
         typename static_registry_type_::template bindings<T, Key>>;
     template <typename Key>
     using collection_key_t =
@@ -15201,7 +15201,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
         self_type& self;
 
-        detail::binding_selection_status status() const {
+        binding_selection_status status() const {
             return self.runtime_registry_.template binding_status<Request,
                                                                   Key>();
         }
@@ -15216,14 +15216,14 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     template <typename Request, typename Key>
     struct static_binding_candidate {
-        using selection = detail::static_binding_t<
+        using selection = static_binding_t<
             typename static_registry_type_::template bindings<Request, Key>>;
         static constexpr bool can_resolve =
-            selection::status == detail::binding_selection_status::kFound;
+            selection::status == binding_selection_status::kFound;
 
         self_type& self;
 
-        constexpr detail::binding_selection_status status() const {
+        constexpr binding_selection_status status() const {
             return selection::status;
         }
 
@@ -15240,7 +15240,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
             return false;
         }
         return runtime_registry_.template binding_status<Request, Key>() !=
-               detail::binding_selection_status::kNotFound;
+               binding_selection_status::kNotFound;
     }
 
     template <typename T, typename Key = void> bool has_runtime_collection() {
@@ -15258,7 +15258,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     template <typename Request, typename Key = void>
     static constexpr bool has_static_binding_v =
         static_selection_t<Request, Key>::status ==
-        detail::binding_selection_status::kFound;
+        binding_selection_status::kFound;
 
     template <typename Request, typename Key = void,
               bool Selected = has_static_binding_v<Request, Key>>
@@ -15268,10 +15268,10 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     struct static_binding_satisfies_request<Request, Key, true>
         : std::bool_constant<
               (has_parent_v ||
-               detail::static_binding_resolvable_v<
+               static_binding_resolvable_v<
                    typename static_selection_t<Request, Key>::binding_type,
                    static_registry_type_>) &&
-              detail::binding_supports_request_v<
+              binding_supports_request_v<
                   request_interface_t<Request>,
                   typename static_selection_t<Request, Key>::binding_type>> {};
 
@@ -15296,7 +15296,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
             resolve_request_t<T, RemoveRvalueReferences>, Key>;
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void>
-    static constexpr detail::binding_selection_status static_resolve_status_v =
+    static constexpr binding_selection_status static_resolve_status_v =
         static_selection_t<resolve_request_t<T, RemoveRvalueReferences>,
                            Key>::status;
 
@@ -15319,8 +15319,8 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
             static_binding_satisfies_request_v<request_type>;
         constexpr bool has_normalized_static_binding =
             static_selection_t<normalized_request_type, void>::status ==
-                detail::binding_selection_status::kFound &&
-            detail::static_binding_resolvable_v<
+                binding_selection_status::kFound &&
+            static_binding_resolvable_v<
                 typename static_selection_t<normalized_request_type,
                                             void>::binding_type,
                 static_registry_type_>;
@@ -15346,7 +15346,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     template <typename T, typename Key = void>
     bool select_static_collection_construct() {
         constexpr bool has_static_collection_bindings =
-            detail::static_collection_binding_count<static_registry_type_, T,
+            static_collection_binding_count<static_registry_type_, T,
                                                     Key>() != 0;
         if constexpr (!has_static_collection_bindings) {
             return false;
@@ -15359,9 +15359,9 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     template <typename Collection, typename Key = void>
     static constexpr bool has_static_collection_v =
-        detail::static_collection_binding_count<static_registry_type_,
+        static_collection_binding_count<static_registry_type_,
                                                 Collection, Key>() != 0 &&
-        detail::static_bindings_resolvable_v<
+        static_bindings_resolvable_v<
             typename static_registry_type_::template bindings<
                 normalized_type_t<
                     typename collection_traits<Collection>::resolve_type>,
@@ -15428,7 +15428,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         if constexpr (has_exact_static_binding) {
             using binding =
                 typename static_selection_t<request_type, void>::binding_type;
-            if constexpr (detail::binding_supports_request_v<T, binding>) {
+            if constexpr (binding_supports_request_v<T, binding>) {
                 static_context_type static_context;
                 return resolve_static<T, false>(static_context);
             }
@@ -15438,7 +15438,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                       construct_normalized_request_v<T>) {
             using normalized_selection =
                 static_selection_t<normalized_request_type, void>;
-            return detail::construct_static_binding_value<T,
+            return construct_static_binding_value<T,
                                                           normalized_selection>(
                 [&]() {
                     return resolve_static<normalized_request_type, false>();
@@ -15451,7 +15451,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     template <
         typename T, typename Fn,
-        std::enable_if_t<!detail::is_static_context_argument_v<Fn>, int> = 0>
+        std::enable_if_t<!is_static_context_argument_v<Fn>, int> = 0>
     T construct_static_collection(Fn&& fn, none_t) {
         static_context_type static_context;
         return construct_static_collection<T>(static_context,
@@ -15465,7 +15465,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     template <
         typename T, typename Fn, typename Key,
-        std::enable_if_t<!detail::is_static_context_argument_v<Fn>, int> = 0>
+        std::enable_if_t<!is_static_context_argument_v<Fn>, int> = 0>
     T construct_static_collection(Fn&& fn, key<Key>) {
         static_context_type static_context;
         return construct_static_collection<T>(static_context,
@@ -15488,7 +15488,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         constexpr std::size_t static_count =
             type_list_size_v<typename static_registry_type_::template bindings<
                 normalized_type_t<resolve_type>, Key>>;
-        return detail::construct_binding_collection<T>(
+        return construct_binding_collection<T>(
             [&] {
                 return runtime_registry_.template count_runtime_collection<T>(
                     collection_key<Key>());
@@ -15526,13 +15526,13 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         using selection = static_selection_t<LookupRequest, Key>;
         using binding = typename selection::binding_type;
         if constexpr (selection::status !=
-                      detail::binding_selection_status::kFound) {
+                      binding_selection_status::kFound) {
             if constexpr (selection::status ==
-                          detail::binding_selection_status::kAmbiguous) {
-                throw detail::make_type_ambiguous_exception<LookupRequest>(
+                          binding_selection_status::kAmbiguous) {
+                throw make_type_ambiguous_exception<LookupRequest>(
                     context);
             } else {
-                throw detail::make_type_not_found_exception<LookupRequest>(
+                throw make_type_not_found_exception<LookupRequest>(
                     context);
             }
         } else {
@@ -15550,12 +15550,12 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         using selection = static_selection_t<Request, Key>;
         using binding = typename selection::binding_type;
         if constexpr (selection::status !=
-                      detail::binding_selection_status::kFound) {
+                      binding_selection_status::kFound) {
             if constexpr (selection::status ==
-                          detail::binding_selection_status::kAmbiguous) {
-                throw detail::make_type_ambiguous_exception<Request>(context);
+                          binding_selection_status::kAmbiguous) {
+                throw make_type_ambiguous_exception<Request>(context);
             } else {
-                throw detail::make_type_not_found_exception<Request>(context);
+                throw make_type_not_found_exception<Request>(context);
             }
         } else {
             binding_resolution_ref static_state_ref(
@@ -15599,29 +15599,29 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         using Type = normalized_type_t<T>;
         (void)id;
 
-        if constexpr (MayAutoConstruct && detail::is_typed_key_v<IdType> &&
+        if constexpr (MayAutoConstruct && is_typed_key_v<IdType> &&
                       collection_traits<R>::is_collection) {
             return construct_collection_runtime_context<R>(
-                detail::binding_collection_append{}, std::decay_t<IdType>{});
+                binding_collection_append{}, std::decay_t<IdType>{});
         } else if constexpr (MayAutoConstruct &&
                              is_auto_constructible<std::decay_t<T>>::value) {
             if constexpr (constructor<Type>::kind ==
-                          detail::constructor_kind::kConcrete) {
+                          constructor_kind::kConcrete) {
                 static_assert(is_complete<Type>::value,
                               "auto-construction requires a complete type");
-                using type_detection = detail::automatic;
+                using type_detection = automatic;
                 return context.template construct_temporary<
                     request_interface_t<T>, type_detection>(*this);
             } else if constexpr (is_none_v<std::decay_t<IdType>>) {
-                throw detail::make_type_not_found_exception<T>(context);
+                throw make_type_not_found_exception<T>(context);
             } else {
-                throw detail::make_type_not_found_exception<
+                throw make_type_not_found_exception<
                     T, std::decay_t<IdType>>(context);
             }
         } else if constexpr (is_none_v<std::decay_t<IdType>>) {
-            throw detail::make_type_not_found_exception<T>(context);
+            throw make_type_not_found_exception<T>(context);
         } else {
-            throw detail::make_type_not_found_exception<T,
+            throw make_type_not_found_exception<T,
                                                         std::decay_t<IdType>>(
                 context);
         }
@@ -15639,8 +15639,8 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         missing_runtime_binding<T, RemoveRvalueReferences, MayAutoConstruct,
                                 IdType>
             missing{*this, id};
-        auto sources = detail::make_selected_binding_sources(selected, missing);
-        return detail::resolve_from_binding_sources<T, R>(context, sources);
+        auto sources = make_selected_binding_sources(selected, missing);
+        return resolve_from_binding_sources<T, R>(context, sources);
     }
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void,
@@ -15657,7 +15657,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
               typename Key = void,
               typename R = resolve_request_t<T, RemoveRvalueReferences>>
     R resolve_parent(runtime_context& context) {
-        if constexpr (detail::parent_context_resolve_supported_v<
+        if constexpr (parent_context_resolve_supported_v<
                           parent_container_type, T, RemoveRvalueReferences,
                           CheckCache, Key>) {
             if constexpr (std::is_void_v<Key>) {
@@ -15679,7 +15679,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         if constexpr (std::is_same_v<Factory,
                                      constructor<normalized_type_t<T>>>) {
             if (runtime_registry_.template binding_status<T>() !=
-                detail::binding_selection_status::kNotFound) {
+                binding_selection_status::kNotFound) {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
@@ -15706,7 +15706,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 }
             } else if (runtime_registry_
                            .template binding_status<normalized_type_t<T>>() !=
-                       detail::binding_selection_status::kNotFound) {
+                       binding_selection_status::kNotFound) {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
@@ -15749,15 +15749,15 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
 
     static_assert(static_source_type::valid,
                   "container requires a valid compile-time bindings source");
-    static_assert(detail::graph_analysis<static_source_type, true>::resolvable,
+    static_assert(graph_analysis<static_source_type, true>::resolvable,
                   "container requires a resolvable compile-time binding graph");
     static_assert(
-        (detail::binding_factory_is_default_constructible<
-             detail::binding_model<Registrations>>::value &&
+        (binding_factory_is_default_constructible<
+             binding_model<Registrations>>::value &&
          ...),
         "container requires default-constructible compile-time factories");
-    static_assert((detail::binding_storage_is_default_constructible<
-                       detail::binding_model<Registrations>>::value &&
+    static_assert((binding_storage_is_default_constructible<
+                       binding_model<Registrations>>::value &&
                    ...),
                   "container requires default-constructible compile-time "
                   "storage objects");
@@ -15819,7 +15819,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     template <typename T, typename IdType = none_t,
               typename R = request_result_t<T>>
     SILICON_DI_ALWAYS_INLINE R resolve(IdType&& id = IdType()) {
-        if constexpr (detail::is_typed_key_v<IdType>) {
+        if constexpr (is_typed_key_v<IdType>) {
             using key_type = typename std::decay_t<IdType>::type;
             if constexpr (collection_traits<R>::is_collection) {
                 if constexpr (has_static_collection_v<R, key_type>) {
@@ -15839,10 +15839,10 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 if constexpr (has_parent_v) {
                     if constexpr (static_resolve_status_v<
                                       T, false, key_type> ==
-                                  detail::binding_selection_status::kNotFound) {
+                                  binding_selection_status::kNotFound) {
                         if (parent_ &&
                             resolve_binding_status<T, false, key_type>() ==
-                                detail::binding_selection_status::kNotFound) {
+                                binding_selection_status::kNotFound) {
                             return resolve_parent<T, false, key_type>();
                         }
                     }
@@ -15864,7 +15864,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                     if (parent_ &&
                         runtime_registry_.template binding_status_for_id<T>(
                             id) ==
-                            detail::binding_selection_status::kNotFound) {
+                            binding_selection_status::kNotFound) {
                         return parent_->template resolve<T>(
                             std::forward<IdType>(id));
                     }
@@ -15892,10 +15892,10 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 if constexpr (has_parent_v) {
                     if constexpr (static_resolve_status_v<
                                       T, false> ==
-                                  detail::binding_selection_status::kNotFound) {
+                                  binding_selection_status::kNotFound) {
                         if (parent_ &&
                             resolve_binding_status<T, false>() ==
-                                detail::binding_selection_status::kNotFound) {
+                                binding_selection_status::kNotFound) {
                             return resolve_parent<T, false>();
                         }
                     }
@@ -15923,15 +15923,15 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                                   T>) {
                 constexpr bool has_static_normalized_binding =
                     static_selection_t<normalized_request_type, void>::status !=
-                        detail::binding_selection_status::kNotFound &&
-                    detail::static_binding_resolvable_v<
+                        binding_selection_status::kNotFound &&
+                    static_binding_resolvable_v<
                         typename static_selection_t<normalized_request_type,
                                                     void>::binding_type,
                         static_registry_type_>;
 
                 if constexpr (has_static_construct_request_v<T>) {
                     if (binding_status<request_type>() !=
-                            detail::binding_selection_status::kNotFound &&
+                            binding_selection_status::kNotFound &&
                         select_static_construct<T>()) {
                         return construct_static<T>();
                     }
@@ -15949,7 +15949,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 return construct_runtime_only<T>(std::move(factory));
             } else if constexpr (has_static_construct_request_v<T>) {
                 if (binding_status<request_type>() !=
-                        detail::binding_selection_status::kNotFound &&
+                        binding_selection_status::kNotFound &&
                     select_static_construct<T>()) {
                     return construct_static<T>();
                 }
@@ -15961,7 +15961,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         if constexpr (std::is_same_v<Factory,
                                      constructor<normalized_type_t<T>>>) {
             if (binding_status<T>() !=
-                detail::binding_selection_status::kNotFound) {
+                binding_selection_status::kNotFound) {
                 if constexpr (construct_normalized_request_v<T>) {
                     return ::silicon::di::construct_request_or_wrap_normalized<T>(
                         [&]() { return resolve<T, false>(context); },
@@ -15973,7 +15973,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                     return resolve<T, false>(context);
                 }
             } else if (binding_status<normalized_type_t<T>>() !=
-                       detail::binding_selection_status::kNotFound) {
+                       binding_selection_status::kNotFound) {
                 if constexpr (construct_normalized_request_v<T>) {
                     return type_traits<std::decay_t<T>>::make(
                         resolve<normalized_type_t<T>, false>(context));
@@ -15998,7 +15998,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         }
 
         return construct_collection_runtime_context<T>(
-            detail::binding_collection_append{}, none_t{});
+            binding_collection_append{}, none_t{});
     }
 
     template <typename T, typename Fn> T construct_collection(Fn&& fn) {
@@ -16017,7 +16017,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         }
 
         return construct_collection_runtime_context<T>(
-            detail::binding_collection_append{}, key<Key>{});
+            binding_collection_append{}, key<Key>{});
     }
 
     template <typename T, typename Fn, typename Key>
@@ -16036,34 +16036,34 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         using callable_type =
             std::remove_cv_t<std::remove_reference_t<Callable>>;
         using dispatch_signature =
-            detail::callable_dispatch_signature_t<Signature, callable_type>;
+            callable_dispatch_signature_t<Signature, callable_type>;
 
         runtime_context context;
         auto type_guard = context.template track_type<callable_type>();
-        return detail::callable_invoke<dispatch_signature>::construct(
+        return callable_invoke<dispatch_signature>::construct(
             std::forward<Callable>(callable), context, *this);
     }
 
     template <typename Request, typename Key = void>
-    detail::binding_selection_status binding_status() {
+    binding_selection_status binding_status() {
         using request_type = request_interface_t<Request>;
         using static_selection = static_selection_t<request_type, Key>;
         const auto runtime_status =
             runtime_registry_.template binding_status<request_type, Key>();
-        return detail::resolve_binding_status<static_selection::status>(
+        return resolve_binding_status<static_selection::status>(
             runtime_status,
-            detail::binding_resolution_policy::kAmbiguousOnConflict);
+            binding_resolution_policy::kAmbiguousOnConflict);
     }
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void>
-    detail::binding_selection_status resolve_binding_status() {
+    binding_selection_status resolve_binding_status() {
         using request_type = resolve_request_t<T, RemoveRvalueReferences>;
         const auto runtime_status =
             runtime_registry_.template binding_status<request_type, Key>();
-        return detail::resolve_binding_status<
+        return resolve_binding_status<
             static_resolve_status_v<T, RemoveRvalueReferences, Key>>(
             runtime_status,
-            detail::binding_resolution_policy::kAmbiguousOnConflict);
+            binding_resolution_policy::kAmbiguousOnConflict);
     }
 
     template <typename T, typename Key = void, typename Fn>
@@ -16089,7 +16089,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                                        Context& static_context, Fn&& fn) {
         binding_resolution_ref static_state_ref(
             static_state_);
-        return detail::append_binding_collection(
+        return append_binding_collection(
             results,
             [&](auto& collection, auto&& append) {
                 return runtime_registry_.append_runtime_collection(
@@ -16107,12 +16107,12 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     }
 
     template <typename T, typename Key = void> std::size_t count_collection() {
-        return detail::count_binding_collection<T>(
+        return count_binding_collection<T>(
             [&] {
                 return runtime_registry_.template count_runtime_collection<T>(
                     collection_key<Key>());
             },
-            detail::static_collection_binding_count<static_registry_type_, T,
+            static_collection_binding_count<static_registry_type_, T,
                                                     Key>());
     }
 
@@ -16132,7 +16132,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         } else if constexpr (has_parent_v) {
             if constexpr (static_resolve_status_v<
                               T, RemoveRvalueReferences> ==
-                          detail::binding_selection_status::kNotFound) {
+                          binding_selection_status::kNotFound) {
                 if (parent_) {
                     return resolve_parent<T, RemoveRvalueReferences>();
                 }
@@ -16153,7 +16153,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         } else if constexpr (has_parent_v) {
             if constexpr (static_resolve_status_v<
                               T, RemoveRvalueReferences, Key> ==
-                          detail::binding_selection_status::kNotFound) {
+                          binding_selection_status::kNotFound) {
                 if (parent_) {
                     return resolve_parent<T, RemoveRvalueReferences, Key>();
                 }
@@ -16174,7 +16174,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
         } else if constexpr (has_parent_v) {
             if constexpr (static_resolve_status_v<
                               T, RemoveRvalueReferences, Key> ==
-                          detail::binding_selection_status::kNotFound) {
+                          binding_selection_status::kNotFound) {
                 if (parent_) {
                     return resolve_parent<T, RemoveRvalueReferences, Key>();
                 }
@@ -16203,17 +16203,17 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                 }
             }
             return construct_collection<R>(context,
-                                           detail::binding_collection_append{},
+                                           binding_collection_append{},
                                            collection_key<Key>());
         } else {
             if constexpr (has_parent_v) {
                 if constexpr (static_resolve_status_v<
                                   T, RemoveRvalueReferences, Key> ==
-                              detail::binding_selection_status::kNotFound) {
+                              binding_selection_status::kNotFound) {
                     if (parent_ &&
                         resolve_binding_status<T, RemoveRvalueReferences,
                                                Key>() ==
-                            detail::binding_selection_status::kNotFound) {
+                            binding_selection_status::kNotFound) {
                         return resolve_parent<T, RemoveRvalueReferences,
                                               CheckCache, Key>(context);
                     }
@@ -16224,10 +16224,10 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
                                       request_type>
                 runtime{*this};
             static_binding_candidate<request_type, Key> static_binding{*this};
-            auto sources = detail::make_two_binding_sources(
+            auto sources = make_two_binding_sources(
                 runtime, static_binding, runtime,
-                detail::binding_resolution_policy::kAmbiguousOnConflict);
-            return detail::resolve_from_binding_sources<T, request_type>(
+                binding_resolution_policy::kAmbiguousOnConflict);
+            return resolve_from_binding_sources<T, request_type>(
                 context, sources);
         }
     }
@@ -16240,7 +16240,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     }
 
   private:
-    friend class detail::runtime_registration_api<self_type>;
+    friend class runtime_registration_api<self_type>;
 
     runtime_registry_type& runtime_registry_ref() { return runtime_registry_; }
 
@@ -16252,7 +16252,7 @@ class detail::container_with_static_bindings<static_registry<Registrations...>,
     parent_container_type* parent_ = nullptr;
 };
 
-namespace detail {
+
 
 template <typename... Params> struct container_base;
 template <typename Param, typename Enable = void>
@@ -16379,11 +16379,11 @@ struct container_base_from_static_parent<
     using type = container_with_static_bindings<static_registry_type, Parent>;
 };
 
-} // namespace detail
+
 
 template <typename... Params>
-class container : public detail::container_base_t<Params...> {
-    using container_base_type = detail::container_base_t<Params...>;
+class container : public container_base_t<Params...> {
+    using container_base_type = container_base_t<Params...>;
 
   public:
     using container_base_type::container_base_type;
@@ -16418,7 +16418,7 @@ struct index_collection<Key, Value, Allocator, index_type::array<N>> {
 
     bool emplace(Key key, Value value) {
         if (key >= array_.size())
-            throw detail::make_type_index_out_of_range_exception(
+            throw make_type_index_out_of_range_exception(
                 key, array_.size());
         if (!array_[key]) {
             array_[key] = value;

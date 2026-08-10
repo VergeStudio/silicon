@@ -14,7 +14,7 @@ module silicon.scheduler.task;
 
 namespace silicon::scheduler {
 
-namespace detail {
+
 
 auto promise_base::final_awaitable::await_ready() const noexcept -> bool {
     return false;
@@ -34,7 +34,7 @@ auto promise_base::continuation(std::coroutine_handle<> continuation) noexcept -
     return *m_promise;
 }
 
-} // namespace detail
+
 
 task_event::awaiter::awaiter(const task_event &e) noexcept: m_event(e) {}
 

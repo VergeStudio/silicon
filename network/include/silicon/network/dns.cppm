@@ -35,12 +35,12 @@ import :core;
 
 export namespace silicon::network::dns {
 
-namespace detail {
+
 /// Global count to track if c-ares has been initialized or cleaned up.
 extern uint64_t m_ares_count;
 /// Critical section around the c-ares global init/cleanup to prevent heap corruption.
 extern std::mutex m_ares_mutex;
-} // namespace detail
+
 
 template<silicon::coroutine::concepts::io_executor executor_type>
 class resolver;
@@ -94,14 +94,14 @@ class resolver {
         }
 
         {
-            std::scoped_lock g{detail::m_ares_mutex};
-            if(detail::m_ares_count == 0) {
+            std::scoped_lock g{m_ares_mutex};
+            if(m_ares_count == 0) {
                 auto ares_status = ares_library_init(ARES_LIB_INIT_ALL);
                 if(ares_status != ARES_SUCCESS) {
                     throw std::runtime_error{ares_strerror(ares_status)};
                 }
             }
-            ++detail::m_ares_count;
+            ++m_ares_count;
         }
 
         ares_options options{};
@@ -126,9 +126,9 @@ class resolver {
         }
 
         {
-            std::scoped_lock g{detail::m_ares_mutex};
-            --detail::m_ares_count;
-            if(detail::m_ares_count == 0) {
+            std::scoped_lock g{m_ares_mutex};
+            --m_ares_count;
+            if(m_ares_count == 0) {
                 ares_library_cleanup();
             }
         }

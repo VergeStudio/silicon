@@ -62,7 +62,7 @@ public:
     {
         m_p->m_size.fetch_add(1, std::memory_order::relaxed);
 
-        auto task = silicon::scheduler::detail::make_task_self_deleting(std::move(user_task));
+        auto task = silicon::scheduler::make_task_self_deleting(std::move(user_task));
         // Hook the promise to decrement the size upon its self deletion of the coroutine frame.
         task.promise().user_final_suspend([this]() -> void { m_p->m_size.fetch_sub(1, std::memory_order::release); });
         return m_p->m_executor->resume(task.handle());

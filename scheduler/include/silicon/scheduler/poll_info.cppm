@@ -9,7 +9,7 @@ module;
 #include <utility>
 
 
-export module silicon.scheduler:detail.poll_info;
+export module silicon.scheduler:poll_info;
 
 import :fd;
 import :poll;
@@ -27,7 +27,7 @@ using silicon::coroutine::poll_stop_token;
 using silicon::coroutine::time_point;
 } // namespace silicon::scheduler
 
-export namespace silicon::scheduler::detail {
+export namespace silicon::scheduler {
 
 /**
  * Poll Info encapsulates everything about a poll operation for the event as well as its paired
@@ -43,16 +43,16 @@ export namespace silicon::scheduler::detail {
  * are effectively discarded.
  *
  * The implementation state (`Impl`) is defined in the non-exported partition
- * `silicon.scheduler:detail.poll_info_impl`; its full definition is therefore invisible outside
+ * `silicon.scheduler:poll_info_impl`; its full definition is therefore invisible outside
  * `silicon.scheduler`.  Members that touch `Impl` are declared here and defined out-of-line in
  * `scheduler/src/detail/poll_info.cpp`.
  */
 struct poll_info {
-    using timed_events = std::multimap<silicon::coroutine::time_point, detail::poll_info *>;
+    using timed_events = std::multimap<silicon::coroutine::time_point, poll_info *>;
 
     /// Implementation state of a poll operation.  Kept behind `m_p` so the layout of a poll
     /// operation is an implementation detail.  The full definition lives in the non-exported
-    /// `silicon.scheduler:detail.poll_info_impl` partition.
+    /// `silicon.scheduler:poll_info_impl` partition.
     struct Impl;
 
     poll_info();
@@ -81,4 +81,4 @@ struct poll_info {
     std::unique_ptr<Impl> m_p;
 };
 
-} // namespace silicon::scheduler::detail
+} // namespace silicon::scheduler

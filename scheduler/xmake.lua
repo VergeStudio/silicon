@@ -25,8 +25,8 @@ target("scheduler", function()
     -- :default_executor（进程级默认执行器）、:config。
     --
     -- 另含自 silicon.coroutine 下沉的调度原语（命名空间仍为 silicon::coroutine）：
-    -- :concepts.*、:expected、:fd、:poll、:time、:sync_wait、:detail.awaiter_list、
-    -- :detail.pipe。依赖方向已单向化为 coroutine -> scheduler -> task。
+    -- :concepts.*、:expected、:fd、:poll、:time、:sync_wait、:awaiter_list、
+    -- :pipe。依赖方向已单向化为 coroutine -> scheduler -> task。
     add_includedirs("include")
 
     -- task 目录已并入 scheduler/task（target 名仍为 task）。

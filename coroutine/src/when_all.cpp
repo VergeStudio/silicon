@@ -8,9 +8,9 @@ module;
 
 module silicon.coroutine;
 
-namespace silicon::coroutine::detail {
+namespace silicon::coroutine {
 
-/// Implementation state of silicon::coroutine::detail::when_all_latch.
+/// Implementation state of silicon::coroutine::when_all_latch.
 struct when_all_latch::Impl {
   public:
     /// The number of tasks that are being waited on.
@@ -54,4 +54,4 @@ auto when_all_latch::notify_awaitable_completed() noexcept -> void {
     }
 }
 
-} // namespace silicon::coroutine::detail
+} // namespace silicon::coroutine

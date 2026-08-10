@@ -11,8 +11,8 @@ module;
 
 module silicon.scheduler;
 
-import :detail.poll_info;
-import :detail.poll_info_impl;
+import :poll_info;
+import :poll_info_impl;
 
 // 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
 namespace silicon::scheduler {
@@ -25,7 +25,7 @@ using silicon::coroutine::poll_stop_token;
 using silicon::coroutine::time_point;
 } // namespace silicon::scheduler
 
-namespace silicon::scheduler::detail {
+namespace silicon::scheduler {
 
 poll_info::poll_info(): m_p(std::make_unique<Impl>()) {}
 
@@ -50,4 +50,4 @@ auto poll_info::poll_awaiter::await_suspend(std::coroutine_handle<> awaiting_cor
 
 auto poll_info::poll_awaiter::await_resume() noexcept -> silicon::coroutine::poll_status { return m_pi.m_p->m_poll_status; }
 
-} // namespace silicon::scheduler::detail
+} // namespace silicon::scheduler

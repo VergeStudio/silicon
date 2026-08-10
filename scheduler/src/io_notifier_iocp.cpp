@@ -17,7 +17,7 @@ module;
 
 module silicon.scheduler;
 
-import :detail.poll_info_impl;
+import :poll_info_impl;
 
 #if defined(_WIN32)
 using namespace std::chrono_literals;
@@ -62,7 +62,7 @@ struct io_notifier::Impl {
 // ---------------------------------------------------------------------------
 
 struct timer_completion_key {
-    detail::poll_info *pi;
+    poll_info *pi;
     bool fired;
 };
 
@@ -103,7 +103,7 @@ auto io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_canc
     return true;
 }
 
-auto io_notifier::watch(detail::poll_info &pi) -> bool {
+auto io_notifier::watch(poll_info &pi) -> bool {
     watch(pi.m_p->m_fd, pi.m_p->m_op, static_cast<void *>(&pi), false, false);
 
     if (pi.m_p->m_cancel_trigger.has_value()) {
@@ -119,7 +119,7 @@ auto io_notifier::unwatch(fd_t fd, poll_op) -> bool {
     return true;
 }
 
-auto io_notifier::unwatch(detail::poll_info &pi) -> bool {
+auto io_notifier::unwatch(poll_info &pi) -> bool {
     remove_fd(pi.m_p->m_fd);
     if (pi.m_p->m_cancel_trigger.has_value()) {
         remove_fd(pi.m_p->m_cancel_trigger.value().native_handle());
@@ -127,11 +127,11 @@ auto io_notifier::unwatch(detail::poll_info &pi) -> bool {
     return true;
 }
 
-auto io_notifier::watch_timer(const detail::timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
+auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
     // Store the IOCP handle in m_fd so the timer callback can reach it.
     // NOTE: this is a simplified approach — in production the io_notifier would
     // track timer keys directly.
-    auto *pi = reinterpret_cast<detail::poll_info *>(const_cast<void *>(timer.get_inner()));
+    auto *pi = reinterpret_cast<poll_info *>(const_cast<void *>(timer.get_inner()));
     if (!pi) return false;
 
     HANDLE hTimer = CreateWaitableTimerW(nullptr, TRUE, nullptr);
@@ -157,13 +157,13 @@ auto io_notifier::watch_timer(const detail::timer_handle &timer, std::chrono::na
     return true;
 }
 
-auto io_notifier::unwatch_timer(const detail::timer_handle &) -> bool {
+auto io_notifier::unwatch_timer(const timer_handle &) -> bool {
     // In this implementation, timers fire once and self-clean.
     return true;
 }
 
 auto io_notifier::next_events(
-        std::vector<std::pair<detail::poll_info *, poll_status>> &ready_events,
+        std::vector<std::pair<poll_info *, poll_status>> &ready_events,
         std::chrono::milliseconds timeout
 ) -> void {
     // Phase 1: Drain any IOCP completions (timer expirations, etc.)
@@ -188,7 +188,7 @@ auto io_notifier::next_events(
         }
 
         // completion_key is a poll_info* posted by the timer callback
-        auto *pi = reinterpret_cast<detail::poll_info *>(completion_key);
+        auto *pi = reinterpret_cast<poll_info *>(completion_key);
         if (pi) {
             if (!pi->m_p->m_processed) {
                 pi->m_p->m_processed = true;
@@ -201,7 +201,7 @@ auto io_notifier::next_events(
     // Phase 2: Build WSAPoll fd set from watched fds
     // Only include "real" socket fds (exclude cancel-event pipe fds from poll_stop_source)
     std::vector<WSAPOLLFD> poll_fds;
-    std::vector<detail::poll_info *> poll_info_map; // parallel to poll_fds
+    std::vector<poll_info *> poll_info_map; // parallel to poll_fds
 
     {
         std::lock_guard lock(m_p->m_mutex);
@@ -214,7 +214,7 @@ auto io_notifier::next_events(
             if (poll_op_writeable(entry.op)) events |= POLLWRNORM;
 
             poll_fds.push_back({static_cast<SOCKET>(fd), events, 0});
-            poll_info_map.push_back(static_cast<detail::poll_info *>(entry.data));
+            poll_info_map.push_back(static_cast<poll_info *>(entry.data));
         }
     }
 

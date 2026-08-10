@@ -22,7 +22,7 @@ export module silicon.scheduler:sync_wait;
 import :concepts.awaitable;
 
 export namespace silicon::coroutine {
-namespace detail {
+
 
 struct unset_return_value {
     unset_return_value() {}
@@ -271,14 +271,14 @@ auto make_sync_wait_task(awaitable_type &&a) -> sync_wait_task<return_type> {
     }
 }
 
-} // namespace detail
+
 
 template<
         concepts::awaitable awaitable_type,
         typename return_type = typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>
 auto sync_wait(awaitable_type &&a) -> return_type {
-    detail::sync_wait_event e{};
-    auto task = detail::make_sync_wait_task(std::forward<awaitable_type>(a));
+    sync_wait_event e{};
+    auto task = make_sync_wait_task(std::forward<awaitable_type>(a));
     task.promise().start(e);
     e.wait();
 

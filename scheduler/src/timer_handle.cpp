@@ -4,7 +4,7 @@ module;
 
 module silicon.scheduler;
 
-import :detail.poll_info_impl;
+import :poll_info_impl;
 
 // 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
 namespace silicon::scheduler {
@@ -17,7 +17,7 @@ using silicon::coroutine::poll_stop_token;
 using silicon::coroutine::time_point;
 } // namespace silicon::scheduler
 
-namespace silicon::scheduler::detail {
+namespace silicon::scheduler {
 
 class timer_handle::Impl {
   public:
@@ -68,4 +68,4 @@ auto timer_handle::get_inner() const -> const void * {
 
 timer_handle::~timer_handle() = default;
 
-} // namespace silicon::scheduler::detail
+} // namespace silicon::scheduler

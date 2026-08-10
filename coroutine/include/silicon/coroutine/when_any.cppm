@@ -29,7 +29,7 @@ import :when_all;
 
 export namespace silicon::coroutine {
 
-namespace detail {
+
 
 template<typename T>
 struct when_any_variant_traits {
@@ -73,7 +73,7 @@ template<typename return_type, concepts::awaitable... awaitable_type, size_t... 
         silicon::coroutine::event &notify,
         std::optional<return_type> &return_value,
         awaitable_type... awaitables
-) -> silicon::scheduler::detail::task_self_deleting {
+) -> silicon::scheduler::task_self_deleting {
     std::atomic<bool> first_completed{false};
     co_await silicon::coroutine::when_all(
             make_when_any_tuple_task<indices>(first_completed, notify, return_value, std::move(awaitables))...
@@ -111,7 +111,7 @@ auto make_when_any_task(
 
 template<std::ranges::range range_type, concepts::awaitable awaitable_type = std::ranges::range_value_t<range_type>>
 auto make_when_any_controller_task_return_void(range_type awaitables, silicon::coroutine::event &notify)
-        -> silicon::scheduler::detail::task_self_deleting {
+        -> silicon::scheduler::task_self_deleting {
     std::atomic<bool> first_completed{false};
     std::vector<silicon::scheduler::task<void>> tasks{};
 
@@ -135,7 +135,7 @@ template<
 auto make_when_any_controller_task(
         range_type awaitables, silicon::coroutine::event &notify, std::optional<return_type_base> &return_value
 )
-        -> silicon::scheduler::detail::task_self_deleting {
+        -> silicon::scheduler::task_self_deleting {
     // This must live for as long as the longest running when_any task since each task tries to see
     // if it was the first to complete. Only the very first task to complete will set the return_value
     // and notify.
@@ -158,19 +158,19 @@ auto make_when_any_controller_task(
     co_return;
 }
 
-} // namespace detail
+
 
 template<concepts::awaitable... awaitable_type>
 [[nodiscard]] auto when_any(std::stop_source stop_source, awaitable_type... awaitables)
-        -> silicon::scheduler::task<std::variant<typename detail::when_any_variant_traits<
+        -> silicon::scheduler::task<std::variant<typename when_any_variant_traits<
                 std::remove_reference_t<typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>>::type...>> {
-    using return_type = std::variant<typename detail::when_any_variant_traits<
+    using return_type = std::variant<typename when_any_variant_traits<
             std::remove_reference_t<typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>>::type...>;
 
     silicon::coroutine::event notify{};
     std::optional<return_type> return_value{std::nullopt};
 
-    auto controller_task = detail::make_when_any_tuple_controller_task(
+    auto controller_task = make_when_any_tuple_controller_task(
             std::index_sequence_for<awaitable_type...>{},
             notify,
             return_value,
@@ -185,15 +185,15 @@ template<concepts::awaitable... awaitable_type>
 
 template<concepts::awaitable... awaitable_type>
 [[nodiscard]] auto when_any(awaitable_type... awaitables)
-        -> silicon::scheduler::task<std::variant<typename detail::when_any_variant_traits<
+        -> silicon::scheduler::task<std::variant<typename when_any_variant_traits<
                 std::remove_reference_t<typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>>::type...>> {
-    using return_type = std::variant<typename detail::when_any_variant_traits<
+    using return_type = std::variant<typename when_any_variant_traits<
             std::remove_reference_t<typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>>::type...>;
 
     silicon::coroutine::event notify{};
     std::optional<return_type> return_value{std::nullopt};
 
-    auto controller_task = detail::make_when_any_tuple_controller_task(
+    auto controller_task = make_when_any_tuple_controller_task(
             std::index_sequence_for<awaitable_type...>{},
             notify,
             return_value,
@@ -215,7 +215,7 @@ template<
 
     if constexpr(std::is_void_v<return_type_base>) {
         auto controller_task =
-                detail::make_when_any_controller_task_return_void(std::forward<range_type>(awaitables), notify);
+                make_when_any_controller_task_return_void(std::forward<range_type>(awaitables), notify);
         controller_task.handle().resume();
 
         co_await notify;
@@ -226,7 +226,7 @@ template<
         std::optional<return_type_base> return_value{std::nullopt};
 
         auto controller_task =
-                detail::make_when_any_controller_task(std::forward<range_type>(awaitables), notify, return_value);
+                make_when_any_controller_task(std::forward<range_type>(awaitables), notify, return_value);
         controller_task.handle().resume();
 
         co_await notify;
@@ -245,7 +245,7 @@ template<
 
     if constexpr(std::is_void_v<return_type_base>) {
         auto controller_task =
-                detail::make_when_any_controller_task_return_void(std::forward<range_type>(awaitables), notify);
+                make_when_any_controller_task_return_void(std::forward<range_type>(awaitables), notify);
         controller_task.handle().resume();
 
         co_await notify;
@@ -254,7 +254,7 @@ template<
         std::optional<return_type_base> return_value{std::nullopt};
 
         auto controller_task =
-                detail::make_when_any_controller_task(std::forward<range_type>(awaitables), notify, return_value);
+                make_when_any_controller_task(std::forward<range_type>(awaitables), notify, return_value);
         controller_task.handle().resume();
 
         co_await notify;

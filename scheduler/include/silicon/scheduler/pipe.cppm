@@ -5,11 +5,11 @@ module;
 #include <memory>
 
 
-export module silicon.scheduler:detail.pipe;
+export module silicon.scheduler:pipe;
 
 import :fd;
 
-export namespace silicon::coroutine::detail {
+export namespace silicon::coroutine {
 
 class pipe_t {
   public:
@@ -35,4 +35,4 @@ class pipe_t {
     std::unique_ptr<Impl> m_p;
 };
 
-} // namespace silicon::coroutine::detail
+} // namespace silicon::coroutine

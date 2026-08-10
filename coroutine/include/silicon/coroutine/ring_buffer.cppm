@@ -385,7 +385,7 @@ class ring_buffer {
         while(true) {
             auto lk = co_await m_p->m_mutex.scoped_lock();
             if(m_p->m_used.load(std::memory_order::acquire) < num_elements) {
-                auto *op = detail::awaiter_list_pop(m_p->m_produce_waiters);
+                auto *op = awaiter_list_pop(m_p->m_produce_waiters);
                 if(op != nullptr) {
                     auto slot = m_p->m_front.fetch_add(1, std::memory_order::acq_rel) % num_elements;
                     m_p->m_elements[slot] = std::move(op->m_e);
@@ -404,7 +404,7 @@ class ring_buffer {
         while(true) {
             auto lk = co_await m_p->m_mutex.scoped_lock();
             if(m_p->m_used.load(std::memory_order::acquire) > 0) {
-                auto *op = detail::awaiter_list_pop(m_p->m_consume_waiters);
+                auto *op = awaiter_list_pop(m_p->m_consume_waiters);
                 if(op != nullptr) {
                     auto slot = m_p->m_back.fetch_add(1, std::memory_order::acq_rel) % num_elements;
                     op->m_e = std::move(m_p->m_elements[slot]);

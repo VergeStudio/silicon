@@ -16,7 +16,7 @@ export namespace silicon::coroutine {
 template<concepts::executor executor_type>
 class shared_mutex;
 
-namespace detail {
+
 template<concepts::executor executor_type>
 struct shared_lock_operation {
     explicit shared_lock_operation(silicon::coroutine::shared_mutex<executor_type> &shared_mutex, const bool exclusive)
@@ -81,7 +81,7 @@ struct shared_lock_operation {
     bool m_exclusive{false};
 };
 
-} // namespace detail
+
 
 template<concepts::executor executor_type>
 class shared_mutex {
@@ -111,7 +111,7 @@ class shared_mutex {
      */
     [[nodiscard]] auto scoped_lock_shared(silicon::scheduler::task<void> scoped_task) -> silicon::scheduler::task<void> {
         co_await m_p->m_mutex.lock();
-        co_await detail::shared_lock_operation<executor_type>{*this, false};
+        co_await shared_lock_operation<executor_type>{*this, false};
         co_await scoped_task;
         co_await unlock_shared();
         co_return;
@@ -125,7 +125,7 @@ class shared_mutex {
      */
     [[nodiscard]] auto scoped_lock(silicon::scheduler::task<void> scoped_task) -> silicon::scheduler::task<void> {
         co_await m_p->m_mutex.lock();
-        co_await detail::shared_lock_operation<executor_type>{*this, true};
+        co_await shared_lock_operation<executor_type>{*this, true};
         co_await scoped_task;
         co_await unlock();
         co_return;
@@ -137,7 +137,7 @@ class shared_mutex {
      */
     [[nodiscard]] auto lock_shared() -> silicon::scheduler::task<void> {
         co_await m_p->m_mutex.lock();
-        co_await detail::shared_lock_operation<executor_type>{*this, false};
+        co_await shared_lock_operation<executor_type>{*this, false};
         co_return;
     }
 
@@ -147,7 +147,7 @@ class shared_mutex {
      */
     [[nodiscard]] auto lock() -> silicon::scheduler::task<void> {
         co_await m_p->m_mutex.lock();
-        co_await detail::shared_lock_operation<executor_type>{*this, true};
+        co_await shared_lock_operation<executor_type>{*this, true};
         co_return;
     }
 
@@ -233,7 +233,7 @@ class shared_mutex {
     }
 
   private:
-    friend struct detail::shared_lock_operation<executor_type>;
+    friend struct shared_lock_operation<executor_type>;
 
     enum class state {
         /// @brief The shared mutex is unlocked.
@@ -258,8 +258,8 @@ class shared_mutex {
         /// @brief The current number of exclusive waiters waiting to acquire the lock.
         std::atomic<uint64_t> m_exclusive_waiters{0};
 
-        std::atomic<detail::shared_lock_operation<executor_type> *> m_head_waiter{nullptr};
-        std::atomic<detail::shared_lock_operation<executor_type> *> m_tail_waiter{nullptr};
+        std::atomic<shared_lock_operation<executor_type> *> m_head_waiter{nullptr};
+        std::atomic<shared_lock_operation<executor_type> *> m_tail_waiter{nullptr};
     };
 
     std::unique_ptr<Impl> m_p;
@@ -293,7 +293,7 @@ class shared_mutex {
         return false;
     }
 
-    auto wake_waiters(silicon::coroutine::scoped_lock &lk, detail::shared_lock_operation<executor_type> *head_waiter) -> void {
+    auto wake_waiters(silicon::coroutine::scoped_lock &lk, shared_lock_operation<executor_type> *head_waiter) -> void {
         // First determine what the next lock state will be based on the first waiter.
         if(head_waiter->m_exclusive) {
             // If its exclusive then only this waiter can be woken up.

@@ -14,7 +14,7 @@ module;
 
 module silicon.scheduler;
 
-import :detail.poll_info_impl;
+import :poll_info_impl;
 
 #if defined(__linux__)
 using namespace std::chrono_literals;
@@ -87,7 +87,7 @@ io_notifier::io_notifier(): m_p(std::make_unique<Impl>()) {
 
 io_notifier::~io_notifier() = default;
 
-auto io_notifier::watch_timer(const detail::timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
+auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
     auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
     duration -= seconds;
     auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
@@ -124,7 +124,7 @@ auto io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_canc
     return ::epoll_ctl(m_p->m_fd, EPOLL_CTL_ADD, fd, &event_data) != -1;
 }
 
-auto io_notifier::watch(detail::poll_info &pi) -> bool {
+auto io_notifier::watch(poll_info &pi) -> bool {
     watch(pi.m_p->m_fd, pi.m_p->m_op, static_cast<void *>(&pi), false, false);
 
     if(pi.m_p->m_cancel_trigger.has_value()) {
@@ -138,11 +138,11 @@ auto io_notifier::unwatch(fd_t fd, poll_op) -> bool {
     return ::epoll_ctl(m_p->m_fd, EPOLL_CTL_DEL, fd, nullptr) != -1;
 }
 
-auto io_notifier::unwatch(detail::poll_info &pi) -> bool {
+auto io_notifier::unwatch(poll_info &pi) -> bool {
     return unwatch(pi.m_p->m_fd, pi.m_p->m_op);
 }
 
-auto io_notifier::unwatch_timer(const detail::timer_handle &timer) -> bool {
+auto io_notifier::unwatch_timer(const timer_handle &timer) -> bool {
     // Setting these values to zero disables the timer.
     itimerspec ts{};
     ts.it_value.tv_sec = 0;
@@ -151,13 +151,13 @@ auto io_notifier::unwatch_timer(const detail::timer_handle &timer) -> bool {
 }
 
 auto io_notifier::next_events(
-        std::vector<std::pair<detail::poll_info *, poll_status>> &ready_events, std::chrono::milliseconds timeout
+        std::vector<std::pair<poll_info *, poll_status>> &ready_events, std::chrono::milliseconds timeout
 ) -> void {
     auto ready_set = std::array<event_t, m_max_events>{};
     int num_ready = ::epoll_wait(m_p->m_fd, ready_set.data(), ready_set.size(), timeout.count());
     for(int i = 0; i < num_ready; ++i) {
         auto [keep_registered, is_cancel_event, udata] = decode_udata(ready_set[i].data.u64);
-        auto *pi = static_cast<detail::poll_info *>(udata);
+        auto *pi = static_cast<poll_info *>(udata);
 
         // If the event issuing fd is the same as the fd of the cancellation trigger of the registered poll_info we
         // this operation was cancelled by the user.

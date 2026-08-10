@@ -7,7 +7,7 @@ module;
 
 module silicon.scheduler;
 
-namespace silicon::coroutine::detail {
+namespace silicon::coroutine {
 
 class sync_wait_event::Impl {
   public:
@@ -41,4 +41,4 @@ auto sync_wait_event::wait() noexcept -> void {
     m_p->m_cv.wait(lk, [this] { return m_p->m_set.load(std::memory_order::seq_cst); });
 }
 
-} // namespace silicon::coroutine::detail
+} // namespace silicon::coroutine

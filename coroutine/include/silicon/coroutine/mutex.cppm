@@ -18,7 +18,7 @@ class mutex;
 class scoped_lock;
 class condition_variable;
 
-namespace detail {
+
 
 struct lock_operation_base {
     explicit lock_operation_base(silicon::coroutine::mutex &m): m_mutex(m) {}
@@ -60,7 +60,7 @@ struct lock_operation: public lock_operation_base {
     }
 };
 
-} // namespace detail
+
 
 /**
  * A scoped RAII lock holder similar to std::unique_lock.
@@ -124,14 +124,14 @@ class mutex {
      *        which will hold the mutex until the silicon::coroutine::scoped_lock destructs.
      * @return A co_await'able operation to acquire the mutex.
      */
-    [[nodiscard]] auto scoped_lock() -> detail::lock_operation<scoped_lock> { return detail::lock_operation<silicon::coroutine::scoped_lock>{*this}; }
+    [[nodiscard]] auto scoped_lock() -> lock_operation<scoped_lock> { return lock_operation<silicon::coroutine::scoped_lock>{*this}; }
 
     /**
      * @brief Locks the mutex.
      *
-     * @return detail::lock_operation<void>
+     * @return lock_operation<void>
      */
-    [[nodiscard]] auto lock() -> detail::lock_operation<void> { return detail::lock_operation<void>{*this}; }
+    [[nodiscard]] auto lock() -> lock_operation<void> { return lock_operation<void>{*this}; }
 
     /**
      * Attempts to lock the mutex.
@@ -145,7 +145,7 @@ class mutex {
     auto unlock() -> void;
 
   private:
-    friend struct detail::lock_operation_base;
+    friend struct lock_operation_base;
 
     /// Implementation state, fully hidden in the implementation unit.
     /// unlocked -> state == unlocked_value()

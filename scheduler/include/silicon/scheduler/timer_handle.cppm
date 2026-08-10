@@ -3,7 +3,7 @@ module;
 #include <memory>
 
 
-export module silicon.scheduler:detail.timer_handle;
+export module silicon.scheduler:timer_handle;
 
 import :fd;
 import :poll;
@@ -25,7 +25,7 @@ using silicon::coroutine::time_point;
 
 export namespace silicon::scheduler {
 
-namespace detail {
+
 
 class timer_handle {
     struct Impl;
@@ -41,6 +41,6 @@ class timer_handle {
     const void *get_inner() const;
 };
 
-} // namespace detail
+
 
 } // namespace silicon::scheduler

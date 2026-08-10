@@ -16,13 +16,13 @@ export import :config;
 
 export namespace silicon::scheduler {
 
-// task 的前置声明必须先于 detail::promise —— promise 的 get_return_object()
+// task 的前置声明必须先于 promise —— promise 的 get_return_object()
 // 以 task<return_type> 为返回类型，而 task 的完整定义在其后。默认实参 = void
 // 亦仅可在此首次声明处给出，供 task<> 与 promise<void> 使用。
 template<typename return_type = void>
 class task;
 
-namespace detail {
+
 
 struct promise_base {
     friend struct final_awaitable;
@@ -189,13 +189,13 @@ struct promise<void>: public promise_base {
     std::exception_ptr m_exception_ptr{nullptr};
 };
 
-} // namespace detail
+
 
 template<typename return_type>
 class [[nodiscard]] task {
   public:
     using task_t = task<return_type>;
-    using promise_type = detail::promise<return_type>;
+    using promise_type = promise<return_type>;
     using coroutine_handle = std::coroutine_handle<promise_type>;
 
     struct awaitable_base {
@@ -271,7 +271,7 @@ class [[nodiscard]] task {
     coroutine_handle m_coroutine{nullptr};
 };
 
-namespace detail {
+
 
 template<typename return_type>
 inline auto promise<return_type>::get_return_object() noexcept -> task<return_type> {
@@ -282,7 +282,7 @@ inline auto promise<void>::get_return_object() noexcept -> task<> {
     return task<>{coroutine_handle::from_promise(*this)};
 }
 
-} // namespace detail
+
 
 // ---------------------------------------------------------------------------
 // task_self_deleting — a coroutine that self-destructs upon completion
@@ -290,12 +290,12 @@ inline auto promise<void>::get_return_object() noexcept -> task<> {
 //
 // NOTE: 这些内部辅助类型此前由公共头 include/silicon/scheduler/task/detail/
 // task_self_deleting.hpp 提供；该兼容头已删除，本模块接口现为唯一定义处。
-// 命名空间为 silicon::scheduler::detail —— 外层 task 命名空间已拍平，
-// silicon::scheduler::task 现指类模板本身，不能再作命名空间限定符。
-// 实现单元 src/detail/task_self_deleting.cpp 必须使用同一命名空间，
-// 否则修饰名不一致会导致跨 DLL 消费方出现 undefined symbol。
+// silicon::scheduler::task 现指类模板本身，不能作命名空间限定符；
+// 辅助类型（task_self_deleting / make_task_self_deleting）位于
+// silicon::scheduler 命名空间（detail 层已消除），实现单元
+// src/task_self_deleting.cpp 使用同一命名空间，修饰名一致。
 // 消费方统一经 `import silicon.scheduler.task;` 使用，不再走头文件路径。
-namespace detail {
+
 
 class task_self_deleting;
 
@@ -343,7 +343,7 @@ class task_self_deleting {
 
 auto make_task_self_deleting(silicon::scheduler::task<void> user_task) -> task_self_deleting;
 
-} // namespace detail
+
 
 // ---------------------------------------------------------------------------
 // task_event — minimal coroutine-aware event for task_group
@@ -431,7 +431,7 @@ class task_group {
     [[nodiscard]] auto start(silicon::scheduler::task<void> &&task) -> bool {
         m_on_empty_event.reset();
         m_size.fetch_add(1, std::memory_order::release);
-        auto wrapper_task = detail::make_task_self_deleting(std::move(task));
+        auto wrapper_task = make_task_self_deleting(std::move(task));
         wrapper_task.promise().user_final_suspend([this]() -> void { count_down(); });
         if(!m_executor->resume(wrapper_task.handle())) {
             count_down();

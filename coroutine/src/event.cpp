@@ -55,7 +55,7 @@ auto event::set(resume_order_policy policy) noexcept -> void {
 }
 
 auto event::reverse(awaiter *curr) -> awaiter * {
-    return detail::awaiter_list_reverse(curr);
+    return awaiter_list_reverse(curr);
 }
 
 auto event::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {

@@ -98,8 +98,6 @@ struct awaitable_traits<awaitable>
     using awaiter_return_type = decltype(std::declval<awaiter_type>().await_resume());
 };
 
-namespace detail
-{
 /**
  * @brief A generic awaitable object that is a forward linked list.
  * This is used internally for most awaitables that track the next waiter via the m_next pointer.
@@ -115,7 +113,7 @@ concept awaiter_forward_list_entry = requires(entry_type* e)
     { std::same_as<std::coroutine_handle<>, decltype(e->m_awaiting_coroutine)> };
 };
 
-} // namespace detail
+
 
 // clang-format on
 

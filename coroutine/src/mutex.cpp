@@ -17,7 +17,7 @@ class mutex::Impl {
     std::atomic<void *> m_state;
 };
 
-namespace detail {
+
 auto lock_operation_base::await_ready() const noexcept -> bool {
     return m_mutex.try_lock();
 }
@@ -50,7 +50,7 @@ auto lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_corouti
     } while(true);
 }
 
-} // namespace detail
+
 
 /// Implementation state of silicon::coroutine::scoped_lock.
 struct scoped_lock::Impl {
@@ -132,9 +132,9 @@ auto mutex::unlock() -> void {
             }
         } else {
             // There are waiters, lets wake the first one up. This will set the state to the next waiter, or nullptr (no waiters but locked).
-            std::atomic<detail::lock_operation_base *> *casted =
-                    reinterpret_cast<std::atomic<detail::lock_operation_base *> *>(&m_p->m_state);
-            auto *waiter = detail::awaiter_list_pop<detail::lock_operation_base>(*casted);
+            std::atomic<lock_operation_base *> *casted =
+                    reinterpret_cast<std::atomic<lock_operation_base *> *>(&m_p->m_state);
+            auto *waiter = awaiter_list_pop<lock_operation_base>(*casted);
             // assert waiter != nullptr, nobody else should be unlocking this mutex.
             // Directly transfer control to the waiter, they are now responsible for unlocking the mutex.
             std::atomic_thread_fence(std::memory_order::acq_rel);

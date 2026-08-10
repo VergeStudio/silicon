@@ -21,7 +21,7 @@ import silicon.scheduler;
 import :void_value;
 
 export namespace silicon::coroutine {
-namespace detail {
+
 class when_all_latch {
   public:
     when_all_latch(std::size_t count) noexcept;
@@ -436,13 +436,13 @@ auto make_when_all_task(awaitable a) -> when_all_task<return_type> {
     }
 }
 
-} // namespace detail
+
 
 template<concepts::awaitable... awaitables_type>
 [[nodiscard]] auto when_all(awaitables_type... awaitables) {
-    return detail::when_all_ready_awaitable<std::tuple<
-            detail::when_all_task<typename concepts::awaitable_traits<awaitables_type>::awaiter_return_type>...>>(
-            std::make_tuple(detail::make_when_all_task(std::move(awaitables))...)
+    return when_all_ready_awaitable<std::tuple<
+            when_all_task<typename concepts::awaitable_traits<awaitables_type>::awaiter_return_type>...>>(
+            std::make_tuple(make_when_all_task(std::move(awaitables))...)
     );
 }
 
@@ -451,8 +451,8 @@ template<
         concepts::awaitable awaitable_type = std::ranges::range_value_t<range_type>,
         typename return_type = typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>
 [[nodiscard]] auto when_all(range_type awaitables)
-        -> detail::when_all_ready_awaitable<std::vector<detail::when_all_task<return_type>>> {
-    std::vector<detail::when_all_task<return_type>> output_tasks;
+        -> when_all_ready_awaitable<std::vector<when_all_task<return_type>>> {
+    std::vector<when_all_task<return_type>> output_tasks;
 
     // If the size is known in constant time reserve the output tasks size.
     if constexpr(std::ranges::sized_range<range_type>) {
@@ -461,11 +461,11 @@ template<
 
     // Wrap each task into a when_all_task.
     for(auto &&a: awaitables) {
-        output_tasks.emplace_back(detail::make_when_all_task(std::move(a)));
+        output_tasks.emplace_back(make_when_all_task(std::move(a)));
     }
 
     // Return the single awaitable that drives all the user's tasks.
-    return detail::when_all_ready_awaitable(std::move(output_tasks));
+    return when_all_ready_awaitable(std::move(output_tasks));
 }
 
 } // namespace silicon::coroutine

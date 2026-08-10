@@ -97,7 +97,7 @@ auto poll_stop_token::native_handle() const -> fd_t {
 /// Implementation state of silicon::coroutine::poll_stop_source.
 struct poll_stop_source::Impl {
   public:
-    detail::pipe_t m_pipe{};
+    pipe_t m_pipe{};
 };
 
 poll_stop_source::poll_stop_source(): m_p(std::make_unique<Impl>()) {}

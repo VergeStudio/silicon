@@ -21,7 +21,7 @@ module;
 
 module silicon.scheduler;
 
-namespace silicon::coroutine::detail
+namespace silicon::coroutine
 {
 
 class pipe_t::Impl {
@@ -161,4 +161,4 @@ auto pipe_t::close() -> void
     }
 }
 
-} // namespace silicon::coroutine::detail
+} // namespace silicon::coroutine

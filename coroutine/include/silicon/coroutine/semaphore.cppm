@@ -32,7 +32,7 @@ auto to_string(semaphore_acquire_result result) -> const std::string &;
 template<std::ptrdiff_t max_value>
 class semaphore;
 
-namespace detail {
+
 
 template<std::ptrdiff_t max_value>
 class acquire_operation {
@@ -56,7 +56,7 @@ class acquire_operation {
         }
 
         m_awaiting_coroutine = awaiting_coroutine;
-        detail::awaiter_list_push(m_semaphore.m_p->m_acquire_waiters, this);
+        awaiter_list_push(m_semaphore.m_p->m_acquire_waiters, this);
         m_semaphore.m_p->m_mutex.unlock();
         return true;
     }
@@ -73,7 +73,7 @@ class acquire_operation {
     std::coroutine_handle<> m_awaiting_coroutine;
 };
 
-} // namespace detail
+
 
 template<std::ptrdiff_t max_value>
 class semaphore {
@@ -95,7 +95,7 @@ class semaphore {
      */
     [[nodiscard]] auto acquire() -> silicon::scheduler::task<semaphore_acquire_result> {
         co_await m_p->m_mutex.lock();
-        co_return co_await detail::acquire_operation<max_value>{*this};
+        co_return co_await acquire_operation<max_value>{*this};
     }
 
     /**
@@ -111,7 +111,7 @@ class semaphore {
         }
 
         // If there are any waiters just transfer resource ownership to the waiter.
-        auto *waiter = detail::awaiter_list_pop(m_p->m_acquire_waiters);
+        auto *waiter = awaiter_list_pop(m_p->m_acquire_waiters);
         if(waiter != nullptr) {
             m_p->m_mutex.unlock();
             waiter->m_awaiting_coroutine.resume();
@@ -159,7 +159,7 @@ class semaphore {
         auto lock = co_await m_p->m_mutex.scoped_lock();
         bool expected{false};
         if(m_p->m_shutdown.compare_exchange_strong(expected, true, std::memory_order::release, std::memory_order::relaxed)) {
-            auto *waiter = detail::awaiter_list_pop_all(m_p->m_acquire_waiters);
+            auto *waiter = awaiter_list_pop_all(m_p->m_acquire_waiters);
             lock.unlock();
             while(waiter != nullptr) {
                 auto *next = waiter->m_next;
@@ -175,7 +175,7 @@ class semaphore {
     [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_shutdown.load(std::memory_order::acquire); }
 
   private:
-    friend class detail::acquire_operation<max_value>;
+    friend class acquire_operation<max_value>;
 
     /// Implementation state of the semaphore.  Defined in the interface unit since semaphore is a
     /// class template and all of its operations are instantiated at the point of use.
@@ -186,7 +186,7 @@ class semaphore {
         /// @brief The current number of resources that are available to acquire.
         std::atomic<std::ptrdiff_t> m_counter;
         /// @brief The current list of awaiters attempting to acquire the semaphore.
-        std::atomic<detail::acquire_operation<max_value> *> m_acquire_waiters{nullptr};
+        std::atomic<acquire_operation<max_value> *> m_acquire_waiters{nullptr};
         /// @brief mutex used to do acquire and release operations
         silicon::coroutine::mutex m_mutex;
         /// @brief Flag to denote that all waiters should be woken up with the shutdown result.

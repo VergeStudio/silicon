@@ -16,7 +16,7 @@ module;
 
 module silicon.scheduler;
 
-import :detail.poll_info_impl;
+import :poll_info_impl;
 
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 using namespace std::chrono_literals;
@@ -70,7 +70,7 @@ io_notifier::io_notifier(): m_p(std::make_unique<Impl>()) {
 
 io_notifier::~io_notifier() = default;
 
-auto io_notifier::watch_timer(const detail::timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
+auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
     // Prevent negative durations for the timeout as they will result in an error. 0 will fire in the next instance
     // possible.
     if(duration < 0ns) {
@@ -103,7 +103,7 @@ auto io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_canc
     return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
-auto io_notifier::watch(detail::poll_info &pi) -> bool {
+auto io_notifier::watch(poll_info &pi) -> bool {
     // For read-write event, we need to register both event types separately to the kqueue
     if(pi.m_p->m_op == poll_op::read_write) {
         if(!watch(pi.m_p->m_fd, poll_op::read, static_cast<void *>(&pi), false, false) ||
@@ -142,18 +142,18 @@ auto io_notifier::unwatch(fd_t fd, poll_op op) -> bool {
     }
 }
 
-auto io_notifier::unwatch(detail::poll_info &pi) -> bool {
+auto io_notifier::unwatch(poll_info &pi) -> bool {
     return unwatch(pi.m_p->m_fd, pi.m_p->m_op);
 }
 
-auto io_notifier::unwatch_timer(const detail::timer_handle &timer) -> bool {
+auto io_notifier::unwatch_timer(const timer_handle &timer) -> bool {
     auto event_data = event_t{};
     EV_SET(&event_data, timer.get_fd(), EVFILT_TIMER, EV_DELETE, 0, 0, nullptr);
     return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
 auto io_notifier::next_events(
-        std::vector<std::pair<detail::poll_info *, poll_status>> &ready_events, std::chrono::milliseconds timeout
+        std::vector<std::pair<poll_info *, poll_status>> &ready_events, std::chrono::milliseconds timeout
 ) -> void {
     auto ready_set = std::array<event_t, m_max_events>{};
     const auto timeout_as_secs = std::chrono::duration_cast<std::chrono::seconds>(timeout);
@@ -165,7 +165,7 @@ auto io_notifier::next_events(
             m_p->m_fd, nullptr, 0, ready_set.data(), std::min(ready_set.size(), ready_events.capacity()), &timeout_spec
     );
     for(int i = 0; i < num_ready; i++) {
-        auto *pi = static_cast<detail::poll_info *>(ready_set[i].udata);
+        auto *pi = static_cast<poll_info *>(ready_set[i].udata);
 
         auto keep_registered = !(ready_set[i].flags & EV_ONESHOT);
 

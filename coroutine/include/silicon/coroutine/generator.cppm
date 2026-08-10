@@ -33,7 +33,7 @@ export namespace silicon::coroutine {
 template <typename T>
 class generator;
 
-namespace detail {
+
 template <typename T>
 class generator_promise {
   public:
@@ -81,14 +81,14 @@ struct generator_sentinel {};
 
 template <typename T>
 class generator_iterator {
-    using coroutine_handle = std::coroutine_handle<detail::generator_promise<T>>;
+    using coroutine_handle = std::coroutine_handle<generator_promise<T>>;
 
   public:
     using iterator_category = std::input_iterator_tag;
     using difference_type = std::ptrdiff_t;
-    using value_type = typename detail::generator_promise<T>::value_type;
-    using reference = typename detail::generator_promise<T>::reference_type;
-    using pointer = typename detail::generator_promise<T>::pointer_type;
+    using value_type = typename generator_promise<T>::value_type;
+    using reference = typename generator_promise<T>::reference_type;
+    using pointer = typename generator_promise<T>::pointer_type;
 
     generator_iterator() noexcept = default;
     explicit generator_iterator(coroutine_handle coroutine) noexcept : m_coroutine(coroutine) {}
@@ -115,14 +115,14 @@ class generator_iterator {
     coroutine_handle m_coroutine{nullptr};
 };
 
-} // namespace detail
+
 
 template <typename T>
 class generator : public std::ranges::view_base {
   public:
-    using promise_type = detail::generator_promise<T>;
-    using iterator = detail::generator_iterator<T>;
-    using sentinel = detail::generator_sentinel;
+    using promise_type = generator_promise<T>;
+    using iterator = generator_iterator<T>;
+    using sentinel = generator_sentinel;
 
     generator() noexcept : m_coroutine(nullptr) {}
     generator(const generator &) = delete;
@@ -158,18 +158,18 @@ class generator : public std::ranges::view_base {
     auto end() noexcept -> sentinel { return sentinel{}; }
 
   private:
-    friend class detail::generator_promise<T>;
+    friend class generator_promise<T>;
     explicit generator(std::coroutine_handle<promise_type> coroutine) noexcept : m_coroutine(coroutine) {}
 
     std::coroutine_handle<promise_type> m_coroutine;
 };
 
-namespace detail {
+
 template <typename T>
 auto generator_promise<T>::get_return_object() noexcept -> generator<T> {
     return generator<T>{std::coroutine_handle<generator_promise<T>>::from_promise(*this)};
 }
-} // namespace detail
+
 
 } // namespace silicon::coroutine
 

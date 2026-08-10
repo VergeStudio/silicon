@@ -269,9 +269,9 @@ class condition_variable {
          * access the true awaiter the awaiter_completed atomic bool must be acquired, if it is not acquired the calling
          * awaiter is invalid since it has already been resumed with the first event of timeout or no_timeout.
          *
-         * @return silicon::scheduler::detail::task_self_deleting This task is self deleting since it has an indeterminate lifetime.
+         * @return silicon::scheduler::task_self_deleting This task is self deleting since it has an indeterminate lifetime.
          */
-        auto make_controller_task() -> silicon::scheduler::detail::task_self_deleting {
+        auto make_controller_task() -> silicon::scheduler::task_self_deleting {
             controller_data data{m_status, m_predicate_result, std::move(m_predicate), std::move(m_stop_token)};
             // We enqueue the hook_task since we can make it live until the notify occurs and will properly resume the
             // actual coroutine only once.
