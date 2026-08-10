@@ -19,7 +19,7 @@ export namespace silicon::config {
 // Forward declare for recursive variant
 class config_value;
 
-using ConfigValueData = std::variant<
+using config_value_data = std::variant<
     std::nullptr_t,
     bool,
     int64_t,
@@ -30,7 +30,7 @@ using ConfigValueData = std::variant<
 
 class CONFIG_API config_value {
     struct Impl {
-        ConfigValueData data_{nullptr};
+        config_value_data data_{nullptr};
     };
     std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 

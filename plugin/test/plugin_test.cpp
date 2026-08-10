@@ -6,13 +6,13 @@ import silicon.plugin;
 using namespace silicon::plugin;
 
 namespace {
-struct TestPlugin: IPlugin {
-    std::string_view Name() const override {
+struct TestPlugin: i_plugin {
+    std::string_view name() const override {
         static auto n = std::string("test");
         return n;
     }
     bool loaded = false;
-    bool OnLoad() override {
+    bool on_load() override {
         loaded = true;
         return true;
     }
@@ -24,104 +24,104 @@ struct DuckPlugin {
     int load_count = 0;
     int unload_count = 0;
 
-    std::string_view Name() const { return name; }
-    bool OnLoad() {
+    std::string_view name() const { return name; }
+    bool on_load() {
         ++load_count;
         return true;
     }
-    bool OnUnload() {
+    bool on_unload() {
         ++unload_count;
         return true;
     }
-    bool OnReload() { return true; }
+    bool on_reload() { return true; }
 };
 } // namespace
 
-TEST_CASE("PluginRegistry: 注册与查询") {
-    PluginRegistry reg;
+TEST_CASE("plugin_registry: 注册与查询") {
+    plugin_registry reg;
     auto p = std::make_shared<TestPlugin>();
-    CHECK(reg.RegisterPlugin(p));
-    CHECK(reg.GetPlugin("test") == p.get());
-    CHECK(reg.ListPlugins().size() == 1);
+    CHECK(reg.register_plugin(p));
+    CHECK(reg.get_plugin("test") == p.get());
+    CHECK(reg.list_plugins().size() == 1);
 }
 
-TEST_CASE("PluginRegistry: 重复注册失败") {
-    PluginRegistry reg;
+TEST_CASE("plugin_registry: 重复注册失败") {
+    plugin_registry reg;
     auto p1 = std::make_shared<TestPlugin>();
     auto p2 = std::make_shared<TestPlugin>();
-    CHECK(reg.RegisterPlugin(p1));
-    CHECK_FALSE(reg.RegisterPlugin(p2)); // same name "test"
+    CHECK(reg.register_plugin(p1));
+    CHECK_FALSE(reg.register_plugin(p2)); // same name "test"
 }
 
-TEST_CASE("PluginRegistry: 移除触发 OnUnload") {
-    PluginRegistry reg;
+TEST_CASE("plugin_registry: 移除触发 on_unload") {
+    plugin_registry reg;
     auto p = std::make_shared<TestPlugin>();
-    reg.RegisterPlugin(p);
-    CHECK(reg.RemovePlugin("test"));
-    CHECK(reg.GetPlugin("test") == nullptr);
+    reg.register_plugin(p);
+    CHECK(reg.remove_plugin("test"));
+    CHECK(reg.get_plugin("test") == nullptr);
 }
 
 // ── proxy 类型擦除 ───────────────────────────────────────────────
 
-TEST_CASE("proxy: 非侵入式插件视图（不继承 IPlugin）") {
+TEST_CASE("proxy: 非侵入式插件视图（不继承 i_plugin）") {
     DuckPlugin duck{.name = "duck"};
-    PluginView v = MakePluginView(duck);
+    plugin_view v = make_plugin_view(duck);
     CHECK(static_cast<bool>(v));
-    CHECK(v->Name() == "duck");
-    CHECK(v->OnLoad());
+    CHECK(v->name() == "duck");
+    CHECK(v->on_load());
     CHECK(duck.load_count == 1);
-    CHECK(v->OnReload());
+    CHECK(v->on_reload());
 }
 
 TEST_CASE("proxy: 拥有所有权的插件句柄") {
-    PluginProxy p = MakePlugin<DuckPlugin>(DuckPlugin{.name = "owned"});
+    plugin_proxy p = make_plugin<DuckPlugin>(DuckPlugin{.name = "owned"});
     CHECK(static_cast<bool>(p));
-    CHECK(p->Name() == "owned");
-    CHECK(p->OnLoad());
+    CHECK(p->name() == "owned");
+    CHECK(p->on_load());
 
-    PluginProxy moved = std::move(p);
-    CHECK(moved->Name() == "owned");
+    plugin_proxy moved = std::move(p);
+    CHECK(moved->name() == "owned");
 
-    PluginProxy empty;
+    plugin_proxy empty;
     CHECK_FALSE(static_cast<bool>(empty));
 }
 
-TEST_CASE("proxy: 桥接既有 IPlugin 实现") {
+TEST_CASE("proxy: 桥接既有 i_plugin 实现") {
     // shared_ptr<T> 本身即 pointer-like，且 TestPlugin 具备全部约定成员，
-    // 因此无需任何适配器即可擦除为 PluginProxy。
+    // 因此无需任何适配器即可擦除为 plugin_proxy。
     auto sp = std::make_shared<TestPlugin>();
-    PluginProxy p = sp;
-    CHECK(p->Name() == "test");
-    CHECK(p->OnLoad());
+    plugin_proxy p = sp;
+    CHECK(p->name() == "test");
+    CHECK(p->on_load());
     CHECK(sp->loaded);
 }
 
-TEST_CASE("ProxyPluginRegistry: 注册鸭子类型与查询") {
-    ProxyPluginRegistry reg;
-    CHECK(reg.Emplace<DuckPlugin>(DuckPlugin{.name = "a"}));
-    CHECK(reg.Emplace<DuckPlugin>(DuckPlugin{.name = "b"}));
-    CHECK_FALSE(reg.Emplace<DuckPlugin>(DuckPlugin{.name = "a"})); // 重名
-    CHECK(reg.List().size() == 2);
+TEST_CASE("proxy_plugin_registry: 注册鸭子类型与查询") {
+    proxy_plugin_registry reg;
+    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "a"}));
+    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "b"}));
+    CHECK_FALSE(reg.emplace<DuckPlugin>(DuckPlugin{.name = "a"})); // 重名
+    CHECK(reg.list().size() == 2);
 
-    auto *a = reg.Get("a");
+    auto *a = reg.get("a");
     REQUIRE(a != nullptr);
-    CHECK((*a)->Name() == "a");
-    CHECK(reg.Get("missing") == nullptr);
+    CHECK((*a)->name() == "a");
+    CHECK(reg.get("missing") == nullptr);
 }
 
-TEST_CASE("ProxyPluginRegistry: 移除触发 OnUnload") {
-    ProxyPluginRegistry reg;
-    CHECK(reg.Emplace<DuckPlugin>(DuckPlugin{.name = "x"}));
-    CHECK(reg.Remove("x"));
-    CHECK(reg.Get("x") == nullptr);
-    CHECK_FALSE(reg.Remove("x"));
+TEST_CASE("proxy_plugin_registry: 移除触发 on_unload") {
+    proxy_plugin_registry reg;
+    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "x"}));
+    CHECK(reg.remove("x"));
+    CHECK(reg.get("x") == nullptr);
+    CHECK_FALSE(reg.remove("x"));
 }
 
-TEST_CASE("ProxyPluginRegistry: 混合注册 IPlugin 与鸭子类型") {
-    ProxyPluginRegistry reg;
-    CHECK(reg.Register(std::make_shared<TestPlugin>()));   // 继承体系
-    CHECK(reg.Emplace<DuckPlugin>(DuckPlugin{.name = "d"})); // 非侵入式
-    CHECK(reg.List().size() == 2);
-    CHECK(reg.Get("test") != nullptr);
-    CHECK(reg.Get("d") != nullptr);
+TEST_CASE("proxy_plugin_registry: 混合注册 i_plugin 与鸭子类型") {
+    proxy_plugin_registry reg;
+    CHECK(reg.register_plugin(std::make_shared<TestPlugin>()));   // 继承体系
+    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "d"})); // 非侵入式
+    CHECK(reg.list().size() == 2);
+    CHECK(reg.get("test") != nullptr);
+    CHECK(reg.get("d") != nullptr);
 }

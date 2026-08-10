@@ -22,48 +22,48 @@ import silicon.proxy;
 export namespace silicon::plugin {
 
 /// 插件生命周期
-class IPlugin {
+class i_plugin {
   public:
-    virtual ~IPlugin() = default;
-    virtual std::string_view Name() const = 0;
-    virtual bool OnLoad() { return true; }
-    virtual bool OnUnload() { return true; }
-    virtual bool OnReload() { return true; }
+    virtual ~i_plugin() = default;
+    virtual std::string_view name() const = 0;
+    virtual bool on_load() { return true; }
+    virtual bool on_unload() { return true; }
+    virtual bool on_reload() { return true; }
 };
 
 /// 插件注册表
-class IPluginRegistry {
+class i_plugin_registry {
   public:
-    virtual ~IPluginRegistry() = default;
-    virtual bool RegisterPlugin(std::shared_ptr<IPlugin> plugin) = 0;
-    virtual IPlugin *GetPlugin(std::string_view name) const = 0;
-    virtual bool RemovePlugin(std::string_view name) = 0;
-    virtual std::vector<std::string> ListPlugins() const = 0;
+    virtual ~i_plugin_registry() = default;
+    virtual bool register_plugin(std::shared_ptr<i_plugin> plugin) = 0;
+    virtual i_plugin *get_plugin(std::string_view name) const = 0;
+    virtual bool remove_plugin(std::string_view name) = 0;
+    virtual std::vector<std::string> list_plugins() const = 0;
 };
 
 // ── 默认实现 ─────────────────────────────────────────────────────
 
-class PluginRegistry: public IPluginRegistry {
+class plugin_registry: public i_plugin_registry {
 
     struct Impl {
       public:
-      std::map<std::string, std::shared_ptr<IPlugin>, std::less<>> plugins_;
+      std::map<std::string, std::shared_ptr<i_plugin>, std::less<>> plugins_;
     };
     std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 
   public:
-    bool RegisterPlugin(std::shared_ptr<IPlugin> plugin) override;
-    IPlugin *GetPlugin(std::string_view name) const override;
-    bool RemovePlugin(std::string_view name) override;
-    std::vector<std::string> ListPlugins() const override;
+    bool register_plugin(std::shared_ptr<i_plugin> plugin) override;
+    i_plugin *get_plugin(std::string_view name) const override;
+    bool remove_plugin(std::string_view name) override;
+    std::vector<std::string> list_plugins() const override;
 
 };
 
 /// 动态插件加载器（stub：完整实现需 shared_library + dlopen）
-class IPluginLoader {
+class i_plugin_loader {
   public:
-    virtual ~IPluginLoader() = default;
-    virtual std::shared_ptr<IPlugin> Load(const std::string &path) = 0;
+    virtual ~i_plugin_loader() = default;
+    virtual std::shared_ptr<i_plugin> load(const std::string &path) = 0;
 };
 
 // ── 类型擦除接入层（silicon.proxy）────────────────────────────────
@@ -71,19 +71,19 @@ class IPluginLoader {
 // 插件是天然的跨 DLL / ABI 边界：宿主与插件常由不同编译单元、甚至不同
 // 编译器版本产出，虚表布局一旦变化即不兼容。proxy 用「胖指针 + vtable
 // 值」替代继承，目标类型无需继承任何基类，也不共享 RTTI/虚表，因此更适
-// 合该边界。以下设施与上方 IPlugin 体系并存，互不破坏。
+// 合该边界。以下设施与上方 i_plugin 体系并存，互不破坏。
 
-/// 成员派发器：把 `.Name()` / `.OnLoad()` 等调用擦除为 proxy 约定。
-PRO_DEF_MEM_DISPATCH(MemPluginName, Name);
-PRO_DEF_MEM_DISPATCH(MemPluginOnLoad, OnLoad);
-PRO_DEF_MEM_DISPATCH(MemPluginOnUnload, OnUnload);
-PRO_DEF_MEM_DISPATCH(MemPluginOnReload, OnReload);
+/// 成员派发器：把 `.name()` / `.on_load()` 等调用擦除为 proxy 约定。
+PRO_DEF_MEM_DISPATCH(MemPluginName, name);
+PRO_DEF_MEM_DISPATCH(MemPluginOnLoad, on_load);
+PRO_DEF_MEM_DISPATCH(MemPluginOnUnload, on_unload);
+PRO_DEF_MEM_DISPATCH(MemPluginOnReload, on_reload);
 
-/// 插件门面：任何具备下列成员的类型都自动满足，无需继承 IPlugin。
-///   std::string_view Name() const;
-///   bool OnLoad();  bool OnUnload();  bool OnReload();
-/// 既有的 `std::shared_ptr<IPlugin>` / `IPlugin*` 亦天然满足，可直接桥接。
-struct PluginFacade
+/// 插件门面：任何具备下列成员的类型都自动满足，无需继承 i_plugin。
+///   std::string_view name() const;
+///   bool on_load();  bool on_unload();  bool on_reload();
+/// 既有的 `std::shared_ptr<i_plugin>` / `i_plugin*` 亦天然满足，可直接桥接。
+struct plugin_facade
     : silicon::proxy::facade_builder                                        //
       ::add_convention<MemPluginName, std::string_view() const>             //
       ::add_convention<MemPluginOnLoad, bool()>                             //
@@ -92,53 +92,53 @@ struct PluginFacade
       ::build {};
 
 /// 拥有所有权的类型擦除插件句柄（值语义；小对象内联，无堆分配）。
-/// 用法与指针一致：`p->Name()`、`if (p) ...`。
-using PluginProxy = silicon::proxy::proxy<PluginFacade>;
+/// 用法与指针一致：`p->name()`、`if (p) ...`。
+using plugin_proxy = silicon::proxy::proxy<plugin_facade>;
 
-/// 非拥有观察视图，等价于 `IPlugin*` 但不要求继承。
-using PluginView = silicon::proxy::proxy_view<PluginFacade>;
+/// 非拥有观察视图，等价于 `i_plugin*` 但不要求继承。
+using plugin_view = silicon::proxy::proxy_view<plugin_facade>;
 
-/// 就地构造任意满足 PluginFacade 的目标类型并擦除为 PluginProxy。
+/// 就地构造任意满足 plugin_facade 的目标类型并擦除为 plugin_proxy。
 template<class T, class... Args>
-[[nodiscard]] PluginProxy MakePlugin(Args &&...args) {
-    return silicon::proxy::make_proxy<PluginFacade, T>(std::forward<Args>(args)...);
+[[nodiscard]] plugin_proxy make_plugin(Args &&...args) {
+    return silicon::proxy::make_proxy<plugin_facade, T>(std::forward<Args>(args)...);
 }
 
 /// 为已存在的对象创建非拥有视图；调用方负责保证生命周期。
 template<class T>
-    requires silicon::proxy::proxiable_target<T, PluginFacade>
-[[nodiscard]] PluginView MakePluginView(T &target) noexcept {
-    return silicon::proxy::make_proxy_view<PluginFacade>(target);
+    requires silicon::proxy::proxiable_target<T, plugin_facade>
+[[nodiscard]] plugin_view make_plugin_view(T &target) noexcept {
+    return silicon::proxy::make_proxy_view<plugin_facade>(target);
 }
 
 /// 基于 proxy 的插件注册表。
-/// 与 PluginRegistry 的差异：目标类型无需继承 IPlugin，也无需 shared_ptr —
-/// 只要满足 PluginFacade 即可注册，句柄按值持有。
-class ProxyPluginRegistry {
+/// 与 plugin_registry 的差异：目标类型无需继承 i_plugin，也无需 shared_ptr —
+/// 只要满足 plugin_facade 即可注册，句柄按值持有。
+class proxy_plugin_registry {
 
     struct Impl {
       public:
-        std::map<std::string, PluginProxy, std::less<>> plugins_;
+        std::map<std::string, plugin_proxy, std::less<>> plugins_;
     };
     std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 
   public:
     /// 注册已擦除的插件；句柄为空或名称重复时返回 false。
-    bool Register(PluginProxy plugin);
+    bool register_plugin(plugin_proxy plugin);
 
-    /// 就地构造并注册；等价于 Register(MakePlugin<T>(args...))。
+    /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
     template<class T, class... Args>
-    bool Emplace(Args &&...args) {
-        return Register(MakePlugin<T>(std::forward<Args>(args)...));
+    bool emplace(Args &&...args) {
+        return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
     }
 
     /// 查询；不存在返回 nullptr。返回句柄的所有权仍属注册表。
-    PluginProxy *Get(std::string_view name) const;
+    plugin_proxy *get(std::string_view name) const;
 
-    /// 移除并触发 OnUnload。
-    bool Remove(std::string_view name);
+    /// 移除并触发 on_unload。
+    bool remove(std::string_view name);
 
-    std::vector<std::string> List() const;
+    std::vector<std::string> list() const;
 
 };
 
