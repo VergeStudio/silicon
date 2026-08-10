@@ -17,7 +17,7 @@ export module silicon.config.config_value;
 export namespace silicon::config {
 
 // Forward declare for recursive variant
-class ConfigValue;
+class config_value;
 
 using ConfigValueData = std::variant<
     std::nullptr_t,
@@ -25,33 +25,33 @@ using ConfigValueData = std::variant<
     int64_t,
     double,
     std::string,
-    std::shared_ptr<std::vector<ConfigValue>>,
-    std::shared_ptr<std::map<std::string, ConfigValue>>>;
+    std::shared_ptr<std::vector<config_value>>,
+    std::shared_ptr<std::map<std::string, config_value>>>;
 
-class CONFIG_API ConfigValue {
+class CONFIG_API config_value {
     struct Impl {
         ConfigValueData data_{nullptr};
     };
     std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
 
   public:
-    ConfigValue() = default;
-    ~ConfigValue() = default;
+    config_value() = default;
+    ~config_value() = default;
 
-    ConfigValue(std::nullptr_t);
-    ConfigValue(bool v);
-    ConfigValue(int64_t v);
-    ConfigValue(double v);
-    ConfigValue(std::string v);
+    config_value(std::nullptr_t);
+    config_value(bool v);
+    config_value(int64_t v);
+    config_value(double v);
+    config_value(std::string v);
 
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
-    ConfigValue(const ConfigValue &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    auto operator=(const ConfigValue &o) -> ConfigValue & {
+    config_value(const config_value &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    auto operator=(const config_value &o) -> config_value & {
         if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
         return *this;
     }
-    ConfigValue(ConfigValue &&) noexcept = default;
-    auto operator=(ConfigValue &&) noexcept -> ConfigValue & = default;
+    config_value(config_value &&) noexcept = default;
+    auto operator=(config_value &&) noexcept -> config_value & = default;
 
     [[nodiscard]] auto IsNull() const noexcept -> bool;
     [[nodiscard]] auto IsBool() const noexcept -> bool;

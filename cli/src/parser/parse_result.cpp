@@ -10,37 +10,37 @@ module silicon.cli.parser.parse_result;
 
 namespace silicon::cli {
 
-struct ParseResult::Impl {
+struct parse_result::Impl {
     std::string command_;                      // 子命令名（若无则为空）
     std::map<std::string, std::string> flags_; // --key value 或 --flag → "true"
     std::vector<std::string> positional_;      // 位置参数
 };
 
-ParseResult::ParseResult(): impl_(std::make_shared<Impl>()) {}
+parse_result::parse_result(): impl_(std::make_shared<Impl>()) {}
 
-ParseResult::~ParseResult() = default;
+parse_result::~parse_result() = default;
 
-ParseResult::ParseResult(const ParseResult &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+parse_result::parse_result(const parse_result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
 
-ParseResult &ParseResult::operator=(const ParseResult &o) {
+parse_result &parse_result::operator=(const parse_result &o) {
     if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
     return *this;
 }
 
-ParseResult::ParseResult(ParseResult &&) noexcept = default;
+parse_result::parse_result(parse_result &&) noexcept = default;
 
-ParseResult &ParseResult::operator=(ParseResult &&) noexcept = default;
+parse_result &parse_result::operator=(parse_result &&) noexcept = default;
 
-std::string &ParseResult::Command() { return impl_->command_; }
+std::string &parse_result::Command() { return impl_->command_; }
 
-const std::string &ParseResult::Command() const { return impl_->command_; }
+const std::string &parse_result::Command() const { return impl_->command_; }
 
-std::map<std::string, std::string> &ParseResult::Flags() { return impl_->flags_; }
+std::map<std::string, std::string> &parse_result::Flags() { return impl_->flags_; }
 
-const std::map<std::string, std::string> &ParseResult::Flags() const { return impl_->flags_; }
+const std::map<std::string, std::string> &parse_result::Flags() const { return impl_->flags_; }
 
-std::vector<std::string> &ParseResult::Positional() { return impl_->positional_; }
+std::vector<std::string> &parse_result::Positional() { return impl_->positional_; }
 
-const std::vector<std::string> &ParseResult::Positional() const { return impl_->positional_; }
+const std::vector<std::string> &parse_result::Positional() const { return impl_->positional_; }
 
 } // namespace silicon::cli

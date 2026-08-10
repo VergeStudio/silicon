@@ -3,7 +3,7 @@
 // 非 Windows 平台下本文件内容为空（仅模块声明），实体仅存在于对应当前平台的
 // 那个文件，避免同一模块内符号重复定义。环境变量读取使用 _dupenv_s
 // （MSVC 安全 CRT），避免 getenv 弃用告警。
-// 内部实现函数（impl_* 前缀）与导出 API（HomeDir/*Home/*Dirs）同处
+// 内部实现函数（impl_* 前缀）与导出 API（home_dir/*Home/*Dirs）同处
 // silicon::xdg 命名空间但名称不同，已消除 detail 命名空间层。
 module;
 
@@ -46,39 +46,39 @@ std::string impl_local_app_data() {
     return impl_env_or("LOCALAPPDATA", impl_join(impl_home(), "AppData\\Local"));
 }
 
-std::string impl_ConfigHome() { return impl_local_app_data(); }
+std::string impl_config_home() { return impl_local_app_data(); }
 
-std::string impl_DataHome() { return impl_local_app_data(); }
+std::string impl_data_home() { return impl_local_app_data(); }
 
-std::string impl_CacheHome() { return impl_join(impl_local_app_data(), "cache"); }
+std::string impl_cache_home() { return impl_join(impl_local_app_data(), "cache"); }
 
-std::string impl_StateHome() { return impl_join(impl_local_app_data(), "state"); }
+std::string impl_state_home() { return impl_join(impl_local_app_data(), "state"); }
 
-std::string impl_RuntimeDir() { return ""; }
+std::string impl_runtime_dir() { return ""; }
 
-std::vector<std::string> impl_ConfigDirs() { return {}; }
+std::vector<std::string> impl_config_dirs() { return {}; }
 
-std::vector<std::string> impl_DataDirs() { return {}; }
+std::vector<std::string> impl_data_dirs() { return {}; }
 
 } // namespace silicon::xdg
 
 export namespace silicon::xdg {
 
-std::string HomeDir() { return impl_home(); }
+std::string home_dir() { return impl_home(); }
 
-std::string ConfigHome() { return impl_ConfigHome(); }
+std::string config_home() { return impl_config_home(); }
 
-std::string DataHome() { return impl_DataHome(); }
+std::string data_home() { return impl_data_home(); }
 
-std::string CacheHome() { return impl_CacheHome(); }
+std::string cache_home() { return impl_cache_home(); }
 
-std::string StateHome() { return impl_StateHome(); }
+std::string state_home() { return impl_state_home(); }
 
-std::string RuntimeDir() { return impl_RuntimeDir(); }
+std::string runtime_dir() { return impl_runtime_dir(); }
 
-std::vector<std::string> ConfigDirs() { return impl_ConfigDirs(); }
+std::vector<std::string> config_dirs() { return impl_config_dirs(); }
 
-std::vector<std::string> DataDirs() { return impl_DataDirs(); }
+std::vector<std::string> data_dirs() { return impl_data_dirs(); }
 
 } // namespace silicon::xdg
 

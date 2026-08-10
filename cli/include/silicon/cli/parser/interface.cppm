@@ -16,7 +16,7 @@ export namespace silicon::cli {
 CLI_API class IParser {
   public:
     virtual ~IParser() = default;
-    virtual ParseResult Parse(int argc, const char *const *argv) const = 0;
+    virtual parse_result Parse(int argc, const char *const *argv) const = 0;
 };
 
 } // namespace silicon::cli

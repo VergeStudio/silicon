@@ -9,13 +9,13 @@
 #include "silicon/logger/ilogger.h"
 
 namespace silicon::logger {
-// LogLevel 与 Logger 统一在 ilogger.h 中定义，避免重复声明导致底层类型冲突。
+// log_level 与 Logger 统一在 ilogger.h 中定义，避免重复声明导致底层类型冲突。
 
-LOGGER_API void Init(const std::string_view &, LogLevel, int32_t, int32_t, int32_t);
+LOGGER_API void Init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
 
 LOGGER_API void Stop();
 
-LOGGER_API void SetLogLevel(LogLevel);
+LOGGER_API void SetLogLevel(log_level);
 
 LOGGER_API void Trace(const std::string_view &, std::source_location &&location = std::source_location::current());
 LOGGER_API void Debug(const std::string_view &, std::source_location &&location = std::source_location::current());

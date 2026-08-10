@@ -11,15 +11,15 @@
 
 namespace silicon::logger {
 
-class GlobalLogger {
+class global_logger {
  public:
-    GlobalLogger();
-    ~GlobalLogger() noexcept;
+    global_logger();
+    ~global_logger() noexcept;
 
  public:
-    void Init(const std::string_view &, LogLevel, int32_t, int32_t, int32_t);
-    void CreateLogger(LogLevel, const std::string_view &, int32_t);
-    void SetLogLevel(LogLevel) const;
+    void Init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
+    void CreateLogger(log_level, const std::string_view &, int32_t);
+    void SetLogLevel(log_level) const;
     void Stop();
 
  public:

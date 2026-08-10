@@ -13,16 +13,16 @@ export module silicon.cli.parser.parse_result;
 
 export namespace silicon::cli {
 /// 解析结果
-CLI_API struct ParseResult {
+CLI_API struct parse_result {
 
   public:
-    ParseResult();
-    ~ParseResult();
+    parse_result();
+    ~parse_result();
 
-    ParseResult(const ParseResult &o);
-    ParseResult &operator=(const ParseResult &o);
-    ParseResult(ParseResult &&) noexcept;
-    ParseResult &operator=(ParseResult &&) noexcept;
+    parse_result(const parse_result &o);
+    parse_result &operator=(const parse_result &o);
+    parse_result(parse_result &&) noexcept;
+    parse_result &operator=(parse_result &&) noexcept;
 
   public:
     std::string &Command();

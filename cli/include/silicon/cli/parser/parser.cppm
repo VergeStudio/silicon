@@ -16,7 +16,7 @@ export namespace silicon::cli {
 /// 默认 CLI 解析器
 CLI_API class Parser: public IParser {
   public:
-    ParseResult Parse(int argc, const char *const *argv) const override;
+    parse_result Parse(int argc, const char *const *argv) const override;
 };
 
 } // namespace silicon::cli

@@ -10,8 +10,8 @@ module silicon.cli.parser;
 
 namespace silicon::cli {
 
-ParseResult Parser::Parse(int argc, const char *const *argv) const {
-    ParseResult result;
+parse_result Parser::Parse(int argc, const char *const *argv) const {
+    parse_result result;
     if(argc <= 0) return result;
     int i = 1;
     if(i < argc && argv[i][0] != '-') {

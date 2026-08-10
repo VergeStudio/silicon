@@ -6,7 +6,7 @@
 
 namespace silicon::logger {
 
-enum class LogLevel : std::uint8_t {
+enum class log_level : std::uint8_t {
     kTrace,
     kDebug,
     kInfo,
@@ -18,7 +18,7 @@ enum class LogLevel : std::uint8_t {
 
 /// @brief Abstract interface for a logger.
 ///
-/// The concrete DefaultLogger implements this interface.
+/// The concrete default_logger implements this interface.
 class Logger {
   public:
     Logger() = default;
@@ -35,7 +35,7 @@ class Logger {
     virtual void Error(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
     virtual void Critical(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
 
-    virtual void SetLogLevel(LogLevel level) const = 0;
+    virtual void SetLogLevel(log_level level) const = 0;
 };
 
 } // namespace silicon::logger

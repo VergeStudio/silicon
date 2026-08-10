@@ -3,11 +3,11 @@
 #include "silicon/logger/default_logger.h"
 
 namespace {
-silicon::logger::DefaultLogger g_logger;
+silicon::logger::default_logger g_logger;
 }
 
 namespace silicon::logger {
-void Init(const std::string_view &log_path, LogLevel log_level, int32_t queue_size, int32_t thread_num, int32_t backtrace_num) {
+void Init(const std::string_view &log_path, log_level log_level, int32_t queue_size, int32_t thread_num, int32_t backtrace_num) {
     return g_logger.Init(log_path, log_level, queue_size, thread_num, backtrace_num);
 }
 
@@ -15,7 +15,7 @@ void Stop() {
     return g_logger.Stop();
 }
 
-void SetLogLevel(LogLevel log_level) {
+void SetLogLevel(log_level log_level) {
     return g_logger.SetLogLevel(log_level);
 }
 

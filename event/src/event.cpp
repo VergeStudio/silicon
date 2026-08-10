@@ -16,11 +16,11 @@ auto Event::name() const noexcept -> const std::string & {
     return impl_->name_;
 }
 
-auto Event::status() const noexcept -> EventStatus {
+auto Event::status() const noexcept -> event_status {
     return impl_->status_;
 }
 
-void Event::SetStatus(EventStatus s) noexcept {
+void Event::SetStatus(event_status s) noexcept {
     impl_->status_ = s;
 }
 

@@ -13,15 +13,15 @@ namespace silicon::logger {
 
 // 单一定义源：与模块接口 silicon.logger 导出的类保持一致（继承 Logger、虚方法 override），
 // 避免 module 声明与 header 声明产生 ODR 双定义、导致跨 DLL 虚函数修饰名不匹配。
-class DefaultLogger: public Logger {
+class default_logger: public Logger {
   public:
-    DefaultLogger();
-    ~DefaultLogger() noexcept override;
+    default_logger();
+    ~default_logger() noexcept override;
 
   public:
-    void Init(const std::string_view &, LogLevel, int32_t, int32_t, int32_t);
-    void CreateLogger(LogLevel, const std::string_view &, int32_t);
-    void SetLogLevel(LogLevel) const override;
+    void Init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
+    void CreateLogger(log_level, const std::string_view &, int32_t);
+    void SetLogLevel(log_level) const override;
     void Stop();
 
   public:

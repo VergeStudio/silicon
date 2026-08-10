@@ -6,7 +6,7 @@
 // 的那个文件，避免同一模块内符号重复定义。语义遵循 freedesktop XDG Base
 // Directory Specification：优先环境变量，回退 $HOME 下约定路径
 // （macOS 回退 ~/Library）。
-// 内部实现函数（impl_* 前缀）与导出 API（HomeDir/*Home/*Dirs）同处
+// 内部实现函数（impl_* 前缀）与导出 API（home_dir/*Home/*Dirs）同处
 // silicon::xdg 命名空间但名称不同，已消除 detail 命名空间层。
 module;
 
@@ -49,7 +49,7 @@ std::string impl_join(const std::string &base, const std::string &name) {
     return base + "/" + name;
 }
 
-std::string impl_ConfigHome() {
+std::string impl_config_home() {
     if(const char *e = std::getenv("XDG_CONFIG_HOME"); e && *e)
         return e;
 #if defined(__APPLE__)
@@ -59,7 +59,7 @@ std::string impl_ConfigHome() {
 #endif
 }
 
-std::string impl_DataHome() {
+std::string impl_data_home() {
     if(const char *e = std::getenv("XDG_DATA_HOME"); e && *e)
         return e;
 #if defined(__APPLE__)
@@ -69,7 +69,7 @@ std::string impl_DataHome() {
 #endif
 }
 
-std::string impl_CacheHome() {
+std::string impl_cache_home() {
     if(const char *e = std::getenv("XDG_CACHE_HOME"); e && *e)
         return e;
 #if defined(__APPLE__)
@@ -79,7 +79,7 @@ std::string impl_CacheHome() {
 #endif
 }
 
-std::string impl_StateHome() {
+std::string impl_state_home() {
     if(const char *e = std::getenv("XDG_STATE_HOME"); e && *e)
         return e;
 #if defined(__APPLE__)
@@ -89,7 +89,7 @@ std::string impl_StateHome() {
 #endif
 }
 
-std::string impl_RuntimeDir() {
+std::string impl_runtime_dir() {
     if(const char *e = std::getenv("XDG_RUNTIME_DIR"); e && *e)
         return e;
     return "";
@@ -107,11 +107,11 @@ std::vector<std::string> impl_split_paths(const char *env, const char *def) {
     return out;
 }
 
-std::vector<std::string> impl_ConfigDirs() {
+std::vector<std::string> impl_config_dirs() {
     return impl_split_paths("XDG_CONFIG_DIRS", "/etc/xdg");
 }
 
-std::vector<std::string> impl_DataDirs() {
+std::vector<std::string> impl_data_dirs() {
     return impl_split_paths("XDG_DATA_DIRS", "/usr/local/share:/usr/share");
 }
 
@@ -119,21 +119,21 @@ std::vector<std::string> impl_DataDirs() {
 
 export namespace silicon::xdg {
 
-std::string HomeDir() { return impl_home(); }
+std::string home_dir() { return impl_home(); }
 
-std::string ConfigHome() { return impl_ConfigHome(); }
+std::string config_home() { return impl_config_home(); }
 
-std::string DataHome() { return impl_DataHome(); }
+std::string data_home() { return impl_data_home(); }
 
-std::string CacheHome() { return impl_CacheHome(); }
+std::string cache_home() { return impl_cache_home(); }
 
-std::string StateHome() { return impl_StateHome(); }
+std::string state_home() { return impl_state_home(); }
 
-std::string RuntimeDir() { return impl_RuntimeDir(); }
+std::string runtime_dir() { return impl_runtime_dir(); }
 
-std::vector<std::string> ConfigDirs() { return impl_ConfigDirs(); }
+std::vector<std::string> config_dirs() { return impl_config_dirs(); }
 
-std::vector<std::string> DataDirs() { return impl_DataDirs(); }
+std::vector<std::string> data_dirs() { return impl_data_dirs(); }
 
 } // namespace silicon::xdg
 
