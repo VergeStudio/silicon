@@ -1,7 +1,9 @@
 // 实现单元（POSIX 分支）：silicon.xdg
 // 与 xdg_win.cpp 均被 xmake 收集编译，平台选择由本文件内的 #if 守卫完成：
-// Windows 平台下本文件内容为空（仅模块声明），实体仅存在于对应当前平台的
-// 那个文件，避免同一模块内符号重复定义。语义遵循 freedesktop XDG Base
+// 本文件用肯定形式 #if defined(__unix__)||defined(__unix)||defined(unix)||
+// defined(__APPLE__) 识别 unix 系平台（含 macOS），Windows 工具链不定义这些宏，
+// 故非 unix 系平台下本文件内容为空（仅模块声明）——实体仅存在于对应当前平台
+// 的那个文件，避免同一模块内符号重复定义。语义遵循 freedesktop XDG Base
 // Directory Specification：优先环境变量，回退 $HOME 下约定路径
 // （macOS 回退 ~/Library）。
 module;
@@ -18,7 +20,7 @@ module;
 
 module silicon.xdg;
 
-#if !defined(_WIN32) && !defined(_WIN64) && !defined(WIN32) && !defined(WIN64)
+#if defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
 
 namespace silicon::xdg::detail {
 
@@ -133,4 +135,4 @@ std::vector<std::string> DataDirs() { return detail::DataDirs(); }
 
 } // namespace silicon::xdg
 
-#endif // !defined(_WIN32) && !defined(_WIN64) && !defined(WIN32) && !defined(WIN64)
+#endif // defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
