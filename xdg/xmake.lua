@@ -9,7 +9,12 @@ target("xdg", function()
     end
     add_includedirs("include", {public = true})
     add_files("include/silicon/xdg/**.cppm", {public = true})
-    add_files("src/**.cpp")
+    -- 实现按平台二选一：Windows 分支 / POSIX 分支，避免同一模块内符号重复定义。
+    if is_plat("windows", "mingw", "cygwin") then
+        add_files("src/xdg_win.cpp")
+    else
+        add_files("src/xdg_posix.cpp")
+    end
 end)
 
 target("xdg.test", function()
