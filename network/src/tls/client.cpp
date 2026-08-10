@@ -194,7 +194,7 @@ auto client::handshake(std::chrono::milliseconds timeout) -> silicon::scheduler:
             case silicon::coroutine::poll_status::cancelled:
                 co_return connection_status::kUnexpectedClose;
             default:
-                // Event triggered, continue handshake.
+                // event triggered, continue handshake.
                 break;
         }
     }

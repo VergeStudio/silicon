@@ -11,16 +11,16 @@ module silicon.time;
 
 namespace silicon::time {
 
-std::chrono::system_clock::time_point SystemClock::now() const {
+std::chrono::system_clock::time_point system_clock::now() const {
     return std::chrono::system_clock::now();
 }
 
-std::int64_t SystemClock::now_ms() const {
+std::int64_t system_clock::now_ms() const {
     using namespace std::chrono;
     return duration_cast<milliseconds>(now().time_since_epoch()).count();
 }
 
-std::string DateSource::current_date() const {
+std::string date_source::current_date() const {
     auto tp = impl_->clock_->now();
     auto tt = std::chrono::system_clock::to_time_t(tp);
     std::tm gmt{};

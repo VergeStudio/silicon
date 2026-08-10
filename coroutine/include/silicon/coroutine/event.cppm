@@ -22,7 +22,7 @@ enum class resume_order_policy {
 };
 
 /**
- * Event is a manually triggered thread safe signal that can be co_await()'ed by multiple awaiters.
+ * event is a manually triggered thread safe signal that can be co_await()'ed by multiple awaiters.
  * Each awaiter should co_await the event and upon the event being set each awaiter will have their
  * coroutine resumed.
  *

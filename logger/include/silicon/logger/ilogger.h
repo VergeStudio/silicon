@@ -19,23 +19,23 @@ enum class log_level : std::uint8_t {
 /// @brief Abstract interface for a logger.
 ///
 /// The concrete default_logger implements this interface.
-class Logger {
+class logger {
   public:
-    Logger() = default;
-    Logger(const Logger &) = delete;
-    Logger(Logger &&) = delete;
-    auto operator=(const Logger &) -> Logger & = delete;
-    auto operator=(Logger &&) -> Logger & = delete;
-    virtual ~Logger() = default;
+    logger() = default;
+    logger(const logger &) = delete;
+    logger(logger &&) = delete;
+    auto operator=(const logger &) -> logger & = delete;
+    auto operator=(logger &&) -> logger & = delete;
+    virtual ~logger() = default;
 
-    virtual void Trace(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void Debug(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void Info(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void Warning(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void Error(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void Critical(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
+    virtual void trace(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
+    virtual void debug(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
+    virtual void info(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
+    virtual void warning(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
+    virtual void error(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
+    virtual void critical(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
 
-    virtual void SetLogLevel(log_level level) const = 0;
+    virtual void set_log_level(log_level level) const = 0;
 };
 
 } // namespace silicon::logger

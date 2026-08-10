@@ -156,7 +156,7 @@ class condition_variable {
 
         /// @brief Mutex for notify or timeout mutual exclusion.
         silicon::coroutine::mutex m_event_mutex{};
-        /// @brief Event to notify the no timeout task.
+        /// @brief event to notify the no timeout task.
         silicon::coroutine::event m_notify_callback{};
         /// @brief Flag to notify if the awaiter has completed via no_timeout or timeout.
         std::atomic<bool> m_awaiter_completed{false};

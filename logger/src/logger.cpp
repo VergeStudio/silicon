@@ -7,39 +7,39 @@ silicon::logger::default_logger g_logger;
 }
 
 namespace silicon::logger {
-void Init(const std::string_view &log_path, log_level log_level, int32_t queue_size, int32_t thread_num, int32_t backtrace_num) {
-    return g_logger.Init(log_path, log_level, queue_size, thread_num, backtrace_num);
+void init(const std::string_view &log_path, log_level log_level, int32_t queue_size, int32_t thread_num, int32_t backtrace_num) {
+    return g_logger.init(log_path, log_level, queue_size, thread_num, backtrace_num);
 }
 
-void Stop() {
-    return g_logger.Stop();
+void stop() {
+    return g_logger.stop();
 }
 
-void SetLogLevel(log_level log_level) {
-    return g_logger.SetLogLevel(log_level);
+void set_log_level(log_level log_level) {
+    return g_logger.set_log_level(log_level);
 }
 
-void Trace(const std::string_view &msg, std::source_location &&location) {
-    return g_logger.Trace(msg, std::forward<std::source_location>(location));
+void trace(const std::string_view &msg, std::source_location &&location) {
+    return g_logger.trace(msg, std::forward<std::source_location>(location));
 }
 
-void Debug(const std::string_view &msg, std::source_location &&location) {
-    return g_logger.Debug(msg, std::forward<std::source_location>(location));
+void debug(const std::string_view &msg, std::source_location &&location) {
+    return g_logger.debug(msg, std::forward<std::source_location>(location));
 }
 
-void Info(const std::string_view &msg, std::source_location &&location) {
-    return g_logger.Info(msg, std::forward<std::source_location>(location));
+void info(const std::string_view &msg, std::source_location &&location) {
+    return g_logger.info(msg, std::forward<std::source_location>(location));
 }
 
-void Warning(const std::string_view &msg, std::source_location &&location) {
-    return g_logger.Warning(msg, std::forward<std::source_location>(location));
+void warning(const std::string_view &msg, std::source_location &&location) {
+    return g_logger.warning(msg, std::forward<std::source_location>(location));
 }
 
-void Error(const std::string_view &msg, std::source_location &&location) {
-    return g_logger.Error(msg, std::forward<std::source_location>(location));
+void error(const std::string_view &msg, std::source_location &&location) {
+    return g_logger.error(msg, std::forward<std::source_location>(location));
 }
 
-void Critical(const std::string_view &msg, std::source_location &&location) {
-    return g_logger.Critical(msg, std::forward<std::source_location>(location));
+void critical(const std::string_view &msg, std::source_location &&location) {
+    return g_logger.critical(msg, std::forward<std::source_location>(location));
 }
 } // namespace silicon::logger

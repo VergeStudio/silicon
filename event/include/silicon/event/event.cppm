@@ -13,20 +13,20 @@ export namespace silicon::event {
 
 enum class event_status { kSuccess, kFailure, kTimeout };
 
-class EVENT_API Event {
+class EVENT_API event {
   public:
-    Event() = default;
-    explicit Event(std::string name) noexcept;
-    virtual ~Event() = default;
+    event() = default;
+    explicit event(std::string name) noexcept;
+    virtual ~event() = default;
 
-    Event(const Event &) = delete;
-    Event(Event &&) noexcept = default;
-    auto operator=(const Event &) -> Event & = delete;
-    auto operator=(Event &&) noexcept -> Event & = default;
+    event(const event &) = delete;
+    event(event &&) noexcept = default;
+    auto operator=(const event &) -> event & = delete;
+    auto operator=(event &&) noexcept -> event & = default;
 
     [[nodiscard]] auto name() const noexcept -> const std::string &;
     [[nodiscard]] auto status() const noexcept -> event_status;
-    void SetStatus(event_status s) noexcept;
+    void set_status(event_status s) noexcept;
 
   private:
     // PIMPL：私有状态移入不透明 Impl，稳定 ABI、隐藏实现。

@@ -27,36 +27,36 @@ default_logger::default_logger(): impl_(std::make_unique<Impl>()) {}
 
 default_logger::~default_logger() noexcept = default;
 
-void default_logger::Init(const std::string_view &log_path, const log_level log_level, const int32_t queue_size, const int32_t thread_num, const int32_t backtrace_num) {
+void default_logger::init(const std::string_view &log_path, const log_level log_level, const int32_t queue_size, const int32_t thread_num, const int32_t backtrace_num) {
     try {
         if(!is_initialized_) {
             std::scoped_lock<std::mutex> const lock(mutex_);
 
             spdlog::init_thread_pool(queue_size, thread_num);
-            CreateLogger(log_level, util::str_cat(log_path, "/main.log"), backtrace_num);
+            create_logger(log_level, util::str_cat(log_path, "/main.log"), backtrace_num);
 
             is_initialized_ = true;
         }
     } catch(const spdlog::spdlog_ex &ex) {
         std::cout << "log init failed:" << ex.what() << std::endl;
 
-        Stop();
+        stop();
     }
 }
 
-void default_logger::CreateLogger(const log_level log_level, const std::string_view &log_file, const int32_t backtrace_num) {
+void default_logger::create_logger(const log_level log_level, const std::string_view &log_file, const int32_t backtrace_num) {
     auto stdout_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
     auto hourly_sink = std::make_shared<spdlog::sinks::hourly_file_sink_mt>(log_file.data(), 0, 0);
     spdlog::sinks_init_list sinks{stdout_sink, hourly_sink};
     impl_->spdlog_logger = std::make_shared<spdlog::async_logger>("mainLogger", sinks, spdlog::thread_pool());
     impl_->spdlog_logger->set_pattern(impl_->pattern.data());
     impl_->spdlog_logger->enable_backtrace(backtrace_num);
-    SetLogLevel(log_level);
+    set_log_level(log_level);
 
     spdlog::register_logger(impl_->spdlog_logger);
 }
 
-void default_logger::SetLogLevel(const log_level log_level) const {
+void default_logger::set_log_level(const log_level log_level) const {
     switch(log_level) {
         case log_level::kTrace:
             return impl_->spdlog_logger->set_level(spdlog::level::level_enum::trace);
@@ -77,7 +77,7 @@ void default_logger::SetLogLevel(const log_level log_level) const {
     }
 }
 
-void default_logger::Stop() {
+void default_logger::stop() {
     try {
         std::scoped_lock<std::mutex> const lock(mutex_);
 
@@ -99,27 +99,27 @@ void default_logger::Stop() {
     }
 }
 
-void default_logger::Trace(const std::string_view &msg, std::source_location &&location) const {
+void default_logger::trace(const std::string_view &msg, std::source_location &&location) const {
     impl_->spdlog_logger->trace(std::format("[{}:{}] {}", location.file_name(), location.line(), msg.data()));
 }
 
-void default_logger::Debug(const std::string_view &msg, std::source_location &&location) const {
+void default_logger::debug(const std::string_view &msg, std::source_location &&location) const {
     impl_->spdlog_logger->debug(std::format("[{}:{}] {}", location.file_name(), location.line(), msg.data()));
 }
 
-void default_logger::Info(const std::string_view &msg, std::source_location &&location) const {
+void default_logger::info(const std::string_view &msg, std::source_location &&location) const {
     impl_->spdlog_logger->info(std::format("[{}:{}] {}", location.file_name(), location.line(), msg.data()));
 }
 
-void default_logger::Warning(const std::string_view &msg, std::source_location &&location) const {
+void default_logger::warning(const std::string_view &msg, std::source_location &&location) const {
     impl_->spdlog_logger->warn(std::format("[{}:{}] {}", location.file_name(), location.line(), msg.data()));
 }
 
-void default_logger::Error(const std::string_view &msg, std::source_location &&location) const {
+void default_logger::error(const std::string_view &msg, std::source_location &&location) const {
     impl_->spdlog_logger->error(std::format("[{}:{}] {}", location.file_name(), location.line(), msg.data()));
 }
 
-void default_logger::Critical(const std::string_view &msg, std::source_location &&location) const {
+void default_logger::critical(const std::string_view &msg, std::source_location &&location) const {
     impl_->spdlog_logger->critical(std::format("[{}:{}] {}", location.file_name(), location.line(), msg.data()));
 }
 

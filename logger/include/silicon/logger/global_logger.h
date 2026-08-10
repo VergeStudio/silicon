@@ -17,18 +17,18 @@ class global_logger {
     ~global_logger() noexcept;
 
  public:
-    void Init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
-    void CreateLogger(log_level, const std::string_view &, int32_t);
-    void SetLogLevel(log_level) const;
-    void Stop();
+    void init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
+    void create_logger(log_level, const std::string_view &, int32_t);
+    void set_log_level(log_level) const;
+    void stop();
 
  public:
-    void Trace(const std::string_view &, std::source_location &&) const;
-    void Debug(const std::string_view &, std::source_location &&) const;
-    void Info(const std::string_view &, std::source_location &&) const;
-    void Warning(const std::string_view &, std::source_location &&) const;
-    void Error(const std::string_view &, std::source_location &&) const;
-    void Critical(const std::string_view &, std::source_location &&) const;
+    void trace(const std::string_view &, std::source_location &&) const;
+    void debug(const std::string_view &, std::source_location &&) const;
+    void info(const std::string_view &, std::source_location &&) const;
+    void warning(const std::string_view &, std::source_location &&) const;
+    void error(const std::string_view &, std::source_location &&) const;
+    void critical(const std::string_view &, std::source_location &&) const;
 
  private:
     // Pimpl: hides spdlog types from the public interface
