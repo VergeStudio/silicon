@@ -20,10 +20,10 @@ import silicon.exception;
 #include "libloaderapi.h"
 #include "minwindef.h"
 
+// 平台无关成员（构造函数/is_loaded/get_path）定义在公共实现单元 shared_library.cpp。
+// 本文件仅提供 Windows 差异成员：load/unload（LoadLibrary 系）、prefix/suffix、
+// find_symbol（GetProcAddress）。守卫与 shared_library_unix.cpp 的 unix 系守卫互斥。
 namespace silicon::library {
-
-shared_library::shared_library() : impl_(std::make_unique<Impl>()) {
-}
 
 void shared_library::load(const std::string &path, int32_t flags) {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
@@ -43,14 +43,6 @@ void shared_library::unload() {
         impl_->handle_ = nullptr;
     }
     impl_->path_.clear();
-}
-
-bool shared_library::is_loaded() const {
-    return impl_->handle_ != nullptr;
-}
-
-const std::string &shared_library::get_path() const {
-    return impl_->path_;
 }
 
 std::string shared_library::prefix() {

@@ -16,14 +16,8 @@ target("core", function()
     add_includedirs("include", {public = true})
 
     add_files("src/**.cpp")
-    -- Platform-specific shared library implementation
-    if is_plat("windows") then
-        add_files("src/shared_library/shared_library_windows.cpp")
-        remove_files("src/shared_library/shared_library_unix.cpp", "src/shared_library/shared_library_hpux.cpp", "src/shared_library/shared_library_vx.cpp")
-    else
-        add_files("src/shared_library/shared_library_unix.cpp")
-        remove_files("src/shared_library/shared_library_windows.cpp", "src/shared_library/shared_library_hpux.cpp", "src/shared_library/shared_library_vx.cpp")
-    end
+    -- 平台差异（shared_library_unix.cpp / shared_library_windows.cpp）由文件内
+    -- 互斥 #if 守卫选择（项目约定：不在 xmake.lua 里做 is_plat 条件 add_files）。
     add_files("include/silicon/core/**.cppm", {public = true})
 
     set_configdir("$(builddir)/silicon/config")

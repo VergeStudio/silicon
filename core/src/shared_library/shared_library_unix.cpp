@@ -1,7 +1,7 @@
 module;
 #include <memory>
 
-#if !defined(_WIN32) && !defined(_WIN64)
+#if defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
 #    include <dlfcn.h>
 #endif
 
@@ -15,10 +15,12 @@ import silicon.exception;
 
 #include "shared_library_impl.hpp"
 
-namespace silicon::library {
+#if defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
 
-shared_library::shared_library() : impl_(std::make_unique<Impl>()) {
-}
+// 平台无关成员（构造函数/is_loaded/get_path）定义在公共实现单元 shared_library.cpp。
+// 本文件仅提供 POSIX 差异成员：load/unload（dlopen 系）、prefix/suffix、find_symbol（dlsym）。
+// 守卫与 shared_library_windows.cpp 的 _WIN32 守卫互斥，恰好一个文件定义同组符号。
+namespace silicon::library {
 
 void shared_library::load(const std::string &path, int32_t flags) {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
@@ -42,14 +44,6 @@ void shared_library::unload() {
         dlclose(impl_->handle_);
         impl_->handle_ = nullptr;
     }
-}
-
-bool shared_library::is_loaded() const {
-    return impl_->handle_ != nullptr;
-}
-
-const std::string &shared_library::get_path() const {
-    return impl_->path_;
 }
 
 std::string shared_library::prefix() {
@@ -99,3 +93,5 @@ void *shared_library::find_symbol(const std::string &name) {
 }
 
 } // namespace silicon::library
+
+#endif // defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
