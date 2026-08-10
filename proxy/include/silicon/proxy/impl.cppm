@@ -60,28 +60,28 @@ struct basic_facade_traits;
 
 } // namespace details
 
-enum class constraint_level { kNone,
+export enum class constraint_level { kNone,
                               kNontrivial,
                               kNothrow,
                               kTrivial };
 
-template<template<class> class O>
+export template<template<class> class O>
 struct facade_aware_overload_t {
     facade_aware_overload_t() = delete;
 };
 
-template<class F>
+export template<class F>
 concept facade = details::basic_facade_traits<F>::applicable;
 
-template<facade F>
+export template<facade F>
 class proxy_indirect_accessor;
-template<facade F>
+export template<facade F>
 class PRO4D_ENFORCE_EBO proxy;
 
-template<class T>
+export template<class T>
 struct is_bitwise_trivially_relocatable
     : std::bool_constant<std::is_trivially_move_constructible_v<T> && std::is_trivially_destructible_v<T>> {};
-template<class T>
+export template<class T>
 constexpr bool is_bitwise_trivially_relocatable_v =
         is_bitwise_trivially_relocatable<T>::value;
 
@@ -851,7 +851,7 @@ R reinterpret_invoke(proxy_accessor<F, IsDirect, Q> self, Args &&...args) {
 
 } // namespace details
 
-template<class P, class F>
+export template<class P, class F>
 concept proxiable = facade<F> && details::pointer_like<P> &&
                     details::facade_traits<F>::template applicable_ptr<P>;
 
@@ -1205,53 +1205,53 @@ class proxy: public details::facade_traits<F>::direct_accessor,
     alignas(F::max_align) std::byte ptr_[F::max_size];
 };
 
-template<class D, class O, facade F, class... Args>
+export template<class D, class O, facade F, class... Args>
 [[deprecated("Use unqualified invoke instead")]] details::ret_t<O>
 proxy_invoke(proxy_indirect_accessor<F> &p, Args &&...args) {
     return invoke<D, O>(p, std::forward<Args>(args)...);
 }
-template<class D, class O, facade F, class... Args>
+export template<class D, class O, facade F, class... Args>
 [[deprecated("Use unqualified invoke instead")]] details::ret_t<O>
 proxy_invoke(const proxy_indirect_accessor<F> &p, Args &&...args) {
     return invoke<D, O>(p, std::forward<Args>(args)...);
 }
-template<class D, class O, facade F, class... Args>
+export template<class D, class O, facade F, class... Args>
 [[deprecated("Use unqualified invoke instead")]] details::ret_t<O>
 proxy_invoke(proxy_indirect_accessor<F> &&p, Args &&...args) {
     return invoke<D, O>(std::move(p), std::forward<Args>(args)...);
 }
-template<class D, class O, facade F, class... Args>
+export template<class D, class O, facade F, class... Args>
 [[deprecated("Use unqualified invoke instead")]] details::ret_t<O>
 proxy_invoke(const proxy_indirect_accessor<F> &&p, Args &&...args) {
     return invoke<D, O>(std::move(p), std::forward<Args>(args)...);
 }
-template<class D, class O, facade F, class... Args>
+export template<class D, class O, facade F, class... Args>
 [[deprecated("Use unqualified invoke instead")]] details::ret_t<O>
 proxy_invoke(proxy<F> &p, Args &&...args) {
     return invoke<D, O>(p, std::forward<Args>(args)...);
 }
-template<class D, class O, facade F, class... Args>
+export template<class D, class O, facade F, class... Args>
 [[deprecated("Use unqualified invoke instead")]] details::ret_t<O>
 proxy_invoke(const proxy<F> &p, Args &&...args) {
     return invoke<D, O>(p, std::forward<Args>(args)...);
 }
-template<class D, class O, facade F, class... Args>
+export template<class D, class O, facade F, class... Args>
 [[deprecated("Use unqualified invoke instead")]] details::ret_t<O>
 proxy_invoke(proxy<F> &&p, Args &&...args) {
     return invoke<D, O>(std::move(p), std::forward<Args>(args)...);
 }
-template<class D, class O, facade F, class... Args>
+export template<class D, class O, facade F, class... Args>
 [[deprecated("Use unqualified invoke instead")]] details::ret_t<O>
 proxy_invoke(const proxy<F> &&p, Args &&...args) {
     return invoke<D, O>(std::move(p), std::forward<Args>(args)...);
 }
 
-template<class R, facade F>
+export template<class R, facade F>
 [[deprecated("Use unqualified reflect instead")]] const R &
 proxy_reflect(const proxy_indirect_accessor<F> &p) noexcept {
     return reflect<R>(p);
 }
-template<class R, facade F>
+export template<class R, facade F>
 [[deprecated("Use unqualified reflect instead")]] const R &
 proxy_reflect(const proxy<F> &p) noexcept {
     return reflect<R>(p);
@@ -1261,16 +1261,16 @@ proxy_reflect(const proxy<F> &p) noexcept {
 // == Core Extensions (substitution_dispatch, proxy_view, weak_proxy)         ==
 // =============================================================================
 
-struct substitution_dispatch;
+export struct substitution_dispatch;
 
-template<facade F>
+export template<facade F>
 struct observer_facade;
-template<facade F>
+export template<facade F>
 using proxy_view = proxy<observer_facade<F>>;
 
-template<facade F>
+export template<facade F>
 struct weak_facade;
-template<facade F>
+export template<facade F>
 using weak_proxy = proxy<weak_facade<F>>;
 
 namespace details {
@@ -1772,10 +1772,10 @@ constexpr proxy<F> make_proxy_shared_impl(Args &&...args) {
 
 } // namespace details
 
-template<class T, class F>
+export template<class T, class F>
 concept inplace_proxiable_target = proxiable<details::inplace_ptr<T>, F>;
 
-template<class T, class F>
+export template<class T, class F>
 concept proxiable_target =
         proxiable<details::observer_ptr<T &, const T &, T &&, const T &&>, observer_facade<F>>;
 
@@ -1784,7 +1784,7 @@ template<class T>
 struct is_bitwise_trivially_relocatable<details::inplace_ptr<T>>
     : std::true_type {};
 
-template<facade F, class T, class... Args>
+export template<facade F, class T, class... Args>
 constexpr proxy<F> make_proxy_inplace(Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>
 )
@@ -1792,7 +1792,7 @@ constexpr proxy<F> make_proxy_inplace(Args &&...args) noexcept(
 {
     return proxy<F>{std::in_place_type<details::inplace_ptr<T>>, std::in_place, std::forward<Args>(args)...};
 }
-template<facade F, class T, class U, class... Args>
+export template<facade F, class T, class U, class... Args>
 constexpr proxy<F>
 make_proxy_inplace(std::initializer_list<U> il, Args &&...args) noexcept(
         std::is_nothrow_constructible_v<T, std::initializer_list<U> &, Args...>
@@ -1801,7 +1801,7 @@ make_proxy_inplace(std::initializer_list<U> il, Args &&...args) noexcept(
 {
     return proxy<F>{std::in_place_type<details::inplace_ptr<T>>, std::in_place, il, std::forward<Args>(args)...};
 }
-template<facade F, class T>
+export template<facade F, class T>
 constexpr proxy<F> make_proxy_inplace(T &&value) noexcept(
         std::is_nothrow_constructible_v<std::decay_t<T>, T>
 )
@@ -1810,7 +1810,7 @@ constexpr proxy<F> make_proxy_inplace(T &&value) noexcept(
     return proxy<F>{std::in_place_type<details::inplace_ptr<std::decay_t<T>>>, std::in_place, std::forward<T>(value)};
 }
 
-template<facade F, class T>
+export template<facade F, class T>
 constexpr proxy_view<F> make_proxy_view(T &value) noexcept {
     return proxy_view<F>{
             details::observer_ptr<T &, const T &, T &&, const T &&>{value}
@@ -1843,19 +1843,19 @@ template<class T, class Alloc>
 struct is_bitwise_trivially_relocatable<details::weak_compact_ptr<T, Alloc>>
     : std::true_type {};
 
-template<facade F, class T, class Alloc, class... Args>
+export template<facade F, class T, class Alloc, class... Args>
 constexpr proxy<F> allocate_proxy(const Alloc &alloc, Args &&...args)
     requires(std::is_constructible_v<T, Args...>)
 {
     return details::allocate_proxy_impl<F, T>(alloc, std::forward<Args>(args)...);
 }
-template<facade F, class T, class Alloc, class U, class... Args>
+export template<facade F, class T, class Alloc, class U, class... Args>
 constexpr proxy<F> allocate_proxy(const Alloc &alloc, std::initializer_list<U> il, Args &&...args)
     requires(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)
 {
     return details::allocate_proxy_impl<F, T>(alloc, il, std::forward<Args>(args)...);
 }
-template<facade F, class Alloc, class T>
+export template<facade F, class Alloc, class T>
 constexpr proxy<F> allocate_proxy(const Alloc &alloc, T &&value)
     requires(std::is_constructible_v<std::decay_t<T>, T>)
 {
@@ -1863,38 +1863,38 @@ constexpr proxy<F> allocate_proxy(const Alloc &alloc, T &&value)
             alloc, std::forward<T>(value)
     );
 }
-template<facade F, class T, class... Args>
+export template<facade F, class T, class... Args>
 constexpr proxy<F> make_proxy(Args &&...args)
     requires(std::is_constructible_v<T, Args...>)
 {
     return details::make_proxy_impl<F, T>(std::forward<Args>(args)...);
 }
-template<facade F, class T, class U, class... Args>
+export template<facade F, class T, class U, class... Args>
 constexpr proxy<F> make_proxy(std::initializer_list<U> il, Args &&...args)
     requires(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)
 {
     return details::make_proxy_impl<F, T>(il, std::forward<Args>(args)...);
 }
-template<facade F, class T>
+export template<facade F, class T>
 constexpr proxy<F> make_proxy(T &&value)
     requires(std::is_constructible_v<std::decay_t<T>, T>)
 {
     return details::make_proxy_impl<F, std::decay_t<T>>(std::forward<T>(value));
 }
 
-template<facade F, class T, class Alloc, class... Args>
+export template<facade F, class T, class Alloc, class... Args>
 constexpr proxy<F> allocate_proxy_shared(const Alloc &alloc, Args &&...args)
     requires(std::is_constructible_v<T, Args...>)
 {
     return details::allocate_proxy_shared_impl<F, T>(alloc, std::forward<Args>(args)...);
 }
-template<facade F, class T, class Alloc, class U, class... Args>
+export template<facade F, class T, class Alloc, class U, class... Args>
 constexpr proxy<F> allocate_proxy_shared(const Alloc &alloc, std::initializer_list<U> il, Args &&...args)
     requires(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)
 {
     return details::allocate_proxy_shared_impl<F, T>(alloc, il, std::forward<Args>(args)...);
 }
-template<facade F, class Alloc, class T>
+export template<facade F, class Alloc, class T>
 constexpr proxy<F> allocate_proxy_shared(const Alloc &alloc, T &&value)
     requires(std::is_constructible_v<std::decay_t<T>, T>)
 {
@@ -1902,19 +1902,19 @@ constexpr proxy<F> allocate_proxy_shared(const Alloc &alloc, T &&value)
             alloc, std::forward<T>(value)
     );
 }
-template<facade F, class T, class... Args>
+export template<facade F, class T, class... Args>
 constexpr proxy<F> make_proxy_shared(Args &&...args)
     requires(std::is_constructible_v<T, Args...>)
 {
     return details::make_proxy_shared_impl<F, T>(std::forward<Args>(args)...);
 }
-template<facade F, class T, class U, class... Args>
+export template<facade F, class T, class U, class... Args>
 constexpr proxy<F> make_proxy_shared(std::initializer_list<U> il, Args &&...args)
     requires(std::is_constructible_v<T, std::initializer_list<U> &, Args...>)
 {
     return details::make_proxy_shared_impl<F, T>(il, std::forward<Args>(args)...);
 }
-template<facade F, class T>
+export template<facade F, class T>
 constexpr proxy<F> make_proxy_shared(T &&value)
     requires(std::is_constructible_v<std::decay_t<T>, T>)
 {
@@ -2021,7 +2021,7 @@ add_facade_deprecation_traits<true>: std::bool_constant<true> {};
 
 } // namespace details
 
-template<class Cs, class Rs, std::size_t MaxSize, std::size_t MaxAlign, constraint_level Copyability, constraint_level Relocatability, constraint_level Destructibility>
+export template<class Cs, class Rs, std::size_t MaxSize, std::size_t MaxAlign, constraint_level Copyability, constraint_level Relocatability, constraint_level Destructibility>
 struct basic_facade_builder {
     template<class D, details::extended_overload... Os>
         requires(sizeof...(Os) > 0u)
@@ -2119,7 +2119,7 @@ struct basic_facade_builder {
                                                    : Destructibility>;
     basic_facade_builder() = delete;
 };
-using facade_builder =
+export using facade_builder =
         basic_facade_builder<std::tuple<>, std::tuple<>, details::invalid_size, details::invalid_size, details::invalid_cl, details::invalid_cl, details::invalid_cl>;
 
 // =============================================================================
@@ -2169,7 +2169,7 @@ using wildcard = converter<noreturn_conversion>;
 
 } // namespace details
 
-template<details::sign Sign, bool Rhs = false>
+export template<details::sign Sign, bool Rhs = false>
 struct operator_dispatch;
 
 #define PROD_DEF_LHS_LEFT_OP_ACCESSOR(oq, pq, ne, ...)             \
@@ -2369,14 +2369,14 @@ struct operator_dispatch<"[]", false> {
 #undef PROD_DEF_LHS_UNARY_OP_ACCESSOR
 #undef PROD_DEF_LHS_LEFT_OP_ACCESSOR
 
-struct implicit_conversion_dispatch
+export struct implicit_conversion_dispatch
     : details::cast_dispatch_base<false, false> {
     template<class T>
     PRO4D_STATIC_CALL(T &&, T &&self) noexcept {
         return std::forward<T>(self);
     }
 };
-struct explicit_conversion_dispatch: details::cast_dispatch_base<true, false> {
+export struct explicit_conversion_dispatch: details::cast_dispatch_base<true, false> {
     template<class T>
     PRO4D_STATIC_CALL(auto, T &&self) noexcept {
         return details::converter{
@@ -2388,9 +2388,9 @@ struct explicit_conversion_dispatch: details::cast_dispatch_base<true, false> {
                 };
     }
 };
-using conversion_dispatch = explicit_conversion_dispatch;
+export using conversion_dispatch = explicit_conversion_dispatch;
 
-template<class D>
+export template<class D>
 struct weak_dispatch: D {
     using D::operator();
     template<class... Args>
@@ -2406,7 +2406,7 @@ struct weak_dispatch: D {
 // =============================================================================
 
 #if __cpp_rtti >= 199711L
-class bad_proxy_cast: public std::bad_cast {
+export class bad_proxy_cast: public std::bad_cast {
   public:
     char const *what() const noexcept override {
         return "silicon::proxy::bad_proxy_cast";
@@ -2617,19 +2617,19 @@ struct proxy_typeid_reflector {
 namespace skills {
 
 #ifdef PRO4D_HAS_FORMAT
-template<class FB>
+export template<class FB>
 using format = typename FB::template add_convention<
         details::std_format_traits::dispatch,
         details::std_format_traits::overload<char>>;
 
-template<class FB>
+export template<class FB>
 using wformat = typename FB::template add_convention<
         details::std_format_traits::dispatch,
         details::std_format_traits::overload<wchar_t>>;
 #endif // PRO4D_HAS_FORMAT
 
 #if __cpp_rtti >= 199711L
-template<class FB>
+export template<class FB>
 using indirect_rtti = typename FB::template add_indirect_convention<
         details::proxy_cast_dispatch,
         void(details::proxy_cast_context) &,
@@ -2637,7 +2637,7 @@ using indirect_rtti = typename FB::template add_indirect_convention<
         void(details::proxy_cast_context) &&>::
         template add_indirect_reflection<details::proxy_typeid_reflector>;
 
-template<class FB>
+export template<class FB>
 using direct_rtti = typename FB::template add_direct_convention<
         details::proxy_cast_dispatch,
         void(details::proxy_cast_context) &,
@@ -2645,20 +2645,20 @@ using direct_rtti = typename FB::template add_direct_convention<
         void(details::proxy_cast_context) &&>::
         template add_direct_reflection<details::proxy_typeid_reflector>;
 
-template<class FB>
+export template<class FB>
 using rtti = indirect_rtti<FB>;
 #endif // __cpp_rtti >= 199711L
 
-template<class FB>
+export template<class FB>
 using slim =
         typename FB::template restrict_layout<sizeof(void *), alignof(void *)>;
 
-template<class FB>
+export template<class FB>
 using as_view = typename FB::template add_direct_convention<
         details::view_conversion_dispatch,
         facade_aware_overload_t<details::view_conversion_overload>>;
 
-template<class FB>
+export template<class FB>
 using as_weak = typename FB::template add_direct_convention<
         details::weak_conversion_dispatch,
         facade_aware_overload_t<details::weak_conversion_overload>>;
@@ -2700,12 +2700,12 @@ struct fmt_format_traits
 
 namespace skills {
 
-template<class FB>
+export template<class FB>
 using fmt_format = typename FB::template add_convention<
         details::fmt_format_traits::dispatch,
         details::fmt_format_traits::overload<char>>;
 
-template<class FB>
+export template<class FB>
 using fmt_wformat = typename FB::template add_convention<
         details::fmt_format_traits::dispatch,
         details::fmt_format_traits::overload<wchar_t>>;
