@@ -1,16 +1,12 @@
 // 实现单元（Linux / 其余 POSIX 分支）：silicon.xdg
-// 与 xdg_win.cpp / xdg_macos.cpp 均被 xmake 收集编译，平台选择由本文件内的
-// #if 守卫完成：非 unix 系（或 macOS）平台下本文件内容为空（仅模块声明），
-// 实体仅存在于对应当前平台的那个文件，避免同一模块内符号重复定义。
-// 语义遵循 freedesktop XDG Base Directory Specification：优先环境变量，
-// 回退 $HOME 下 .config/.local/share/.cache/.local/state 约定路径。
-// 共享 POSIX 辅助（env_or/join/home/split_paths）随平台文件各持一份副本。
+// 仅提供平台差异辅助；8 个导出 API 的统一框架在 xdg.cpp（平台公共层）。
+// 守卫：unix 系 && !__APPLE__。语义遵循 freedesktop XDG Base Directory
+// Specification：优先环境变量（由 xdg.cpp 读取），回退 $HOME 下
+// .config/.local/share/.cache/.local/state 约定路径。
 module;
 
 #include <cstdlib>
-#include <sstream>
 #include <string>
-#include <vector>
 
 module silicon.xdg;
 
@@ -37,58 +33,17 @@ std::string home() {
     return ".";
 }
 
-std::vector<std::string> split_paths(const char *env, const char *def) {
-    std::vector<std::string> out;
-    std::string s = env_or(env, def);
-    std::stringstream ss(s);
-    std::string item;
-    while(std::getline(ss, item, ':')) {
-        if(!item.empty())
-            out.push_back(item);
-    }
-    return out;
-}
+std::string config_home_default() { return join(home(), ".config"); }
 
-// ── 导出 API 定义（接口单元 xdg.cppm 已声明） ──────────────────────
-std::string home_dir() { return home(); }
+std::string data_home_default() { return join(home(), ".local/share"); }
 
-std::string config_home() {
-    if(const char *e = std::getenv("XDG_CONFIG_HOME"); e && *e)
-        return e;
-    return join(home(), ".config");
-}
+std::string cache_home_default() { return join(home(), ".cache"); }
 
-std::string data_home() {
-    if(const char *e = std::getenv("XDG_DATA_HOME"); e && *e)
-        return e;
-    return join(home(), ".local/share");
-}
+std::string state_home_default() { return join(home(), ".local/state"); }
 
-std::string cache_home() {
-    if(const char *e = std::getenv("XDG_CACHE_HOME"); e && *e)
-        return e;
-    return join(home(), ".cache");
-}
+std::string config_dirs_default() { return "/etc/xdg"; }
 
-std::string state_home() {
-    if(const char *e = std::getenv("XDG_STATE_HOME"); e && *e)
-        return e;
-    return join(home(), ".local/state");
-}
-
-std::string runtime_dir() {
-    if(const char *e = std::getenv("XDG_RUNTIME_DIR"); e && *e)
-        return e;
-    return "";
-}
-
-std::vector<std::string> config_dirs() {
-    return split_paths("XDG_CONFIG_DIRS", "/etc/xdg");
-}
-
-std::vector<std::string> data_dirs() {
-    return split_paths("XDG_DATA_DIRS", "/usr/local/share:/usr/share");
-}
+std::string data_dirs_default() { return "/usr/local/share:/usr/share"; }
 
 } // namespace silicon::xdg
 
