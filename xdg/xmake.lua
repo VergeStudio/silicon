@@ -9,12 +9,9 @@ target("xdg", function()
     end
     add_includedirs("include", {public = true})
     add_files("include/silicon/xdg/**.cppm", {public = true})
-    -- 实现按平台二选一：Windows 分支 / POSIX 分支，避免同一模块内符号重复定义。
-    if is_plat("windows", "mingw", "cygwin") then
-        add_files("src/xdg_win.cpp")
-    else
-        add_files("src/xdg_posix.cpp")
-    end
+    -- 两平台实现单元均收集编译；平台选择由各文件内 #if 守卫完成
+    -- （xdg_win.cpp: _WIN32 系；xdg_posix.cpp: 其余），非目标平台时内容为空。
+    add_files("src/**.cpp")
 end)
 
 target("xdg.test", function()
