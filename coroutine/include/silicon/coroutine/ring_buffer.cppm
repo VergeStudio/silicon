@@ -1,16 +1,12 @@
 module;
 
 // 模块化补齐：原经传递 include 获得的标准头，模块单元须显式包含。
-#include <utility>
-
-
-
 #include <array>
 #include <atomic>
 #include <coroutine>
 #include <memory>
 #include <optional>
-
+#include <utility>
 
 export module silicon.coroutine:ring_buffer;
 
@@ -36,6 +32,9 @@ enum class consume {
  *         cheap to move if possible as it is moved into and out of the buffer upon produce and
  *         consume operations.
  * @tparam num_elements The maximum number of elements the ring buffer can store, must be >= 1.
+ *
+ * @note 实现（成员函数体）位于 coroutine/src/ring_buffer.cpp（主模块实现单元），
+ *       本接口分区仅保留声明与嵌套类型布局，以降低编辑实现时的重编波及面。
  */
 template<typename element, size_t num_elements>
 class ring_buffer {
@@ -53,14 +52,9 @@ class ring_buffer {
     /**
      * static_assert If `num_elements` == 0.
      */
-    ring_buffer(): m_p(std::make_unique<Impl>()) {
-        static_assert(num_elements != 0, "num_elements cannot be zero");
-    }
+    ring_buffer();
 
-    ~ring_buffer() {
-        // Wake up anyone still using the ring buffer.
-        silicon::coroutine::sync_wait(shutdown());
-    }
+    ~ring_buffer();
 
     ring_buffer(const ring_buffer<element, num_elements> &) = delete;
     ring_buffer(ring_buffer<element, num_elements> &&) = delete;
@@ -69,45 +63,15 @@ class ring_buffer {
     auto operator=(ring_buffer<element, num_elements> &&) noexcept -> ring_buffer<element, num_elements> & = delete;
 
     struct produce_operation {
-        produce_operation(ring_buffer<element, num_elements> &rb, element e)
-            : m_rb(rb),
-              m_e(std::move(e)) {}
+        produce_operation(ring_buffer<element, num_elements> &rb, element e);
 
-        auto await_ready() noexcept -> bool {
-            auto &mutex = m_rb.m_p->m_mutex;
-
-            // Produce operations can only proceed if running.
-            if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
-                m_result = ring_buffer_result::produce::kStopped;
-                mutex.unlock();
-                return true; // Will be awoken with produce::stopped
-            }
-
-            if(m_rb.m_p->m_used.load(std::memory_order::acquire) < num_elements) {
-                // There is guaranteed space to store
-                auto slot = m_rb.m_p->m_front.fetch_add(1, std::memory_order::acq_rel) % num_elements;
-                m_rb.m_p->m_elements[slot] = std::move(m_e);
-                m_rb.m_p->m_used.fetch_add(1, std::memory_order::release);
-                mutex.unlock();
-                return true; // Will be awoken with produce::produced
-            }
-
-            return false; // ring buffer full, suspend
-        }
-
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
-            m_awaiting_coroutine = awaiting_coroutine;
-            m_next = m_rb.m_p->m_produce_waiters.exchange(this, std::memory_order::acq_rel);
-            m_rb.m_p->m_mutex.unlock();
-            return true;
-        }
+        auto await_ready() noexcept -> bool;
+        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
 
         /**
          * @return produce_result
          */
-        auto await_resume() -> ring_buffer_result::produce {
-            return m_result;
-        }
+        auto await_resume() -> ring_buffer_result::produce;
 
         /// If the operation needs to suspend, the coroutine to resume when the element can be produced.
         std::coroutine_handle<> m_awaiting_coroutine;
@@ -127,49 +91,15 @@ class ring_buffer {
     };
 
     struct consume_operation {
-        explicit consume_operation(ring_buffer<element, num_elements> &rb)
-            : m_rb(rb) {}
+        explicit consume_operation(ring_buffer<element, num_elements> &rb);
 
-        auto await_ready() noexcept -> bool {
-            auto &mutex = m_rb.m_p->m_mutex;
-
-            // Consume operations proceed until stopped.
-            if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
-                m_result = ring_buffer_result::consume::kStopped;
-                mutex.unlock();
-                return true;
-            }
-
-            if(m_rb.m_p->m_used.load(std::memory_order::acquire) > 0) {
-                auto slot = m_rb.m_p->m_back.fetch_add(1, std::memory_order::acq_rel) % num_elements;
-                m_e = std::move(m_rb.m_p->m_elements[slot]);
-                m_rb.m_p->m_elements[slot] = std::nullopt;
-                m_rb.m_p->m_used.fetch_sub(1, std::memory_order::release);
-                mutex.unlock();
-                return true;
-            }
-
-            return false; // ring buffer is empty, suspend.
-        }
-
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
-            m_awaiting_coroutine = awaiting_coroutine;
-            m_next = m_rb.m_p->m_consume_waiters.exchange(this, std::memory_order::acq_rel);
-            m_rb.m_p->m_mutex.unlock();
-            return true;
-        }
+        auto await_ready() noexcept -> bool;
+        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
 
         /**
          * @return The consumed element or ring_buffer_stopped if the ring buffer has been shutdown.
          */
-        auto await_resume() -> expected<element, ring_buffer_result::consume> {
-            if(m_e.has_value()) {
-                return expected<element, ring_buffer_result::consume>(std::move(m_e).value());
-            } else // state is stopped
-            {
-                return unexpected<ring_buffer_result::consume>(m_result);
-            }
-        }
+        auto await_resume() -> expected<element, ring_buffer_result::consume>;
 
         /// If the operation needs to suspend, the coroutine to resume when the element can be consumed.
         std::coroutine_handle<> m_awaiting_coroutine;
@@ -193,167 +123,60 @@ class ring_buffer {
      * in the ring buffer becomes available.
      * @param e The element to produce.
      */
-    [[nodiscard]] auto produce(element e) -> silicon::scheduler::task<ring_buffer_result::produce> {
-        co_await m_p->m_mutex.lock();
-        auto result = co_await produce_operation{*this, std::move(e)};
-        co_await try_resume_consumers();
-        co_return result;
-    }
+    [[nodiscard]] auto produce(element e) -> silicon::scheduler::task<ring_buffer_result::produce>;
 
     /**
      * Consumes an element from the ring buffer.  This operation will suspend until an element in
      * the ring buffer becomes available.
      */
-    [[nodiscard]] auto consume() -> silicon::scheduler::task<expected<element, ring_buffer_result::consume>> {
-        co_await m_p->m_mutex.lock();
-        auto result = co_await consume_operation{*this};
-        co_await try_resume_producers();
-        co_return result;
-    }
+    [[nodiscard]] auto consume() -> silicon::scheduler::task<expected<element, ring_buffer_result::consume>>;
 
     /**
      * @return The maximum number of elements the ring buffer can hold.
      */
-    constexpr auto max_size() const noexcept -> size_t {
-        return num_elements;
-    }
+    constexpr auto max_size() const noexcept -> size_t { return num_elements; }
 
     /**
      * @return The current number of elements contained in the ring buffer.
      */
-    auto size() const -> size_t {
-        return m_p->m_used.load(std::memory_order::acquire);
-    }
+    auto size() const -> size_t;
 
     /**
      * @return True if the ring buffer contains zero elements.
      */
-    [[nodiscard]] auto empty() const -> bool { return size() == 0; }
+    [[nodiscard]] auto empty() const -> bool;
 
     /**
      * @return True if the ring buffer has no more space.
      */
-    auto full() const -> bool { return size() == max_size(); }
+    auto full() const -> bool;
 
     /**
      * @brief Wakes up all currently awaiting producers.  Their await_resume() function
      *        will return an expected produce result that producers have been notified.
      */
-    auto notify_producers() -> silicon::scheduler::task<void> {
-        auto expected = m_p->m_running_state.load(std::memory_order::acquire);
-        if(expected == running_state_t::kStopped) {
-            co_return;
-        }
-
-        co_await m_p->m_mutex.lock();
-        auto *produce_waiters = m_p->m_produce_waiters.exchange(nullptr, std::memory_order::acq_rel);
-        m_p->m_mutex.unlock();
-
-        while(produce_waiters != nullptr) {
-            auto *next = produce_waiters->m_next;
-            produce_waiters->m_result = ring_buffer_result::produce::kNotified;
-            produce_waiters->m_awaiting_coroutine.resume();
-            produce_waiters = next;
-        }
-
-        co_return;
-    }
+    auto notify_producers() -> silicon::scheduler::task<void>;
 
     /**
      * @brief Wakes up all currently awaiting consumers.  Their await_resume() function
      *        will return an expected consume result that consumers have been notified.
      */
-    auto notify_consumers() -> silicon::scheduler::task<void> {
-        auto expected = m_p->m_running_state.load(std::memory_order::acquire);
-        if(expected == running_state_t::kStopped) {
-            co_return;
-        }
-
-        co_await m_p->m_mutex.lock();
-        auto *consume_waiters = m_p->m_consume_waiters.exchange(nullptr, std::memory_order::acq_rel);
-        m_p->m_mutex.unlock();
-
-        while(consume_waiters != nullptr) {
-            auto *next = consume_waiters->m_next;
-            consume_waiters->m_result = ring_buffer_result::consume::kNotified;
-            consume_waiters->m_awaiting_coroutine.resume();
-            consume_waiters = next;
-        }
-
-        co_return;
-    }
+    auto notify_consumers() -> silicon::scheduler::task<void>;
 
     /**
      * @brief Wakes up all currently awaiting producers and consumers.  Their await_resume() function
      *        will return an expected consume result that the ring buffer has stopped.
      */
-    auto shutdown() -> silicon::scheduler::task<void> {
-        // Only wake up waiters once.
-        auto expected = m_p->m_running_state.load(std::memory_order::acquire);
-        if(expected == running_state_t::kStopped) {
-            co_return;
-        }
-
-        auto lk = co_await m_p->m_mutex.scoped_lock();
-        // Only let one caller do the wake-ups, this can go from running or draining to stopped
-        if(!m_p->m_running_state.compare_exchange_strong(expected, running_state_t::kStopped, std::memory_order::acq_rel, std::memory_order::relaxed)) {
-            co_return;
-        }
-        lk.unlock();
-
-        co_await m_p->m_mutex.lock();
-        auto *produce_waiters = m_p->m_produce_waiters.exchange(nullptr, std::memory_order::acq_rel);
-        auto *consume_waiters = m_p->m_consume_waiters.exchange(nullptr, std::memory_order::acq_rel);
-        m_p->m_mutex.unlock();
-
-        while(produce_waiters != nullptr) {
-            auto *next = produce_waiters->m_next;
-            produce_waiters->m_result = ring_buffer_result::produce::kStopped;
-            produce_waiters->m_awaiting_coroutine.resume();
-            produce_waiters = next;
-        }
-
-        while(consume_waiters != nullptr) {
-            auto *next = consume_waiters->m_next;
-            consume_waiters->m_result = ring_buffer_result::consume::kStopped;
-            consume_waiters->m_awaiting_coroutine.resume();
-            consume_waiters = next;
-        }
-
-        co_return;
-    }
+    auto shutdown() -> silicon::scheduler::task<void>;
 
     template<silicon::coroutine::concepts::executor executor_type>
-    [[nodiscard]] auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::scheduler::task<void> {
-        auto lk = co_await m_p->m_mutex.scoped_lock();
-        // Do not allow any more produces, the state must be in running to drain.
-        auto expected = running_state_t::kRunning;
-        if(!m_p->m_running_state.compare_exchange_strong(expected, running_state_t::kDraining, std::memory_order::acq_rel, std::memory_order::relaxed)) {
-            co_return;
-        }
-
-        auto *produce_waiters = m_p->m_produce_waiters.exchange(nullptr, std::memory_order::acq_rel);
-        lk.unlock();
-
-        while(produce_waiters != nullptr) {
-            auto *next = produce_waiters->m_next;
-            produce_waiters->m_awaiting_coroutine.resume();
-            produce_waiters = next;
-        }
-
-        while(!empty() && m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kDraining) {
-            co_await e->yield();
-        }
-
-        co_await shutdown();
-        co_return;
-    }
+    [[nodiscard]] auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::scheduler::task<void>;
 
     /**
      * Returns true if shutdown() or shutdown_drain() have been called on this silicon::coroutine::ring_buffer.
      * @return True if the silicon::coroutine::ring_buffer has been shutdown.
      */
-    [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning; }
+    [[nodiscard]] auto is_shutdown() const -> bool;
 
   private:
     friend produce_operation;
@@ -381,44 +204,8 @@ class ring_buffer {
 
     std::unique_ptr<Impl> m_p;
 
-    auto try_resume_producers() -> silicon::scheduler::task<void> {
-        while(true) {
-            auto lk = co_await m_p->m_mutex.scoped_lock();
-            if(m_p->m_used.load(std::memory_order::acquire) < num_elements) {
-                auto *op = awaiter_list_pop(m_p->m_produce_waiters);
-                if(op != nullptr) {
-                    auto slot = m_p->m_front.fetch_add(1, std::memory_order::acq_rel) % num_elements;
-                    m_p->m_elements[slot] = std::move(op->m_e);
-                    m_p->m_used.fetch_add(1, std::memory_order::release);
-
-                    lk.unlock();
-                    op->m_awaiting_coroutine.resume();
-                    continue;
-                }
-            }
-            co_return;
-        }
-    }
-
-    auto try_resume_consumers() -> silicon::scheduler::task<void> {
-        while(true) {
-            auto lk = co_await m_p->m_mutex.scoped_lock();
-            if(m_p->m_used.load(std::memory_order::acquire) > 0) {
-                auto *op = awaiter_list_pop(m_p->m_consume_waiters);
-                if(op != nullptr) {
-                    auto slot = m_p->m_back.fetch_add(1, std::memory_order::acq_rel) % num_elements;
-                    op->m_e = std::move(m_p->m_elements[slot]);
-                    m_p->m_elements[slot] = std::nullopt;
-                    m_p->m_used.fetch_sub(1, std::memory_order::release);
-                    lk.unlock();
-
-                    op->m_awaiting_coroutine.resume();
-                    continue;
-                }
-            }
-            co_return;
-        }
-    }
+    auto try_resume_producers() -> silicon::scheduler::task<void>;
+    auto try_resume_consumers() -> silicon::scheduler::task<void>;
 };
 
 } // namespace silicon::coroutine
