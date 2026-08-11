@@ -5,13 +5,15 @@ module;
 #    include <Windows.h>
 #endif
 
+#include <expected>
 #include <mutex>
 #include <string>
+#include <system_error>
 
 module silicon.library;
 
 import silicon.platform;
-import silicon.exception;
+import silicon.error;
 
 #include "shared_library_impl.hpp"
 
@@ -25,17 +27,18 @@ import silicon.exception;
 // find_symbol（GetProcAddress）。守卫与 shared_library_unix.cpp 的 unix 系守卫互斥。
 namespace silicon::library {
 
-void shared_library::load(const std::string &path, int32_t flags) {
+auto shared_library::load(const std::string &path, int32_t flags) -> std::expected<void, std::error_code> {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     impl_->handle_ = LoadLibrary(path.c_str());
     if (impl_->handle_ == nullptr) {
-        throw silicon::exception::runtime_error("Could not load library: " + path);
+        return std::unexpected(silicon::error::make_error_code(silicon::error::library_error::kLoadFailed));
     }
     impl_->path_ = path;
+    return {};
 }
 
-void shared_library::unload() {
+auto shared_library::unload() -> std::expected<void, std::error_code> {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     if (impl_->handle_ != nullptr) {
@@ -43,6 +46,7 @@ void shared_library::unload() {
         impl_->handle_ = nullptr;
     }
     impl_->path_.clear();
+    return {};
 }
 
 std::string shared_library::prefix() {

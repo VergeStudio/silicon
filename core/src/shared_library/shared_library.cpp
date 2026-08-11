@@ -1,12 +1,14 @@
 module;
 #include <memory>
 
+#include <expected>
 #include <mutex>
 #include <string>
+#include <system_error>
 
 module silicon.library;
 
-import silicon.exception;
+import silicon.error;
 
 #include "shared_library_impl.hpp"
 
@@ -26,13 +28,12 @@ const std::string &shared_library::get_path() const {
     return impl_->path_;
 }
 
-void *shared_library::get_symbol(const std::string &symbol_name) {
+auto shared_library::get_symbol(const std::string &symbol_name) -> std::expected<void *, std::error_code> {
     void *result = find_symbol(symbol_name);
     if(result != nullptr) {
         return result;
     }
-
-    throw silicon::exception::runtime_error("[shared_library::get_symbol]: can't find symbol ", symbol_name);
+    return std::unexpected(silicon::error::make_error_code(silicon::error::library_error::kSymbolNotFound));
 }
 
 bool shared_library::has_symbol(const std::string &symbol_name) {
@@ -43,6 +44,3 @@ std::string shared_library::get_os_name(const std::string &name) {
     return prefix() + name + suffix();
 }
 } // namespace silicon::library
-
-// module silicon.library;
-// module;

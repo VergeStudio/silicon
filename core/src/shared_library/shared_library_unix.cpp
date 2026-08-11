@@ -5,13 +5,15 @@ module;
 #    include <dlfcn.h>
 #endif
 
+#include <expected>
 #include <mutex>
 #include <string>
+#include <system_error>
 
 module silicon.library;
 
 import silicon.platform;
-import silicon.exception;
+import silicon.error;
 
 #include "shared_library_impl.hpp"
 
@@ -22,28 +24,31 @@ import silicon.exception;
 // 守卫与 shared_library_windows.cpp 的 _WIN32 守卫互斥，恰好一个文件定义同组符号。
 namespace silicon::library {
 
-void shared_library::load(const std::string &path, int32_t flags) {
+auto shared_library::load(const std::string &path, int32_t flags) -> std::expected<void, std::error_code> {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     if (impl_->handle_ != nullptr) {
-        throw runtime_error("Library already loaded: " + path);
+        return std::unexpected(silicon::error::make_error_code(silicon::error::library_error::kAlreadyLoaded));
     }
 
     impl_->handle_ = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
     if (impl_->handle_ == nullptr) {
         const char *err = dlerror();
-        throw runtime_error("Could not load library: " + (err ? std::string(err) : path));
+        (void)err;
+        return std::unexpected(silicon::error::make_error_code(silicon::error::library_error::kLoadFailed));
     }
     impl_->path_ = path;
+    return {};
 }
 
-void shared_library::unload() {
+auto shared_library::unload() -> std::expected<void, std::error_code> {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     if (impl_->handle_ != nullptr) {
         dlclose(impl_->handle_);
         impl_->handle_ = nullptr;
     }
+    return {};
 }
 
 std::string shared_library::prefix() {

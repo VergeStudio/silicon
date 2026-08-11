@@ -13,6 +13,9 @@ target("core", function()
         add_defines("CORE_SHARED_LIB", "CORE_EXPORT", {public = true})
     end
 
+    -- 统一错误码体系（shared_library 等用 silicon::error::make_error_code）
+    add_deps("silicon::error")
+
     add_includedirs("include", {public = true})
 
     add_files("src/**.cpp")

@@ -1,7 +1,9 @@
 module;
 #include <memory>
 
+#include <expected>
 #include <string>
+#include <system_error>
 
 export module silicon.library;
 
@@ -41,14 +43,13 @@ export class shared_library final {
     /// Loads a shared library from the given path,
     /// using the given flags. See the flags enumeration
     /// for valid values.
-    /// Throws a LibraryAlreadyLoadedException if
-    /// a library has already been loaded.
-    /// Throws a LibraryLoadException if the library
-    /// cannot be loaded.
-    void load(const std::string &, int32_t flags = 0);
+    /// Returns an error_code on failure
+    /// (silicon::error::library_error::kAlreadyLoaded / kLoadFailed, or a
+    /// system errno via silicon::error::system_error).
+    [[nodiscard]] auto load(const std::string &, int32_t flags = 0) -> std::expected<void, std::error_code>;
 
-    /// Unloads a shared library.
-    void unload();
+    /// Unloads a shared library. Returns an error_code on failure.
+    [[nodiscard]] auto unload() -> std::expected<void, std::error_code>;
 
     /// Returns true iff a library has been loaded.
     [[nodiscard]] bool is_loaded() const;
@@ -60,9 +61,8 @@ export class shared_library final {
     /// Returns the address of the symbol with
     /// the given name. For functions, this
     /// is the entry point of the function.
-    /// Throws a NotFoundException if the symbol
-    /// does not exist.
-    void *get_symbol(const std::string &);
+    /// Returns an error_code (kSymbolNotFound) if the symbol does not exist.
+    [[nodiscard]] auto get_symbol(const std::string &) -> std::expected<void *, std::error_code>;
 
     /// Returns the path of the library, as
     /// specified in a call to load() or the
