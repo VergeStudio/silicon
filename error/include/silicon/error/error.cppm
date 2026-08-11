@@ -177,6 +177,7 @@ enum class plugin_error {
     kUnloadFailed,
     kDuplicate,
     kNotFound,
+    kNullPlugin,
 };
 
 // tui

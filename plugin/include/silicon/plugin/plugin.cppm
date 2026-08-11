@@ -10,6 +10,7 @@ module;
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <expected>
 
 // proxy 的 dispatch 宏定义在头文件里：宏不随 C++20 模块导出，
 // 消费方必须在全局模块片段显式包含，随后再 `import silicon.proxy`。
@@ -18,8 +19,13 @@ module;
 export module silicon.plugin;
 
 import silicon.proxy;
+import silicon.error;
 
 export namespace silicon::plugin {
+
+/// 统一错误返回类型：plugin 模块所有可失败 API 返回 plugin::result<T>。
+template<typename T>
+using result = std::expected<T, std::error_code>;
 
 /// 插件生命周期
 class i_plugin {
@@ -35,9 +41,9 @@ class i_plugin {
 class i_plugin_registry {
   public:
     virtual ~i_plugin_registry() = default;
-    virtual bool register_plugin(std::shared_ptr<i_plugin> plugin) = 0;
+    [[nodiscard]] virtual auto register_plugin(std::shared_ptr<i_plugin> plugin) -> result<void> = 0;
     virtual i_plugin *get_plugin(std::string_view name) const = 0;
-    virtual bool remove_plugin(std::string_view name) = 0;
+    [[nodiscard]] virtual auto remove_plugin(std::string_view name) -> result<void> = 0;
     virtual std::vector<std::string> list_plugins() const = 0;
 };
 
@@ -52,9 +58,9 @@ class plugin_registry: public i_plugin_registry {
     std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 
   public:
-    bool register_plugin(std::shared_ptr<i_plugin> plugin) override;
+    auto register_plugin(std::shared_ptr<i_plugin> plugin) -> result<void> override;
     i_plugin *get_plugin(std::string_view name) const override;
-    bool remove_plugin(std::string_view name) override;
+    auto remove_plugin(std::string_view name) -> result<void> override;
     std::vector<std::string> list_plugins() const override;
 
 };
@@ -123,20 +129,20 @@ class proxy_plugin_registry {
     std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
 
   public:
-    /// 注册已擦除的插件；句柄为空或名称重复时返回 false。
-    bool register_plugin(plugin_proxy plugin);
+    /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。
+    [[nodiscard]] auto register_plugin(plugin_proxy plugin) -> result<void>;
 
     /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
     template<class T, class... Args>
-    bool emplace(Args &&...args) {
+    [[nodiscard]] auto emplace(Args &&...args) -> result<void> {
         return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
     }
 
     /// 查询；不存在返回 nullptr。返回句柄的所有权仍属注册表。
     plugin_proxy *get(std::string_view name) const;
 
-    /// 移除并触发 on_unload。
-    bool remove(std::string_view name);
+    /// 移除并触发 on_unload；不存在返回 kNotFound。
+    [[nodiscard]] auto remove(std::string_view name) -> result<void>;
 
     std::vector<std::string> list() const;
 

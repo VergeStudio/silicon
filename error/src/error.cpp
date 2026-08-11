@@ -247,6 +247,7 @@ class plugin_error_category final : public std::error_category {
             case plugin_error::kUnloadFailed: return "plugin unload failed";
             case plugin_error::kDuplicate: return "plugin already registered";
             case plugin_error::kNotFound: return "plugin not found";
+            case plugin_error::kNullPlugin: return "null plugin handle";
         }
         return "unknown plugin error";
     }

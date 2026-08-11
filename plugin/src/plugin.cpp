@@ -7,17 +7,20 @@ module;
 #include <string_view>
 #include <utility>
 #include <vector>
+#include <expected>
 
 module silicon.plugin;
 
+import silicon.error;
+
 namespace silicon::plugin {
 
-bool plugin_registry::register_plugin(std::shared_ptr<i_plugin> plugin) {
-    if(!plugin) return false;
+auto plugin_registry::register_plugin(std::shared_ptr<i_plugin> plugin) -> result<void> {
+    if(!plugin) return std::unexpected(silicon::error::make_error_code(silicon::error::plugin_error::kNullPlugin));
     auto name = std::string(plugin->name());
-    if(impl_->plugins_.contains(name)) return false;
+    if(impl_->plugins_.contains(name)) return std::unexpected(silicon::error::make_error_code(silicon::error::plugin_error::kDuplicate));
     impl_->plugins_[std::move(name)] = std::move(plugin);
-    return true;
+    return {};
 }
 
 i_plugin *plugin_registry::get_plugin(std::string_view name) const {
@@ -25,12 +28,12 @@ i_plugin *plugin_registry::get_plugin(std::string_view name) const {
     return (it != impl_->plugins_.end()) ? it->second.get() : nullptr;
 }
 
-bool plugin_registry::remove_plugin(std::string_view name) {
+auto plugin_registry::remove_plugin(std::string_view name) -> result<void> {
     auto it = impl_->plugins_.find(name);
-    if(it == impl_->plugins_.end()) return false;
+    if(it == impl_->plugins_.end()) return std::unexpected(silicon::error::make_error_code(silicon::error::plugin_error::kNotFound));
     it->second->on_unload();
     impl_->plugins_.erase(it);
-    return true;
+    return {};
 }
 
 std::vector<std::string> plugin_registry::list_plugins() const {
@@ -41,12 +44,12 @@ std::vector<std::string> plugin_registry::list_plugins() const {
 
 // ── proxy_plugin_registry ──────────────────────────────────────────
 
-bool proxy_plugin_registry::register_plugin(plugin_proxy plugin) {
-    if(!plugin) return false;
+auto proxy_plugin_registry::register_plugin(plugin_proxy plugin) -> result<void> {
+    if(!plugin) return std::unexpected(silicon::error::make_error_code(silicon::error::plugin_error::kNullPlugin));
     auto name = std::string(plugin->name());
-    if(impl_->plugins_.contains(name)) return false;
+    if(impl_->plugins_.contains(name)) return std::unexpected(silicon::error::make_error_code(silicon::error::plugin_error::kDuplicate));
     impl_->plugins_.emplace(std::move(name), std::move(plugin));
-    return true;
+    return {};
 }
 
 plugin_proxy *proxy_plugin_registry::get(std::string_view name) const {
@@ -54,12 +57,12 @@ plugin_proxy *proxy_plugin_registry::get(std::string_view name) const {
     return (it != impl_->plugins_.end()) ? std::addressof(it->second) : nullptr;
 }
 
-bool proxy_plugin_registry::remove(std::string_view name) {
+auto proxy_plugin_registry::remove(std::string_view name) -> result<void> {
     auto it = impl_->plugins_.find(name);
-    if(it == impl_->plugins_.end()) return false;
+    if(it == impl_->plugins_.end()) return std::unexpected(silicon::error::make_error_code(silicon::error::plugin_error::kNotFound));
     it->second->on_unload();
     impl_->plugins_.erase(it);
-    return true;
+    return {};
 }
 
 std::vector<std::string> proxy_plugin_registry::list() const {
