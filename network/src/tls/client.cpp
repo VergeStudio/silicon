@@ -16,8 +16,10 @@ module;
 
 #    include <atomic>
 #    include <chrono>
+#    include <expected>
 #    include <iostream>
 #    include <memory>
+#    include <system_error>
 #endif
 
 module silicon.network;
@@ -27,31 +29,49 @@ module silicon.network;
 import silicon.coroutine;
 import silicon.scheduler;
 import silicon.scheduler.task;
+import silicon.error;
 
 namespace silicon::network::tls {
 using namespace std::chrono_literals;
 
-client::client(
+auto client::create(
         std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
         std::shared_ptr<context> tls_ctx,
         const network::socket_address &endpoint
-)
-    : m_scheduler(scheduler.get()),
-      m_tls_ctx(std::move(tls_ctx)),
-      m_endpoint(endpoint),
-      m_socket(
-              network::make_socket(
-                      network::socket::options{network::socket::type_t::tcp, network::socket::blocking_t::no},
-                      endpoint.domain()
-              )
-      ) {
-    if(m_scheduler == nullptr) {
-        throw std::runtime_error{"tls::client cannot have nullptr scheduler"};
+) -> network::result<client> {
+    if(scheduler == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
     }
 
-    if(m_tls_ctx == nullptr) {
-        throw std::runtime_error{"tls::client cannot have nullptr tls_ctx"};
+    if(tls_ctx == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kNullTlsContext));
     }
+
+    auto domain = endpoint.domain();
+    if(!domain) {
+        return std::unexpected(domain.error());
+    }
+
+    auto sock = network::make_socket(
+            network::socket::options{network::socket::type_t::tcp, network::socket::blocking_t::no}, *domain
+    );
+    if(!sock) {
+        return std::unexpected(sock.error());
+    }
+
+    return client{scheduler.get(), std::move(tls_ctx), endpoint, std::move(*sock)};
+}
+
+client::client(
+        silicon::scheduler::io_scheduler *scheduler,
+        std::shared_ptr<context> tls_ctx,
+        const network::socket_address &endpoint,
+        network::socket sock
+)
+    : m_scheduler(scheduler),
+      m_tls_ctx(std::move(tls_ctx)),
+      m_endpoint(endpoint),
+      m_socket(std::move(sock)) {
 }
 
 client::client(

@@ -21,11 +21,13 @@ module;
 #endif
 
 #include <cerrno>
-#include <stdexcept>
+#include <expected>
+#include <system_error>
 
 module silicon.network;
 
 import silicon.coroutine;
+import silicon.error;
 
 #ifdef _WIN32
 // Winsock uses SD_RECEIVE/SD_SEND/SD_BOTH instead of the POSIX SHUT_RD/WR/RDWR.
@@ -37,15 +39,14 @@ import silicon.coroutine;
 #endif
 
 namespace silicon::network {
-auto socket::type_to_os(type_t type) -> int {
+auto socket::type_to_os(type_t type) -> result<int> {
     switch(type) {
         case type_t::udp:
             return SOCK_DGRAM;
         case type_t::tcp:
             return SOCK_STREAM;
-        default:
-            throw std::runtime_error{"Unknown socket::type_t."};
     }
+    return std::unexpected(error::make_error_code(error::network_error::kInvalidSocketType));
 }
 
 auto socket::operator=(const socket &other) noexcept -> socket & {
@@ -120,18 +121,21 @@ auto socket::close() -> void {
     }
 }
 
-auto make_socket(const socket::options &opts, domain_t domain) -> socket {
+auto make_socket(const socket::options &opts, domain_t domain) -> result<socket> {
+    auto os_type = socket::type_to_os(opts.type);
+    if(!os_type) { return std::unexpected(os_type.error()); }
+
     // On Windows ::socket() returns a SOCKET (unsigned 64-bit); the fd-based
     // design stores it as int, so an explicit cast is required (and matches the
     // existing ISocket::native_handle() -> int contract). INVALID_SOCKET maps to -1.
-    socket s{static_cast<int>(::socket(static_cast<int>(domain), socket::type_to_os(opts.type), 0))};
+    socket s{static_cast<int>(::socket(static_cast<int>(domain), *os_type, 0))};
     if(s.native_handle() < 0) {
-        throw std::runtime_error{"Failed to create socket."};
+        return std::unexpected(error::make_error_code(error::network_error::kSocketCreateFailed));
     }
 
     if(opts.blocking == socket::blocking_t::no) {
         if(s.blocking(socket::blocking_t::no) == false) {
-            throw std::runtime_error{"Failed to set socket to non-blocking mode."};
+            return std::unexpected(error::make_error_code(error::network_error::kSetNonblockingFailed));
         }
     }
 
@@ -139,15 +143,20 @@ auto make_socket(const socket::options &opts, domain_t domain) -> socket {
 }
 
 auto make_accept_socket(const socket::options &opts, const network::socket_address &endpoint, int32_t backlog)
-        -> socket {
-    socket s = make_socket(opts, endpoint.domain());
+        -> result<socket> {
+    auto domain = endpoint.domain();
+    if(!domain) { return std::unexpected(domain.error()); }
 
-    int sock_opt{1};
+    auto created = make_socket(opts, *domain);
+    if(!created) { return std::unexpected(created.error()); }
+    socket s = std::move(*created);
+
+    [[maybe_unused]] int sock_opt{1};
 
 #if defined(__linux__)
     // On Linux the address and port should be marked for reuse.
     if(setsockopt(s.native_handle(), SOL_SOCKET, SO_REUSEADDR, &sock_opt, sizeof(sock_opt)) < 0) {
-        throw std::runtime_error{"Failed to setsockopt(SO_REUSEADDR)"};
+        return std::unexpected(error::make_error_code(error::network_error::kSetSockOptFailed));
     }
 #endif
 
@@ -155,19 +164,19 @@ auto make_accept_socket(const socket::options &opts, const network::socket_addre
     // SO_REUSEPORT is a BSD/Linux socket option; Windows has no equivalent
     // (SO_REUSEADDR already covers the port-reuse semantics there).
     if(setsockopt(s.native_handle(), SOL_SOCKET, SO_REUSEPORT, &sock_opt, static_cast<int>(sizeof(sock_opt))) < 0) {
-        throw std::runtime_error{"Failed to setsockopt(SO_REUSEPORT)"};
+        return std::unexpected(error::make_error_code(error::network_error::kSetSockOptFailed));
     }
 #endif
 
     auto [sockaddr, socklen] = endpoint.data();
 
     if(bind(s.native_handle(), sockaddr, socklen) < 0) {
-        throw std::runtime_error{"Failed to bind."};
+        return std::unexpected(error::make_error_code(error::network_error::kBindFailed));
     }
 
     if(opts.type == socket::type_t::tcp) {
         if(listen(s.native_handle(), backlog) < 0) {
-            throw std::runtime_error{"Failed to listen."};
+            return std::unexpected(error::make_error_code(error::network_error::kListenFailed));
         }
     }
 

@@ -2,26 +2,36 @@
 
 module;
 
+#include <expected>
 #include <memory>
+#include <system_error>
 
 module silicon.network;
 
 import silicon.scheduler;
+import silicon.error;
 
 namespace silicon::network::tcp {
-server::server(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint, options opts)
-    : m_scheduler(scheduler.get()),
-      m_options(std::move(opts)),
-      m_accept_socket(
-              network::make_accept_socket(
-                      network::socket::options{socket::type_t::tcp, network::socket::blocking_t::no},
-                      endpoint,
-                      m_options.backlog
-              )
-      ) {
-    if(m_scheduler == nullptr) {
-        throw std::runtime_error{"tcp::server cannot have a nullptr scheduler"};
+auto server::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint, options opts)
+        -> network::result<server> {
+    if(scheduler == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
     }
+
+    auto accept_socket = network::make_accept_socket(
+            network::socket::options{socket::type_t::tcp, network::socket::blocking_t::no}, endpoint, opts.backlog
+    );
+    if(!accept_socket) {
+        return std::unexpected(accept_socket.error());
+    }
+
+    return server{scheduler.get(), std::move(opts), std::move(*accept_socket)};
+}
+
+server::server(silicon::scheduler::io_scheduler *scheduler, options opts, network::socket accept_socket)
+    : m_scheduler(scheduler),
+      m_options(std::move(opts)),
+      m_accept_socket(std::move(accept_socket)) {
 }
 
 server::server(server &&other)

@@ -20,9 +20,11 @@ module;
 #include <array>
 #include <chrono>
 #include <coroutine>
+#include <expected>
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <system_error>
 #include <unordered_map>
 #include <vector>
 
@@ -32,6 +34,7 @@ export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
+import silicon.error;
 
 export namespace silicon::network::dns {
 
@@ -86,11 +89,23 @@ class result {
 template<silicon::coroutine::concepts::io_executor executor_type>
 class resolver {
   public:
-    explicit resolver(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout)
-        : m_executor(executor),
-          m_timeout(timeout) {
-        if(m_executor == nullptr) {
-            throw std::runtime_error{"dns resolver cannot have nullptr executor"};
+    /**
+     * Creates a c-ares backed asynchronous dns resolver.
+     *
+     * c-ares 的全局初始化与 channel 创建都可能失败，且 resolver 不可移动
+     * （sock_state_cb 持有 this 指针），因此以工厂函数返回
+     * `std::expected<std::unique_ptr<resolver>, std::error_code>`。
+     *
+     * @param executor The io executor driving the dns socket polling.
+     * @param timeout The global timeout per dns lookup request.
+     * @return 就绪的 resolver；executor 为空时返回
+     *         error::network_error::kNullExecutor，c-ares 初始化失败时返回
+     *         error::network_error::kDnsInitFailed。
+     */
+    static auto create(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout)
+            -> std::expected<std::unique_ptr<resolver>, std::error_code> {
+        if(executor == nullptr) {
+            return std::unexpected(error::make_error_code(error::network_error::kNullExecutor));
         }
 
         {
@@ -98,20 +113,25 @@ class resolver {
             if(m_ares_count == 0) {
                 auto ares_status = ares_library_init(ARES_LIB_INIT_ALL);
                 if(ares_status != ARES_SUCCESS) {
-                    throw std::runtime_error{ares_strerror(ares_status)};
+                    return std::unexpected(error::make_error_code(error::network_error::kDnsInitFailed));
                 }
             }
             ++m_ares_count;
         }
 
+        // 计数已自增，此后任何失败都必须经由 resolver 的析构回滚，故先建对象。
+        auto self = std::unique_ptr<resolver>{new resolver{executor, timeout}};
+
         ares_options options{};
         options.sock_state_cb = resolver::ares_socket_state_callback;
-        options.sock_state_cb_data = this;
+        options.sock_state_cb_data = self.get();
 
-        auto channel_init_status = ares_init_options(&m_ares_channel, &options, ARES_OPT_SOCK_STATE_CB);
+        auto channel_init_status = ares_init_options(&self->m_ares_channel, &options, ARES_OPT_SOCK_STATE_CB);
         if(channel_init_status != ARES_SUCCESS) {
-            throw std::runtime_error{ares_strerror(channel_init_status)};
+            return std::unexpected(error::make_error_code(error::network_error::kDnsInitFailed));
         }
+
+        return self;
     }
 
     resolver(const resolver &) = delete;
@@ -159,6 +179,12 @@ class resolver {
     }
 
   private:
+    /// create() 专用：所有可失败的前置校验都已在工厂中完成。
+    resolver(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout)
+        : m_executor(executor),
+          m_timeout(timeout) {
+    }
+
     /// The executor to drive the events for dns lookups.
     std::unique_ptr<executor_type> &m_executor;
 
@@ -238,26 +264,32 @@ class resolver {
             result.m_status = status::kComplete;
 
             for(ares_addrinfo_node *node = addr_info->nodes; node != nullptr; node = node->ai_next) {
+                // from_binary 只在长度越界时失败；这里长度由地址族固定给出，
+                // 理论上不会失败，失败时跳过该条目而不是中断整个解析结果。
                 if(node->ai_family == AF_INET) {
                     sockaddr_in *sin = reinterpret_cast<sockaddr_in *>(node->ai_addr);
-                    network::ip_address ip_addr{
+                    auto ip_addr = network::ip_address::from_binary(
                             std::span<const uint8_t>{
                                     reinterpret_cast<const uint8_t *>(&sin->sin_addr), network::ip_address::ipv4_len
                             },
                             static_cast<network::domain_t>(AF_INET)
-                    };
+                    );
 
-                    result.m_ip_addresses.emplace_back(std::move(ip_addr));
+                    if(ip_addr) {
+                        result.m_ip_addresses.emplace_back(std::move(*ip_addr));
+                    }
                 } else if(node->ai_family == AF_INET6) {
                     sockaddr_in6 *sin6 = reinterpret_cast<sockaddr_in6 *>(node->ai_addr);
-                    network::ip_address ip_addr{
+                    auto ip_addr = network::ip_address::from_binary(
                             std::span<const uint8_t>{
                                     reinterpret_cast<const uint8_t *>(&sin6->sin6_addr), network::ip_address::ipv6_len
                             },
                             static_cast<network::domain_t>(AF_INET6)
-                    };
+                    );
 
-                    result.m_ip_addresses.emplace_back(std::move(ip_addr));
+                    if(ip_addr) {
+                        result.m_ip_addresses.emplace_back(std::move(*ip_addr));
+                    }
                 }
             }
 

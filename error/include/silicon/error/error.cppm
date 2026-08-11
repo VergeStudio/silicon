@@ -5,7 +5,10 @@
 ///   - 所有可失败 API 统一返回 `std::expected<T, std::error_code>`；
 ///   - POSIX errno 类错误直接 `silicon::error::system_error(errno)`（generic_category）；
 ///   - 模块特有语义错误用本模块定义的 `xxx_error` 枚举 + make_error_code（专属 category）；
-///   - 构造函数/析构/operator 重载等无法返回 expected 的点保留异常（见各模块说明）。
+///   - 构造函数无法返回 expected，凡构造过程可失败的类型一律改为
+///     「私有构造 + 静态 create() 工厂」，由 create() 返回 expected；
+///   - operator 重载等既不能返回 expected 也无法工厂化的点，退化为安全默认值
+///     （如 operator== 返回 false、operator<< 输出错误描述），不再抛异常。
 ///   - 本模块无任何依赖（仅标准库），是所有模块的错误码单一来源。
 
 module;
@@ -58,14 +61,53 @@ enum class network_error {
     kPollingError,
     kTimeout,
     kInvalidIpAddress,
+    // 参数校验（create() 工厂）
+    kNullScheduler,
+    kNullExecutor,
+    kNullTlsContext,
+    // socket 操作
+    kSocketCreateFailed,
+    kSetNonblockingFailed,
+    kSetSockOptFailed,
+    kBindFailed,
+    kListenFailed,
+    kInvalidSocketType,
+    kInvalidDomain,
+    kInvalidConnectStatus,
+    // tls
+    kTlsContextInitFailed,
+    kTlsCertificateLoadFailed,
+    kTlsPrivateKeyLoadFailed,
+    kTlsKeyMismatch,
+    // dns
+    kDnsInitFailed,
     kUnknown,
 };
 
-// coroutine（channel / queue / ring_buffer 共享）
+// coroutine::channel / queue / ring_buffer
 enum class channel_error {
     kClosed = 1,
     kTimeout,
     kCancelled,
+};
+
+// coroutine（同步原语与协程池）
+enum class coroutine_error {
+    kNullExecutor = 1,
+    kInvalidPoolSize,
+    kAlreadyUnlocked,
+    kUnknown,
+};
+
+// scheduler（执行器 / IO 通知器 / 线程池）
+enum class scheduler_error {
+    kShuttingDown = 1,
+    kResultNotSet,
+    kInvalidNotifierState,
+    kPipeCreateFailed,
+    kEventRegisterFailed,
+    kNullExecutor,
+    kUnknown,
 };
 
 // di（依赖注入容器）
@@ -75,6 +117,14 @@ enum class di_error {
     kCircularDependency,
     kInvalidType,
     kAlreadyInitialized,
+    kTypeNotFound,
+    kTypeAmbiguous,
+    kTypeNotConvertible,
+    kTypeRecursion,
+    kTypeAlreadyRegistered,
+    kTypeIndexAlreadyRegistered,
+    kCollectionTypeNotFound,
+    kIndexOutOfRange,
     kUnknown,
 };
 
@@ -140,6 +190,8 @@ enum class tui_error {
 [[nodiscard]] const std::error_category &fs_category() noexcept;
 [[nodiscard]] const std::error_category &network_category() noexcept;
 [[nodiscard]] const std::error_category &channel_category() noexcept;
+[[nodiscard]] const std::error_category &coroutine_category() noexcept;
+[[nodiscard]] const std::error_category &scheduler_category() noexcept;
 [[nodiscard]] const std::error_category &di_category() noexcept;
 [[nodiscard]] const std::error_category &http_category() noexcept;
 [[nodiscard]] const std::error_category &llm_category() noexcept;
@@ -155,6 +207,8 @@ enum class tui_error {
 [[nodiscard]] std::error_code make_error_code(fs_error e) noexcept;
 [[nodiscard]] std::error_code make_error_code(network_error e) noexcept;
 [[nodiscard]] std::error_code make_error_code(channel_error e) noexcept;
+[[nodiscard]] std::error_code make_error_code(coroutine_error e) noexcept;
+[[nodiscard]] std::error_code make_error_code(scheduler_error e) noexcept;
 [[nodiscard]] std::error_code make_error_code(di_error e) noexcept;
 [[nodiscard]] std::error_code make_error_code(http_error e) noexcept;
 [[nodiscard]] std::error_code make_error_code(llm_error e) noexcept;

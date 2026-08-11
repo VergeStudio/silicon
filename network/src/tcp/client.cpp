@@ -11,27 +11,46 @@ module;
 #endif
 
 #include <chrono>
+#include <expected>
 #include <iostream>
 #include <memory>
+#include <system_error>
 
 module silicon.network;
 
 import silicon.coroutine;
 import silicon.scheduler;
 import silicon.scheduler.task;
+import silicon.error;
 
 namespace silicon::network::tcp {
 using namespace std::chrono_literals;
 
-client::client(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
-    : m_scheduler(scheduler.get()),
-      m_endpoint(std::move(endpoint)),
-      m_socket(
-              network::make_socket(network::socket::options{socket::type_t::tcp, network::socket::blocking_t::no}, endpoint.domain())
-      ) {
-    if(m_scheduler == nullptr) {
-        throw std::runtime_error{"tcp::client cannot have nullptr scheduler"};
+auto client::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
+        -> network::result<client> {
+    if(scheduler == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
     }
+
+    auto domain = endpoint.domain();
+    if(!domain) {
+        return std::unexpected(domain.error());
+    }
+
+    auto sock = network::make_socket(
+            network::socket::options{socket::type_t::tcp, network::socket::blocking_t::no}, *domain
+    );
+    if(!sock) {
+        return std::unexpected(sock.error());
+    }
+
+    return client{scheduler.get(), std::move(endpoint), std::move(*sock)};
+}
+
+client::client(silicon::scheduler::io_scheduler *scheduler, network::socket_address endpoint, network::socket sock)
+    : m_scheduler(scheduler),
+      m_endpoint(std::move(endpoint)),
+      m_socket(std::move(sock)) {
 }
 
 client::client(silicon::scheduler::io_scheduler *scheduler, network::socket socket, const network::socket_address &endpoint)

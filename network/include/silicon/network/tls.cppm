@@ -34,6 +34,7 @@ export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
+import silicon.error;
 
 #ifdef SILICON_FEATURE_TLS
 
@@ -127,9 +128,15 @@ class context {
   public:
     /**
      * Creates a context with no certificate and no private key, maybe useful for testing.
+     *
+     * OpenSSL 上下文分配可能失败，因此以工厂函数返回 expected 而非抛异常。
+     * 需要共享所有权（tls::client / tls::server 接收 shared_ptr<context>）时，
+     * 将返回值移入 shared_ptr：`std::make_shared<context>(std::move(*ctx))`。
+     *
      * @param verify_peer Should the peer be verified? Defaults to true.
+     * @return 就绪的 context；分配失败时返回 error::network_error::kTlsContextInitFailed。
      */
-    explicit context(verify_peer_t verify_peer = verify_peer_t::kYes);
+    static auto create(verify_peer_t verify_peer = verify_peer_t::kYes) -> network::result<context>;
 
     /**
      * Creates a context with the given certificate and the given private key.
@@ -137,18 +144,35 @@ class context {
      * @param certificate_type See `tls_file_type`.
      * @param private_key The location of the private key file.
      * @param private_key_type See `tls_file_type`.
-     * @param verify_perr Should the peer be verified? Defaults to true.
+     * @param verify_peer Should the peer be verified? Defaults to true.
+     * @return 就绪的 context；证书 / 私钥加载失败或二者不匹配时分别返回
+     *         kTlsCertificateLoadFailed / kTlsPrivateKeyLoadFailed / kTlsKeyMismatch。
      */
-    context(
+    static auto create(
             std::filesystem::path certificate,
             tls_file_type certificate_type,
             std::filesystem::path private_key,
             tls_file_type private_key_type,
             verify_peer_t verify_peer = verify_peer_t::kYes
-    );
+    ) -> network::result<context>;
+
+    /// 独占持有 SSL_CTX*，只可移动不可拷贝（拷贝会导致重复 SSL_CTX_free）。
+    context(const context &) = delete;
+    auto operator=(const context &) -> context & = delete;
+    context(context &&other) noexcept: m_ssl_ctx(std::exchange(other.m_ssl_ctx, nullptr)) {}
+    auto operator=(context &&other) noexcept -> context & {
+        if(std::addressof(other) != this) {
+            if(m_ssl_ctx != nullptr) { SSL_CTX_free(m_ssl_ctx); }
+            m_ssl_ctx = std::exchange(other.m_ssl_ctx, nullptr);
+        }
+        return *this;
+    }
     ~context();
 
   private:
+    /// create() 专用：接管一个已初始化完成的 SSL_CTX*。
+    explicit context(SSL_CTX *ssl_ctx) noexcept: m_ssl_ctx(ssl_ctx) {}
+
     SSL_CTX *m_ssl_ctx{nullptr};
 
     /// The following classes use the underlying SSL_CTX* object for performing SSL functions.
@@ -196,15 +220,22 @@ class client final: public i_tls_client {
      * Creates a new tls client that can connect to an ip address + port. By default, the socket
      * created will be in non-blocking mode, meaning that any sending or receiving of data should
      * be polled for event readiness prior.
+     *
+     * 构造过程可能失败（空 scheduler / 空 tls_ctx / 套接字创建失败），因此以工厂函数
+     * 返回 expected 而非抛异常。
+     *
      * @param scheduler The io scheduler to drive the tls client.
      * @param tls_ctx The tls context.
-     * @param opts See tls::client::options for more information.
+     * @param endpoint The remote address this client will connect to.
+     * @return 就绪的 client；分别在空 scheduler / 空 tls_ctx 时返回
+     *         error::network_error::kNullScheduler / kNullTlsContext。
      */
-    explicit client(
+    static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
             std::shared_ptr<context> tls_ctx,
             const network::socket_address &endpoint
-    );
+    ) -> network::result<client>;
+
     client(const client &) = delete;
     client(client &&other) noexcept;
     auto operator=(const client &) noexcept -> client & = delete;
@@ -484,6 +515,10 @@ class client final: public i_tls_client {
     friend server;
     client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context> tls_ctx, network::socket socket, const network::socket_address &endpoint);
 
+    /// create() 专用：所有可失败的前置校验都已在工厂中完成（注意与上面 server 侧
+    /// 构造的形参顺序不同：此处为 endpoint 在前、socket 在后，且不预置 connect 状态）。
+    client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context> tls_ctx, const network::socket_address &endpoint, network::socket sock);
+
     /// The scheduler that will drive this tcp client.
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     // The tls context.
@@ -509,14 +544,21 @@ class server final: public i_tls_server {
         int32_t backlog{128};
     };
 
-    explicit server(
+    /**
+     * Creates a listening tls server bound to the given endpoint.
+     *
+     * @return 就绪的 server；分别在空 scheduler / 空 tls_ctx 时返回
+     *         error::network_error::kNullScheduler / kNullTlsContext；
+     *         bind/listen 失败时返回 kBindFailed / kListenFailed。
+     */
+    static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
             std::shared_ptr<context> tls_ctx,
             const network::socket_address &endpoint,
             options opts = options{
                     .backlog = 128,
             }
-    );
+    ) -> network::result<server>;
 
     server(const server &) = delete;
     server(server &&other);
@@ -556,6 +598,9 @@ class server final: public i_tls_server {
     }
 
   private:
+    /// create() 专用：所有可失败的前置校验都已在工厂中完成。
+    server(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context> tls_ctx, options opts, network::socket accept_socket);
+
     /// The io scheduler for awaiting new connections.
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     // The tls context.

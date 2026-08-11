@@ -24,6 +24,7 @@ export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
+import silicon.error;
 
 export namespace silicon::network::udp {
 
@@ -46,13 +47,25 @@ class peer final: public i_udp_peer {
     /**
      * Creates a udp peer that can send packets but not receive them.  This udp peer will not explicitly
      * bind to a local ip+port.
+     *
+     * @return 就绪的 peer；scheduler 为空时返回 error::network_error::kNullScheduler，
+     *         套接字创建失败时返回相应错误码。
      */
-    explicit peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::domain_t domain = network::domain_t::kIpv4);
+    static auto create(
+            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
+            network::domain_t domain = network::domain_t::kIpv4
+    ) -> network::result<peer>;
 
     /**
      * Creates a udp peer that can send and receive packets.  This peer will bind to the given ip_port.
+     *
+     * @return 就绪并已 bind 的 peer；scheduler 为空时返回
+     *         error::network_error::kNullScheduler，bind 失败时返回 kBindFailed。
      */
-    explicit peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint);
+    static auto create(
+            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
+            const network::socket_address &endpoint
+    ) -> network::result<peer>;
 
     peer(const peer &) noexcept;
     peer(peer &&) noexcept;
@@ -223,6 +236,9 @@ class peer final: public i_udp_peer {
     }
 
   private:
+    /// create() 专用：所有可失败的前置校验都已在工厂中完成。
+    peer(silicon::scheduler::io_scheduler *scheduler, network::socket sock, bool bound);
+
     /// The scheduler that will drive this udp client.
     silicon::scheduler::io_scheduler *m_scheduler;
     /// The udp socket.

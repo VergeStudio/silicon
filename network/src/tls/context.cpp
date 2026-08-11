@@ -6,19 +6,24 @@ module;
 #    include <openssl/err.h>
 #    include <openssl/ssl.h>
 
+#    include <expected>
 #    include <filesystem>
 #    include <mutex>
+#    include <system_error>
+#    include <utility>
 #endif
 
 module silicon.network;
 
 #ifdef SILICON_FEATURE_TLS
 
+import silicon.error;
+
 namespace silicon::network::tls {
 static uint64_t g_tls_context_count{0};
 static std::mutex g_tls_context_mutex{};
 
-context::context(verify_peer_t verify_peer) {
+auto context::create(verify_peer_t verify_peer) -> network::result<context> {
     {
         std::scoped_lock g{g_tls_context_mutex};
         if(g_tls_context_count == 0) {
@@ -32,45 +37,58 @@ context::context(verify_peer_t verify_peer) {
     }
 
 #    if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x10100000L
-    m_ssl_ctx = SSL_CTX_new(TLS_method());
+    auto *ssl_ctx = SSL_CTX_new(TLS_method());
 #    else
-    m_ssl_ctx = SSL_CTX_new(SSLv23_method());
+    auto *ssl_ctx = SSL_CTX_new(SSLv23_method());
 #    endif
-    if(m_ssl_ctx == nullptr) {
-        throw std::runtime_error{"Failed to initialize OpenSSL Context object."};
+    if(ssl_ctx == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kTlsContextInitFailed));
     }
+
+    // 立即接管所有权：后续任何失败路径都由 context 的析构负责 SSL_CTX_free。
+    context ctx{ssl_ctx};
 
     // Disable SSLv3
-    SSL_CTX_set_options(m_ssl_ctx, SSL_OP_ALL | SSL_OP_NO_SSLv3);
+    SSL_CTX_set_options(ssl_ctx, SSL_OP_ALL | SSL_OP_NO_SSLv3);
     // Abort handshake if certificate verification fails.
     if(verify_peer == verify_peer_t::kYes) {
-        SSL_CTX_set_verify(m_ssl_ctx, SSL_VERIFY_PEER, NULL);
+        SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_PEER, NULL);
     }
     // Set the minimum TLS version, as of this TLSv1.1 or earlier are deprecated.
-    SSL_CTX_set_min_proto_version(m_ssl_ctx, TLS1_2_VERSION);
+    SSL_CTX_set_min_proto_version(ssl_ctx, TLS1_2_VERSION);
+
+    return ctx;
 }
 
-context::context(
+auto context::create(
         std::filesystem::path certificate,
         tls_file_type certificate_type,
         std::filesystem::path private_key,
         tls_file_type private_key_type,
         verify_peer_t verify_peer
-)
-    : context(verify_peer) {
-    if(auto r = SSL_CTX_use_certificate_file(m_ssl_ctx, certificate.c_str(), static_cast<int>(certificate_type));
-       r != 1) {
-        throw std::runtime_error{"Failed to load certificate file " + certificate.string()};
+) -> network::result<context> {
+    auto ctx = create(verify_peer);
+    if(!ctx) {
+        return ctx;
     }
 
-    if(auto r = SSL_CTX_use_PrivateKey_file(m_ssl_ctx, private_key.c_str(), static_cast<int>(private_key_type));
+    auto *ssl_ctx = ctx->m_ssl_ctx;
+
+    if(auto r = SSL_CTX_use_certificate_file(ssl_ctx, certificate.c_str(), static_cast<int>(certificate_type));
        r != 1) {
-        throw std::runtime_error{"Failed to load private key file " + private_key.string()};
+        return std::unexpected(error::make_error_code(error::network_error::kTlsCertificateLoadFailed));
     }
 
-    if(auto r = SSL_CTX_check_private_key(m_ssl_ctx); r != 1) {
-        throw std::runtime_error{"Certificate and private key do not match."};
+    if(auto r = SSL_CTX_use_PrivateKey_file(ssl_ctx, private_key.c_str(), static_cast<int>(private_key_type));
+       r != 1) {
+        return std::unexpected(error::make_error_code(error::network_error::kTlsPrivateKeyLoadFailed));
     }
+
+    if(auto r = SSL_CTX_check_private_key(ssl_ctx); r != 1) {
+        return std::unexpected(error::make_error_code(error::network_error::kTlsKeyMismatch));
+    }
+
+    return ctx;
 }
 
 context::~context() {

@@ -28,6 +28,7 @@ export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
+import silicon.error;
 
 export namespace silicon::network::tcp {
 
@@ -77,10 +78,18 @@ class client final: public ITcpClient {
   public:
     /**
      * Creates a new tcp client that can connect to an ip address + port.
+     *
+     * 构造过程可能失败（空 scheduler / 套接字创建失败），因此以工厂函数返回
+     * expected 而非抛异常。
+     *
      * @param scheduler The io scheduler to drive the tcp client.
-     * @param opts See client::options for more information.
+     * @param endpoint The remote address this client will connect to.
+     * @return 就绪的 client；scheduler 为空时返回 error::network_error::kNullScheduler，
+     *         endpoint 地址族非法或套接字创建失败时返回相应错误码。
      */
-    explicit client(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint);
+    static auto create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
+            -> network::result<client>;
+
     client(const client &other);
     client(client &&other) noexcept;
     auto operator=(const client &other) noexcept -> client &;
@@ -447,6 +456,9 @@ class client final: public ITcpClient {
     friend server;
     client(silicon::scheduler::io_scheduler *scheduler, network::socket socket, const network::socket_address &endpoint);
 
+    /// create() 专用：所有可失败的前置校验都已在工厂中完成。
+    client(silicon::scheduler::io_scheduler *scheduler, network::socket_address endpoint, network::socket sock);
+
     /// The scheduler that will drive this tcp client.
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     /// Options for what server to connect to.
@@ -482,13 +494,22 @@ class server final: public ITcpServer {
         int32_t backlog{128};
     };
 
-    explicit server(
+    /**
+     * Creates a listening tcp server bound to the given endpoint.
+     *
+     * 构造过程可能失败（空 scheduler / bind / listen 失败），因此以工厂函数返回
+     * expected 而非抛异常。
+     *
+     * @return 就绪的 server；scheduler 为空时返回 error::network_error::kNullScheduler，
+     *         bind/listen 失败时返回 kBindFailed / kListenFailed 等错误码。
+     */
+    static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
             const network::socket_address &endpoint,
             options opts = options{
                     .backlog = 128,
             }
-    );
+    ) -> network::result<server>;
 
     server(const server &) = delete;
     server(server &&other);
@@ -567,6 +588,10 @@ class server final: public ITcpServer {
 
   private:
     friend client;
+
+    /// create() 专用：所有可失败的前置校验都已在工厂中完成。
+    server(silicon::scheduler::io_scheduler *scheduler, options opts, network::socket accept_socket);
+
     /// The io scheduler for awaiting new connections.
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     /// The bind and listen options for this server.

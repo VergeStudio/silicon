@@ -28,18 +28,28 @@ module;
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <expected>
 #include <iostream>
 #include <memory>
 #include <span>
-#include <stdexcept>
 #include <string>
+#include <string_view>
+#include <system_error>
 #include <utility>
 
 export module silicon.network:core;
 
 export import silicon.coroutine;
 
+import silicon.error;
+
 export namespace silicon::network {
+
+/// 统一错误返回类型：std::expected<T, std::error_code> 的别名。
+/// 错误码来源：silicon::error::network_error 枚举（make_error_code）或
+/// silicon::error::system_error(errno)（POSIX errno / WSA 语义）。
+template<typename T>
+using result = std::expected<T, std::error_code>;
 
 enum class connect_status {
     /// The connection has been established.
@@ -54,9 +64,10 @@ enum class connect_status {
 
 /**
  * @param status String representation of the connection status.
- * @throw std::logic_error If provided an invalid connect_status enum value.
+ * @return 字符串视图（指向静态存储）；枚举值非法时返回
+ *         error::network_error::kInvalidConnectStatus。
  */
-auto to_string(const connect_status &status) -> const std::string &;
+auto to_string(const connect_status &status) -> result<std::string_view>;
 
 class hostname {
     struct Impl {
@@ -182,7 +193,9 @@ enum class domain_t : int {
     kIpv6 = AF_INET6
 };
 
-auto to_string(domain_t domain) -> const std::string &;
+/// @return 字符串视图（指向静态存储）；枚举值非法时返回
+///         error::network_error::kInvalidDomain。
+auto to_string(domain_t domain) -> result<std::string_view>;
 
 class ip_address {
   public:
@@ -190,16 +203,24 @@ class ip_address {
     static const constexpr size_t ipv6_len{16};
 
     ip_address() = default;
-    ip_address(std::span<const uint8_t> binary_address, domain_t domain = domain_t::kIpv4): m_p(std::make_shared<Impl>()) {
-        m_p->m_domain = domain;
-        if(m_p->m_domain == domain_t::kIpv4 && binary_address.size() > ipv4_len) {
-            throw std::runtime_error{"silicon::network::ip_address provided binary ip address is too long"};
-        } else if(binary_address.size() > ipv6_len) {
-            throw std::runtime_error{"silicon::network::ip_address provided binary ip address is too long"};
+
+    /// 由二进制地址构造。长度超出对应域上限时返回
+    /// error::network_error::kInvalidIpAddress。
+    static auto from_binary(std::span<const uint8_t> binary_address,
+                            domain_t domain = domain_t::kIpv4) -> result<ip_address> {
+        if(domain == domain_t::kIpv4 && binary_address.size() > ipv4_len) {
+            return std::unexpected(error::make_error_code(error::network_error::kInvalidIpAddress));
+        }
+        if(binary_address.size() > ipv6_len) {
+            return std::unexpected(error::make_error_code(error::network_error::kInvalidIpAddress));
         }
 
-        std::copy(binary_address.begin(), binary_address.end(), m_p->m_data.begin());
+        ip_address addr{};
+        addr.m_p->m_domain = domain;
+        std::copy(binary_address.begin(), binary_address.end(), addr.m_p->m_data.begin());
+        return addr;
     }
+
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
     ip_address(const ip_address &o): m_p(std::make_shared<Impl>(*o.m_p)) {}
     ip_address(ip_address &&) noexcept = default;
@@ -219,19 +240,22 @@ class ip_address {
         }
     }
 
-    static auto from_string(std::string_view address, domain_t domain = domain_t::kIpv4) -> ip_address {
+    /// 解析点分/冒号十六进制文本地址。解析失败返回
+    /// error::network_error::kInvalidIpAddress。
+    static auto from_string(std::string_view address, domain_t domain = domain_t::kIpv4) -> result<ip_address> {
         ip_address addr{};
         addr.m_p->m_domain = domain;
 
         auto success = inet_pton(static_cast<int>(addr.m_p->m_domain), address.data(), addr.m_p->m_data.data());
         if(success != 1) {
-            throw std::runtime_error{"silicon::network::ip_address faild to convert from string"};
+            return std::unexpected(error::make_error_code(error::network_error::kInvalidIpAddress));
         }
 
         return addr;
     }
 
-    auto to_string() const -> std::string {
+    /// 转为文本表示。转换失败返回 error::system_error(errno)。
+    auto to_string() const -> result<std::string> {
         std::string output;
         if(m_p->m_domain == domain_t::kIpv4) {
             output.resize(INET_ADDRSTRLEN, '\0');
@@ -240,13 +264,12 @@ class ip_address {
         }
 
         auto success = inet_ntop(static_cast<int>(m_p->m_domain), m_p->m_data.data(), output.data(), output.length());
-        if(success != nullptr) {
-            auto len = strnlen(success, output.length());
-            output.resize(len);
-        } else {
-            throw std::runtime_error{"silicon::network::ip_address failed to convert to string representation"};
+        if(success == nullptr) {
+            return std::unexpected(error::system_error(errno));
         }
 
+        auto len = strnlen(success, output.length());
+        output.resize(len);
         return output;
     }
 
@@ -315,8 +338,13 @@ class socket_address {
     std::shared_ptr<Impl> m_p{std::make_shared<Impl>()};
 
   public:
-    socket_address(std::string_view ip, std::uint16_t port, domain_t domain = domain_t::kIpv4)
-        : socket_address(ip_address::from_string(ip, domain), port) {
+    /// 由文本 ip + 端口构造。文本解析失败时返回
+    /// error::network_error::kInvalidIpAddress。
+    static auto create(std::string_view ip, std::uint16_t port,
+                       domain_t domain = domain_t::kIpv4) -> result<socket_address> {
+        auto addr = ip_address::from_string(ip, domain);
+        if(!addr) { return std::unexpected(addr.error()); }
+        return socket_address{*addr, port};
     }
 
     socket_address(const ip_address &ip, std::uint16_t port) {
@@ -386,58 +414,61 @@ class socket_address {
 
     /**
      * @brief Extracts the ip_address from the endpoint.
-     * @return An ip_address object
-     * @throws std::runtime_error If the address family is not supported
+     * @return ip_address；地址族不受支持时返回 error::network_error::kInvalidDomain。
      */
-    [[nodiscard]] auto ip() const -> ip_address {
-        if(domain() == domain_t::kIpv4) {
+    [[nodiscard]] auto ip() const -> result<ip_address> {
+        if(m_p->m_storage.ss_family == AF_INET) {
             auto *sin = reinterpret_cast<const sockaddr_in *>(&m_p->m_storage);
-            return ip_address{
+            return ip_address::from_binary(
                     {reinterpret_cast<const uint8_t *>(&sin->sin_addr), sizeof(sin->sin_addr)}, domain_t::kIpv4
-            };
+            );
         }
-        if(domain() == domain_t::kIpv6) {
+        if(m_p->m_storage.ss_family == AF_INET6) {
             auto *sin6 = reinterpret_cast<const sockaddr_in6 *>(&m_p->m_storage);
-            return ip_address{
+            return ip_address::from_binary(
                     {reinterpret_cast<const uint8_t *>(&sin6->sin6_addr), sizeof(sin6->sin6_addr)}, domain_t::kIpv6
-            };
+            );
         }
-        throw std::runtime_error{"silicon::network::socket_address::ip() Invalid domain"};
+        return std::unexpected(error::make_error_code(error::network_error::kInvalidDomain));
     }
 
     /**
      * @brief Extracts the address family from the endpoint.
-     * @return An domain_t object
-     * @throws std::runtime_error If the address family is not supported
+     * @return domain_t；地址族不受支持时返回 error::network_error::kInvalidDomain。
      */
-    [[nodiscard]] auto domain() const -> domain_t {
+    [[nodiscard]] auto domain() const -> result<domain_t> {
         if(m_p->m_storage.ss_family == AF_INET) {
             return domain_t::kIpv4;
         }
         if(m_p->m_storage.ss_family == AF_INET6) {
             return domain_t::kIpv6;
         }
-        throw std::runtime_error{"silicon::network::socket_address::domain() Invalid domain"};
+        return std::unexpected(error::make_error_code(error::network_error::kInvalidDomain));
     }
 
     /**
      * @brief Extracts the the port from the endpoint.
-     * @return The port number in host byte order.
-     * @throws std::runtime_error If the address family is not supported
+     * @return 主机字节序端口号；地址族不受支持时返回 error::network_error::kInvalidDomain。
      */
-    [[nodiscard]] auto port() const -> std::uint16_t {
+    [[nodiscard]] auto port() const -> result<std::uint16_t> {
         if(m_p->m_storage.ss_family == AF_INET) {
             return ntohs(reinterpret_cast<const sockaddr_in *>(&m_p->m_storage)->sin_port);
         }
         if(m_p->m_storage.ss_family == AF_INET6) {
             return ntohs(reinterpret_cast<const sockaddr_in6 *>(&m_p->m_storage)->sin6_port);
         }
-        throw std::runtime_error{"silicon::network::socket_address::port() Invalid domain"};
+        return std::unexpected(error::make_error_code(error::network_error::kInvalidDomain));
     }
 
+    /// 相等比较。任一端地址族非法时视为不相等（运算符无法返回 expected）。
     auto operator==(const socket_address &other) const -> bool {
-        return m_p->m_len == other.m_p->m_len && domain() == other.domain() && port() == other.port() &&
-               ip() == other.ip();
+        if(m_p->m_len != other.m_p->m_len) { return false; }
+        auto d = domain(), od = other.domain();
+        if(!d || !od || *d != *od) { return false; }
+        auto p = port(), op = other.port();
+        if(!p || !op || *p != *op) { return false; }
+        auto a = ip(), oa = other.ip();
+        return a && oa && *a == *oa;
     }
 
     /**
@@ -445,15 +476,26 @@ class socket_address {
      */
     static auto make_uninitialised() -> socket_address { return socket_address{}; }
 
-    auto to_string() const -> std::string { return ip().to_string() + ":" + std::to_string(port()); }
+    /// 转为 "ip:port" 文本。地址族非法或 ip 转换失败时返回对应错误码。
+    auto to_string() const -> result<std::string> {
+        auto addr = ip();
+        if(!addr) { return std::unexpected(addr.error()); }
+        auto text = addr->to_string();
+        if(!text) { return std::unexpected(text.error()); }
+        auto p = port();
+        if(!p) { return std::unexpected(p.error()); }
+        return *text + ":" + std::to_string(*p);
+    }
 
   private:
     // It's private to avoid default empty initialisation and to make use more explicit make_uninitialised
     socket_address() = default;
 };
 
+/// 流输出。地址族非法时输出错误描述而非抛异常。
 inline auto operator<<(std::ostream &os, const socket_address &ep) -> std::ostream & {
-    return os << ep.to_string();
+    auto text = ep.to_string();
+    return os << (text ? *text : std::string{"<invalid socket_address: "} + text.error().message() + ">");
 }
 
 class socket final: public ISocket {
@@ -479,7 +521,9 @@ class socket final: public ISocket {
         blocking_t blocking;
     };
 
-    static auto type_to_os(type_t type) -> int;
+    /// 映射为操作系统 socket 类型常量；枚举非法时返回
+    /// error::network_error::kInvalidSocketType。
+    static auto type_to_os(type_t type) -> result<int>;
 
     socket() = default;
     explicit socket(int fd): m_fd(fd) {}
@@ -566,7 +610,7 @@ class socket final: public ISocket {
  * @param opts See socket::options for more details.
  * TODO: docs
  */
-auto make_socket(const socket::options &opts, domain_t) -> socket;
+auto make_socket(const socket::options &opts, domain_t) -> result<socket>;
 
 /**
  * Creates a socket that can accept connections or packets with the given socket options, address,
@@ -579,6 +623,7 @@ auto make_socket(const socket::options &opts, domain_t) -> socket;
  *                for udp types.
  * TODO: docs
  */
-auto make_accept_socket(const socket::options &opts, const network::socket_address &endpoint, int32_t backlog) -> socket;
+auto make_accept_socket(const socket::options &opts, const network::socket_address &endpoint,
+                        int32_t backlog) -> result<socket>;
 
 } // namespace silicon::network

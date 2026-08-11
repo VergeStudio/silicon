@@ -2,34 +2,52 @@
 
 module;
 
+#include <expected>
 #include <memory>
+#include <system_error>
 
 module silicon.network;
 
 import silicon.scheduler;
+import silicon.error;
 
 namespace silicon::network::udp {
-peer::peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::domain_t domain)
-    : m_scheduler(scheduler.get()),
-      m_socket(network::make_socket(network::socket::options{network::socket::type_t::udp, network::socket::blocking_t::no}, domain)) {
-    if(m_scheduler == nullptr) {
-        throw std::runtime_error("udp::peer cannot have nullptr scheduler");
+auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::domain_t domain)
+        -> network::result<peer> {
+    if(scheduler == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
     }
+
+    auto sock = network::make_socket(
+            network::socket::options{network::socket::type_t::udp, network::socket::blocking_t::no}, domain
+    );
+    if(!sock) {
+        return std::unexpected(sock.error());
+    }
+
+    return peer{scheduler.get(), std::move(*sock), false};
 }
 
-peer::peer(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint)
-    : m_scheduler(scheduler.get()),
-      m_socket(
-              network::make_accept_socket(
-                      network::socket::options{network::socket::type_t::udp, network::socket::blocking_t::no},
-                      endpoint,
-                      32
-              )
-      ),
-      m_bound(true) {
-    if(m_scheduler == nullptr) {
-        throw std::runtime_error("udp::peer cannot have nullptr scheduler");
+auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint)
+        -> network::result<peer> {
+    if(scheduler == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
     }
+
+    auto sock = network::make_accept_socket(
+            network::socket::options{network::socket::type_t::udp, network::socket::blocking_t::no}, endpoint, 32
+    );
+    if(!sock) {
+        return std::unexpected(sock.error());
+    }
+
+    return peer{scheduler.get(), std::move(*sock), true};
+}
+
+peer::peer(silicon::scheduler::io_scheduler *scheduler, network::socket sock, bool bound)
+    : m_scheduler(scheduler),
+      m_socket(std::move(sock)),
+      m_bound(bound) {
 }
 
 peer::peer(peer &&other) noexcept

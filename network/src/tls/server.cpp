@@ -3,8 +3,10 @@
 module;
 
 #ifdef SILICON_FEATURE_TLS
-#    include <memory>
 #    include <chrono>
+#    include <expected>
+#    include <memory>
+#    include <system_error>
 #endif
 
 module silicon.network;
@@ -13,31 +15,45 @@ module silicon.network;
 
 import silicon.scheduler;
 import silicon.scheduler.task;
+import silicon.error;
 
 namespace silicon::network::tls {
-server::server(
+auto server::create(
         std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
         std::shared_ptr<context> tls_ctx,
         const network::socket_address &endpoint,
         options opts
-)
-    : m_scheduler(scheduler.get()),
-      m_tls_ctx(std::move(tls_ctx)),
-      m_options(std::move(opts)),
-      m_accept_socket(
-              network::make_accept_socket(
-                      network::socket::options{network::socket::type_t::tcp, network::socket::blocking_t::no},
-                      endpoint,
-                      m_options.backlog
-              )
-      ) {
-    if(m_scheduler == nullptr) {
-        throw std::runtime_error{"tls::server cannot have a nullptr scheduler"};
+) -> network::result<server> {
+    if(scheduler == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
     }
 
-    if(m_tls_ctx == nullptr) {
-        throw std::runtime_error{"tls::server cannot have a nullptr tls_ctx"};
+    if(tls_ctx == nullptr) {
+        return std::unexpected(error::make_error_code(error::network_error::kNullTlsContext));
     }
+
+    auto accept_socket = network::make_accept_socket(
+            network::socket::options{network::socket::type_t::tcp, network::socket::blocking_t::no},
+            endpoint,
+            opts.backlog
+    );
+    if(!accept_socket) {
+        return std::unexpected(accept_socket.error());
+    }
+
+    return server{scheduler.get(), std::move(tls_ctx), std::move(opts), std::move(*accept_socket)};
+}
+
+server::server(
+        silicon::scheduler::io_scheduler *scheduler,
+        std::shared_ptr<context> tls_ctx,
+        options opts,
+        network::socket accept_socket
+)
+    : m_scheduler(scheduler),
+      m_tls_ctx(std::move(tls_ctx)),
+      m_options(std::move(opts)),
+      m_accept_socket(std::move(accept_socket)) {
 }
 
 server::server(server &&other)

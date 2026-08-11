@@ -30,7 +30,8 @@ target("network", function()
     --   * 原 25 个 .hpp 头与孤儿 net.cppm、network_impl_includes.hpp 已删除；
     --     跨模块符号（coroutine/scheduler/task）改用 `import` 而非文本包含。
     -- 依赖方向保持单向：network -> coroutine -> scheduler -> task。
-    add_deps("silicon::coroutine", "silicon::scheduler")
+    -- silicon::error 为零依赖基础模块，提供统一的 std::error_code 错误码体系。
+    add_deps("silicon::coroutine", "silicon::scheduler", "silicon::error")
 
     add_includedirs("include", {public = true})
     add_packages("c-ares", {public = true})

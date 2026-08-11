@@ -7,30 +7,29 @@
 
 module;
 
-#include <stdexcept>
-#include <string>
+#include <expected>
+#include <string_view>
+#include <system_error>
 
 module silicon.network;
 
-namespace silicon::network {
-const static std::string connect_status_connected{"connected"};
-const static std::string connect_status_invalid_ip_address{"invalid_ip_address"};
-const static std::string connect_status_timeout{"timeout"};
-const static std::string connect_status_error{"error"};
+import silicon.error;
 
-auto to_string(const connect_status &status) -> const std::string & {
+namespace silicon::network {
+
+auto to_string(const connect_status &status) -> result<std::string_view> {
     switch(status) {
         case connect_status::kConnected:
-            return connect_status_connected;
+            return std::string_view{"connected"};
         case connect_status::kInvalidIpAddress:
-            return connect_status_invalid_ip_address;
+            return std::string_view{"invalid_ip_address"};
         case connect_status::kTimeout:
-            return connect_status_timeout;
+            return std::string_view{"timeout"};
         case connect_status::kError:
-            return connect_status_error;
+            return std::string_view{"error"};
     }
 
-    throw std::logic_error{"Invalid/unknown connect status."};
+    return std::unexpected(error::make_error_code(error::network_error::kInvalidConnectStatus));
 }
 
 } // namespace silicon::network

@@ -57,16 +57,32 @@ class network_error_category final : public std::error_category {
             case network_error::kPollingError: return "polling error";
             case network_error::kTimeout: return "operation timed out";
             case network_error::kInvalidIpAddress: return "invalid ip address";
+            case network_error::kNullScheduler: return "scheduler must not be null";
+            case network_error::kNullExecutor: return "executor must not be null";
+            case network_error::kNullTlsContext: return "tls context must not be null";
+            case network_error::kSocketCreateFailed: return "failed to create socket";
+            case network_error::kSetNonblockingFailed: return "failed to set socket non-blocking";
+            case network_error::kSetSockOptFailed: return "failed to set socket option";
+            case network_error::kBindFailed: return "failed to bind socket";
+            case network_error::kListenFailed: return "failed to listen on socket";
+            case network_error::kInvalidSocketType: return "unknown socket type";
+            case network_error::kInvalidDomain: return "invalid address domain";
+            case network_error::kInvalidConnectStatus: return "invalid connect status value";
+            case network_error::kTlsContextInitFailed: return "failed to initialize tls context";
+            case network_error::kTlsCertificateLoadFailed: return "failed to load tls certificate";
+            case network_error::kTlsPrivateKeyLoadFailed: return "failed to load tls private key";
+            case network_error::kTlsKeyMismatch: return "tls certificate and private key do not match";
+            case network_error::kDnsInitFailed: return "failed to initialize dns resolver";
             case network_error::kUnknown: return "unknown network error";
         }
         return "unknown network error";
     }
 };
 
-// ── coroutine ────────────────────────────────────────────────────
+// ── coroutine::channel ───────────────────────────────────────────
 class channel_error_category final : public std::error_category {
   public:
-    const char *name() const noexcept override { return "silicon.coroutine"; }
+    const char *name() const noexcept override { return "silicon.channel"; }
     std::string message(int ev) const override {
         switch(static_cast<channel_error>(ev)) {
             case channel_error::kClosed: return "channel closed";
@@ -74,6 +90,40 @@ class channel_error_category final : public std::error_category {
             case channel_error::kCancelled: return "operation cancelled";
         }
         return "unknown channel error";
+    }
+};
+
+// ── coroutine ────────────────────────────────────────────────────
+class coroutine_error_category final : public std::error_category {
+  public:
+    const char *name() const noexcept override { return "silicon.coroutine"; }
+    std::string message(int ev) const override {
+        switch(static_cast<coroutine_error>(ev)) {
+            case coroutine_error::kNullExecutor: return "executor must not be null";
+            case coroutine_error::kInvalidPoolSize: return "pool size must be greater than zero";
+            case coroutine_error::kAlreadyUnlocked: return "mutex is already unlocked";
+            case coroutine_error::kUnknown: return "unknown coroutine error";
+        }
+        return "unknown coroutine error";
+    }
+};
+
+// ── scheduler ────────────────────────────────────────────────────
+class scheduler_error_category final : public std::error_category {
+  public:
+    const char *name() const noexcept override { return "silicon.scheduler"; }
+    std::string message(int ev) const override {
+        switch(static_cast<scheduler_error>(ev)) {
+            case scheduler_error::kShuttingDown: return "scheduler is shutting down";
+            case scheduler_error::kResultNotSet:
+                return "coroutine result was never set, did you execute the coroutine?";
+            case scheduler_error::kInvalidNotifierState: return "invalid io notifier state";
+            case scheduler_error::kPipeCreateFailed: return "failed to create pipe";
+            case scheduler_error::kEventRegisterFailed: return "failed to register event";
+            case scheduler_error::kNullExecutor: return "executor must not be null";
+            case scheduler_error::kUnknown: return "unknown scheduler error";
+        }
+        return "unknown scheduler error";
     }
 };
 
@@ -88,6 +138,14 @@ class di_error_category final : public std::error_category {
             case di_error::kCircularDependency: return "circular dependency detected";
             case di_error::kInvalidType: return "invalid type";
             case di_error::kAlreadyInitialized: return "already initialized";
+            case di_error::kTypeNotFound: return "requested type not found in container";
+            case di_error::kTypeAmbiguous: return "requested type resolves ambiguously";
+            case di_error::kTypeNotConvertible: return "registered type is not convertible to requested type";
+            case di_error::kTypeRecursion: return "recursive type resolution detected";
+            case di_error::kTypeAlreadyRegistered: return "type already registered";
+            case di_error::kTypeIndexAlreadyRegistered: return "type index already registered";
+            case di_error::kCollectionTypeNotFound: return "collection element type not found";
+            case di_error::kIndexOutOfRange: return "type index out of range";
             case di_error::kUnknown: return "unknown di error";
         }
         return "unknown di error";
@@ -226,6 +284,14 @@ const std::error_category &channel_category() noexcept {
     static const channel_error_category cat{};
     return cat;
 }
+const std::error_category &coroutine_category() noexcept {
+    static const coroutine_error_category cat{};
+    return cat;
+}
+const std::error_category &scheduler_category() noexcept {
+    static const scheduler_error_category cat{};
+    return cat;
+}
 const std::error_category &di_category() noexcept {
     static const di_error_category cat{};
     return cat;
@@ -275,6 +341,12 @@ std::error_code make_error_code(network_error e) noexcept {
 }
 std::error_code make_error_code(channel_error e) noexcept {
     return {static_cast<int>(e), channel_category()};
+}
+std::error_code make_error_code(coroutine_error e) noexcept {
+    return {static_cast<int>(e), coroutine_category()};
+}
+std::error_code make_error_code(scheduler_error e) noexcept {
+    return {static_cast<int>(e), scheduler_category()};
 }
 std::error_code make_error_code(di_error e) noexcept {
     return {static_cast<int>(e), di_category()};
