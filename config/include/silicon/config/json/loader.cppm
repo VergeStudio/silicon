@@ -5,6 +5,7 @@ module;
 #include <optional>
 #include <string>
 #include <string_view>
+#include <expected>
 
 export module silicon.config.json;
 
@@ -22,7 +23,7 @@ CONFIG_API class JsonFileConfig: public ILoader {
   public:
     JsonFileConfig();
     ~JsonFileConfig();
-    bool Load(const std::string &path, const fs::IFileSystem &fs);
+    result<void> Load(const std::string &path, const fs::IFileSystem &fs);
 
     // 注意：基类 ILoader 仅声明 virtual Load()；get/all 并非虚函数覆写。
     std::optional<ConfigValue> Get(std::string_view key) const;

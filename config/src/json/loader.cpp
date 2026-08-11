@@ -1,5 +1,6 @@
 module;
 
+#include <expected>
 #include <map>
 #include <memory>
 #include <optional>
@@ -7,6 +8,8 @@ module;
 #include <string_view>
 
 module silicon.config.json;
+
+import silicon.error;
 
 namespace silicon::config {
 
@@ -19,17 +22,17 @@ JsonFileConfig::JsonFileConfig(): impl_(std::make_unique<Impl>()) {}
 JsonFileConfig::~JsonFileConfig() = default;
 
 // ── JsonFileConfig methods ────────────────────────────────────────────────
-bool JsonFileConfig::Load(const std::string &path, const fs::IFileSystem &filesystem) {
+auto JsonFileConfig::Load(const std::string &path, const fs::IFileSystem &filesystem) -> result<void> {
     auto content = filesystem.Read(path);
-    if(!content) return false;
+    if(!content) return std::unexpected(silicon::error::make_error_code(silicon::error::config_error::kLoadFailed));
 
     auto parsed = silicon::json::parse(content.value());
-    if(parsed.is_discarded() || !parsed.is_object()) return false;
+    if(parsed.is_discarded() || !parsed.is_object()) return std::unexpected(silicon::error::make_error_code(silicon::error::config_error::kParseFailed));
 
     for(auto it = parsed.begin(); it != parsed.end(); ++it) {
         impl_->entries_[it.key()] = ConfigValue{silicon::json::serialize(it.value())};
     }
-    return true;
+    return {};
 }
 
 std::optional<ConfigValue> JsonFileConfig::Get(std::string_view key) const {
