@@ -29,7 +29,9 @@ auto make_executor() -> std::shared_ptr<thread_pool> {
 
 TEST_CASE("coroutine_pool: 基本分发并执行全部任务") {
     auto ex = make_executor();
-    coroutine_pool<thread_pool> pool{ex, 4};
+    auto pool_result = coroutine_pool<thread_pool>::create(ex, 4);
+    REQUIRE(pool_result.has_value());
+    coroutine_pool<thread_pool> &pool = **pool_result;
 
     std::atomic<int> counter{0};
     auto driver = [&]() -> task<void> {
@@ -50,7 +52,9 @@ TEST_CASE("coroutine_pool: 基本分发并执行全部任务") {
 TEST_CASE("coroutine_pool: 并发上限 = pool_size") {
     auto ex = make_executor();
     const std::size_t kPoolSize = 4;
-    coroutine_pool<thread_pool> pool{ex, kPoolSize};
+    auto pool_result = coroutine_pool<thread_pool>::create(ex, kPoolSize);
+    REQUIRE(pool_result.has_value());
+    coroutine_pool<thread_pool> &pool = **pool_result;
 
     std::atomic<std::size_t> running{0};
     std::atomic<std::size_t> peak{0};
@@ -76,7 +80,9 @@ TEST_CASE("coroutine_pool: 并发上限 = pool_size") {
 
 TEST_CASE("coroutine_pool: spawn_joinable 等待任务完成") {
     auto ex = make_executor();
-    coroutine_pool<thread_pool> pool{ex, 4};
+    auto pool_result = coroutine_pool<thread_pool>::create(ex, 4);
+    REQUIRE(pool_result.has_value());
+    coroutine_pool<thread_pool> &pool = **pool_result;
 
     std::atomic<int> done{0};
     auto driver = [&]() -> task<void> {
@@ -103,7 +109,9 @@ TEST_CASE("coroutine_pool: 析构时排空在途任务（不丢任务、不悬�
     std::atomic<int> counter{0};
 
     {
-        coroutine_pool<thread_pool> pool{ex, 4};
+        auto pool_result = coroutine_pool<thread_pool>::create(ex, 4);
+        REQUIRE(pool_result.has_value());
+        coroutine_pool<thread_pool> &pool = **pool_result;
         auto driver = [&]() -> task<void> {
             for(int i = 0; i < 30; ++i) {
                 pool.dispatch([&]() -> task<void> {
@@ -123,7 +131,9 @@ TEST_CASE("coroutine_pool: 析构时排空在途任务（不丢任务、不悬�
 
 TEST_CASE("coroutine_pool: shutdown 后拒绝新任务且仍排空已入队任务") {
     auto ex = make_executor();
-    coroutine_pool<thread_pool> pool{ex, 4};
+    auto pool_result = coroutine_pool<thread_pool>::create(ex, 4);
+    REQUIRE(pool_result.has_value());
+    coroutine_pool<thread_pool> &pool = **pool_result;
 
     std::atomic<int> counter{0};
     auto driver = [&]() -> task<void> {

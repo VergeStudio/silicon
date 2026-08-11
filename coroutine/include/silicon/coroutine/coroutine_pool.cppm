@@ -10,13 +10,16 @@ module;
 #include <memory>
 #include <thread>
 #include <utility>
+#include <expected>
 
 export module silicon.coroutine:coroutine_pool;
 
 import silicon.scheduler;
 import silicon.scheduler.task;
+import silicon.error;
 import :channel;
 import :event;
+import :mutex;
 
 export namespace silicon::coroutine {
 
@@ -35,24 +38,39 @@ export namespace silicon::coroutine {
  */
 template<concepts::executor Executor>
 class coroutine_pool {
-  public:
-    /**
-     * @param executor 底层执行器（任务经其线程池运行 worker）。不可为 nullptr。
-     * @param pool_size worker 协程数（并发上限）。须 > 0。
-     */
+  private:
     explicit coroutine_pool(std::shared_ptr<Executor> executor, std::size_t pool_size)
         : m_p(std::make_unique<Impl>(pool_size)) {
         m_p->m_executor = std::move(executor);
-        if(m_p->m_executor == nullptr) {
-            throw std::runtime_error{"coroutine_pool cannot have a nullptr executor"};
-        }
-        if(pool_size == 0) {
-            throw std::runtime_error{"coroutine_pool requires a pool_size > 0"};
-        }
         // 在底层执行器上拉起 N 个常驻 worker 协程（"池"本体）。
         for(std::size_t i = 0; i < pool_size; ++i) {
             (void)m_p->m_executor->spawn_detached(worker());
         }
+    }
+
+  public:
+    /**
+     * @brief 构造可失败工厂：校验 executor 非空、pool_size > 0，成功后返回
+     *        std::unique_ptr<coroutine_pool>。失败时返回
+     *        std::unexpected(coroutine_error::kNullExecutor / kInvalidPoolSize)。
+     *        调用方应检查返回值，而非依赖异常。
+     *
+     * @param executor 底层执行器（任务经其线程池运行 worker）。不可为 nullptr。
+     * @param pool_size worker 协程数（并发上限）。须 > 0。
+     */
+    static auto create(std::shared_ptr<Executor> executor, std::size_t pool_size)
+            -> std::expected<std::unique_ptr<coroutine_pool<Executor>>, std::error_code> {
+        if(executor == nullptr) {
+            return std::unexpected(silicon::error::make_error_code(
+                silicon::error::coroutine_error::kNullExecutor));
+        }
+        if(pool_size == 0) {
+            return std::unexpected(silicon::error::make_error_code(
+                silicon::error::coroutine_error::kInvalidPoolSize));
+        }
+        // create() 为成员函数，可访问私有构造；std::make_unique 无 friend 权限故用 new。
+        return std::unique_ptr<coroutine_pool<Executor>>(
+            new coroutine_pool<Executor>(std::move(executor), pool_size));
     }
 
     coroutine_pool(const coroutine_pool&)                    = delete;

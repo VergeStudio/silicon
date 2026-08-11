@@ -3,7 +3,7 @@ module;
 
 #include <atomic>
 #include <memory>    // std::unique_ptr
-#include <stdexcept> // std::runtime_error
+#include <expected>
 #include <coroutine>
 
 
@@ -12,6 +12,7 @@ export module silicon.coroutine:shared_mutex;
 import silicon.scheduler;
 import :mutex;
 import silicon.scheduler.task;
+import silicon.error;
 export namespace silicon::coroutine {
 template<concepts::executor executor_type>
 class shared_mutex;
@@ -91,11 +92,28 @@ class shared_mutex {
      *          each shared waiter will be scheduled to immediately run on this executor in
      *          parallel.
      */
-    explicit shared_mutex(std::unique_ptr<executor_type> &e): m_p(std::make_unique<Impl>()) { m_p->m_executor = e.get();
-        if(m_p->m_executor == nullptr) {
-            throw std::runtime_error{"silicon::coroutine::shared_mutex cannot have a nullptr executor"};
-        }
+  private:
+    explicit shared_mutex(std::unique_ptr<executor_type> &e): m_p(std::make_unique<Impl>()) {
+        m_p->m_executor = e.get();
     }
+
+  public:
+    /**
+     * @brief 构造可失败工厂：校验 executor 非空（调用方须持有该 unique_ptr 使其保持存活），
+     *        成功后返回 std::unique_ptr<shared_mutex>。失败时返回
+     *        std::unexpected(coroutine_error::kNullExecutor)。
+     */
+    static auto create(std::unique_ptr<executor_type> &e)
+            -> std::expected<std::unique_ptr<shared_mutex<executor_type>>, std::error_code> {
+        if(e == nullptr) {
+            return std::unexpected(silicon::error::make_error_code(
+                silicon::error::coroutine_error::kNullExecutor));
+        }
+        // create() 为成员函数，可访问私有构造；std::make_unique 无 friend 权限故用 new。
+        return std::unique_ptr<shared_mutex<executor_type>>(
+            new shared_mutex<executor_type>(e));
+    }
+
     ~shared_mutex() = default;
 
     shared_mutex(const shared_mutex &) = delete;

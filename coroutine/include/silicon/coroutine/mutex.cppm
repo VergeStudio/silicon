@@ -9,11 +9,18 @@ module;
 #include <coroutine>
 #include <mutex>
 #include <utility>
+#include <expected>
 
 
 export module silicon.coroutine:mutex;
 import silicon.scheduler.task;
+import silicon.error;
+
 export namespace silicon::coroutine {
+
+/// 统一错误返回类型：coroutine 模块所有可失败 API 返回 coroutine::result<T>。
+template<typename T>
+using result = std::expected<T, std::error_code>;
 class mutex;
 class scoped_lock;
 class condition_variable;
@@ -141,8 +148,10 @@ class mutex {
 
     /**
      * Releases the mutex's lock.
+     * @return coroutine::result<void>；重复解锁（逻辑错误）时返回
+     *         std::unexpected(coroutine_error::kAlreadyUnlocked)。
      */
-    auto unlock() -> void;
+    auto unlock() -> result<void>;
 
   private:
     friend struct lock_operation_base;

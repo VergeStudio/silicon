@@ -4,6 +4,7 @@ module;
 #include <stdexcept>
 #include <chrono>
 #include <utility>
+#include <expected>
 
 
 
@@ -21,6 +22,8 @@ export module silicon.coroutine:task_container;
 
 import silicon.scheduler;
 import silicon.scheduler.task;
+import silicon.error;
+import :mutex;
 export namespace silicon::coroutine {
 
 template<concepts::executor executor_type>
@@ -31,13 +34,28 @@ public:
      * @param e Tasks started in the container are scheduled onto this executor.  For tasks created
      *           from a scheduler, this would usually be that scheduler instance.
      */
+  private:
     explicit task_container(std::shared_ptr<executor_type> e) : m_p(std::make_unique<Impl>()) {
         m_p->m_executor = std::move(e);
-        if (m_p->m_executor == nullptr)
-        {
-            throw std::runtime_error{"task_container cannot have a nullptr executor"};
-        }
     }
+
+  public:
+    /**
+     * @brief 构造可失败工厂：校验 executor 非空，成功后返回
+     *        std::unique_ptr<task_container>。失败时返回
+     *        std::unexpected(coroutine_error::kNullExecutor)。
+     */
+    static auto create(std::shared_ptr<executor_type> e)
+            -> std::expected<std::unique_ptr<task_container<executor_type>>, std::error_code> {
+        if (e == nullptr) {
+            return std::unexpected(silicon::error::make_error_code(
+                silicon::error::coroutine_error::kNullExecutor));
+        }
+        // create() 为成员函数，可访问私有构造；std::make_unique 无 friend 权限故用 new。
+        return std::unique_ptr<task_container<executor_type>>(
+            new task_container<executor_type>(std::move(e)));
+    }
+
     task_container(const task_container&)                    = delete;
     task_container(task_container&&)                         = delete;
     auto operator=(const task_container&) -> task_container& = delete;

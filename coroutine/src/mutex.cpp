@@ -2,9 +2,10 @@ module;
 
 #include <atomic>
 #include <memory>
-#include <stdexcept>
+#include <expected>
 
 module silicon.coroutine;
+import silicon.error;
 
 namespace silicon::coroutine {
 
@@ -106,12 +107,13 @@ auto mutex::try_lock() -> bool {
     return m_p->m_state.compare_exchange_strong(expected, nullptr, std::memory_order::acq_rel, std::memory_order::relaxed);
 }
 
-auto mutex::unlock() -> void {
+auto mutex::unlock() -> result<void> {
     void *current = m_p->m_state.load(std::memory_order::acquire);
     do {
         // Sanity check that the mutex isn't already unlocked.
         if(current == const_cast<void *>(unlocked_value())) {
-            throw std::runtime_error{"silicon::coroutine::mutex is already unlocked"};
+            return std::unexpected(silicon::error::make_error_code(
+                silicon::error::coroutine_error::kAlreadyUnlocked));
         }
 
         // There are no current waiters, attempt to set the mutex as unlocked.
@@ -124,7 +126,7 @@ auto mutex::unlock() -> void {
                )) {
                 // We've successfully unlocked the mutex, return since there are no current waiters.
                 std::atomic_thread_fence(std::memory_order::acq_rel);
-                return;
+                return {};
             } else {
                 // This means someone has added themselves as a waiter, we need to try again with our updated current state.
                 // assert(m_state now holds a lock_operation_base*)
@@ -139,7 +141,7 @@ auto mutex::unlock() -> void {
             // Directly transfer control to the waiter, they are now responsible for unlocking the mutex.
             std::atomic_thread_fence(std::memory_order::acq_rel);
             waiter->m_awaiting_coroutine.resume();
-            return;
+            return {};
         }
     } while(true);
 }
