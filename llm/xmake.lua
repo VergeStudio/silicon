@@ -7,7 +7,7 @@ target("llm", function()
     if is_plat("windows") and is_config("kind", "shared") then
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
-    add_deps("silicon::json", "silicon::http", "silicon::di", "silicon::core")
+    add_deps("silicon::json", "silicon::http", "silicon::di", "silicon::core", "silicon::error")
     add_files("include/silicon/llm/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)

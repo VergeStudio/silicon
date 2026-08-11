@@ -14,12 +14,13 @@ module;
 #include <string_view>
 #include <system_error>
 #include <vector>
+#include <expected>
 
 module silicon.llm;
 
 import silicon.json;
 import silicon.core;
-import silicon.exception;
+import silicon.error;
 
 namespace silicon::llm {
 
@@ -90,9 +91,9 @@ std::string json_protocol_adapter::encode_request(
 result<chat_response> json_protocol_adapter::decode_response(std::string_view raw) const {
     using namespace silicon::json;
     auto v = parse(raw);
-    if(v.is_discarded()) return result<chat_response>(silicon::exception::llm_error{"invalid json response"});
+    if(v.is_discarded()) return std::unexpected(silicon::error::make_error_code(silicon::error::llm_error::kInvalidResponse));
     if(!v.is_object())
-        return result<chat_response>(silicon::exception::llm_error{"response is not an object"});
+        return std::unexpected(silicon::error::make_error_code(silicon::error::llm_error::kInvalidResponse));
 
     chat_response resp;
 
@@ -131,7 +132,7 @@ std::size_t scripted_provider::remaining() const { return impl_->queue_.size(); 
 
 result<chat_response> scripted_provider::chat(const conversation &, const model_request_options &) {
     if(impl_->queue_.empty())
-        return result<chat_response>(silicon::exception::llm_error{"no scripted response"});
+        return std::unexpected(silicon::error::make_error_code(silicon::error::llm_error::kProviderUnavailable));
     chat_response r = std::move(impl_->queue_.front());
     impl_->queue_.pop();
     return result<chat_response>(std::move(r));
@@ -205,9 +206,7 @@ result<chat_response> http_provider::chat(const conversation &conv, const model_
     std::string body = impl_->adapter_.encode_request(conv, o, {});
     http_result r = post_json(impl_->base_url_ + "/chat/completions", body);
     if(r.status() != 200) {
-        return result<chat_response>(silicon::exception::llm_error{
-                "LLM HTTP " + std::to_string(r.status()) + ": " + r.body()
-        });
+        return std::unexpected(silicon::error::make_error_code(silicon::error::llm_error::kProviderUnavailable));
     }
     return impl_->adapter_.decode_response(r.body());
 }

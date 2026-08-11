@@ -8,10 +8,11 @@ module;
 #include <string>
 #include <string_view>
 #include <vector>
+#include <expected>
 
 import silicon.json;
 import silicon.core;
-import silicon.exception;
+import silicon.error;
 
 export module silicon.llm;
 
@@ -124,7 +125,7 @@ struct chat_response {
 };
 
 template<typename T>
-using result = silicon::common::result<T, silicon::exception::llm_error>;
+using result = std::expected<T, std::error_code>;
 
 // ── 接口 ─────────────────────────────────────────────────────────
 

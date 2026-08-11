@@ -113,7 +113,7 @@ TEST_CASE("scripted_provider 队列耗尽返回 llm_error") {
     scripted_provider p;
     auto r = p.chat({}, {});
     CHECK_FALSE(r);
-    CHECK(r.error().message() == "no scripted response");
+    CHECK(r.error().message() == "llm provider unavailable");
 }
 
 // ── json_protocol_adapter ───────────────────────────────────────
@@ -160,5 +160,5 @@ TEST_CASE("json_protocol_adapter::decode_response 非法 JSON 返回 llm_error")
     json_protocol_adapter adapter;
     auto r = adapter.decode_response("{not json");
     CHECK_FALSE(r);
-    CHECK(r.error().message() == "invalid json response");
+    CHECK(r.error().message() == "invalid llm response");
 }
