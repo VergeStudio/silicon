@@ -33,6 +33,10 @@ target("scheduler", function()
     -- 注意：不得再依赖 silicon::coroutine —— coroutine 现在反向依赖本 target。
     add_deps("silicon::task", {configs = {shared = true}})
 
+    -- silicon::error 为零依赖基础模块，提供统一的 std::error_code 错误码体系；
+    -- io_scheduler::create() 等可失败工厂据此返回 scheduler::result<T>。
+    add_deps("silicon::error")
+
     add_files("src/**.cpp")
     add_files("include/silicon/scheduler/**.cppm", {public = true})
 

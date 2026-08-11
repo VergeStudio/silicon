@@ -15,6 +15,7 @@ module;
 #include <coroutine>
 #include <cstddef>
 #include <cstring>
+#include <exception> // std::exception：io_scheduler::create() 捕获构造期异常
 #include <functional> // std::function 与 nullptr 比较所需的 operator==
 #include <system_error> // std::system_category：替代被 MSVC 弃用的 strerror
 #include <iostream>
@@ -25,11 +26,14 @@ module;
 #include <thread>
 #include <utility>
 #include <vector>
+#include <expected>
 
 
 module silicon.scheduler;
 
 import :poll_info_impl;
+
+import silicon.error;
 
 
 
@@ -67,17 +71,23 @@ io_scheduler::io_scheduler(options &&opts, private_constructor)
     }
 }
 
-auto io_scheduler::make_unique(options opts) -> std::unique_ptr<io_scheduler> {
-    auto s = std::make_unique<io_scheduler>(std::move(opts), private_constructor{});
+auto io_scheduler::create(options opts) -> std::expected<std::unique_ptr<io_scheduler>, std::error_code> {
+    try {
+        auto s = std::make_unique<io_scheduler>(std::move(opts), private_constructor{});
 
-    // Spawn the dedicated event loop thread once the scheduler is fully constructed
-    // so it has a full object to work with.
-    if(s->m_p->m_opts.thread_strategy == thread_strategy_t::spawn) {
-        s->m_p->m_io_thread = std::thread([s = s.get()]() { s->process_events_dedicated_thread(); });
+        // Spawn the dedicated event loop thread once the scheduler is fully constructed
+        // so it has a full object to work with.
+        if(s->m_p->m_opts.thread_strategy == thread_strategy_t::spawn) {
+            s->m_p->m_io_thread = std::thread([s = s.get()]() { s->process_events_dedicated_thread(); });
+        }
+        // else manual mode, the user must call process_events.
+
+        return s;
+    } catch(const std::exception &) {
+        // 构造期失败（事件管道创建 / fd 注册 / 线程池初始化）统一收敛为 unexpected。
+        // 具体失败原因由底层 ctor 的 stderr 诊断信息保留；此处仅给出模块级错误码。
+        return std::unexpected(silicon::error::make_error_code(silicon::error::scheduler_error::kUnknown));
     }
-    // else manual mode, the user must call process_events.
-
-    return s;
 }
 
 io_scheduler::~io_scheduler() {

@@ -28,6 +28,10 @@ module;
 #include <type_traits>
 #include <vector>
 
+// std::expected / std::error_code：io_scheduler::create() 返回 scheduler::result<T>。
+#include <expected>
+#include <system_error>
+
 export module silicon.scheduler:io_scheduler;
 
 // io_scheduler 原为 silicon.coroutine:scheduler；其依赖的调度原语已一并迁入
@@ -42,6 +46,9 @@ import :poll;
 import :sync_wait;
 import :time;
 import silicon.scheduler.task;
+
+// 统一错误码体系：scheduler::result<T> 的 error_code 来自 silicon::error。
+import silicon.error;
 
 import :ischeduler;
 import :thread_pool;
@@ -58,6 +65,10 @@ import :timer_handle;
 using namespace silicon::coroutine;
 
 export namespace silicon::scheduler {
+
+/// 统一错误返回类型：scheduler 模块所有可失败 API 均返回 scheduler::result<T>。
+template<typename T>
+using result = std::expected<T, std::error_code>;
 
 enum class timeout_status {
     kNoTimeout,
@@ -114,17 +125,20 @@ class io_scheduler: public IScheduler {
     };
 
     /**
-     * @see io_scheduler::make_unique
+     * @see io_scheduler::create
      */
     explicit io_scheduler(options &&opts, private_constructor);
 
     /**
      * @brief Creates an io_scheduler executor.
      *
+     * 构造过程可失败（事件管道创建、fd 注册、线程池初始化），失败时返回
+     * std::unexpected(error::scheduler_error)。调用方应检查返回值，而非依赖异常。
+     *
      * @param opts The scheduler's options.
-     * @return std::unique_ptr<io_scheduler>
+     * @return scheduler::result<std::unique_ptr<io_scheduler>>
      */
-    static auto make_unique(
+    static auto create(
             options opts = options{
                     .thread_strategy = thread_strategy_t::spawn,
                     .on_io_thread_start_functor = nullptr,
@@ -136,7 +150,7 @@ class io_scheduler: public IScheduler {
                              .on_thread_stop_functor = nullptr},
                     .execution_strategy = execution_strategy_t::process_tasks_on_thread_pool
             }
-    ) -> std::unique_ptr<io_scheduler>;
+    ) -> result<std::unique_ptr<io_scheduler>>;
 
     io_scheduler(const io_scheduler &) = delete;
     io_scheduler(io_scheduler &&) = delete;
