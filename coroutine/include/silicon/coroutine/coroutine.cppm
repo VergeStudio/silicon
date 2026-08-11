@@ -36,4 +36,5 @@ export import :task_container;
 export import :void_value;
 export import :when_all;
 export import :when_any;
+export import :coroutine_pool;
 export import :config;
