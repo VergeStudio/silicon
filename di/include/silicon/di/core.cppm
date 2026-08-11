@@ -27,7 +27,13 @@ module;
 #include <atomic>
 #include <unordered_map>
 
+#include <expected>
+#include <system_error>
+#include <iostream>
+
 export module silicon.di:core;
+
+import silicon.error;
 
 // Logical functional partitioning of the single self-contained :core
 // partition. The di subdirectories form a strongly-connected include
@@ -373,154 +379,76 @@ void append_text(std::string& message, First&& first, Rest&&... rest) {
 }
 
 template <typename Request>
-type_not_found_exception make_type_not_found_exception() {
-    std::string message = "type not found: ";
-    append_type_name(message, describe_type<Request>());
-    return type_not_found_exception(std::move(message));
+std::error_code make_type_not_found_exception() {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotFound);
 }
 
 template <typename Request, typename Context>
-type_not_found_exception make_type_not_found_exception(const Context& context) {
-    std::string message = "type not found: ";
-    append_type_name(message, describe_type<Request>());
-
-    if (context.has_type_path()) {
-        std::string resolution_path;
-        context.append_type_path(resolution_path);
-        message += " (required by ";
-        message += resolution_path;
-        message += ")";
-    }
-
-    return type_not_found_exception(std::move(message));
+std::error_code make_type_not_found_exception(const Context& context) {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotFound);
 }
 
 template <typename Request, typename IdType>
-type_not_found_exception make_type_not_found_exception() {
-    std::string message = "type not found: ";
-    append_text(message, describe_type<Request>(), " (index type: ",
-                describe_type<IdType>(), ")");
-    return type_not_found_exception(std::move(message));
+std::error_code make_type_not_found_exception() {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotFound);
 }
 
 template <typename Request, typename IdType, typename Context>
-type_not_found_exception make_type_not_found_exception(const Context& context) {
-    std::string message = "type not found: ";
-    append_text(message, describe_type<Request>(), " (index type: ",
-                describe_type<IdType>(), ")");
-
-    if (context.has_type_path()) {
-        std::string resolution_path;
-        context.append_type_path(resolution_path);
-        message += " (required by ";
-        message += resolution_path;
-        message += ")";
-    }
-
-    return type_not_found_exception(std::move(message));
+std::error_code make_type_not_found_exception(const Context& context) {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotFound);
 }
 
 template <typename Collection, typename ResolveType>
-type_not_found_exception make_collection_type_not_found_exception() {
-    std::string message = "type not found for collection ";
-    append_text(message, describe_type<Collection>(), " (element type: ",
-                describe_type<ResolveType>(), ")");
-    return type_not_found_exception(std::move(message));
+std::error_code make_collection_type_not_found_exception() {
+    return silicon::error::make_error_code(silicon::error::di_error::kCollectionTypeNotFound);
 }
 
 template <typename Request>
-type_ambiguous_exception make_type_ambiguous_exception() {
-    std::string message = "type resolution is ambiguous: ";
-    append_type_name(message, describe_type<Request>());
-    return type_ambiguous_exception(std::move(message));
+std::error_code make_type_ambiguous_exception() {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeAmbiguous);
 }
 
 template <typename Request, typename Context>
-type_ambiguous_exception make_type_ambiguous_exception(const Context& context) {
-    std::string message = "type resolution is ambiguous: ";
-    append_type_name(message, describe_type<Request>());
-    if (auto* active_type = context.active_type()) {
-        message += " (required by ";
-        append_type_name(message, *active_type);
-        message += ")";
-    }
-
-    return type_ambiguous_exception(std::move(message));
+std::error_code make_type_ambiguous_exception(const Context& context) {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeAmbiguous);
 }
 
-inline type_not_convertible_exception make_type_not_convertible_exception(
+inline std::error_code make_type_not_convertible_exception(
     type_descriptor target_type, type_descriptor source_type) {
-    std::string message = "type is not convertible to ";
-    append_type_name(message, target_type);
-    message += " from ";
-    append_type_name(message, source_type);
-
-    return type_not_convertible_exception(std::move(message));
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotConvertible);
 }
 
 template <typename Context>
-inline type_not_convertible_exception make_type_not_convertible_exception(
+inline std::error_code make_type_not_convertible_exception(
     type_descriptor target_type, type_descriptor source_type,
     const Context& context) {
-    std::string message = "type is not convertible to ";
-    append_type_name(message, target_type);
-    message += " from ";
-    append_type_name(message, source_type);
-
-    if (auto* active_type = context.active_type()) {
-        message += " (required by ";
-        append_type_name(message, *active_type);
-        message += ")";
-    }
-
-    return type_not_convertible_exception(std::move(message));
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotConvertible);
 }
 
-template <typename Type> type_recursion_exception make_type_recursion_exception() {
-    std::string message = "recursive dependency detected while constructing: ";
-    append_type_name(message, describe_type<Type>());
-    return type_recursion_exception(std::move(message));
+template <typename Type> std::error_code make_type_recursion_exception() {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeRecursion);
 }
 
 template <typename Type, typename Context>
-type_recursion_exception make_type_recursion_exception(const Context& context) {
-    std::string message = "recursive dependency detected: ";
-    if (context.has_type_path()) {
-        std::string resolution_path;
-        context.append_type_path(resolution_path);
-        message += resolution_path;
-    }
-    if (!context.has_type_path()) {
-        append_type_name(message, describe_type<Type>());
-    }
-
-    return type_recursion_exception(std::move(message));
+std::error_code make_type_recursion_exception(const Context& context) {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeRecursion);
 }
 
 template <typename Interface, typename Storage>
-type_already_registered_exception make_type_already_registered_exception() {
-    std::string message = "type already registered: interface ";
-    append_text(message, describe_type<Interface>(), ", storage ",
-                describe_type<Storage>());
-    return type_already_registered_exception(std::move(message));
+std::error_code make_type_already_registered_exception() {
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeAlreadyRegistered);
 }
 
 template <typename Interface, typename Storage, typename IdType>
-type_index_already_registered_exception
+std::error_code
 make_type_index_already_registered_exception() {
-    std::string message = "type index already registered: interface ";
-    append_text(message, describe_type<Interface>(), ", storage ",
-                describe_type<Storage>(), ", index type ",
-                describe_type<IdType>());
-    return type_index_already_registered_exception(std::move(message));
+    return silicon::error::make_error_code(silicon::error::di_error::kTypeIndexAlreadyRegistered);
 }
 
 template <typename Key>
-type_index_out_of_range_exception make_type_index_out_of_range_exception(
+std::error_code make_type_index_out_of_range_exception(
     Key, size_t) {
-    std::string message = "type index out of range: key type ";
-    append_text(message, describe_type<Key>());
-    return type_index_out_of_range_exception(std::move(message));
+    return silicon::error::make_error_code(silicon::error::di_error::kIndexOutOfRange);
 }
 
 
@@ -1247,15 +1175,15 @@ template <typename T> struct type_traits<T*> {
     static T* from_pointer(T* ptr) { return ptr; }
 
     template <typename TargetType, typename Factory, typename Context>
-    static TargetType resolve_type(Factory& factory, Context& context,
-                                   type_descriptor requested_type,
-                                   type_descriptor registered_type) {
+    static std::expected<TargetType, std::error_code> resolve_type(
+            Factory& factory, Context& context,
+            type_descriptor requested_type,
+            type_descriptor registered_type) {
         if constexpr (std::is_same_v<TargetType, rebind_t<T>>)
             return factory.resolve(context);
         else
-            throw make_type_not_convertible_exception(requested_type,
-                                                              registered_type,
-                                                              context);
+            return std::unexpected(make_type_not_convertible_exception(
+                    requested_type, registered_type, context));
     }
 };
 
@@ -1282,15 +1210,15 @@ template <> struct type_traits<void*> {
     static void* from_pointer(void* ptr) { return ptr; }
 
     template <typename TargetType, typename Factory, typename Context>
-    static TargetType resolve_type(Factory& factory, Context& context,
-                                   type_descriptor requested_type,
-                                   type_descriptor registered_type) {
+    static std::expected<TargetType, std::error_code> resolve_type(
+            Factory& factory, Context& context,
+            type_descriptor requested_type,
+            type_descriptor registered_type) {
         if constexpr (std::is_same_v<TargetType, rebind_t<void>>)
             return factory.resolve(context);
         else
-            throw make_type_not_convertible_exception(requested_type,
-                                                              registered_type,
-                                                              context);
+            return std::unexpected(make_type_not_convertible_exception(
+                    requested_type, registered_type, context));
     }
 };
 
@@ -1317,15 +1245,15 @@ template <> struct type_traits<const void*> {
     static const void* from_pointer(const void* ptr) { return ptr; }
 
     template <typename TargetType, typename Factory, typename Context>
-    static TargetType resolve_type(Factory& factory, Context& context,
-                                   type_descriptor requested_type,
-                                   type_descriptor registered_type) {
+    static std::expected<TargetType, std::error_code> resolve_type(
+            Factory& factory, Context& context,
+            type_descriptor requested_type,
+            type_descriptor registered_type) {
         if constexpr (std::is_same_v<TargetType, rebind_t<const void>>)
             return factory.resolve(context);
         else
-            throw make_type_not_convertible_exception(requested_type,
-                                                              registered_type,
-                                                              context);
+            return std::unexpected(make_type_not_convertible_exception(
+                    requested_type, registered_type, context));
     }
 };
 
@@ -1377,15 +1305,15 @@ struct type_traits<
     }
 
     template <typename TargetType, typename Factory, typename Context>
-    static TargetType& resolve_type(Factory& factory, Context& context,
-                                    type_descriptor requested_type,
-                                    type_descriptor registered_type) {
+    static std::expected<std::reference_wrapper<TargetType>, std::error_code>
+    resolve_type(Factory& factory, Context& context,
+                 type_descriptor requested_type,
+                 type_descriptor registered_type) {
         if constexpr (std::is_same_v<TargetType, rebind_t<value_type>>)
             return factory.resolve(context);
         else
-            throw make_type_not_convertible_exception(requested_type,
-                                                              registered_type,
-                                                              context);
+            return std::unexpected(make_type_not_convertible_exception(
+                    requested_type, registered_type, context));
     }
 };
 
@@ -1450,15 +1378,15 @@ struct type_traits<std::unique_ptr<T, Deleter>,
     }
 
     template <typename TargetType, typename Factory, typename Context>
-    static TargetType& resolve_type(Factory& factory, Context& context,
-                                    type_descriptor requested_type,
-                                    type_descriptor registered_type) {
+    static std::expected<std::reference_wrapper<TargetType>, std::error_code>
+    resolve_type(Factory& factory, Context& context,
+                 type_descriptor requested_type,
+                 type_descriptor registered_type) {
         if constexpr (std::is_same_v<TargetType, rebind_t<T>>)
             return factory.resolve(context);
         else
-            throw make_type_not_convertible_exception(requested_type,
-                                                              registered_type,
-                                                              context);
+            return std::unexpected(make_type_not_convertible_exception(
+                    requested_type, registered_type, context));
     }
 };
 
@@ -1619,15 +1547,15 @@ template <typename T> struct type_traits<std::optional<T>> {
     }
 
     template <typename TargetType, typename Factory, typename Context>
-    static TargetType& resolve_type(Factory& factory, Context& context,
-                                    type_descriptor requested_type,
-                                    type_descriptor registered_type) {
+    static std::expected<std::reference_wrapper<TargetType>, std::error_code>
+    resolve_type(Factory& factory, Context& context,
+                 type_descriptor requested_type,
+                 type_descriptor registered_type) {
         if constexpr (std::is_same_v<TargetType, rebind_t<T>>)
             return factory.resolve(context);
         else
-            throw make_type_not_convertible_exception(requested_type,
-                                                              registered_type,
-                                                              context);
+            return std::unexpected(make_type_not_convertible_exception(
+                    requested_type, registered_type, context));
     }
 };
 
@@ -1814,7 +1742,7 @@ std::size_t append_binding_collection(T& results,
 
 template <typename T, typename PrimaryCountFn, typename SecondaryCountFn,
           typename PrimaryAppendFn, typename SecondaryAppendFn, typename Fn>
-T construct_binding_collection(PrimaryCountFn&& primary_count,
+as_expected_t<T> construct_binding_collection(PrimaryCountFn&& primary_count,
                                SecondaryCountFn&& secondary_count,
                                PrimaryAppendFn&& primary_append,
                                SecondaryAppendFn&& secondary_append, Fn&& fn) {
@@ -1827,8 +1755,8 @@ T construct_binding_collection(PrimaryCountFn&& primary_count,
     const std::size_t total = std::forward<PrimaryCountFn>(primary_count)() +
                               std::forward<SecondaryCountFn>(secondary_count)();
     if (total == 0) {
-        throw make_collection_type_not_found_exception<T,
-                                                               resolve_type>();
+        return std::unexpected(
+            make_collection_type_not_found_exception<T, resolve_type>());
     }
 
     T results;
@@ -4228,11 +4156,12 @@ resolve_binding_status(binding_selection_status primary,
 
 template <typename ErrorRequest, typename ResolveRequest = ErrorRequest,
           typename Context, typename Sources>
-ResolveRequest resolve_from_binding_sources(Context& context,
+as_expected_t<ResolveRequest> resolve_from_binding_sources(Context& context,
                                             Sources& sources) {
     auto selection = sources.select();
     if (selection.ambiguous()) {
-        throw make_type_ambiguous_exception<ErrorRequest>(context);
+        return std::unexpected(
+            make_type_ambiguous_exception<ErrorRequest>(context));
     }
 
     if (selection.found()) {
@@ -4354,15 +4283,17 @@ make_selected_binding_sources(SelectedSource& selected,
 
 template <typename LookupRequest> struct missing_binding_source {
     template <typename ResolveRequest, typename Context>
-    ResolveRequest resolve(Context& context) {
+    as_expected_t<ResolveRequest> resolve(Context& context) {
         (void)context;
-        throw make_type_not_found_exception<LookupRequest>();
+        return std::unexpected(
+            make_type_not_found_exception<LookupRequest>());
     }
 
     template <typename ResolveRequest, typename Context>
-    ResolveRequest resolve_missing(Context& context) {
+    as_expected_t<ResolveRequest> resolve_missing(Context& context) {
         (void)context;
-        throw make_type_not_found_exception<LookupRequest>();
+        return std::unexpected(
+            make_type_not_found_exception<LookupRequest>());
     }
 };
 
@@ -5785,25 +5716,31 @@ decltype(auto) materialized_pointer(SourceCapability&& source) {
 }
 
 template <typename Target, typename Source>
-Target& borrow_reference(Source& source, type_descriptor requested_type,
-                         type_descriptor registered_type) {
+std::expected<std::reference_wrapper<Target>, std::error_code>
+borrow_reference(Source& source, type_descriptor requested_type,
+                 type_descriptor registered_type) {
     if constexpr (std::is_same_v<Target, Source>) {
         return source;
     } else if constexpr (std::is_convertible_v<Source*, Target*>) {
         return static_cast<Target&>(source);
     } else if constexpr (type_traits<Source>::enabled &&
                          type_traits<Source>::is_value_borrowable) {
-        return borrow_reference<Target>(type_traits<Source>::borrow(source),
-                                        requested_type, registered_type);
+        auto borrowed = borrow_reference<Target>(
+                type_traits<Source>::borrow(source),
+                requested_type, registered_type);
+        if (!borrowed)
+            return std::unexpected(borrowed.error());
+        return *borrowed;
     } else {
-        throw make_type_not_convertible_exception(requested_type,
-                                                  registered_type);
+        return std::unexpected(make_type_not_convertible_exception(
+                requested_type, registered_type));
     }
 }
 
 template <typename Target, typename Source>
-Target* borrow_pointer(Source& source, type_descriptor requested_type,
-                       type_descriptor registered_type) {
+std::expected<Target*, std::error_code>
+borrow_pointer(Source& source, type_descriptor requested_type,
+               type_descriptor registered_type) {
     if constexpr (std::is_convertible_v<Source*, Target*>) {
         return static_cast<Target*>(&source);
     } else if constexpr (type_traits<Source>::enabled &&
@@ -5813,20 +5750,25 @@ Target* borrow_pointer(Source& source, type_descriptor requested_type,
         return type_traits<Source>::get(source);
     } else if constexpr (type_traits<Source>::enabled &&
                          type_traits<Source>::is_value_borrowable) {
-        return borrow_pointer<Target>(type_traits<Source>::borrow(source),
-                                      requested_type, registered_type);
+        auto borrowed = borrow_pointer<Target>(
+                type_traits<Source>::borrow(source),
+                requested_type, registered_type);
+        if (!borrowed)
+            return std::unexpected(borrowed.error());
+        return *borrowed;
     } else {
-        throw make_type_not_convertible_exception(requested_type,
-                                                  registered_type);
+        return std::unexpected(make_type_not_convertible_exception(
+                requested_type, registered_type));
     }
 }
 
 template <typename Target, typename Source, typename Factory, typename Context,
           typename SourceCapability>
-Target& resolve_handle_or_borrow(Factory& factory, Context& context,
-                                 SourceCapability&& source,
-                                 type_descriptor requested_type,
-                                 type_descriptor registered_type) {
+std::expected<std::reference_wrapper<Target>, std::error_code>
+resolve_handle_or_borrow(Factory& factory, Context& context,
+                         SourceCapability&& source,
+                         type_descriptor requested_type,
+                         type_descriptor registered_type) {
     using materialized_reference_type =
         decltype(materialized_reference(std::declval<SourceCapability>()));
     if constexpr (std::is_constructible_v<Target,
@@ -5834,36 +5776,47 @@ Target& resolve_handle_or_borrow(Factory& factory, Context& context,
         return factory.template resolve_conversion<Target>(
             context, materialized_reference(source));
     } else if constexpr (is_rebindable_handle_v<Target, Source>) {
-        return type_traits<Source>::template resolve_type<Target>(
+        auto resolved = type_traits<Source>::template resolve_type<Target>(
             factory, context, requested_type, registered_type);
+        if (!resolved)
+            return std::unexpected(resolved.error());
+        return *resolved;
     } else {
-        return borrow_reference<Target>(materialized_value(
+        auto borrowed = borrow_reference<Target>(materialized_value(
                                             std::forward<SourceCapability>(
                                                 source)),
                                         requested_type, registered_type);
+        if (!borrowed)
+            return std::unexpected(borrowed.error());
+        return *borrowed;
     }
 }
 
 template <typename Target, typename SourceCapability>
-Target& resolve_materialized_convertible_reference(
+std::expected<std::reference_wrapper<Target>, std::error_code>
+resolve_materialized_convertible_reference(
     SourceCapability&& source, type_descriptor requested_type,
     type_descriptor registered_type) {
     using source_type = source_value_type_t<SourceCapability>;
     if constexpr (std::is_convertible_v<source_type*, Target*>) {
         return static_cast<Target&>(materialized_reference(source));
     } else {
-        throw make_type_not_convertible_exception(requested_type,
-                                                  registered_type);
+        return std::unexpected(make_type_not_convertible_exception(
+                requested_type, registered_type));
     }
 }
 
 template <typename Target, typename SourceCapability>
-Target* resolve_materialized_convertible_pointer(
+std::expected<Target*, std::error_code>
+resolve_materialized_convertible_pointer(
     SourceCapability&& source, type_descriptor requested_type,
     type_descriptor registered_type) {
-    return std::addressof(resolve_materialized_convertible_reference<Target>(
+    auto resolved = resolve_materialized_convertible_reference<Target>(
         std::forward<SourceCapability>(source), requested_type,
-        registered_type));
+        registered_type);
+    if (!resolved)
+        return std::unexpected(resolved.error());
+    return std::addressof(resolved->get());
 }
 
 template <typename Target, typename SourceCapability>
@@ -5890,10 +5843,11 @@ Target* resolve_borrowed_materialized_pointer(
 
 template <typename Target, typename Source, typename Factory, typename Context,
           typename SourceCapability>
-Target* resolve_handle_or_borrow_pointer(Factory& factory, Context& context,
-                                         SourceCapability&& source,
-                                         type_descriptor requested_type,
-                                         type_descriptor registered_type) {
+std::expected<Target*, std::error_code>
+resolve_handle_or_borrow_pointer(Factory& factory, Context& context,
+                                 SourceCapability&& source,
+                                 type_descriptor requested_type,
+                                 type_descriptor registered_type) {
     using materialized_reference_type =
         decltype(materialized_reference(std::declval<SourceCapability>()));
     if constexpr (std::is_constructible_v<Target,
@@ -5901,33 +5855,40 @@ Target* resolve_handle_or_borrow_pointer(Factory& factory, Context& context,
         return std::addressof(factory.template resolve_conversion<Target>(
             context, materialized_reference(source)));
     } else if constexpr (is_rebindable_handle_v<Target, Source>) {
-        return std::addressof(
-            type_traits<Source>::template resolve_type<Target>(
-                factory, context, requested_type, registered_type));
+        auto resolved = type_traits<Source>::template resolve_type<Target>(
+            factory, context, requested_type, registered_type);
+        if (!resolved)
+            return std::unexpected(resolved.error());
+        return std::addressof(resolved->get());
     } else {
-        return std::addressof(borrow_reference<Target>(
+        auto borrowed = borrow_reference<Target>(
             materialized_value(std::forward<SourceCapability>(source)),
-            requested_type, registered_type));
+            requested_type, registered_type);
+        if (!borrowed)
+            return std::unexpected(borrowed.error());
+        return std::addressof(borrowed->get());
     }
 }
 
 template <typename Target, typename Source, typename SourceCapability>
-Target* resolve_materialized_get_pointer(SourceCapability&& source,
-                                         type_descriptor requested_type,
-                                         type_descriptor registered_type) {
+std::expected<Target*, std::error_code>
+resolve_materialized_get_pointer(SourceCapability&& source,
+                                 type_descriptor requested_type,
+                                 type_descriptor registered_type) {
     auto& value = materialized_reference(source);
     if constexpr (std::is_convertible_v<decltype(type_traits<Source>::get(value)),
                                         Target*>) {
         return type_traits<Source>::get(value);
     } else {
-        throw make_type_not_convertible_exception(requested_type,
-                                                  registered_type);
+        return std::unexpected(make_type_not_convertible_exception(
+                requested_type, registered_type));
     }
 }
 
 template <typename Target, typename Sum>
-Target extract_alternative_type_value(Sum&& sum, type_descriptor requested_type,
-                                      type_descriptor registered_type) {
+std::expected<Target, std::error_code>
+extract_alternative_type_value(Sum&& sum, type_descriptor requested_type,
+                               type_descriptor registered_type) {
     using selected_type = unqualified_t<Target>;
     using alternative_type = unqualified_t<Sum>;
 
@@ -5937,13 +5898,15 @@ Target extract_alternative_type_value(Sum&& sum, type_descriptor requested_type,
         return Target(std::move(*value));
     }
 
-    throw make_type_not_convertible_exception(requested_type, registered_type);
+    return std::unexpected(make_type_not_convertible_exception(
+            requested_type, registered_type));
 }
 
 template <typename Target, typename Sum>
-Target& resolve_alternative_type_reference(Sum& sum,
-                                           type_descriptor requested_type,
-                                           type_descriptor registered_type) {
+std::expected<std::reference_wrapper<Target>, std::error_code>
+resolve_alternative_type_reference(Sum& sum,
+                                   type_descriptor requested_type,
+                                   type_descriptor registered_type) {
     using selected_type = unqualified_t<Target>;
     using alternative_type = unqualified_t<Sum>;
 
@@ -5953,16 +5916,20 @@ Target& resolve_alternative_type_reference(Sum& sum,
         return *value;
     }
 
-    throw make_type_not_convertible_exception(requested_type, registered_type);
+    return std::unexpected(make_type_not_convertible_exception(
+            requested_type, registered_type));
 }
 
 template <typename Target, typename Sum>
-Target* resolve_alternative_type_pointer(Sum& sum,
-                                         type_descriptor requested_type,
-                                         type_descriptor registered_type) {
-    return std::addressof(
-        resolve_alternative_type_reference<Target>(sum, requested_type,
-                                                   registered_type));
+std::expected<Target*, std::error_code>
+resolve_alternative_type_pointer(Sum& sum,
+                                 type_descriptor requested_type,
+                                 type_descriptor registered_type) {
+    auto resolved = resolve_alternative_type_reference<Target>(
+        sum, requested_type, registered_type);
+    if (!resolved)
+        return std::unexpected(resolved.error());
+    return std::addressof(resolved->get());
 }
 
 template <typename Target, typename Sum, typename Alternatives>
@@ -5970,10 +5937,11 @@ struct alternative_borrow_reference;
 
 template <typename Target, typename Sum>
 struct alternative_borrow_reference<Target, Sum, type_list<>> {
-    static Target& resolve(Sum&, type_descriptor requested_type,
-                           type_descriptor registered_type) {
-        throw make_type_not_convertible_exception(requested_type,
-                                                  registered_type);
+    static std::expected<std::reference_wrapper<Target>, std::error_code>
+    resolve(Sum&, type_descriptor requested_type,
+            type_descriptor registered_type) {
+        return std::unexpected(make_type_not_convertible_exception(
+                requested_type, registered_type));
     }
 };
 
@@ -5981,14 +5949,18 @@ template <typename Target, typename Sum, typename Alternative,
           typename... Alternatives>
 struct alternative_borrow_reference<Target, Sum,
                                     type_list<Alternative, Alternatives...>> {
-    static Target& resolve(Sum& sum, type_descriptor requested_type,
-                           type_descriptor registered_type) {
+    static std::expected<std::reference_wrapper<Target>, std::error_code>
+    resolve(Sum& sum, type_descriptor requested_type,
+            type_descriptor registered_type) {
         using alternative_type = unqualified_t<Sum>;
         if (auto* value =
                 alternative_type_traits<alternative_type>::template get<
                     Alternative>(sum)) {
-            return borrow_reference<Target>(*value, requested_type,
-                                            registered_type);
+            auto borrowed = borrow_reference<Target>(*value, requested_type,
+                                                    registered_type);
+            if (!borrowed)
+                return std::unexpected(borrowed.error());
+            return *borrowed;
         }
 
         return alternative_borrow_reference<
@@ -5998,7 +5970,8 @@ struct alternative_borrow_reference<Target, Sum,
 };
 
 template <typename Target, typename Sum>
-Target& resolve_alternative_borrowed_reference(
+std::expected<std::reference_wrapper<Target>, std::error_code>
+resolve_alternative_borrowed_reference(
     Sum& sum, type_descriptor requested_type, type_descriptor registered_type) {
     using alternative_type = unqualified_t<Sum>;
     return alternative_borrow_reference<
@@ -6007,14 +5980,19 @@ Target& resolve_alternative_borrowed_reference(
 }
 
 template <typename Target, typename Sum>
-Target* resolve_alternative_borrowed_pointer(
+std::expected<Target*, std::error_code>
+resolve_alternative_borrowed_pointer(
     Sum& sum, type_descriptor requested_type, type_descriptor registered_type) {
-    return std::addressof(resolve_alternative_borrowed_reference<Target>(
-        sum, requested_type, registered_type));
+    auto resolved = resolve_alternative_borrowed_reference<Target>(
+        sum, requested_type, registered_type);
+    if (!resolved)
+        return std::unexpected(resolved.error());
+    return std::addressof(resolved->get());
 }
 
 template <typename Target, typename SourceCapability>
-Target resolve_materialized_alternative_value(
+std::expected<Target, std::error_code>
+resolve_materialized_alternative_value(
     SourceCapability&& source, type_descriptor requested_type,
     type_descriptor registered_type) {
     auto&& value = materialized_value(std::forward<SourceCapability>(source));
@@ -6024,7 +6002,8 @@ Target resolve_materialized_alternative_value(
 }
 
 template <typename Target, typename SourceCapability>
-Target& resolve_materialized_alternative_reference(
+std::expected<std::reference_wrapper<Target>, std::error_code>
+resolve_materialized_alternative_reference(
     SourceCapability&& source, type_descriptor requested_type,
     type_descriptor registered_type) {
     return resolve_alternative_type_reference<Target>(
@@ -6032,7 +6011,8 @@ Target& resolve_materialized_alternative_reference(
 }
 
 template <typename Target, typename SourceCapability>
-Target* resolve_materialized_alternative_pointer(
+std::expected<Target*, std::error_code>
+resolve_materialized_alternative_pointer(
     SourceCapability&& source, type_descriptor requested_type,
     type_descriptor registered_type) {
     return resolve_alternative_type_pointer<Target>(
@@ -6179,11 +6159,11 @@ struct type_conversion<
         (alternative_type_count<Source,
                                         unqualified_t<Target>>::value != 1)>> {
     template <typename Factory, typename Context, typename SourceCapability>
-    static Target apply(Factory&, Context&, SourceCapability&&,
+    static as_expected_t<Target> apply(Factory&, Context&, SourceCapability&&,
                         type_descriptor requested_type,
                         type_descriptor registered_type) {
-        throw make_type_not_convertible_exception(requested_type,
-                                                          registered_type);
+        return std::unexpected(make_type_not_convertible_exception(
+            requested_type, registered_type));
     }
 };
 
@@ -6242,11 +6222,11 @@ struct type_conversion<
     std::enable_if_t<(std::rank_v<Array> > 1) &&
                      (std::extent_v<Array, 0> != 0)>> {
     template <typename Factory, typename Context, typename SourceCapability>
-    static std::unique_ptr<Array, Deleter>
+    static as_expected_t<std::unique_ptr<Array, Deleter>>
     apply(Factory&, Context&, SourceCapability&&, type_descriptor requested_type,
           type_descriptor registered_type) {
-        throw make_type_not_convertible_exception(requested_type,
-                                                          registered_type);
+        return std::unexpected(make_type_not_convertible_exception(
+            requested_type, registered_type));
     }
 };
 
@@ -6255,11 +6235,11 @@ struct type_conversion<std::shared_ptr<Array>, rvalue_source<Source*>,
                        std::enable_if_t<(std::rank_v<Array> > 1) &&
                                         (std::extent_v<Array, 0> != 0)>> {
     template <typename Factory, typename Context, typename SourceCapability>
-    static std::shared_ptr<Array>
+    static as_expected_t<std::shared_ptr<Array>>
     apply(Factory&, Context&, SourceCapability&&, type_descriptor requested_type,
           type_descriptor registered_type) {
-        throw make_type_not_convertible_exception(requested_type,
-                                                          registered_type);
+        return std::unexpected(make_type_not_convertible_exception(
+            requested_type, registered_type));
     }
 };
 
@@ -6750,12 +6730,16 @@ struct recursion_guard {
     template <typename Context>
     explicit recursion_guard(Context& context)
         : frame_guard_(context.template track_type<T>()) {
-        // Track the active type path first so recursion exceptions can report
+        // Track the active type path first so recursion errors can report
         // the full resolution chain, including the repeated type.
         if (visited_) {
-            throw make_type_recursion_exception<T>(context);
+            ec_ = make_type_recursion_exception<T>(context);
+            ok_ = false;
+            active_ = false;
+            return;
         }
         visited_ = true;
+        ok_ = true;
     }
 
     recursion_guard(const recursion_guard&) = delete;
@@ -6769,9 +6753,15 @@ struct recursion_guard {
         }
     }
 
+    /// 解析是否成功进入（未被递归检测拦截）。调用方应检查并传播 error()。
+    bool ok() const { return ok_; }
+    std::error_code error() const { return ec_; }
+
   private:
     resolving_frame frame_guard_;
     bool active_ = true;
+    bool ok_ = false;
+    std::error_code ec_{};
     static thread_local bool visited_;
 };
 
@@ -6786,6 +6776,9 @@ template <typename T> struct recursion_guard<T, true> {
     recursion_guard& operator=(const recursion_guard&) = delete;
     recursion_guard(recursion_guard&&) = delete;
     recursion_guard& operator=(recursion_guard&&) = delete;
+
+    bool ok() const { return true; }
+    std::error_code error() const { return {}; }
 };
 
 template <typename T> class recursion_guard_wrapper {
@@ -7158,6 +7151,23 @@ using resolve_request_t =
 template <typename Request, bool RemoveRvalueReferences>
 using resolve_result_t =
     request_interface_t<resolve_request_t<Request, RemoveRvalueReferences>>;
+
+// --- expected 返回类型封装（di #47：全量迁移 std::expected）---
+// di 的 resolve 入口可能返回 T&（引用），而 std::expected<T&, E> 标准不允许；
+// 用 as_expected_t 把引用统一包成 reference_wrapper<T>，其余类型原样包入 expected。
+template <typename T>
+using as_expected_t = std::expected<
+    std::conditional_t<std::is_reference_v<T>,
+                       std::reference_wrapper<std::remove_reference_t<T>>,
+                       T>,
+    std::error_code>;
+
+template <typename Request>
+using resolve_expected_t = as_expected_t<request_interface_t<Request>>;
+
+template <typename Request, bool RemoveRvalueReferences>
+using resolve_expected_result_t =
+    as_expected_t<resolve_result_t<Request, RemoveRvalueReferences>>;
 
 } // export namespace silicon::di
 
@@ -7580,7 +7590,7 @@ T resolve_binding_request(Binding& binding, Context& context,
 }
 
 template <typename RTTI, typename Factory, typename Context, typename... Types>
-void* resolve_binding_capability_address(Factory& factory, Context& context,
+as_expected_t<void*> resolve_binding_capability_address(Factory& factory, Context& context,
                                          type_list<Types...>,
                                          const typename RTTI::type_index& type,
                                          type_descriptor requested_type,
@@ -7595,8 +7605,8 @@ void* resolve_binding_capability_address(Factory& factory, Context& context,
          ...);
 
     if (!matched) {
-        throw make_type_not_convertible_exception(
-            requested_type, registered_type, context);
+        return std::unexpected(make_type_not_convertible_exception(
+            requested_type, registered_type, context));
     }
 
     return address;
@@ -7641,11 +7651,18 @@ throw_missing_rvalue_conversion(bool has_normalized_request,
                                 MakeNotFound&& make_not_found) {
     static_assert(rvalue_request_requires_explicit_conversion_v<Request>);
 
-    if (has_normalized_request) {
-        throw std::forward<MakeNotConvertible>(make_not_convertible)();
-    }
-
-    throw std::forward<MakeNotFound>(make_not_found)();
+    // di 已统一错误体系：make_* 现在返回 std::error_code。
+    // 此 [[noreturn]] 包装器用于 rvalue 显式转换缺失的硬失败路径，
+    // 调用方已声明 as_expected_t<...> 返回类型；为避免在调用点连锁改写，
+    // 这里直接用 std::terminate 落地，并通过 std::unexpected 取出 error_code
+    // 的诊断信息输出到 stderr。
+    std::error_code ec = has_normalized_request
+                             ? std::forward<MakeNotConvertible>(
+                                   make_not_convertible)()
+                             : std::forward<MakeNotFound>(make_not_found)();
+    std::cerr << "silicon::di: rvalue conversion failed: " << ec.message()
+              << "\n";
+    std::terminate();
 }
 
 template <typename Request, typename Context>
@@ -7985,13 +8002,13 @@ class runtime_binding
 #pragma warning(disable : 4702)
 #endif
     template <typename T, typename Context>
-    void* resolve_address(Context& context, type_descriptor requested_type,
+    as_expected_t<void*> resolve_address(Context& context, type_descriptor requested_type,
                           type_descriptor registered_type) {
         if constexpr (is_exact_lookup_v<T>) {
             if (!matches_exact_lookup<resolved_type_t<T, Type>>(
                     requested_type)) {
-                throw make_type_not_convertible_exception(
-                    requested_type, registered_type, context);
+                return std::unexpected(make_type_not_convertible_exception(
+                    requested_type, registered_type, context));
             }
         }
 
@@ -11157,7 +11174,7 @@ struct static_binding_resolver {
     }
 
     template <typename Request, typename Context>
-    Request resolve(Context& context, instance_cache_sink cache = {}) {
+    as_expected_t<Request> resolve(Context& context, instance_cache_sink cache = {}) {
         static_assert(State::runtime_dependencies ||
                           binding_supports_request_v<Request, InterfaceBinding>,
                       "static resolution cannot satisfy a request the storage "
@@ -11184,8 +11201,8 @@ struct static_binding_resolver {
             // stack-local pointer variable instead of the bound object.
             ptr = resolve_request_address<Request, capability>(context);
         } else {
-            throw make_type_not_convertible_exception(
-                describe_type<Request>(), registered_type(), context);
+            return std::unexpected(make_type_not_convertible_exception(
+                describe_type<Request>(), registered_type(), context));
         }
         if constexpr (storage_type::conversions::is_stable) {
             cache(ptr);
@@ -11194,7 +11211,7 @@ struct static_binding_resolver {
     }
 
     template <typename Request, typename Context, typename Fn>
-    decltype(auto) consume(Context& context, Fn&& fn) {
+    as_expected_t<Request> consume(Context& context, Fn&& fn) {
         static_assert(State::runtime_dependencies ||
                           binding_supports_request_v<Request, InterfaceBinding>,
                       "static resolution cannot satisfy a request the storage "
@@ -11207,8 +11224,8 @@ struct static_binding_resolver {
             return consume_request<Request, capability>(context,
                                                         std::forward<Fn>(fn));
         } else {
-            throw make_type_not_convertible_exception(
-                describe_type<Request>(), registered_type(), context);
+            return std::unexpected(make_type_not_convertible_exception(
+                describe_type<Request>(), registered_type(), context));
         }
     }
 
@@ -11468,7 +11485,7 @@ class basic_static_activation_set_base
               typename BindingModel, typename Key = void, typename Host,
               typename Context,
               typename R = resolve_result_t<T, RemoveRvalueReferences>>
-    decltype(auto) resolve_local_binding(Host& host, Context& context) {
+    as_expected_t<R> resolve_local_binding(Host& host, Context& context) {
         if constexpr (collection_traits<R>::is_collection) {
             using collection_type = collection_traits<R>;
             R results;
@@ -11486,8 +11503,9 @@ class basic_static_activation_set_base
                 host.template append_collection<R, Key>(results, context,
                                                         append);
             if (local_count + host_count == 0) {
-                throw make_collection_type_not_found_exception<
-                    R, typename collection_type::resolve_type>();
+                return std::unexpected(
+                    make_collection_type_not_found_exception<
+                        R, typename collection_type::resolve_type>());
             }
             return results;
         } else {
@@ -12128,7 +12146,7 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename T, typename Key, typename Fn>
-    T construct_collection_runtime_request_impl(Fn&& fn) {
+    as_expected_t<T> construct_collection_runtime_request_impl(Fn&& fn) {
         using collection_type = collection_traits<T>;
         using resolve_type = typename collection_type::resolve_type;
 
@@ -12140,8 +12158,8 @@ class runtime_registry : public allocator_base<Allocator> {
         const std::size_t count =
             count_runtime_collection<T>(collection_key<Key>());
         if (count == 0) {
-            throw make_collection_type_not_found_exception<
-                T, resolve_type>();
+            return std::unexpected(
+                make_collection_type_not_found_exception<T, resolve_type>());
         }
 
         collection_type::reserve(results, count);
@@ -12377,7 +12395,7 @@ class runtime_registry : public allocator_base<Allocator> {
 
     template <typename T, bool RemoveRvalueReferences, bool MayAutoConstruct,
               typename IdType,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = as_expected_t<resolve_request_t<T, RemoveRvalueReferences>>>
     R runtime_source_missing(runtime_context& context, IdType&& id) {
         using Type = normalized_type_t<T>;
         (void)id;
@@ -12411,17 +12429,19 @@ class runtime_registry : public allocator_base<Allocator> {
                           constructor_kind::kConcrete) {
                 return auto_construct<T>(context);
             } else if constexpr (is_none_v<std::decay_t<IdType>>) {
-                throw make_type_not_found_exception<T>(context);
+                return std::unexpected(
+                    make_type_not_found_exception<T>(context));
             } else {
-                throw make_type_not_found_exception<
-                    T, std::decay_t<IdType>>(context);
+                return std::unexpected(make_type_not_found_exception<
+                    T, std::decay_t<IdType>>(context));
             }
         } else if constexpr (is_none_v<std::decay_t<IdType>>) {
-            throw make_type_not_found_exception<T>(context);
+            return std::unexpected(
+                make_type_not_found_exception<T>(context));
         } else {
-            throw make_type_not_found_exception<T,
+            return std::unexpected(make_type_not_found_exception<T,
                                                         std::decay_t<IdType>>(
-                context);
+                context));
         }
     }
 
@@ -12651,7 +12671,7 @@ class runtime_registry : public allocator_base<Allocator> {
 
     template <typename TypeInterface, typename TypeStorage, typename Binding,
               typename IdType, typename KeyIdType>
-    void register_type_binding(Binding&& binding, IdType&& id, KeyIdType) {
+    as_expected_t<void> register_type_binding(Binding&& binding, IdType&& id, KeyIdType) {
         check_interface_requirements<
             TypeStorage, typename annotated_traits<TypeInterface>::type,
             typename TypeStorage::type>();
@@ -12680,12 +12700,14 @@ class runtime_registry : public allocator_base<Allocator> {
         }();
         if (!inserted_binding.second) {
             if constexpr (is_none_v<std::decay_t<KeyIdType>>) {
-                throw make_type_already_registered_exception<
-                    TypeInterface, typename TypeStorage::type>();
+                return std::unexpected(
+                    make_type_already_registered_exception<
+                        TypeInterface, typename TypeStorage::type>());
             } else {
-                throw make_type_index_already_registered_exception<
-                    TypeInterface, typename TypeStorage::type,
-                    std::decay_t<KeyIdType>>();
+                return std::unexpected(
+                    make_type_index_already_registered_exception<
+                        TypeInterface, typename TypeStorage::type,
+                        std::decay_t<KeyIdType>>());
             }
         }
         auto binding_ptr = inserted_binding.first.binding.get();
@@ -12699,10 +12721,12 @@ class runtime_registry : public allocator_base<Allocator> {
                     data.bindings.template erase<binding_registration_key>();
                 assert(erased);
                 (void)erased;
-                throw make_type_index_already_registered_exception<
-                    TypeInterface, typename TypeStorage::type, IdType>();
+                return std::unexpected(
+                    make_type_index_already_registered_exception<
+                        TypeInterface, typename TypeStorage::type, IdType>());
             }
         }
+        return {};
     }
 
 #ifdef _MSC_VER
@@ -14772,7 +14796,7 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
         static_collection_binding_count<registry_type_, Collection, Key>();
 
     template <typename Collection, typename Key = void,
-              typename R = Collection>
+              typename R = as_expected_t<Collection>>
     R resolve_missing_parent_collection() {
         if (parent_) {
             if constexpr (std::is_void_v<Key>) {
@@ -14783,8 +14807,9 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
         }
         using resolve_type =
             typename collection_traits<Collection>::resolve_type;
-        throw make_collection_type_not_found_exception<Collection,
-                                                       resolve_type>();
+        return std::unexpected(
+            make_collection_type_not_found_exception<Collection,
+                                                       resolve_type>());
     }
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void,
@@ -15521,7 +15546,7 @@ class container_with_static_bindings<static_registry<Registrations...>,
 
     template <typename LookupRequest, typename Request, typename Key,
               typename Context>
-    SILICON_DI_ALWAYS_INLINE request_interface_t<Request>
+    SILICON_DI_ALWAYS_INLINE resolve_expected_t<Request>
     resolve_static_selection(Context& context) {
         using selection = static_selection_t<LookupRequest, Key>;
         using binding = typename selection::binding_type;
@@ -15529,11 +15554,11 @@ class container_with_static_bindings<static_registry<Registrations...>,
                       binding_selection_status::kFound) {
             if constexpr (selection::status ==
                           binding_selection_status::kAmbiguous) {
-                throw make_type_ambiguous_exception<LookupRequest>(
-                    context);
+                return std::unexpected(
+                    make_type_ambiguous_exception<LookupRequest>(context));
             } else {
-                throw make_type_not_found_exception<LookupRequest>(
-                    context);
+                return std::unexpected(
+                    make_type_not_found_exception<LookupRequest>(context));
             }
         } else {
             static_resolution_ref static_state_ref(
@@ -15546,16 +15571,18 @@ class container_with_static_bindings<static_registry<Registrations...>,
     }
 
     template <typename Request, typename Key, typename Context>
-    request_interface_t<Request> resolve_binding_selection(Context& context) {
+    resolve_expected_t<Request> resolve_binding_selection(Context& context) {
         using selection = static_selection_t<Request, Key>;
         using binding = typename selection::binding_type;
         if constexpr (selection::status !=
                       binding_selection_status::kFound) {
             if constexpr (selection::status ==
                           binding_selection_status::kAmbiguous) {
-                throw make_type_ambiguous_exception<Request>(context);
+                return std::unexpected(
+                    make_type_ambiguous_exception<Request>(context));
             } else {
-                throw make_type_not_found_exception<Request>(context);
+                return std::unexpected(
+                    make_type_not_found_exception<Request>(context));
             }
         } else {
             binding_resolution_ref static_state_ref(
@@ -15594,7 +15621,7 @@ class container_with_static_bindings<static_registry<Registrations...>,
 
     template <typename T, bool RemoveRvalueReferences, bool MayAutoConstruct,
               typename IdType,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = resolve_expected_result_t<T, RemoveRvalueReferences>>
     R resolve_missing_runtime(runtime_context& context, IdType&& id) {
         using Type = normalized_type_t<T>;
         (void)id;
@@ -15613,17 +15640,19 @@ class container_with_static_bindings<static_registry<Registrations...>,
                 return context.template construct_temporary<
                     request_interface_t<T>, type_detection>(*this);
             } else if constexpr (is_none_v<std::decay_t<IdType>>) {
-                throw make_type_not_found_exception<T>(context);
+                return std::unexpected(
+                    make_type_not_found_exception<T>(context));
             } else {
-                throw make_type_not_found_exception<
-                    T, std::decay_t<IdType>>(context);
+                return std::unexpected(make_type_not_found_exception<
+                    T, std::decay_t<IdType>>(context));
             }
         } else if constexpr (is_none_v<std::decay_t<IdType>>) {
-            throw make_type_not_found_exception<T>(context);
+            return std::unexpected(
+                make_type_not_found_exception<T>(context));
         } else {
-            throw make_type_not_found_exception<T,
+            return std::unexpected(make_type_not_found_exception<T,
                                                         std::decay_t<IdType>>(
-                context);
+                context));
         }
     }
 
@@ -16416,10 +16445,10 @@ struct index_collection<Key, Value, Allocator, index_type::array<N>> {
 
     index_collection(Allocator&) {}
 
-    bool emplace(Key key, Value value) {
+    as_expected_t<bool> emplace(Key key, Value value) {
         if (key >= array_.size())
-            throw make_type_index_out_of_range_exception(
-                key, array_.size());
+            return std::unexpected(make_type_index_out_of_range_exception(
+                key, array_.size()));
         if (!array_[key]) {
             array_[key] = value;
             return true;
