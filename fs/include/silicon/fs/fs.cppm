@@ -1,86 +1,27 @@
 module;
 
 #include <cstddef>
+#include <expected>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <vector>
 
 export module silicon.fs;
 
-import silicon.exception;
+import silicon.error;
 
 export namespace silicon::fs {
 
+/// 统一错误返回类型：std::expected<T, std::error_code> 的别名。
+/// 错误码来源：silicon::error::fs_error 枚举（make_error_code）或
+/// silicon::error::system_error(errno)（POSIX errno 语义）。
 template<typename T>
-class result {
-    struct Impl {
-      public:
-        bool ok_{false};
-        T value_{};
-        silicon::exception::fs_error error_{};
-    };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
-
-  public:
-    result(T v) {
-        impl_->ok_ = true;
-        impl_->value_ = std::move(v);
-    }
-    result(silicon::exception::fs_error e) {
-        impl_->ok_ = false;
-        impl_->error_ = std::move(e);
-    }
-    result(const result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    result &operator=(const result &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
-        return *this;
-    }
-    result(result &&) noexcept = default;
-    result &operator=(result &&) noexcept = default;
-    ~result() = default;
-
-    bool has_value() const { return impl_->ok_; }
-    explicit operator bool() const { return impl_->ok_; }
-    T &value() { return impl_->value_; }
-    const T &value() const { return impl_->value_; }
-    silicon::exception::fs_error &error() { return impl_->error_; }
-    const silicon::exception::fs_error &error() const { return impl_->error_; }
-};
-
-// 针对 void 的特化
-template<>
-class result<void> {
-    struct Impl {
-      public:
-        bool ok_{false};
-        silicon::exception::fs_error error_{};
-    };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
-
-  public:
-    result() { impl_->ok_ = true; }
-    result(silicon::exception::fs_error e) {
-        impl_->ok_ = false;
-        impl_->error_ = std::move(e);
-    }
-    result(const result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
-    result &operator=(const result &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
-        return *this;
-    }
-    result(result &&) noexcept = default;
-    result &operator=(result &&) noexcept = default;
-    ~result() = default;
-
-    bool has_value() const { return impl_->ok_; }
-    explicit operator bool() const { return impl_->ok_; }
-    silicon::exception::fs_error &error() { return impl_->error_; }
-    const silicon::exception::fs_error &error() const { return impl_->error_; }
-};
+using result = std::expected<T, std::error_code>;
 
 /// 文件系统抽象（统一接口）。
 /// 文本 read/write 平台无关地以 UTF-8 表达；平台相关细节

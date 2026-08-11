@@ -5,6 +5,7 @@
 module;
 
 #include <cstddef>
+#include <expected>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -13,7 +14,7 @@ module;
 
 module silicon.fs;
 
-import silicon.exception;
+import silicon.error;
 
 namespace silicon::fs {
 
@@ -22,7 +23,7 @@ class file_system_base: public i_file_system {
   public:
     result<std::string> read(const std::string &path) const override {
         std::ifstream f(ToPath(path), std::ios::in | std::ios::binary);
-        if(!f) return silicon::exception::fs_error{"cannot open: " + path};
+        if(!f) return std::unexpected(silicon::error::make_error_code(silicon::error::fs_error::kOpenFailed));
         std::ostringstream ss;
         ss << f.rdbuf();
         return ss.str();
@@ -30,7 +31,7 @@ class file_system_base: public i_file_system {
 
     result<std::vector<std::byte>> read_binary(const std::string &path) const override {
         std::ifstream f(ToPath(path), std::ios::in | std::ios::binary);
-        if(!f) return silicon::exception::fs_error{"cannot open: " + path};
+        if(!f) return std::unexpected(silicon::error::make_error_code(silicon::error::fs_error::kOpenFailed));
         std::vector<std::byte> out;
         f.seekg(0, std::ios::end);
         const auto sz = static_cast<std::size_t>(f.tellg());
@@ -44,7 +45,7 @@ class file_system_base: public i_file_system {
 
     result<void> write_binary(const std::string &path, const std::vector<std::byte> &data) const override {
         std::ofstream f(ToPath(path), std::ios::out | std::ios::binary);
-        if(!f) return silicon::exception::fs_error{"cannot write: " + path};
+        if(!f) return std::unexpected(silicon::error::make_error_code(silicon::error::fs_error::kWriteFailed));
         if(!data.empty())
             f.write(reinterpret_cast<const char *>(data.data()), static_cast<std::streamsize>(data.size()));
         return {};
@@ -66,7 +67,7 @@ class file_system_base: public i_file_system {
     result<std::vector<std::string>> list_dir(const std::string &path) const override {
         std::error_code ec;
         auto it = std::filesystem::directory_iterator(ToPath(path), ec);
-        if(ec) return silicon::exception::fs_error{"cannot list: " + path};
+        if(ec) return std::unexpected(silicon::error::make_error_code(silicon::error::fs_error::kOpenFailed));
         std::vector<std::string> entries;
         for(const auto &entry: it)
             entries.push_back(entry.path().filename().string());

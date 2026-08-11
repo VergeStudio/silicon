@@ -8,8 +8,8 @@ target("fs", function()
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
     add_includedirs("include", {public = true})
-    -- silicon.exception 模块由 core 目标编译，依赖 core 以获取其 BMI。
-    add_deps("silicon::core")
+    -- 错误码体系（result = std::expected<T, std::error_code>）
+    add_deps("silicon::core", "silicon::error")
     add_files("include/silicon/fs/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)
