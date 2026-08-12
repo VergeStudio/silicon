@@ -2,6 +2,7 @@ module;
 
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <memory>
 #include <thread>
 
@@ -16,10 +17,10 @@ struct parallel_scheduler::Impl {
 };
 
 parallel_scheduler::parallel_scheduler(): m_impl(std::make_unique<Impl>()) {
-    m_impl->m_pool = thread_pool::make_unique(
+    m_impl->m_pool = thread_pool::create(
             thread_pool::options{
                     .thread_count = std::thread::hardware_concurrency(),
-            });
+            }).value();
 }
 
 parallel_scheduler::~parallel_scheduler() {

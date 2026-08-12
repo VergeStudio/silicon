@@ -6,6 +6,7 @@ module;
 #include <coroutine>
 #include <cstdint>
 #include <deque>
+#include <expected>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -96,11 +97,16 @@ thread_pool::thread_pool(options &&opts, private_constructor): m_impl(std::make_
     m_impl->m_states.resize(n);
 }
 
-auto thread_pool::make_unique(options opts) -> std::unique_ptr<thread_pool> {
+auto thread_pool::create(options opts) -> std::expected<std::unique_ptr<thread_pool>, std::error_code> {
     auto tp = std::make_unique<thread_pool>(std::move(opts), private_constructor{});
     auto &impl = *tp->m_impl;
-    for(uint32_t i = 0; i < impl.m_opts.thread_count; ++i) {
-        impl.m_threads.emplace_back([tp = tp.get(), i]() { tp->m_impl->executor(i); });
+    try {
+        for(uint32_t i = 0; i < impl.m_opts.thread_count; ++i) {
+            impl.m_threads.emplace_back([tp = tp.get(), i]() { tp->m_impl->executor(i); });
+        }
+    } catch(const std::exception &) {
+        // 线程创建失败（系统资源不足）：tp 析构会 join 已创建线程，返回模块级错误码。
+        return std::unexpected(make_error_code(scheduler_error::kUnknown));
     }
     return tp;
 }

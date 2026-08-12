@@ -6,7 +6,9 @@ module;
 #include <exception> // std::terminate：默认 io 执行器构造失败属启动期致命错误
 #include <iostream>
 #include <memory>
+#include <system_error> // std::error_code::message
 #include <thread>
+#include <utility> // std::move
 
 module silicon.scheduler;
 
@@ -33,7 +35,13 @@ void silicon::scheduler::default_executor::set_executor_options(thread_pool::opt
 std::unique_ptr<silicon::scheduler::thread_pool> &silicon::scheduler::default_executor::executor() {
     // If we're the first one here create the default executor.
     if(s_default_executor_init.exchange(true) == false) {
-        s_default_executor = silicon::scheduler::thread_pool::make_unique(s_default_executor_options);
+        auto created = silicon::scheduler::thread_pool::create(s_default_executor_options);
+        if(!created) {
+            std::cerr << "silicon::scheduler: failed to create default thread pool: "
+                      << created.error().message() << "\n";
+            std::terminate();
+        }
+        s_default_executor = std::move(*created);
         s_default_executor_ptr.store(s_default_executor.get(), std::memory_order::release);
     }
 

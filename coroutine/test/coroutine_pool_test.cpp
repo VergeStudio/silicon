@@ -3,6 +3,7 @@
 // 本 TU 自身定义协程（co_await），须直接可见 std::coroutine_traits，
 // 不能只依赖 import silicon.coroutine。
 #include <coroutine>
+#include <expected>
 #include <memory>
 #include <atomic>
 #include <vector>
@@ -22,7 +23,7 @@ namespace {
 // 在 TEST_CASE 作用域内持有底层执行器（shared_ptr），确保其在 pool 析构后仍存活，
 // 以便 worker / sender / async_close 协程能跑完，避免 use-after-free。
 auto make_executor() -> std::shared_ptr<thread_pool> {
-    return std::shared_ptr<thread_pool>{thread_pool::make_unique()};
+    return std::shared_ptr<thread_pool>{thread_pool::create().value()};
 }
 
 } // namespace

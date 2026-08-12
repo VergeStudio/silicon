@@ -65,7 +65,7 @@ io_scheduler::io_scheduler(options &&opts, private_constructor)
     m_p->m_recent_events.reserve(m_max_events);
 
     if(m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_on_thread_pool) {
-        m_p->m_thread_pool = thread_pool::make_unique(std::move(m_p->m_opts.pool));
+        m_p->m_thread_pool = thread_pool::create(std::move(m_p->m_opts.pool)).value();
     }
 }
 

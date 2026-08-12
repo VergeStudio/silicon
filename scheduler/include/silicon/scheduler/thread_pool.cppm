@@ -3,8 +3,10 @@ module;
 #include <coroutine>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <functional>
 #include <memory>
+#include <system_error>
 #include <thread>
 #include <vector>
 
@@ -48,13 +50,13 @@ class thread_pool final: public IScheduler {
 
     explicit thread_pool(options &&opts, private_constructor);
 
-    static auto make_unique(
+    static auto create(
             options opts = options{
                     .thread_count = std::thread::hardware_concurrency(),
                     .on_thread_start_functor = nullptr,
                     .on_thread_stop_functor = nullptr
             }
-    ) -> std::unique_ptr<thread_pool>;
+    ) -> std::expected<std::unique_ptr<thread_pool>, std::error_code>;
 
     thread_pool(const thread_pool &) = delete;
     thread_pool(thread_pool &&) = delete;
