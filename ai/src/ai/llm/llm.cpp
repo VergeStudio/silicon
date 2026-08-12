@@ -16,13 +16,13 @@ module;
 #include <vector>
 #include <expected>
 
-module silicon.llm;
+module silicon.ai.llm;
 
 import silicon.json;
 import silicon.core;
 import silicon.error;
 
-namespace silicon::llm {
+namespace silicon::ai::llm {
 
 tool_registry::tool_registry() : impl_(std::make_unique<Impl>()) {}
 provider_registry::provider_registry() : impl_(std::make_unique<Impl>()) {}
@@ -117,10 +117,10 @@ result<chat_response> json_protocol_adapter::decode_response(std::string_view ra
     if(auto u = v.find("usage");
        u != v.end() && u->is_object()) {
         if(auto pt = u->find("prompt_tokens");
-           pt != u->end() && pt->is_number_integer())
+           pt != u.end() && pt->is_number_integer())
             resp.prompt_tokens() = static_cast<int32_t>((*pt).get<std::int64_t>());
         if(auto ct = u->find("completion_tokens");
-           ct != u->end() && ct->is_number_integer())
+           ct != u.end() && ct->is_number_integer())
             resp.completion_tokens() = static_cast<int32_t>((*ct).get<std::int64_t>());
     }
     return result<chat_response>(std::move(resp));
@@ -211,4 +211,4 @@ result<chat_response> http_provider::chat(const conversation &conv, const model_
     return impl_->adapter_.decode_response(r.body());
 }
 
-} // namespace silicon::llm
+} // namespace silicon::ai::llm

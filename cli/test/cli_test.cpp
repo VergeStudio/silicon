@@ -1,35 +1,96 @@
+#include <memory>
 #include <silicon/test/test.hpp>
 #include <string>
+#include <vector>
 
 import silicon.cli;
+import silicon.error;
 
 using namespace silicon::cli;
+using namespace silicon::error;
 
 TEST_CASE("CliParser: 无参数返回空结果") {
     Parser p;
     const char *argv[] = {"prog"};
     auto r = p.Parse(1, argv);
-    CHECK(r.command().empty());
-    CHECK(r.flags().empty());
-    CHECK(r.positional().empty());
+    CHECK(r.has_value());
+    CHECK(r->command().empty());
+    CHECK(r->flags().empty());
+    CHECK(r->positional().empty());
 }
 
 TEST_CASE("CliParser: 标志解析") {
     Parser p;
     const char *argv[] = {"prog", "--name", "silicon", "-v", "pos1"};
     auto r = p.Parse(5, argv);
-    CHECK(r.command().empty());
-    CHECK(r.flags().at("name") == std::string("silicon"));
-    CHECK(r.flags().at("v") == std::string("true"));
-    CHECK(r.positional().size() == 1);
-    CHECK(r.positional()[0] == std::string("pos1"));
+    CHECK(r.has_value());
+    CHECK(r->command().empty());
+    CHECK(r->flags().at("name") == std::string("silicon"));
+    CHECK(r->flags().at("v") == std::string("true"));
+    CHECK(r->positional().size() == 1);
+    CHECK(r->positional()[0] == std::string("pos1"));
 }
 
 TEST_CASE("CliParser: 子命令+标志+位置参数") {
     Parser p;
     const char *argv[] = {"prog", "run", "--config", "dev.json", "arg1", "arg2"};
     auto r = p.Parse(6, argv);
-    CHECK(r.command() == std::string("run"));
-    CHECK(r.flags().at("config") == std::string("dev.json"));
-    CHECK(r.positional().size() == 2);
+    CHECK(r.has_value());
+    CHECK(r->command() == std::string("run"));
+    CHECK(r->flags().at("config") == std::string("dev.json"));
+    CHECK(r->positional().size() == 2);
+}
+
+TEST_CASE("CliParser: 未登记子命令返回 kUnknownSubcommand") {
+    Parser p;
+    p.AddSubcommand("run");
+    p.AddSubcommand("build");
+    const char *argv[] = {"prog", "frobnicate"};
+    auto r = p.Parse(2, argv);
+    CHECK_FALSE(r.has_value());
+    CHECK(r.error() == make_error_code(cli_error::kUnknownSubcommand));
+}
+
+TEST_CASE("CliParser: 畸形 flag（裸 -/--）返回 kInvalidValue") {
+    Parser p;
+    const char *argv1[] = {"prog", "-"};
+    auto r1 = p.Parse(2, argv1);
+    CHECK_FALSE(r1.has_value());
+    CHECK(r1.error() == make_error_code(cli_error::kInvalidValue));
+
+    const char *argv2[] = {"prog", "--"};
+    auto r2 = p.Parse(2, argv2);
+    CHECK_FALSE(r2.has_value());
+    CHECK(r2.error() == make_error_code(cli_error::kInvalidValue));
+}
+
+TEST_CASE("CliParser: 未登记 flag 返回 kUnknownOption") {
+    Parser p;
+    p.AddFlag("name");
+    const char *argv[] = {"prog", "--verbose"};
+    auto r = p.Parse(2, argv);
+    CHECK_FALSE(r.has_value());
+    CHECK(r.error() == make_error_code(cli_error::kUnknownOption));
+}
+
+TEST_CASE("CliParser: 必需值的 flag 缺值返回 kMissingArgument") {
+    Parser p;
+    p.AddFlag("name", true);
+    const char *argv[] = {"prog", "--name"};
+    auto r = p.Parse(2, argv);
+    CHECK_FALSE(r.has_value());
+    CHECK(r.error() == make_error_code(cli_error::kMissingArgument));
+}
+
+TEST_CASE("CliParser: 登记后正常解析成功") {
+    Parser p;
+    p.AddSubcommand("run");
+    p.AddFlag("name", true);
+    p.AddFlag("verbose");
+    const char *argv[] = {"prog", "run", "--name", "dev.json", "--verbose"};
+    auto r = p.Parse(5, argv);
+    CHECK(r.has_value());
+    CHECK(r->command() == std::string("run"));
+    CHECK(r->flags().at("name") == std::string("dev.json"));
+    CHECK(r->flags().at("verbose") == std::string("true"));
 }

@@ -14,9 +14,9 @@ import silicon.json;
 import silicon.core;
 import silicon.error;
 
-export module silicon.llm;
+export module silicon.ai.llm;
 
-export namespace silicon::llm {
+export namespace silicon::ai::llm {
 
 // ── 值类型 ──────────────────────────────────────────────────────
 
@@ -355,4 +355,4 @@ class http_provider: public i_provider {
     result<chat_response> chat(const conversation &conv, const model_request_options &opts) override;
 };
 
-} // namespace silicon::llm
+} // namespace silicon::ai::llm

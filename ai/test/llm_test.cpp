@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 
-import silicon.llm;
+import silicon.ai.llm;
 import silicon.json;
 
-using namespace silicon::llm;
+using namespace silicon::ai::llm;
 
 // ── 测试夹具：具体 i_tool / i_provider ───────────────────────────
 

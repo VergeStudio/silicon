@@ -151,6 +151,7 @@ enum class cli_error {
     kUnknownOption,
     kMissingArgument,
     kInvalidValue,
+    kUnknownSubcommand,
 };
 
 // config

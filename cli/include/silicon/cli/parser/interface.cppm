@@ -1,10 +1,7 @@
 module;
 
-#include <cstdint>
-#include <map>
-#include <string>
-#include <string_view>
-#include <vector>
+#include <expected>
+#include <system_error>
 
 export module silicon.cli.parser.interface;
 
@@ -16,7 +13,8 @@ export namespace silicon::cli {
 CLI_API class IParser {
   public:
     virtual ~IParser() = default;
-    virtual parse_result Parse(int argc, const char *const *argv) const = 0;
+    /// 解析 argv；成功返回解析结果，失败（未知子命令 / 非法 flag 等）返回 error_code。
+    virtual std::expected<parse_result, std::error_code> Parse(int argc, const char *const *argv) const = 0;
 };
 
 } // namespace silicon::cli

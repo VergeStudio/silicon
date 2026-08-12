@@ -193,6 +193,7 @@ class cli_error_category final : public std::error_category {
             case cli_error::kUnknownOption: return "unknown option";
             case cli_error::kMissingArgument: return "missing argument";
             case cli_error::kInvalidValue: return "invalid value";
+            case cli_error::kUnknownSubcommand: return "unknown subcommand";
         }
         return "unknown cli error";
     }

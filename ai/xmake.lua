@@ -1,4 +1,4 @@
-target("llm", function()
+target("ai", function()
     -- 模块库：符号经由 .cppm 模块接口导出，shared 构建无需传统导出宏。
     set_kind("$(kind)")
 
@@ -8,13 +8,13 @@ target("llm", function()
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
     add_deps("silicon::json", "silicon::http", "silicon::di", "silicon::core", "silicon::error")
-    add_files("include/silicon/llm/**.cppm", {public = true})
+    add_files("include/silicon/ai/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)
 
-target("llm.test", function()
+target("ai.test", function()
     set_kind("binary")
-    add_deps("silicon::llm", "silicon::test")
+    add_deps("silicon::ai", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
 end)
