@@ -1,0 +1,18 @@
+module;
+
+#include <cstdint>
+#include <string>
+
+#include "silicon/ai/common.h"
+
+export module silicon.ai:config;
+
+namespace silicon::ai {
+export AI_API const std::string GetVersion() { return "${VERSION}"; }
+export AI_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export AI_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export AI_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export AI_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export AI_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export AI_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+} // namespace silicon::ai

@@ -11,8 +11,6 @@ module;
 
 module silicon.network;
 
-import silicon.error;
-
 namespace silicon::network {
 
 auto to_string(domain_t domain) -> result<std::string_view> {
@@ -22,7 +20,7 @@ auto to_string(domain_t domain) -> result<std::string_view> {
         case domain_t::kIpv6:
             return std::string_view{"ipv6"};
     }
-    return std::unexpected(error::make_error_code(error::network_error::kInvalidDomain));
+    return std::unexpected(make_error_code(network_error::kInvalidDomain));
 }
 
 } // namespace silicon::network

@@ -14,7 +14,7 @@
 
 ## 失败语义（expected 返回）
 `Parse()` 返回 `std::expected<parse_result, std::error_code>`；成功含值，失败返回
-`silicon::error::cli_error` 对应的 `std::error_code`：
+`silicon::cli::cli_error` 对应的 `std::error_code`：
 
 | 错误 | 触发条件 |
 | --- | --- |

@@ -16,7 +16,6 @@ export module silicon.coroutine:coroutine_pool;
 
 import silicon.scheduler;
 import silicon.scheduler.task;
-import silicon.error;
 import :channel;
 import :event;
 import :mutex;
@@ -61,12 +60,10 @@ class coroutine_pool {
     static auto create(std::shared_ptr<Executor> executor, std::size_t pool_size)
             -> std::expected<std::unique_ptr<coroutine_pool<Executor>>, std::error_code> {
         if(executor == nullptr) {
-            return std::unexpected(silicon::error::make_error_code(
-                silicon::error::coroutine_error::kNullExecutor));
+            return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
         }
         if(pool_size == 0) {
-            return std::unexpected(silicon::error::make_error_code(
-                silicon::error::coroutine_error::kInvalidPoolSize));
+            return std::unexpected(make_error_code(coroutine_error::kInvalidPoolSize));
         }
         // create() 为成员函数，可访问私有构造；std::make_unique 无 friend 权限故用 new。
         return std::unique_ptr<coroutine_pool<Executor>>(

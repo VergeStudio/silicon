@@ -10,11 +10,10 @@ module;
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <system_error>
 #include <vector>
 
 module silicon.fs;
-
-import silicon.error;
 
 namespace silicon::fs {
 
@@ -23,7 +22,7 @@ class file_system_base: public i_file_system {
   public:
     result<std::string> read(const std::string &path) const override {
         std::ifstream f(ToPath(path), std::ios::in | std::ios::binary);
-        if(!f) return std::unexpected(silicon::error::make_error_code(silicon::error::fs_error::kOpenFailed));
+        if(!f) return std::unexpected(make_error_code(fs_error::kOpenFailed));
         std::ostringstream ss;
         ss << f.rdbuf();
         return ss.str();
@@ -31,7 +30,7 @@ class file_system_base: public i_file_system {
 
     result<std::vector<std::byte>> read_binary(const std::string &path) const override {
         std::ifstream f(ToPath(path), std::ios::in | std::ios::binary);
-        if(!f) return std::unexpected(silicon::error::make_error_code(silicon::error::fs_error::kOpenFailed));
+        if(!f) return std::unexpected(make_error_code(fs_error::kOpenFailed));
         std::vector<std::byte> out;
         f.seekg(0, std::ios::end);
         const auto sz = static_cast<std::size_t>(f.tellg());
@@ -45,7 +44,7 @@ class file_system_base: public i_file_system {
 
     result<void> write_binary(const std::string &path, const std::vector<std::byte> &data) const override {
         std::ofstream f(ToPath(path), std::ios::out | std::ios::binary);
-        if(!f) return std::unexpected(silicon::error::make_error_code(silicon::error::fs_error::kWriteFailed));
+        if(!f) return std::unexpected(make_error_code(fs_error::kWriteFailed));
         if(!data.empty())
             f.write(reinterpret_cast<const char *>(data.data()), static_cast<std::streamsize>(data.size()));
         return {};
@@ -67,7 +66,7 @@ class file_system_base: public i_file_system {
     result<std::vector<std::string>> list_dir(const std::string &path) const override {
         std::error_code ec;
         auto it = std::filesystem::directory_iterator(ToPath(path), ec);
-        if(ec) return std::unexpected(silicon::error::make_error_code(silicon::error::fs_error::kOpenFailed));
+        if(ec) return std::unexpected(make_error_code(fs_error::kOpenFailed));
         std::vector<std::string> entries;
         for(const auto &entry: it)
             entries.push_back(entry.path().filename().string());
@@ -129,6 +128,36 @@ std::unique_ptr<i_file_system> create_file_system() {
 #else
     return std::make_unique<posix_file_system>();
 #endif
+}
+
+// ── fs_error category 与 make_error_code ────────────────────────
+namespace {
+class fs_error_category final : public std::error_category {
+  public:
+    const char *name() const noexcept override { return "silicon.fs"; }
+    std::string message(int ev) const override {
+        switch(static_cast<fs_error>(ev)) {
+            case fs_error::kOpenFailed: return "cannot open file";
+            case fs_error::kReadFailed: return "cannot read file";
+            case fs_error::kWriteFailed: return "cannot write file";
+            case fs_error::kNotExist: return "file or directory does not exist";
+            case fs_error::kPermissionDenied: return "permission denied";
+            case fs_error::kNotDirectory: return "not a directory";
+            case fs_error::kAlreadyExists: return "file or directory already exists";
+            case fs_error::kUnknown: return "unknown file system error";
+        }
+        return "unknown fs error";
+    }
+};
+} // namespace
+
+const std::error_category &fs_category() noexcept {
+    static const fs_error_category cat{};
+    return cat;
+}
+
+std::error_code make_error_code(fs_error e) noexcept {
+    return {static_cast<int>(e), fs_category()};
 }
 
 } // namespace silicon::fs

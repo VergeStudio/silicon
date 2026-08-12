@@ -17,8 +17,6 @@ module silicon.network;
 
 #ifdef SILICON_FEATURE_TLS
 
-import silicon.error;
-
 namespace silicon::network::tls {
 static uint64_t g_tls_context_count{0};
 static std::mutex g_tls_context_mutex{};
@@ -42,7 +40,7 @@ auto context::create(verify_peer_t verify_peer) -> network::result<context> {
     auto *ssl_ctx = SSL_CTX_new(SSLv23_method());
 #    endif
     if(ssl_ctx == nullptr) {
-        return std::unexpected(error::make_error_code(error::network_error::kTlsContextInitFailed));
+        return std::unexpected(make_error_code(network_error::kTlsContextInitFailed));
     }
 
     // 立即接管所有权：后续任何失败路径都由 context 的析构负责 SSL_CTX_free。
@@ -76,16 +74,16 @@ auto context::create(
 
     if(auto r = SSL_CTX_use_certificate_file(ssl_ctx, certificate.c_str(), static_cast<int>(certificate_type));
        r != 1) {
-        return std::unexpected(error::make_error_code(error::network_error::kTlsCertificateLoadFailed));
+        return std::unexpected(make_error_code(network_error::kTlsCertificateLoadFailed));
     }
 
     if(auto r = SSL_CTX_use_PrivateKey_file(ssl_ctx, private_key.c_str(), static_cast<int>(private_key_type));
        r != 1) {
-        return std::unexpected(error::make_error_code(error::network_error::kTlsPrivateKeyLoadFailed));
+        return std::unexpected(make_error_code(network_error::kTlsPrivateKeyLoadFailed));
     }
 
     if(auto r = SSL_CTX_check_private_key(ssl_ctx); r != 1) {
-        return std::unexpected(error::make_error_code(error::network_error::kTlsKeyMismatch));
+        return std::unexpected(make_error_code(network_error::kTlsKeyMismatch));
     }
 
     return ctx;

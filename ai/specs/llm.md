@@ -1,7 +1,7 @@
 # Spec: AI 子系统（silicon.ai.llm）
 
 > 模块 `silicon.ai`（伞）承载 AI 能力；当前实现为 LLM 子模块 `silicon.ai.llm`
-> （命名空间 `silicon::ai::llm`）。错误域沿用项目统一的 `silicon::error::llm_error`。
+> （命名空间 `silicon::ai::llm`）。错误由本模块自有 `silicon::ai::llm::llm_error` 定义。
 
 ## 职责
 LLM 子系统是 siliconbuddy 与模型提供方（IProvider）之间的协议边界。它负责：
@@ -14,7 +14,7 @@ LLM 子系统是 siliconbuddy 与模型提供方（IProvider）之间的协议�
 
 ## 错误体系
 - 所有可失败 API 返回 `std::expected<T, std::error_code>`。
-- LLM 语义错误来自 `silicon::error::llm_error`（`kProviderUnavailable` / `kInvalidResponse` / `kToolNotFound` / `kTimeout` / `kUnknown`），通过 `silicon::error::make_error_code` 转换；绝不抛异常。
+- LLM 语义错误来自 `silicon::ai::llm::llm_error`（`kProviderUnavailable` / `kInvalidResponse` / `kToolNotFound` / `kTimeout` / `kUnknown`），通过 `silicon::ai::llm::make_error_code` 转换；绝不抛异常。
 
 ## 核心类型（silicon::ai::llm）
 - `Message`：`{ role, content, tool_call_id }`，role ∈ {user, assistant, system, tool}

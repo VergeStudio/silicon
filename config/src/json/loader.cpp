@@ -6,10 +6,9 @@ module;
 #include <optional>
 #include <string>
 #include <string_view>
+#include <system_error>
 
 module silicon.config.json;
-
-import silicon.error;
 
 namespace silicon::config {
 
@@ -24,10 +23,10 @@ JsonFileConfig::~JsonFileConfig() = default;
 // ── JsonFileConfig methods ────────────────────────────────────────────────
 auto JsonFileConfig::Load(const std::string &path, const fs::IFileSystem &filesystem) -> result<void> {
     auto content = filesystem.Read(path);
-    if(!content) return std::unexpected(silicon::error::make_error_code(silicon::error::config_error::kLoadFailed));
+    if(!content) return std::unexpected(make_error_code(config_error::kLoadFailed));
 
     auto parsed = silicon::json::parse(content.value());
-    if(parsed.is_discarded() || !parsed.is_object()) return std::unexpected(silicon::error::make_error_code(silicon::error::config_error::kParseFailed));
+    if(parsed.is_discarded() || !parsed.is_object()) return std::unexpected(make_error_code(config_error::kParseFailed));
 
     for(auto it = parsed.begin(); it != parsed.end(); ++it) {
         impl_->entries_[it.key()] = ConfigValue{silicon::json::serialize(it.value())};

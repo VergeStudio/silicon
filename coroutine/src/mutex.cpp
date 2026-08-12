@@ -5,7 +5,6 @@ module;
 #include <expected>
 
 module silicon.coroutine;
-import silicon.error;
 
 namespace silicon::coroutine {
 
@@ -112,8 +111,7 @@ auto mutex::unlock() -> result<void> {
     do {
         // Sanity check that the mutex isn't already unlocked.
         if(current == const_cast<void *>(unlocked_value())) {
-            return std::unexpected(silicon::error::make_error_code(
-                silicon::error::coroutine_error::kAlreadyUnlocked));
+            return std::unexpected(make_error_code(coroutine_error::kAlreadyUnlocked));
         }
 
         // There are no current waiters, attempt to set the mutex as unlocked.

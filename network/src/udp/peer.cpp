@@ -9,13 +9,12 @@ module;
 module silicon.network;
 
 import silicon.scheduler;
-import silicon.error;
 
 namespace silicon::network::udp {
 auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::domain_t domain)
         -> network::result<peer> {
     if(scheduler == nullptr) {
-        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
+        return std::unexpected(make_error_code(network_error::kNullScheduler));
     }
 
     auto sock = network::make_socket(
@@ -31,7 +30,7 @@ auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, 
 auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint)
         -> network::result<peer> {
     if(scheduler == nullptr) {
-        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
+        return std::unexpected(make_error_code(network_error::kNullScheduler));
     }
 
     auto sock = network::make_accept_socket(

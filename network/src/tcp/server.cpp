@@ -9,13 +9,12 @@ module;
 module silicon.network;
 
 import silicon.scheduler;
-import silicon.error;
 
 namespace silicon::network::tcp {
 auto server::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint, options opts)
         -> network::result<server> {
     if(scheduler == nullptr) {
-        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
+        return std::unexpected(make_error_code(network_error::kNullScheduler));
     }
 
     auto accept_socket = network::make_accept_socket(

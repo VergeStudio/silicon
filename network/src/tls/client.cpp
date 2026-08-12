@@ -29,7 +29,6 @@ module silicon.network;
 import silicon.coroutine;
 import silicon.scheduler;
 import silicon.scheduler.task;
-import silicon.error;
 
 namespace silicon::network::tls {
 using namespace std::chrono_literals;
@@ -40,11 +39,11 @@ auto client::create(
         const network::socket_address &endpoint
 ) -> network::result<client> {
     if(scheduler == nullptr) {
-        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
+        return std::unexpected(make_error_code(network_error::kNullScheduler));
     }
 
     if(tls_ctx == nullptr) {
-        return std::unexpected(error::make_error_code(error::network_error::kNullTlsContext));
+        return std::unexpected(make_error_code(network_error::kNullTlsContext));
     }
 
     auto domain = endpoint.domain();

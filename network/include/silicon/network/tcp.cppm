@@ -28,7 +28,6 @@ export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
-import silicon.error;
 
 export namespace silicon::network::tcp {
 
@@ -84,7 +83,7 @@ class client final: public ITcpClient {
      *
      * @param scheduler The io scheduler to drive the tcp client.
      * @param endpoint The remote address this client will connect to.
-     * @return 就绪的 client；scheduler 为空时返回 error::network_error::kNullScheduler，
+     * @return 就绪的 client；scheduler 为空时返回 network_error::kNullScheduler，
      *         endpoint 地址族非法或套接字创建失败时返回相应错误码。
      */
     static auto create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
@@ -500,7 +499,7 @@ class server final: public ITcpServer {
      * 构造过程可能失败（空 scheduler / bind / listen 失败），因此以工厂函数返回
      * expected 而非抛异常。
      *
-     * @return 就绪的 server；scheduler 为空时返回 error::network_error::kNullScheduler，
+     * @return 就绪的 server；scheduler 为空时返回 network_error::kNullScheduler，
      *         bind/listen 失败时返回 kBindFailed / kListenFailed 等错误码。
      */
     static auto create(

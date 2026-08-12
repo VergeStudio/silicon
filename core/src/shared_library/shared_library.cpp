@@ -8,8 +8,6 @@ module;
 
 module silicon.library;
 
-import silicon.error;
-
 #include "shared_library_impl.hpp"
 
 namespace silicon::library {
@@ -33,7 +31,7 @@ auto shared_library::get_symbol(const std::string &symbol_name) -> std::expected
     if(result != nullptr) {
         return result;
     }
-    return std::unexpected(silicon::error::make_error_code(silicon::error::library_error::kSymbolNotFound));
+    return std::unexpected(make_error_code(library_error::kSymbolNotFound));
 }
 
 bool shared_library::has_symbol(const std::string &symbol_name) {
@@ -43,4 +41,32 @@ bool shared_library::has_symbol(const std::string &symbol_name) {
 std::string shared_library::get_os_name(const std::string &name) {
     return prefix() + name + suffix();
 }
+
+// ── library_error category 与 make_error_code ──────────────────
+namespace {
+class library_error_category final : public std::error_category {
+  public:
+    const char *name() const noexcept override { return "silicon.library"; }
+    std::string message(int ev) const override {
+        switch(static_cast<library_error>(ev)) {
+            case library_error::kAlreadyLoaded: return "library already loaded";
+            case library_error::kLoadFailed: return "failed to load shared library";
+            case library_error::kUnloadFailed: return "failed to unload shared library";
+            case library_error::kSymbolNotFound: return "symbol not found in shared library";
+            case library_error::kInvalidHandle: return "invalid shared library handle";
+        }
+        return "unknown library error";
+    }
+};
+} // namespace
+
+const std::error_category &library_category() noexcept {
+    static const library_error_category cat{};
+    return cat;
+}
+
+std::error_code make_error_code(library_error e) noexcept {
+    return {static_cast<int>(e), library_category()};
+}
+
 } // namespace silicon::library

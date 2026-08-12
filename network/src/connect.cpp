@@ -13,8 +13,6 @@ module;
 
 module silicon.network;
 
-import silicon.error;
-
 namespace silicon::network {
 
 auto to_string(const connect_status &status) -> result<std::string_view> {
@@ -29,7 +27,7 @@ auto to_string(const connect_status &status) -> result<std::string_view> {
             return std::string_view{"error"};
     }
 
-    return std::unexpected(error::make_error_code(error::network_error::kInvalidConnectStatus));
+    return std::unexpected(make_error_code(network_error::kInvalidConnectStatus));
 }
 
 } // namespace silicon::network

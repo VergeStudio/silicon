@@ -4,10 +4,8 @@
 #include <vector>
 
 import silicon.cli;
-import silicon.error;
 
 using namespace silicon::cli;
-using namespace silicon::error;
 
 TEST_CASE("CliParser: 无参数返回空结果") {
     Parser p;

@@ -34,7 +34,6 @@ export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
-import silicon.error;
 
 export namespace silicon::network::dns {
 
@@ -99,13 +98,13 @@ class resolver {
      * @param executor The io executor driving the dns socket polling.
      * @param timeout The global timeout per dns lookup request.
      * @return 就绪的 resolver；executor 为空时返回
-     *         error::network_error::kNullExecutor，c-ares 初始化失败时返回
-     *         error::network_error::kDnsInitFailed。
+     *         network_error::kNullExecutor，c-ares 初始化失败时返回
+     *         network_error::kDnsInitFailed。
      */
     static auto create(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout)
             -> std::expected<std::unique_ptr<resolver>, std::error_code> {
         if(executor == nullptr) {
-            return std::unexpected(error::make_error_code(error::network_error::kNullExecutor));
+            return std::unexpected(make_error_code(network_error::kNullExecutor));
         }
 
         {
@@ -113,7 +112,7 @@ class resolver {
             if(m_ares_count == 0) {
                 auto ares_status = ares_library_init(ARES_LIB_INIT_ALL);
                 if(ares_status != ARES_SUCCESS) {
-                    return std::unexpected(error::make_error_code(error::network_error::kDnsInitFailed));
+                    return std::unexpected(make_error_code(network_error::kDnsInitFailed));
                 }
             }
             ++m_ares_count;
@@ -128,7 +127,7 @@ class resolver {
 
         auto channel_init_status = ares_init_options(&self->m_ares_channel, &options, ARES_OPT_SOCK_STATE_CB);
         if(channel_init_status != ARES_SUCCESS) {
-            return std::unexpected(error::make_error_code(error::network_error::kDnsInitFailed));
+            return std::unexpected(make_error_code(network_error::kDnsInitFailed));
         }
 
         return self;

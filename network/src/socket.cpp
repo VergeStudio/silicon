@@ -27,7 +27,6 @@ module;
 module silicon.network;
 
 import silicon.coroutine;
-import silicon.error;
 
 #ifdef _WIN32
 // Winsock uses SD_RECEIVE/SD_SEND/SD_BOTH instead of the POSIX SHUT_RD/WR/RDWR.
@@ -46,7 +45,7 @@ auto socket::type_to_os(type_t type) -> result<int> {
         case type_t::tcp:
             return SOCK_STREAM;
     }
-    return std::unexpected(error::make_error_code(error::network_error::kInvalidSocketType));
+    return std::unexpected(make_error_code(network_error::kInvalidSocketType));
 }
 
 auto socket::operator=(const socket &other) noexcept -> socket & {
@@ -130,12 +129,12 @@ auto make_socket(const socket::options &opts, domain_t domain) -> result<socket>
     // existing ISocket::native_handle() -> int contract). INVALID_SOCKET maps to -1.
     socket s{static_cast<int>(::socket(static_cast<int>(domain), *os_type, 0))};
     if(s.native_handle() < 0) {
-        return std::unexpected(error::make_error_code(error::network_error::kSocketCreateFailed));
+        return std::unexpected(make_error_code(network_error::kSocketCreateFailed));
     }
 
     if(opts.blocking == socket::blocking_t::no) {
         if(s.blocking(socket::blocking_t::no) == false) {
-            return std::unexpected(error::make_error_code(error::network_error::kSetNonblockingFailed));
+            return std::unexpected(make_error_code(network_error::kSetNonblockingFailed));
         }
     }
 
@@ -156,7 +155,7 @@ auto make_accept_socket(const socket::options &opts, const network::socket_addre
 #if defined(__linux__)
     // On Linux the address and port should be marked for reuse.
     if(setsockopt(s.native_handle(), SOL_SOCKET, SO_REUSEADDR, &sock_opt, sizeof(sock_opt)) < 0) {
-        return std::unexpected(error::make_error_code(error::network_error::kSetSockOptFailed));
+        return std::unexpected(make_error_code(network_error::kSetSockOptFailed));
     }
 #endif
 
@@ -164,19 +163,19 @@ auto make_accept_socket(const socket::options &opts, const network::socket_addre
     // SO_REUSEPORT is a BSD/Linux socket option; Windows has no equivalent
     // (SO_REUSEADDR already covers the port-reuse semantics there).
     if(setsockopt(s.native_handle(), SOL_SOCKET, SO_REUSEPORT, &sock_opt, static_cast<int>(sizeof(sock_opt))) < 0) {
-        return std::unexpected(error::make_error_code(error::network_error::kSetSockOptFailed));
+        return std::unexpected(make_error_code(network_error::kSetSockOptFailed));
     }
 #endif
 
     auto [sockaddr, socklen] = endpoint.data();
 
     if(bind(s.native_handle(), sockaddr, socklen) < 0) {
-        return std::unexpected(error::make_error_code(error::network_error::kBindFailed));
+        return std::unexpected(make_error_code(network_error::kBindFailed));
     }
 
     if(opts.type == socket::type_t::tcp) {
         if(listen(s.native_handle(), backlog) < 0) {
-            return std::unexpected(error::make_error_code(error::network_error::kListenFailed));
+            return std::unexpected(make_error_code(network_error::kListenFailed));
         }
     }
 

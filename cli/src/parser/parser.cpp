@@ -10,7 +10,7 @@ module;
 
 module silicon.cli.parser;
 
-import silicon.error;
+import silicon.cli.parser.interface;
 
 namespace silicon::cli {
 
@@ -47,7 +47,7 @@ std::expected<parse_result, std::error_code> Parser::Parse(int argc, const char 
             std::string name(arg.substr(name_start));
             if(name.empty()) {
                 // 裸 '-' 或 '--'：畸形 flag（非法 flag）
-                return std::unexpected(silicon::error::make_error_code(silicon::error::cli_error::kInvalidValue));
+                return std::unexpected(make_error_code(cli_error::kInvalidValue));
             }
             const bool next_is_value = (i + 1 < argc) && (argv[i + 1][0] != '-');
             if(next_is_value) {
@@ -68,16 +68,16 @@ std::expected<parse_result, std::error_code> Parser::Parse(int argc, const char 
     // ── 校验：仅对声明过的维度生效，未声明则宽松通过 ──
     if(!subcommands_.empty() && !result.command().empty()
        && subcommands_.find(result.command()) == subcommands_.end()) {
-        return std::unexpected(silicon::error::make_error_code(silicon::error::cli_error::kUnknownSubcommand));
+        return std::unexpected(make_error_code(cli_error::kUnknownSubcommand));
     }
     if(!flags_.empty()) {
         for(const auto &f: seen) {
             auto it = flags_.find(f.name);
             if(it == flags_.end()) {
-                return std::unexpected(silicon::error::make_error_code(silicon::error::cli_error::kUnknownOption));
+                return std::unexpected(make_error_code(cli_error::kUnknownOption));
             }
             if(it->second && !f.has_value) {
-                return std::unexpected(silicon::error::make_error_code(silicon::error::cli_error::kMissingArgument));
+                return std::unexpected(make_error_code(cli_error::kMissingArgument));
             }
         }
     }

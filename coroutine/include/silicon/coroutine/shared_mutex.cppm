@@ -12,7 +12,6 @@ export module silicon.coroutine:shared_mutex;
 import silicon.scheduler;
 import :mutex;
 import silicon.scheduler.task;
-import silicon.error;
 export namespace silicon::coroutine {
 template<concepts::executor executor_type>
 class shared_mutex;
@@ -106,8 +105,7 @@ class shared_mutex {
     static auto create(std::unique_ptr<executor_type> &e)
             -> std::expected<std::unique_ptr<shared_mutex<executor_type>>, std::error_code> {
         if(e == nullptr) {
-            return std::unexpected(silicon::error::make_error_code(
-                silicon::error::coroutine_error::kNullExecutor));
+            return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
         }
         // create() 为成员函数，可访问私有构造；std::make_unique 无 friend 权限故用 new。
         return std::unique_ptr<shared_mutex<executor_type>>(

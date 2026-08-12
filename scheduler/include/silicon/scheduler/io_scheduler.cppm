@@ -47,9 +47,6 @@ import :sync_wait;
 import :time;
 import silicon.scheduler.task;
 
-// 统一错误码体系：scheduler::result<T> 的 error_code 来自 silicon::error。
-import silicon.error;
-
 import :ischeduler;
 import :thread_pool;
 
@@ -69,6 +66,23 @@ export namespace silicon::scheduler {
 /// 统一错误返回类型：scheduler 模块所有可失败 API 均返回 scheduler::result<T>。
 template<typename T>
 using result = std::expected<T, std::error_code>;
+
+/// scheduler 模块专属错误码枚举（执行器 / IO 通知器 / 线程池）。
+enum class scheduler_error {
+    kShuttingDown = 1,
+    kResultNotSet,
+    kInvalidNotifierState,
+    kPipeCreateFailed,
+    kEventRegisterFailed,
+    kNullExecutor,
+    kUnknown,
+};
+
+/// 返回 scheduler_error 专属 error_category（name() = "silicon.scheduler"）。
+[[nodiscard]] const std::error_category &scheduler_category() noexcept;
+
+/// 将 scheduler_error 转为 std::error_code。
+[[nodiscard]] std::error_code make_error_code(scheduler_error e) noexcept;
 
 enum class timeout_status {
     kNoTimeout,
@@ -133,7 +147,7 @@ class io_scheduler: public IScheduler {
      * @brief Creates an io_scheduler executor.
      *
      * 构造过程可失败（事件管道创建、fd 注册、线程池初始化），失败时返回
-     * std::unexpected(error::scheduler_error)。调用方应检查返回值，而非依赖异常。
+     * std::unexpected(scheduler_error)。调用方应检查返回值，而非依赖异常。
      *
      * @param opts The scheduler's options.
      * @return scheduler::result<std::unique_ptr<io_scheduler>>

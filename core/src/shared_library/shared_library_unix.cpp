@@ -13,7 +13,6 @@ module;
 module silicon.library;
 
 import silicon.platform;
-import silicon.error;
 
 #include "shared_library_impl.hpp"
 
@@ -28,14 +27,14 @@ auto shared_library::load(const std::string &path, int32_t flags) -> std::expect
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     if (impl_->handle_ != nullptr) {
-        return std::unexpected(silicon::error::make_error_code(silicon::error::library_error::kAlreadyLoaded));
+        return std::unexpected(make_error_code(library_error::kAlreadyLoaded));
     }
 
     impl_->handle_ = dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
     if (impl_->handle_ == nullptr) {
         const char *err = dlerror();
         (void)err;
-        return std::unexpected(silicon::error::make_error_code(silicon::error::library_error::kLoadFailed));
+        return std::unexpected(make_error_code(library_error::kLoadFailed));
     }
     impl_->path_ = path;
     return {};

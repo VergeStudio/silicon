@@ -34,7 +34,6 @@ export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
-import silicon.error;
 
 #ifdef SILICON_FEATURE_TLS
 
@@ -134,7 +133,7 @@ class context {
      * 将返回值移入 shared_ptr：`std::make_shared<context>(std::move(*ctx))`。
      *
      * @param verify_peer Should the peer be verified? Defaults to true.
-     * @return 就绪的 context；分配失败时返回 error::network_error::kTlsContextInitFailed。
+     * @return 就绪的 context；分配失败时返回 network_error::kTlsContextInitFailed。
      */
     static auto create(verify_peer_t verify_peer = verify_peer_t::kYes) -> network::result<context>;
 
@@ -228,7 +227,7 @@ class client final: public i_tls_client {
      * @param tls_ctx The tls context.
      * @param endpoint The remote address this client will connect to.
      * @return 就绪的 client；分别在空 scheduler / 空 tls_ctx 时返回
-     *         error::network_error::kNullScheduler / kNullTlsContext。
+     *         network_error::kNullScheduler / kNullTlsContext。
      */
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
@@ -548,7 +547,7 @@ class server final: public i_tls_server {
      * Creates a listening tls server bound to the given endpoint.
      *
      * @return 就绪的 server；分别在空 scheduler / 空 tls_ctx 时返回
-     *         error::network_error::kNullScheduler / kNullTlsContext；
+     *         network_error::kNullScheduler / kNullTlsContext；
      *         bind/listen 失败时返回 kBindFailed / kListenFailed。
      */
     static auto create(

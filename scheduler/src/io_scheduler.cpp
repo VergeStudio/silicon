@@ -33,8 +33,6 @@ module silicon.scheduler;
 
 import :poll_info_impl;
 
-import silicon.error;
-
 
 
 
@@ -86,7 +84,7 @@ auto io_scheduler::create(options opts) -> std::expected<std::unique_ptr<io_sche
     } catch(const std::exception &) {
         // 构造期失败（事件管道创建 / fd 注册 / 线程池初始化）统一收敛为 unexpected。
         // 具体失败原因由底层 ctor 的 stderr 诊断信息保留；此处仅给出模块级错误码。
-        return std::unexpected(silicon::error::make_error_code(silicon::error::scheduler_error::kUnknown));
+        return std::unexpected(make_error_code(scheduler_error::kUnknown));
     }
 }
 

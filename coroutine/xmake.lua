@@ -16,9 +16,8 @@ target("coroutine", function()
     -- (network -> coroutine) breaks the cycle.
     -- 调度原语与事件循环已下沉到 silicon.scheduler；coroutine 单向依赖之
     -- （coroutine -> scheduler -> task），primary interface 对其整体 re-export。
-    -- silicon::error 为零依赖基础模块，提供统一的 std::error_code 错误码体系；
-    -- coroutine 的 create() 工厂与 mutex::unlock() 据此返回 coroutine::result<T>。
-    add_deps("core", "task", "scheduler", "silicon::error", {configs = {shared = true}})
+    -- 错误码体系由各模块自维护：silicon.coroutine 内置 coroutine_error / channel_error。
+    add_deps("core", "task", "scheduler", {configs = {shared = true}})
 
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/coroutine/**.hpp")

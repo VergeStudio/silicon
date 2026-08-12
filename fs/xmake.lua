@@ -9,7 +9,7 @@ target("fs", function()
     end
     add_includedirs("include", {public = true})
     -- 错误码体系（result = std::expected<T, std::error_code>）
-    add_deps("silicon::core", "silicon::error")
+    add_deps("silicon::core")
     add_files("include/silicon/fs/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)

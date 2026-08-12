@@ -21,7 +21,6 @@ module silicon.network;
 import silicon.coroutine;
 import silicon.scheduler;
 import silicon.scheduler.task;
-import silicon.error;
 
 namespace silicon::network::tcp {
 using namespace std::chrono_literals;
@@ -29,7 +28,7 @@ using namespace std::chrono_literals;
 auto client::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
         -> network::result<client> {
     if(scheduler == nullptr) {
-        return std::unexpected(error::make_error_code(error::network_error::kNullScheduler));
+        return std::unexpected(make_error_code(network_error::kNullScheduler));
     }
 
     auto domain = endpoint.domain();

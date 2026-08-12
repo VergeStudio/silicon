@@ -33,7 +33,6 @@ module;
 
 export module silicon.di:core;
 
-import silicon.error;
 
 // Logical functional partitioning of the single self-contained :core
 // partition. The di subdirectories form a strongly-connected include
@@ -88,6 +87,56 @@ import silicon.error;
 
 
 export namespace silicon::di {
+/// di 模块专属错误码枚举（依赖注入容器 resolve 链路）。
+enum class di_error {
+    kDuplicateBinding = 1,
+    kUnresolvedDependency,
+    kCircularDependency,
+    kInvalidType,
+    kAlreadyInitialized,
+    kTypeNotFound,
+    kTypeAmbiguous,
+    kTypeNotConvertible,
+    kTypeRecursion,
+    kTypeAlreadyRegistered,
+    kTypeIndexAlreadyRegistered,
+    kCollectionTypeNotFound,
+    kIndexOutOfRange,
+    kUnknown,
+};
+
+/// 返回 di_error 专属 error_category（name() = "silicon.di"）。
+[[nodiscard]] inline const std::error_category &di_category() noexcept {
+    static const class : public std::error_category {
+        const char *name() const noexcept override { return "silicon.di"; }
+        std::string message(int ev) const override {
+            switch(static_cast<di_error>(ev)) {
+                case di_error::kDuplicateBinding: return "duplicate binding";
+                case di_error::kUnresolvedDependency: return "unresolved dependency";
+                case di_error::kCircularDependency: return "circular dependency detected";
+                case di_error::kInvalidType: return "invalid type";
+                case di_error::kAlreadyInitialized: return "already initialized";
+                case di_error::kTypeNotFound: return "requested type not found in container";
+                case di_error::kTypeAmbiguous: return "requested type resolves ambiguously";
+                case di_error::kTypeNotConvertible: return "registered type is not convertible to requested type";
+                case di_error::kTypeRecursion: return "recursive type resolution detected";
+                case di_error::kTypeAlreadyRegistered: return "type already registered";
+                case di_error::kTypeIndexAlreadyRegistered: return "type index already registered";
+                case di_error::kCollectionTypeNotFound: return "collection element type not found";
+                case di_error::kIndexOutOfRange: return "type index out of range";
+                case di_error::kUnknown: return "unknown di error";
+            }
+            return "unknown di error";
+        }
+    } cat;
+    return cat;
+}
+
+/// 将 di_error 转为 std::error_code。
+[[nodiscard]] inline std::error_code make_error_code(di_error e) noexcept {
+    return {static_cast<int>(e), di_category()};
+}
+
 enum class type_cv_flags : std::uint8_t {
     kNone = 0,
     kIsConst = 1 << 0,
@@ -380,75 +429,75 @@ void append_text(std::string& message, First&& first, Rest&&... rest) {
 
 template <typename Request>
 std::error_code make_type_not_found_exception() {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotFound);
+    return make_error_code(di_error::kTypeNotFound);
 }
 
 template <typename Request, typename Context>
 std::error_code make_type_not_found_exception(const Context& context) {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotFound);
+    return make_error_code(di_error::kTypeNotFound);
 }
 
 template <typename Request, typename IdType>
 std::error_code make_type_not_found_exception() {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotFound);
+    return make_error_code(di_error::kTypeNotFound);
 }
 
 template <typename Request, typename IdType, typename Context>
 std::error_code make_type_not_found_exception(const Context& context) {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotFound);
+    return make_error_code(di_error::kTypeNotFound);
 }
 
 template <typename Collection, typename ResolveType>
 std::error_code make_collection_type_not_found_exception() {
-    return silicon::error::make_error_code(silicon::error::di_error::kCollectionTypeNotFound);
+    return make_error_code(di_error::kCollectionTypeNotFound);
 }
 
 template <typename Request>
 std::error_code make_type_ambiguous_exception() {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeAmbiguous);
+    return make_error_code(di_error::kTypeAmbiguous);
 }
 
 template <typename Request, typename Context>
 std::error_code make_type_ambiguous_exception(const Context& context) {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeAmbiguous);
+    return make_error_code(di_error::kTypeAmbiguous);
 }
 
 inline std::error_code make_type_not_convertible_exception(
     type_descriptor target_type, type_descriptor source_type) {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotConvertible);
+    return make_error_code(di_error::kTypeNotConvertible);
 }
 
 template <typename Context>
 inline std::error_code make_type_not_convertible_exception(
     type_descriptor target_type, type_descriptor source_type,
     const Context& context) {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeNotConvertible);
+    return make_error_code(di_error::kTypeNotConvertible);
 }
 
 template <typename Type> std::error_code make_type_recursion_exception() {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeRecursion);
+    return make_error_code(di_error::kTypeRecursion);
 }
 
 template <typename Type, typename Context>
 std::error_code make_type_recursion_exception(const Context& context) {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeRecursion);
+    return make_error_code(di_error::kTypeRecursion);
 }
 
 template <typename Interface, typename Storage>
 std::error_code make_type_already_registered_exception() {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeAlreadyRegistered);
+    return make_error_code(di_error::kTypeAlreadyRegistered);
 }
 
 template <typename Interface, typename Storage, typename IdType>
 std::error_code
 make_type_index_already_registered_exception() {
-    return silicon::error::make_error_code(silicon::error::di_error::kTypeIndexAlreadyRegistered);
+    return make_error_code(di_error::kTypeIndexAlreadyRegistered);
 }
 
 template <typename Key>
 std::error_code make_type_index_out_of_range_exception(
     Key, size_t) {
-    return silicon::error::make_error_code(silicon::error::di_error::kIndexOutOfRange);
+    return make_error_code(di_error::kIndexOutOfRange);
 }
 
 

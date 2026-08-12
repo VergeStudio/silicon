@@ -22,7 +22,6 @@ export module silicon.coroutine:task_container;
 
 import silicon.scheduler;
 import silicon.scheduler.task;
-import silicon.error;
 import :mutex;
 export namespace silicon::coroutine {
 
@@ -48,8 +47,7 @@ public:
     static auto create(std::shared_ptr<executor_type> e)
             -> std::expected<std::unique_ptr<task_container<executor_type>>, std::error_code> {
         if (e == nullptr) {
-            return std::unexpected(silicon::error::make_error_code(
-                silicon::error::coroutine_error::kNullExecutor));
+            return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
         }
         // create() 为成员函数，可访问私有构造；std::make_unique 无 friend 权限故用 new。
         return std::unique_ptr<task_container<executor_type>>(

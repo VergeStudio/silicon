@@ -20,7 +20,6 @@ module silicon.ai.llm;
 
 import silicon.json;
 import silicon.core;
-import silicon.error;
 
 namespace silicon::ai::llm {
 
@@ -91,9 +90,9 @@ std::string json_protocol_adapter::encode_request(
 result<chat_response> json_protocol_adapter::decode_response(std::string_view raw) const {
     using namespace silicon::json;
     auto v = parse(raw);
-    if(v.is_discarded()) return std::unexpected(silicon::error::make_error_code(silicon::error::llm_error::kInvalidResponse));
+    if(v.is_discarded()) return std::unexpected(make_error_code(llm_error::kInvalidResponse));
     if(!v.is_object())
-        return std::unexpected(silicon::error::make_error_code(silicon::error::llm_error::kInvalidResponse));
+        return std::unexpected(make_error_code(llm_error::kInvalidResponse));
 
     chat_response resp;
 
@@ -132,7 +131,7 @@ std::size_t scripted_provider::remaining() const { return impl_->queue_.size(); 
 
 result<chat_response> scripted_provider::chat(const conversation &, const model_request_options &) {
     if(impl_->queue_.empty())
-        return std::unexpected(silicon::error::make_error_code(silicon::error::llm_error::kProviderUnavailable));
+        return std::unexpected(make_error_code(llm_error::kProviderUnavailable));
     chat_response r = std::move(impl_->queue_.front());
     impl_->queue_.pop();
     return result<chat_response>(std::move(r));
@@ -206,9 +205,36 @@ result<chat_response> http_provider::chat(const conversation &conv, const model_
     std::string body = impl_->adapter_.encode_request(conv, o, {});
     http_result r = post_json(impl_->base_url_ + "/chat/completions", body);
     if(r.status() != 200) {
-        return std::unexpected(silicon::error::make_error_code(silicon::error::llm_error::kProviderUnavailable));
+        return std::unexpected(make_error_code(llm_error::kProviderUnavailable));
     }
     return impl_->adapter_.decode_response(r.body());
+}
+
+// ── llm_error category 与 make_error_code ──────────────────────
+namespace {
+class llm_error_category final : public std::error_category {
+  public:
+    const char *name() const noexcept override { return "silicon.ai"; }
+    std::string message(int ev) const override {
+        switch(static_cast<llm_error>(ev)) {
+            case llm_error::kProviderUnavailable: return "llm provider unavailable";
+            case llm_error::kInvalidResponse: return "invalid llm response";
+            case llm_error::kToolNotFound: return "tool not found";
+            case llm_error::kTimeout: return "llm request timed out";
+            case llm_error::kUnknown: return "unknown llm error";
+        }
+        return "unknown llm error";
+    }
+};
+} // namespace
+
+const std::error_category &llm_category() noexcept {
+    static const llm_error_category cat{};
+    return cat;
+}
+
+std::error_code make_error_code(llm_error e) noexcept {
+    return {static_cast<int>(e), llm_category()};
 }
 
 } // namespace silicon::ai::llm

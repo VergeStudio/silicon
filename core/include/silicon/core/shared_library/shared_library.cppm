@@ -44,8 +44,8 @@ export class shared_library final {
     /// using the given flags. See the flags enumeration
     /// for valid values.
     /// Returns an error_code on failure
-    /// (silicon::error::library_error::kAlreadyLoaded / kLoadFailed, or a
-    /// system errno via silicon::error::system_error).
+    /// (silicon::library::library_error::kAlreadyLoaded / kLoadFailed, or a
+    /// system errno via std::error_code{ec, std::generic_category()}).
     [[nodiscard]] auto load(const std::string &, int32_t flags = 0) -> std::expected<void, std::error_code>;
 
     /// Unloads a shared library. Returns an error_code on failure.
@@ -97,6 +97,21 @@ export class shared_library final {
     std::unique_ptr<Impl> impl_;
 
 };
+
+/// 动态库语义错误枚举（专属 category：silicon.library）。
+enum class library_error {
+    kAlreadyLoaded = 1,
+    kLoadFailed,
+    kUnloadFailed,
+    kSymbolNotFound,
+    kInvalidHandle,
+};
+
+/// 返回 library_error 专属 error_category（name() == "silicon.library"）。
+[[nodiscard]] const std::error_category &library_category() noexcept;
+
+/// library_error 枚举 → std::error_code（专属 category）。
+[[nodiscard]] std::error_code make_error_code(library_error e) noexcept;
 
 } // namespace silicon::library
 
