@@ -357,58 +357,7 @@ inline void append_type_name(std::string& name, type_descriptor descriptor) {
 // ==  core  —  binding model, binding collection & context
 // ==============================================================================
 
-// --- core/exceptions.h ---
-
-
-
 export namespace silicon::di {
-struct exception : std::exception {
-    explicit exception(std::string message) : message_(std::move(message)) {
-        assert(!message_.empty());
-    }
-
-    const char* what() const noexcept override {
-        assert(!message_.empty());
-        return message_.c_str();
-    }
-
-  protected:
-    std::string message_;
-};
-
-struct type_not_found_exception : exception { using exception::exception; };
-
-struct type_not_convertible_exception : exception {
-    using exception::exception;
-};
-
-struct type_ambiguous_exception : exception { using exception::exception; };
-
-struct type_recursion_exception : exception { using exception::exception; };
-
-struct type_already_registered_exception : exception {
-    using exception::exception;
-};
-
-struct type_index_already_registered_exception : exception {
-    using exception::exception;
-};
-
-struct type_index_out_of_range_exception : exception {
-    using exception::exception;
-};
-
-struct virtual_pointer_exception : exception {
-    using exception::exception;
-};
-
-#ifdef _DEBUG
-struct arena_allocation_exception : exception {
-    using exception::exception;
-};
-#endif
-
-
 
 inline void append_text_part(std::string& message, type_descriptor descriptor) {
     append_type_name(message, descriptor);
@@ -7695,7 +7644,7 @@ inline constexpr bool construct_factory_request_v =
 
 template <typename Request, typename MakeNotConvertible, typename MakeNotFound>
 [[noreturn]] void
-throw_missing_rvalue_conversion(bool has_normalized_request,
+terminate_missing_rvalue_conversion(bool has_normalized_request,
                                 MakeNotConvertible&& make_not_convertible,
                                 MakeNotFound&& make_not_found) {
     static_assert(rvalue_request_requires_explicit_conversion_v<Request>);
@@ -7715,10 +7664,10 @@ throw_missing_rvalue_conversion(bool has_normalized_request,
 }
 
 template <typename Request, typename Context>
-[[noreturn]] void throw_missing_rvalue_conversion(bool has_normalized_request,
+[[noreturn]] void terminate_missing_rvalue_conversion(bool has_normalized_request,
                                                   Context& context) {
     using normalized_request_type = normalized_type_t<Request>;
-    throw_missing_rvalue_conversion<Request>(
+    terminate_missing_rvalue_conversion<Request>(
         has_normalized_request,
         [&]() {
             return make_type_not_convertible_exception(
@@ -7731,9 +7680,9 @@ template <typename Request, typename Context>
 }
 
 template <typename Request>
-[[noreturn]] void throw_missing_rvalue_conversion(bool has_normalized_request) {
+[[noreturn]] void terminate_missing_rvalue_conversion(bool has_normalized_request) {
     using normalized_request_type = normalized_type_t<Request>;
-    throw_missing_rvalue_conversion<Request>(
+    terminate_missing_rvalue_conversion<Request>(
         has_normalized_request,
         [&]() {
             return make_type_not_convertible_exception(
@@ -7747,18 +7696,16 @@ template <typename Request, typename ResolveExact, typename ResolveNormalized>
 request_result_t<Request>
 construct_request_or_wrap_normalized(ResolveExact&& resolve_exact,
                                      ResolveNormalized&& resolve_normalized) {
-    try {
-        return std::forward<ResolveExact>(resolve_exact)();
-    } catch (const type_not_convertible_exception&) {
-        if constexpr (can_wrap_normalized_request_v<Request>) {
-            auto&& value =
-                std::forward<ResolveNormalized>(resolve_normalized)();
-            return type_traits<std::decay_t<Request>>::make(
-                std::forward<decltype(value)>(value));
-        } else {
-            throw;
-        }
+    // expected 语义：仅当精确解析以 kTypeNotConvertible 失败且支持
+    // normalized 降级时，改用 normalized 类型解析并构造；其余失败原样返回。
+    auto exact = std::forward<ResolveExact>(resolve_exact)();
+    if (!exact && can_wrap_normalized_request_v<Request> &&
+        exact.error() == make_error_code(di_error::kTypeNotConvertible)) {
+        auto value = std::forward<ResolveNormalized>(resolve_normalized)();
+        return type_traits<std::decay_t<Request>>::make(
+            std::forward<decltype(value)>(value));
     }
+    return exact;
 }
 } // export namespace silicon::di
 
@@ -12143,7 +12090,7 @@ class runtime_registry : public allocator_base<Allocator> {
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
-                    ::silicon::di::throw_missing_rvalue_conversion<T>(true, context);
+                    ::silicon::di::terminate_missing_rvalue_conversion<T>(true, context);
                 } else if constexpr (construct_normalized_request_v<T>) {
                     return type_traits<std::decay_t<T>>::make(
                         resolve<normalized_type_t<T>, false>(context,
@@ -12159,7 +12106,7 @@ class runtime_registry : public allocator_base<Allocator> {
         } else if constexpr (::silicon::di::
                                  rvalue_request_requires_explicit_conversion_v<
                                      T>) {
-            ::silicon::di::throw_missing_rvalue_conversion<T>(false, context);
+            ::silicon::di::terminate_missing_rvalue_conversion<T>(false, context);
         } else {
             return resolve<T, false>(context, none_t{});
         }
@@ -14984,7 +14931,7 @@ class static_container_impl<static_registry<Registrations...>, ParentContainer>
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
                     context_type context;
-                    ::silicon::di::throw_missing_rvalue_conversion<T>(
+                    ::silicon::di::terminate_missing_rvalue_conversion<T>(
                         has_normalized_binding, context);
                 } else if constexpr (construct_normalized_request_v<T>) {
                     return construct_static_binding_value<
@@ -15788,7 +15735,7 @@ class container_with_static_bindings<static_registry<Registrations...>,
                 if constexpr (::silicon::di::
                                   rvalue_request_requires_explicit_conversion_v<
                                       T>) {
-                    ::silicon::di::throw_missing_rvalue_conversion<T>(true, context);
+                    ::silicon::di::terminate_missing_rvalue_conversion<T>(true, context);
                 } else if constexpr (construct_normalized_request_v<T>) {
                     return type_traits<std::decay_t<T>>::make(
                         resolve_runtime_only<
@@ -15810,7 +15757,7 @@ class container_with_static_bindings<static_registry<Registrations...>,
         } else if constexpr (::silicon::di::
                                  rvalue_request_requires_explicit_conversion_v<
                                      T>) {
-            ::silicon::di::throw_missing_rvalue_conversion<T>(false, context);
+            ::silicon::di::terminate_missing_rvalue_conversion<T>(false, context);
         } else {
             return resolve_runtime_only<T, false, runtime_auto_constructible_v<T>>(
                 context, none_t{});
@@ -16021,7 +15968,7 @@ class container_with_static_bindings<static_registry<Registrations...>,
                 }
 
                 if constexpr (has_static_normalized_binding) {
-                    ::silicon::di::throw_missing_rvalue_conversion<T>(true);
+                    ::silicon::di::terminate_missing_rvalue_conversion<T>(true);
                 }
 
                 return construct_runtime_only<T>(std::move(factory));
