@@ -1,6 +1,7 @@
 module;
 
 export module silicon.scheduler;
+export import silicon.scheduler.error;
 
 // scheduler 位于 coroutine 之下：事件循环基础设施（io_notifier / poll_info /
 // timer_handle）与其依赖的调度原语（poll / fd / time / expected / sync_wait /

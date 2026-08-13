@@ -6,6 +6,7 @@ module;
 #include <system_error>
 
 export module silicon.library;
+export import silicon.library.error;
 
 namespace silicon::library {
 export class shared_library final {
@@ -98,20 +99,6 @@ export class shared_library final {
 
 };
 
-/// 动态库语义错误枚举（专属 category：silicon.library）。
-enum class library_error {
-    kAlreadyLoaded = 1,
-    kLoadFailed,
-    kUnloadFailed,
-    kSymbolNotFound,
-    kInvalidHandle,
-};
-
-/// 返回 library_error 专属 error_category（name() == "silicon.library"）。
-[[nodiscard]] const std::error_category &library_category() noexcept;
-
-/// library_error 枚举 → std::error_code（专属 category）。
-[[nodiscard]] std::error_code make_error_code(library_error e) noexcept;
 
 } // namespace silicon::library
 

@@ -17,6 +17,7 @@ module;
 #include <silicon/proxy/proxy_macros.h>
 
 export module silicon.plugin;
+export import silicon.plugin.error;
 
 import silicon.proxy;
 
@@ -26,20 +27,6 @@ export namespace silicon::plugin {
 template<typename T>
 using result = std::expected<T, std::error_code>;
 
-/// 插件语义错误枚举（专属 category：silicon.plugin）。
-enum class plugin_error {
-    kLoadFailed = 1,
-    kUnloadFailed,
-    kDuplicate,
-    kNotFound,
-    kNullPlugin,
-};
-
-/// 返回 plugin_error 专属 error_category（name() == "silicon.plugin"）。
-[[nodiscard]] const std::error_category &plugin_category() noexcept;
-
-/// plugin_error 枚举 → std::error_code（专属 category）。
-[[nodiscard]] std::error_code make_error_code(plugin_error e) noexcept;
 
 /// 插件生命周期
 class i_plugin {

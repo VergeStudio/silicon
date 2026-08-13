@@ -33,6 +33,7 @@ module;
 #include <system_error>
 
 export module silicon.scheduler:io_scheduler;
+export import silicon.scheduler.error;
 
 // io_scheduler 原为 silicon.coroutine:scheduler；其依赖的调度原语已一并迁入
 // 本模块，故重新使用同模块分区 import。协程 task 类型来自独立模块
@@ -67,22 +68,6 @@ export namespace silicon::scheduler {
 template<typename T>
 using result = std::expected<T, std::error_code>;
 
-/// scheduler 模块专属错误码枚举（执行器 / IO 通知器 / 线程池）。
-enum class scheduler_error {
-    kShuttingDown = 1,
-    kResultNotSet,
-    kInvalidNotifierState,
-    kPipeCreateFailed,
-    kEventRegisterFailed,
-    kNullExecutor,
-    kUnknown,
-};
-
-/// 返回 scheduler_error 专属 error_category（name() = "silicon.scheduler"）。
-[[nodiscard]] const std::error_category &scheduler_category() noexcept;
-
-/// 将 scheduler_error 转为 std::error_code。
-[[nodiscard]] std::error_code make_error_code(scheduler_error e) noexcept;
 
 enum class timeout_status {
     kNoTimeout,

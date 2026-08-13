@@ -10,6 +10,8 @@ module;
 
 module silicon.config.json;
 
+import silicon.config.error;
+
 namespace silicon::config {
 
 // ── Pimpl ─────────────────────────────────────────────────────────────────

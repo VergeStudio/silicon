@@ -1,6 +1,7 @@
 module;
 
 export module silicon.coroutine;
+export import silicon.coroutine.error;
 
 import silicon.scheduler.task;
 

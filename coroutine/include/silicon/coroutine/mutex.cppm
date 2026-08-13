@@ -14,6 +14,7 @@ module;
 
 
 export module silicon.coroutine:mutex;
+export import silicon.coroutine.error;
 import silicon.scheduler.task;
 
 export namespace silicon::coroutine {
@@ -22,32 +23,6 @@ export namespace silicon::coroutine {
 template<typename T>
 using result = std::expected<T, std::error_code>;
 
-/// coroutine 模块专属错误码枚举（同步原语与协程池）。
-enum class coroutine_error {
-    kNullExecutor = 1,
-    kInvalidPoolSize,
-    kAlreadyUnlocked,
-    kUnknown,
-};
-
-/// coroutine::channel / queue / ring_buffer 专属错误码枚举。
-enum class channel_error {
-    kClosed = 1,
-    kTimeout,
-    kCancelled,
-};
-
-/// 返回 coroutine_error 专属 error_category（name() = "silicon.coroutine"）。
-[[nodiscard]] const std::error_category &coroutine_category() noexcept;
-
-/// 返回 channel_error 专属 error_category（name() = "silicon.channel"）。
-[[nodiscard]] const std::error_category &channel_category() noexcept;
-
-/// 将 coroutine_error 转为 std::error_code。
-[[nodiscard]] std::error_code make_error_code(coroutine_error e) noexcept;
-
-/// 将 channel_error 转为 std::error_code。
-[[nodiscard]] std::error_code make_error_code(channel_error e) noexcept;
 class mutex;
 class scoped_lock;
 class condition_variable;

@@ -17,6 +17,7 @@ module;
 #include <expected>
 
 module silicon.ai.llm;
+import silicon.ai.llm.error;
 
 import silicon.json;
 import silicon.core;
@@ -210,31 +211,5 @@ result<chat_response> http_provider::chat(const conversation &conv, const model_
     return impl_->adapter_.decode_response(r.body());
 }
 
-// ── llm_error category 与 make_error_code ──────────────────────
-namespace {
-class llm_error_category final : public std::error_category {
-  public:
-    const char *name() const noexcept override { return "silicon.ai"; }
-    std::string message(int ev) const override {
-        switch(static_cast<llm_error>(ev)) {
-            case llm_error::kProviderUnavailable: return "llm provider unavailable";
-            case llm_error::kInvalidResponse: return "invalid llm response";
-            case llm_error::kToolNotFound: return "tool not found";
-            case llm_error::kTimeout: return "llm request timed out";
-            case llm_error::kUnknown: return "unknown llm error";
-        }
-        return "unknown llm error";
-    }
-};
-} // namespace
-
-const std::error_category &llm_category() noexcept {
-    static const llm_error_category cat{};
-    return cat;
-}
-
-std::error_code make_error_code(llm_error e) noexcept {
-    return {static_cast<int>(e), llm_category()};
-}
 
 } // namespace silicon::ai::llm

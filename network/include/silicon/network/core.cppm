@@ -38,6 +38,7 @@ module;
 #include <utility>
 
 export module silicon.network:core;
+export import silicon.network.error;
 
 export import silicon.coroutine;
 
@@ -49,36 +50,6 @@ export namespace silicon::network {
 template<typename T>
 using result = std::expected<T, std::error_code>;
 
-/// 网络模块专属错误码枚举。错误码经 make_error_code() 转为 std::error_code
-/// （专属 category `silicon.network`）；errno 类错误用 system_error() 助手。
-enum class network_error {
-    kUdpNotBound = 1,
-    kCancelled,
-    kPollingError,
-    kTimeout,
-    kInvalidIpAddress,
-    // 参数校验（create() 工厂）
-    kNullScheduler,
-    kNullExecutor,
-    kNullTlsContext,
-    // socket 操作
-    kSocketCreateFailed,
-    kSetNonblockingFailed,
-    kSetSockOptFailed,
-    kBindFailed,
-    kListenFailed,
-    kInvalidSocketType,
-    kInvalidDomain,
-    kInvalidConnectStatus,
-    // tls
-    kTlsContextInitFailed,
-    kTlsCertificateLoadFailed,
-    kTlsPrivateKeyLoadFailed,
-    kTlsKeyMismatch,
-    // dns
-    kDnsInitFailed,
-    kUnknown,
-};
 
 /// 从 POSIX errno 值构造 std::error_code（generic_category）。
 [[nodiscard]] inline std::error_code system_error(int errno_value) noexcept {
@@ -90,11 +61,6 @@ enum class network_error {
     return std::make_error_code(e);
 }
 
-/// 返回 network_error 专属 error_category（name() = "silicon.network"）。
-[[nodiscard]] const std::error_category &network_category() noexcept;
-
-/// 将 network_error 转为 std::error_code。
-[[nodiscard]] std::error_code make_error_code(network_error e) noexcept;
 
 enum class connect_status {
     /// The connection has been established.

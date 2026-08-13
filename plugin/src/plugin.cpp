@@ -11,6 +11,7 @@ module;
 #include <expected>
 
 module silicon.plugin;
+import silicon.plugin.error;
 
 namespace silicon::plugin {
 
@@ -71,31 +72,5 @@ std::vector<std::string> proxy_plugin_registry::list() const {
     return names;
 }
 
-// ── plugin_error category 与 make_error_code ────────────────────
-namespace {
-class plugin_error_category final : public std::error_category {
-  public:
-    const char *name() const noexcept override { return "silicon.plugin"; }
-    std::string message(int ev) const override {
-        switch(static_cast<plugin_error>(ev)) {
-            case plugin_error::kLoadFailed: return "plugin load failed";
-            case plugin_error::kUnloadFailed: return "plugin unload failed";
-            case plugin_error::kDuplicate: return "plugin already registered";
-            case plugin_error::kNotFound: return "plugin not found";
-            case plugin_error::kNullPlugin: return "null plugin handle";
-        }
-        return "unknown plugin error";
-    }
-};
-} // namespace
-
-const std::error_category &plugin_category() noexcept {
-    static const plugin_error_category cat{};
-    return cat;
-}
-
-std::error_code make_error_code(plugin_error e) noexcept {
-    return {static_cast<int>(e), plugin_category()};
-}
 
 } // namespace silicon::plugin

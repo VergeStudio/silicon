@@ -14,6 +14,7 @@ module;
 #include <vector>
 
 module silicon.fs;
+import silicon.fs.error;
 
 namespace silicon::fs {
 
@@ -130,34 +131,5 @@ std::unique_ptr<i_file_system> create_file_system() {
 #endif
 }
 
-// ── fs_error category 与 make_error_code ────────────────────────
-namespace {
-class fs_error_category final : public std::error_category {
-  public:
-    const char *name() const noexcept override { return "silicon.fs"; }
-    std::string message(int ev) const override {
-        switch(static_cast<fs_error>(ev)) {
-            case fs_error::kOpenFailed: return "cannot open file";
-            case fs_error::kReadFailed: return "cannot read file";
-            case fs_error::kWriteFailed: return "cannot write file";
-            case fs_error::kNotExist: return "file or directory does not exist";
-            case fs_error::kPermissionDenied: return "permission denied";
-            case fs_error::kNotDirectory: return "not a directory";
-            case fs_error::kAlreadyExists: return "file or directory already exists";
-            case fs_error::kUnknown: return "unknown file system error";
-        }
-        return "unknown fs error";
-    }
-};
-} // namespace
-
-const std::error_category &fs_category() noexcept {
-    static const fs_error_category cat{};
-    return cat;
-}
-
-std::error_code make_error_code(fs_error e) noexcept {
-    return {static_cast<int>(e), fs_category()};
-}
 
 } // namespace silicon::fs

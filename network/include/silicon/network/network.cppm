@@ -12,6 +12,7 @@
 // is added from $(builddir)/silicon/config.
 
 export module silicon.network;
+export import silicon.network.error;
 
 export import :config;
 export import :core;

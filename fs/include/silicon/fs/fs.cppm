@@ -12,6 +12,7 @@ module;
 #include <vector>
 
 export module silicon.fs;
+export import silicon.fs.error;
 
 export namespace silicon::fs {
 
@@ -21,23 +22,6 @@ export namespace silicon::fs {
 template<typename T>
 using result = std::expected<T, std::error_code>;
 
-/// 文件系统语义错误枚举（专属 category：silicon.fs）。
-enum class fs_error {
-    kOpenFailed = 1,
-    kReadFailed,
-    kWriteFailed,
-    kNotExist,
-    kPermissionDenied,
-    kNotDirectory,
-    kAlreadyExists,
-    kUnknown,
-};
-
-/// 返回 fs_error 专属 error_category（name() == "silicon.fs"）。
-[[nodiscard]] const std::error_category &fs_category() noexcept;
-
-/// fs_error 枚举 → std::error_code（专属 category）。
-[[nodiscard]] std::error_code make_error_code(fs_error e) noexcept;
 
 /// 文件系统抽象（统一接口）。
 /// 文本 read/write 平台无关地以 UTF-8 表达；平台相关细节
