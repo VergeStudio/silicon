@@ -36,14 +36,14 @@ export namespace silicon::network::tcp {
 /// The concrete tcp::client class implements this interface.
 /// Template methods (read_some, read_exact, write_some, write_all, recv, send)
 /// remain in the concrete class — they cannot be virtual.
-class ITcpClient {
+class i_tcp_client {
   public:
-    ITcpClient() = default;
-    ITcpClient(const ITcpClient &) = delete;
-    ITcpClient(ITcpClient &&) = delete;
-    auto operator=(const ITcpClient &) -> ITcpClient & = delete;
-    auto operator=(ITcpClient &&) -> ITcpClient & = delete;
-    virtual ~ITcpClient() = default;
+    i_tcp_client() = default;
+    i_tcp_client(const i_tcp_client &) = delete;
+    i_tcp_client(i_tcp_client &&) = delete;
+    auto operator=(const i_tcp_client &) -> i_tcp_client & = delete;
+    auto operator=(i_tcp_client &&) -> i_tcp_client & = delete;
+    virtual ~i_tcp_client() = default;
 
     [[nodiscard]] virtual auto socket() -> network::socket & = 0;
     [[nodiscard]] virtual auto socket() const -> const network::socket & = 0;
@@ -58,14 +58,14 @@ class ITcpClient {
 };
 
 /// @brief Abstract interface for a TCP server.
-class ITcpServer {
+class i_tcp_server {
   public:
-    ITcpServer() = default;
-    ITcpServer(const ITcpServer &) = delete;
-    ITcpServer(ITcpServer &&) = delete;
-    auto operator=(const ITcpServer &) -> ITcpServer & = delete;
-    auto operator=(ITcpServer &&) -> ITcpServer & = delete;
-    virtual ~ITcpServer() = default;
+    i_tcp_server() = default;
+    i_tcp_server(const i_tcp_server &) = delete;
+    i_tcp_server(i_tcp_server &&) = delete;
+    auto operator=(const i_tcp_server &) -> i_tcp_server & = delete;
+    auto operator=(i_tcp_server &&) -> i_tcp_server & = delete;
+    virtual ~i_tcp_server() = default;
 
     virtual auto accept(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<silicon::coroutine::expected<client, io_status>> = 0;
@@ -73,7 +73,7 @@ class ITcpServer {
 
 class server;
 
-class client final: public ITcpClient {
+class client final: public i_tcp_client {
   public:
     /**
      * Creates a new tcp client that can connect to an ip address + port.
@@ -486,7 +486,7 @@ class client final: public ITcpClient {
     bool m_is_write_ready{false};
 };
 
-class server final: public ITcpServer {
+class server final: public i_tcp_server {
   public:
     struct options {
         /// The kernel backlog of connections to buffer.

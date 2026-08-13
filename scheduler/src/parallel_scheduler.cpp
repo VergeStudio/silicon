@@ -10,7 +10,7 @@ module silicon.scheduler;
 
 namespace silicon::scheduler {
 
-// parallel_scheduler 通过组合持有底层 thread_pool，并把全部 IScheduler 操作委托给它。
+// parallel_scheduler 通过组合持有底层 thread_pool，并把全部 i_scheduler 操作委托给它。
 // 自身不做任何队列 / 线程管理，仅承担 "系统并行调度器" 这一语义角色。
 struct parallel_scheduler::Impl {
     std::unique_ptr<thread_pool> m_pool;

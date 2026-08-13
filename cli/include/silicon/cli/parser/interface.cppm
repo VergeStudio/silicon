@@ -13,9 +13,9 @@ export namespace silicon::cli {
 
 
 /// 命令行参数解析器抽象
-CLI_API class IParser {
+CLI_API class i_parser {
   public:
-    virtual ~IParser() = default;
+    virtual ~i_parser() = default;
     /// 解析 argv；成功返回解析结果，失败（未知子命令 / 非法 flag 等）返回 error_code。
     virtual std::expected<parse_result, std::error_code> Parse(int argc, const char *const *argv) const = 0;
 };

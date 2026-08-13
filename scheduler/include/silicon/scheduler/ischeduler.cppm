@@ -27,15 +27,15 @@ export namespace silicon::scheduler {
 ///
 /// 模板便捷重载（schedule<return_type>、resume<range_type>）无法虚化，仍留在
 /// 各具体类中，并以此处的虚方法为实现基础。
-class IScheduler {
+class i_scheduler {
   public:
-    IScheduler() = default;
-    IScheduler(const IScheduler &) = delete;
-    IScheduler(IScheduler &&) = delete;
-    auto operator=(const IScheduler &) -> IScheduler & = delete;
-    auto operator=(IScheduler &&) -> IScheduler & = delete;
+    i_scheduler() = default;
+    i_scheduler(const i_scheduler &) = delete;
+    i_scheduler(i_scheduler &&) = delete;
+    auto operator=(const i_scheduler &) -> i_scheduler & = delete;
+    auto operator=(i_scheduler &&) -> i_scheduler & = delete;
 
-    virtual ~IScheduler() = default;
+    virtual ~i_scheduler() = default;
 
     /// @brief 提交一个 void 任务（分离执行，调用方不再持有所有权）。
     /// @return 任务是否成功进入调度器。

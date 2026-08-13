@@ -2,7 +2,7 @@
 //
 // Holds the platform-independent core public API of silicon::network:
 // connect_status, hostname, io_status, recv_status, send_status, ip_address,
-// ISocket, socket_address and socket (plus the make_socket / make_accept_socket
+// i_socket, socket_address and socket (plus the make_socket / make_accept_socket
 // factories). All declarations are exported so consumers and the sibling
 // partitions (:dns/:tcp/:udp/:tls) can name these types.
 //
@@ -308,16 +308,16 @@ class ip_address {
 /// and the virtual destructor is a small extra cost for a thin fd wrapper.
 ///
 /// Usage in DI:
-///   c.bind<ISocket>().to<socket>(di::in_unique);
-class ISocket {
+///   c.bind<i_socket>().to<socket>(di::in_unique);
+class i_socket {
   public:
-    ISocket() = default;
-    ISocket(const ISocket &) = delete;
-    ISocket(ISocket &&) = delete;
-    auto operator=(const ISocket &) -> ISocket & = delete;
-    auto operator=(ISocket &&) -> ISocket & = delete;
+    i_socket() = default;
+    i_socket(const i_socket &) = delete;
+    i_socket(i_socket &&) = delete;
+    auto operator=(const i_socket &) -> i_socket & = delete;
+    auto operator=(i_socket &&) -> i_socket & = delete;
 
-    virtual ~ISocket() = default;
+    virtual ~i_socket() = default;
 
     /// @brief Returns true if the socket's fd is valid.
     [[nodiscard]] virtual auto is_ok() const -> bool = 0;
@@ -509,7 +509,7 @@ inline auto operator<<(std::ostream &os, const socket_address &ep) -> std::ostre
     return os << (text ? *text : std::string{"<invalid socket_address: "} + text.error().message() + ">");
 }
 
-class socket final: public ISocket {
+class socket final: public i_socket {
   public:
     enum class type_t {
         /// udp datagram socket

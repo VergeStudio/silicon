@@ -4,7 +4,7 @@
 为 siliconcode CLI 提供轻量命令行参数解析：子命令、位置参数、命名标志（`--name value` / `--flag`）。
 
 ## 接口
-- `IParser`：解析 `argv`，返回 `std::expected<parse_result, std::error_code>`。
+- `i_parser`：解析 `argv`，返回 `std::expected<parse_result, std::error_code>`。
 - `Parser`：默认实现，支持通过声明式 schema 做失败校验。
 
 ## 解析结果 `parse_result`

@@ -126,7 +126,7 @@ auto make_socket(const socket::options &opts, domain_t domain) -> result<socket>
 
     // On Windows ::socket() returns a SOCKET (unsigned 64-bit); the fd-based
     // design stores it as int, so an explicit cast is required (and matches the
-    // existing ISocket::native_handle() -> int contract). INVALID_SOCKET maps to -1.
+    // existing i_socket::native_handle() -> int contract). INVALID_SOCKET maps to -1.
     socket s{static_cast<int>(::socket(static_cast<int>(domain), *os_type, 0))};
     if(s.native_handle() < 0) {
         return std::unexpected(make_error_code(network_error::kSocketCreateFailed));

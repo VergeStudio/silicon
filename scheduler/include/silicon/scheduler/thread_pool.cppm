@@ -23,7 +23,7 @@ export namespace silicon::scheduler {
 /// 使用 pimpl：所有数据成员位于 thread_pool::Impl，定义在模块实现单元
 /// （thread_pool.cpp）。模板便捷重载（schedule<return_type>、
 /// resume<range_type>）在此内联定义。
-class thread_pool final: public IScheduler {
+class thread_pool final: public i_scheduler {
     struct private_constructor {
         explicit private_constructor() = default;
     };

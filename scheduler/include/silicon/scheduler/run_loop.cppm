@@ -23,7 +23,7 @@ export namespace silicon::scheduler {
 ///   - 把执行上下文嵌入某个特定线程（如主线程、UI 线程）；
 ///   - 作为 stdexec 风格的 "inline" 调度器使用。
 ///
-/// 它实现 IScheduler，因此对 task_group 等上层组件而言与 thread_pool / io_scheduler
+/// 它实现 i_scheduler，因此对 task_group 等上层组件而言与 thread_pool / io_scheduler
 /// 是同一套语义（spawn_detached / spawn_joinable / resume / shutdown / size / empty）。
 ///
 /// 线程安全与生命周期：
@@ -32,7 +32,7 @@ export namespace silicon::scheduler {
 ///     run() 正阻塞在空队列等待，同线程调用将无法被该线程观察到；
 ///   - 承载 run() 的线程必须比 run_loop 对象更晚销毁——析构函数仅调用 finish()
 ///     唤醒等待中的 run()，不会等待其退出（run_loop 不持有线程，无法 join）。
-class run_loop final : public IScheduler {
+class run_loop final : public i_scheduler {
     struct Impl;
     std::unique_ptr<Impl> m_impl;
 
@@ -56,7 +56,7 @@ class run_loop final : public IScheduler {
     /// 幂等：多次调用只有第一次生效。通常从另一个线程调用（见类注释）。
     auto finish() noexcept -> void;
 
-    // —— IScheduler ——
+    // —— i_scheduler ——
     auto spawn_detached(task::task<void> &&task) noexcept -> bool override;
     auto spawn_joinable(task::task<void> &&task) noexcept -> task::task<void> override;
     auto resume(std::coroutine_handle<> handle) noexcept -> bool override;

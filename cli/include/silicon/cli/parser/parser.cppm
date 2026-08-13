@@ -16,7 +16,7 @@ export import silicon.cli.parser.parse_result;
 
 export namespace silicon::cli {
 /// 默认 CLI 解析器
-CLI_API class Parser: public IParser {
+CLI_API class Parser: public i_parser {
   public:
     /// 声明合法子命令。Parse 会校验首个位置参数是否落在已知子命令集合内，
     /// 未登记任何子命令时该维度不做校验（宽松通过）。
