@@ -8,6 +8,8 @@ target("tui", function()
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
     add_deps("silicon::core")
+    -- TUI 门面基于 silicon.proxy 的 type-erasure（取消 i_terminal/i_pty/i_tui_renderer 抽象基类）。
+    add_deps("silicon::proxy")
     add_files("include/silicon/tui/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)
