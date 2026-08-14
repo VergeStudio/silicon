@@ -95,34 +95,25 @@ struct model_request_options {
 
 struct chat_response {
 
-    struct impl {
-      public:
-        std::string content_;
-        std::string finish_reason_; // "stop" / "length" / "tool_calls"
-        int32_t prompt_tokens_ = 0;
-        int32_t completion_tokens_ = 0;
-    };
-    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
+    struct impl;                 // 完整定义下沉至 llm.cpp（chat_response 非模版）
+    std::shared_ptr<impl> impl_; // 接口单元中 impl 不完整；默认构造/拷贝/访问器均在 .cpp 定义
 
   public:
-    chat_response() = default;
-    chat_response(const chat_response &o): impl_(std::make_shared<impl>(*o.impl_)) {}
-    chat_response &operator=(const chat_response &o) {
-        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
-        return *this;
-    }
-    chat_response(chat_response &&) noexcept = default;
-    chat_response &operator=(chat_response &&) noexcept = default;
+    chat_response();
+    chat_response(const chat_response &o);
+    chat_response &operator=(const chat_response &o);
+    chat_response(chat_response &&) noexcept;
+    chat_response &operator=(chat_response &&) noexcept;
 
   public:
-    std::string &content() { return impl_->content_; }
-    const std::string &content() const { return impl_->content_; }
-    std::string &finish_reason() { return impl_->finish_reason_; }
-    const std::string &finish_reason() const { return impl_->finish_reason_; }
-    int32_t &prompt_tokens() { return impl_->prompt_tokens_; }
-    const int32_t &prompt_tokens() const { return impl_->prompt_tokens_; }
-    int32_t &completion_tokens() { return impl_->completion_tokens_; }
-    const int32_t &completion_tokens() const { return impl_->completion_tokens_; }
+    std::string &content();
+    const std::string &content() const;
+    std::string &finish_reason();
+    const std::string &finish_reason() const;
+    int32_t &prompt_tokens();
+    const int32_t &prompt_tokens() const;
+    int32_t &completion_tokens();
+    const int32_t &completion_tokens() const;
 
 };
 

@@ -24,6 +24,34 @@ import silicon.core;
 
 namespace silicon::ai::llm {
 
+// ── chat_response PIMPL（impl 完整定义，接口单元仅前向声明） ────────
+
+struct chat_response::impl {
+  public:
+    std::string content_;
+    std::string finish_reason_; // "stop" / "length" / "tool_calls"
+    int32_t prompt_tokens_ = 0;
+    int32_t completion_tokens_ = 0;
+};
+
+chat_response::chat_response() : impl_(std::make_shared<impl>()) {}
+chat_response::chat_response(const chat_response &o): impl_(std::make_shared<impl>(*o.impl_)) {}
+chat_response &chat_response::operator=(const chat_response &o) {
+    if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
+    return *this;
+}
+chat_response::chat_response(chat_response &&) noexcept = default;
+chat_response &chat_response::operator=(chat_response &&) noexcept = default;
+
+std::string &chat_response::content() { return impl_->content_; }
+const std::string &chat_response::content() const { return impl_->content_; }
+std::string &chat_response::finish_reason() { return impl_->finish_reason_; }
+const std::string &chat_response::finish_reason() const { return impl_->finish_reason_; }
+int32_t &chat_response::prompt_tokens() { return impl_->prompt_tokens_; }
+const int32_t &chat_response::prompt_tokens() const { return impl_->prompt_tokens_; }
+int32_t &chat_response::completion_tokens() { return impl_->completion_tokens_; }
+const int32_t &chat_response::completion_tokens() const { return impl_->completion_tokens_; }
+
 tool_registry::tool_registry() : impl_(std::make_unique<impl>()) {}
 provider_registry::provider_registry() : impl_(std::make_unique<impl>()) {}
 scripted_provider::scripted_provider() : impl_(std::make_unique<impl>()) {}
