@@ -23,7 +23,7 @@ export namespace silicon::scheduler {
 /// 使用 pimpl：所有数据成员位于 thread_pool::impl，定义在模块实现单元
 /// （thread_pool.cpp）。模板便捷重载（schedule<return_type>、
 /// resume<range_type>）在此内联定义。
-class thread_pool final: public i_scheduler {
+class thread_pool final {
     struct private_constructor {
         explicit private_constructor() = default;
     };
@@ -63,16 +63,16 @@ class thread_pool final: public i_scheduler {
     auto operator=(const thread_pool &) -> thread_pool & = delete;
     auto operator=(thread_pool &&) -> thread_pool & = delete;
 
-    ~thread_pool() override;
+    ~thread_pool();
 
     /// @brief 线程池中的线程数（thread_pool 独有）。
     [[nodiscard]] auto thread_count() const noexcept -> std::size_t;
 
     [[nodiscard]] auto schedule() -> schedule_operation;
 
-    auto spawn_detached(silicon::scheduler::task<void> &&task) noexcept -> bool override;
+    auto spawn_detached(silicon::scheduler::task<void> &&task) noexcept -> bool;
     auto spawn_joinable(silicon::scheduler::task<void> &&task) noexcept
-            -> silicon::scheduler::task<void> override;
+            -> silicon::scheduler::task<void>;
 
     template<typename return_type>
     [[nodiscard]] auto schedule(silicon::scheduler::task<return_type> task)
@@ -81,7 +81,7 @@ class thread_pool final: public i_scheduler {
         co_return co_await task;
     }
 
-    auto resume(std::coroutine_handle<> handle) noexcept -> bool override;
+    auto resume(std::coroutine_handle<> handle) noexcept -> bool;
 
     template<typename range_type>
         requires requires(const range_type &r) {
@@ -95,11 +95,11 @@ class thread_pool final: public i_scheduler {
     }
 
     [[nodiscard]] auto yield() -> schedule_operation { return schedule(); }
-    auto shutdown() noexcept -> void override;
+    auto shutdown() noexcept -> void;
 
-    [[nodiscard]] auto is_shutdown() const -> bool override;
-    auto size() const noexcept -> std::size_t override;
-    auto empty() const noexcept -> bool override { return size() == 0; }
+    [[nodiscard]] auto is_shutdown() const -> bool;
+    auto size() const noexcept -> std::size_t;
+    auto empty() const noexcept -> bool { return size() == 0; }
 
     /// @brief 队列中等待的任务数（thread_pool 独有）。
     auto queue_size() const noexcept -> std::size_t;

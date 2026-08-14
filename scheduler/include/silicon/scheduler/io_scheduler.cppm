@@ -74,7 +74,7 @@ enum class timeout_status {
     kTimeout,
 };
 
-class io_scheduler: public i_scheduler {
+class io_scheduler {
     using timed_events = silicon::scheduler::poll_info::timed_events;
 
     struct private_constructor {
@@ -156,7 +156,7 @@ class io_scheduler: public i_scheduler {
     auto operator=(const io_scheduler &) -> io_scheduler & = delete;
     auto operator=(io_scheduler &&) -> io_scheduler & = delete;
 
-    ~io_scheduler() override;
+    ~io_scheduler();
 
     /**
      * Given a thread_strategy_t::manual this function should be called at regular intervals to
@@ -237,7 +237,7 @@ class io_scheduler: public i_scheduler {
      * @return True if the task was succesfully spawned onto the scheduler. This can fail if the task
      *         is already completed or does not contain a valid coroutine anymore.
      */
-    auto spawn_detached(silicon::scheduler::task<void> &&task) -> bool override;
+    auto spawn_detached(silicon::scheduler::task<void> &&task) -> bool;
 
     /**
      * Spawns the given task to be run on this scheduler, the task returned must be joined in the future.
@@ -248,7 +248,7 @@ class io_scheduler: public i_scheduler {
      * @param task The task to spawn onto the scheduler.
      * @return A task that can be co_await'ed (joined) in the future to know when the spawned task is complete.
      */
-    auto spawn_joinable(silicon::scheduler::task<void> &&task) -> silicon::scheduler::task<void> override;
+    auto spawn_joinable(silicon::scheduler::task<void> &&task) -> silicon::scheduler::task<void>;
 
     /**
      * Schedules a task on the scheduler and returns another task that must be awaited on for completion.
@@ -402,7 +402,7 @@ class io_scheduler: public i_scheduler {
      * Resumes execution of a direct coroutine handle on this io scheduler.
      * @param handle The coroutine handle to resume execution.
      */
-    auto resume(std::coroutine_handle<> handle) -> bool override;
+    auto resume(std::coroutine_handle<> handle) -> bool;
 
     template<silicon::coroutine::concepts::sized_range_of<std::coroutine_handle<>> range_type>
     auto resume(const range_type &handles) noexcept -> std::size_t {
@@ -420,7 +420,7 @@ class io_scheduler: public i_scheduler {
     /**
      * @return The number of tasks waiting in the task queue + the executing tasks.
      */
-    auto size() const noexcept -> std::size_t override {
+    auto size() const noexcept -> std::size_t {
         if(m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
             return m_p->m_size.load(std::memory_order::acquire);
         } else {
@@ -431,15 +431,15 @@ class io_scheduler: public i_scheduler {
     /**
      * @return True if the task queue is empty and zero tasks are currently executing.
      */
-    auto empty() const noexcept -> bool override { return size() == 0; }
+    auto empty() const noexcept -> bool { return size() == 0; }
 
     /**
      * Starts the shutdown of the io scheduler.  All currently executing and pending tasks will complete
      * prior to shutting down.  This call is blocking and will not return until all tasks complete.
      */
-    auto shutdown() noexcept -> void override;
+    auto shutdown() noexcept -> void;
 
-    [[nodiscard]] auto is_shutdown() const -> bool override { return m_p->m_shutdown_requested.load(std::memory_order::acquire); }
+    [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_shutdown_requested.load(std::memory_order::acquire); }
 
     auto io_notifier() -> silicon::scheduler::io_notifier & { return m_p->m_io_notifier; }
 

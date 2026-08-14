@@ -17,7 +17,7 @@ target("scheduler", function()
         add_defines("SCHEDULER_SHARED_LIB", "SCHEDULER_EXPORT", {public = true})
     end
 
-    -- 分区：:ischeduler（抽象基类）、:thread_pool（CPU 线程池，原 silicon.thread）、
+    -- 分区：:ischeduler（调度器门面，type-erased）、:thread_pool（CPU 线程池，原 silicon.thread）、
     -- :io_scheduler（事件循环，原 silicon.coroutine:scheduler）、
     -- :run_loop（单线程同步执行上下文，参考 stdexec::run_loop）、
     -- :inline_scheduler（内联同步调度器，参考 stdexec::inline_scheduler）、
@@ -32,6 +32,9 @@ target("scheduler", function()
     -- task 目录已并入 scheduler/task（target 名仍为 task）。
     -- 注意：不得再依赖 silicon::coroutine —— coroutine 现在反向依赖本 target。
     add_deps("silicon::task", {configs = {shared = true}})
+
+    -- scheduler_facade 走 silicon.proxy 类型擦除，需依赖 proxy 模块。
+    add_deps("silicon::proxy")
 
     -- 错误码体系由各模块自维护：silicon.scheduler 内置 scheduler_error。
 
