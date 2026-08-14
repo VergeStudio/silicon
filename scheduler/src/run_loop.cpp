@@ -16,7 +16,7 @@ namespace silicon::scheduler {
 // 与 thread_pool 一致的便捷封装：把 user_task 包成自删除任务，并返回其等待任务，
 // 使 spawn_joinable 的返回句柄在整组任务完成时变为 ready。
 
-static auto make_spawned_joinable_wait_task(std::unique_ptr<task::task_group<run_loop>> group_ptr) -> task::task<void> {
+static auto make_spawned_joinable_wait_task(std::unique_ptr<task_group<run_loop>> group_ptr) -> task<void> {
     co_await *group_ptr;
     co_return;
 }
@@ -84,21 +84,21 @@ auto run_loop::resume(std::coroutine_handle<> handle) noexcept -> bool {
     return true;
 }
 
-auto run_loop::spawn_detached(task::task<void> &&task) noexcept -> bool {
+auto run_loop::spawn_detached(task<void> &&task) noexcept -> bool {
     auto &impl = *m_impl;
     // 与 thread_pool::spawn_detached 相同的计数/所有权语义：
     //   spawn 计数 +1，由自删除任务完成时经 user_final_suspend 计数 -1；
     //   resume 计数 +1，由 run() 在 resume() 后计数 -1。
     impl.m_size.fetch_add(1, std::memory_order::release);
-    auto wrapper = task::make_task_self_deleting(std::move(task));
+    auto wrapper = make_task_self_deleting(std::move(task));
     wrapper.promise().user_final_suspend([impl = m_impl.get()]() -> void {
         impl->m_size.fetch_sub(1, std::memory_order::release);
     });
     return resume(wrapper.handle());
 }
 
-auto run_loop::spawn_joinable(task::task<void> &&task) noexcept -> task::task<void> {
-    auto group_ptr = std::make_unique<task::task_group<run_loop>>(this, std::move(task));
+auto run_loop::spawn_joinable(task<void> &&task) noexcept -> task<void> {
+    auto group_ptr = std::make_unique<task_group<run_loop>>(this, std::move(task));
     return make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 

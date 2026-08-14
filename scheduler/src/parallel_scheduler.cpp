@@ -32,11 +32,11 @@ auto parallel_scheduler::thread_count() const noexcept -> std::size_t {
     return m_impl->m_pool->thread_count();
 }
 
-auto parallel_scheduler::spawn_detached(task::task<void> &&task) noexcept -> bool {
+auto parallel_scheduler::spawn_detached(task<void> &&task) noexcept -> bool {
     return m_impl->m_pool->spawn_detached(std::move(task));
 }
 
-auto parallel_scheduler::spawn_joinable(task::task<void> &&task) noexcept -> task::task<void> {
+auto parallel_scheduler::spawn_joinable(task<void> &&task) noexcept -> task<void> {
     return m_impl->m_pool->spawn_joinable(std::move(task));
 }
 

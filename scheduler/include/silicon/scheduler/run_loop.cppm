@@ -57,8 +57,8 @@ class run_loop final : public i_scheduler {
     auto finish() noexcept -> void;
 
     // —— i_scheduler ——
-    auto spawn_detached(task::task<void> &&task) noexcept -> bool override;
-    auto spawn_joinable(task::task<void> &&task) noexcept -> task::task<void> override;
+    auto spawn_detached(task<void> &&task) noexcept -> bool override;
+    auto spawn_joinable(task<void> &&task) noexcept -> task<void> override;
     auto resume(std::coroutine_handle<> handle) noexcept -> bool override;
     auto shutdown() noexcept -> void override;
     auto is_shutdown() const -> bool override;
