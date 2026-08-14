@@ -21,6 +21,9 @@ target("platform", function()
 
     add_includedirs("../core/include", {public = true})
 
+    -- platform 门面基于 silicon.proxy 的 type-erasure（取消 i_platform 抽象基类）。
+    add_deps("silicon::proxy")
+
     add_files("../core/include/silicon/core/platform/platform.cppm", {public = true})
 end)
 

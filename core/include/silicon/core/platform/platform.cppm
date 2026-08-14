@@ -1,5 +1,5 @@
 /// @file platform.cppm
-/// @brief i_platform detection — C++23 modules + constexpr.
+/// @brief Platform detection — C++23 modules + constexpr.
 /// @usage
 ///   import silicon.platform;
 ///   if constexpr (os == os_id::kWindowsNt) { /* Windows */ }
@@ -12,6 +12,12 @@ module;
 #include <string>
 
 export module silicon.platform;
+
+// proxy 的 dispatch 宏走头文件通道，本模块定义门面须在全局模块片段显式
+// 包含，随后再 import silicon.proxy（宏不随 C++20 模块导出）。
+#include <silicon/proxy/proxy_macros.h>
+
+import silicon.proxy;
 
 export namespace silicon::platform {
 
@@ -198,45 +204,62 @@ export namespace silicon::platform {
             return "";
     }
 
-    // ── Runtime abstraction（spec：i_platform / 各平台实现 / create_platform） ──
+    // ── Runtime abstraction（取消抽象基类，改为 silicon.proxy type-erased 门面）──
 
-    class i_platform {
+    // 平台门面：鸭子类型满足即可（os_name / path_separator / line_ending 三约定）。
+    PRO_DEF_MEM_DISPATCH(MemPlatformOsName, os_name);
+    PRO_DEF_MEM_DISPATCH(MemPlatformPathSeparator, path_separator);
+    PRO_DEF_MEM_DISPATCH(MemPlatformLineEnding, line_ending);
+    struct platform_facade : silicon::proxy::facade_builder
+        ::add_convention<MemPlatformOsName, std::string() const>
+        ::add_convention<MemPlatformPathSeparator, char() const>
+        ::add_convention<MemPlatformLineEnding, std::string() const>::build {};
+
+    using platform_proxy = silicon::proxy::proxy<platform_facade>;
+    using platform_view = silicon::proxy::proxy_view<platform_facade>;
+
+    template <class T, class... Args>
+    [[nodiscard]] platform_proxy make_platform(Args &&...args) {
+        return silicon::proxy::make_proxy<platform_facade, T>(
+            std::forward<Args>(args)...);
+    }
+
+    /// 为已存在的平台对象创建非拥有视图；调用方负责保证生命周期。
+    template <class T>
+        requires silicon::proxy::proxiable_target<T, platform_facade>
+    [[nodiscard]] platform_view make_platform_view(T &target) noexcept {
+        return silicon::proxy::make_proxy_view<platform_facade>(target);
+    }
+
+    class windows_platform {
       public:
-        virtual ~i_platform() = default;
-        virtual std::string os_name() const = 0;
-        virtual char path_separator() const = 0;
-        virtual std::string line_ending() const = 0;
+        std::string os_name() const { return "windows"; }
+        char path_separator() const { return '\\'; }
+        std::string line_ending() const { return "\r\n"; }
     };
 
-    class windows_platform: public i_platform {
+    class linux_platform {
       public:
-        std::string os_name() const override { return "windows"; }
-        char path_separator() const override { return '\\'; }
-        std::string line_ending() const override { return "\r\n"; }
+        std::string os_name() const { return "linux"; }
+        char path_separator() const { return '/'; }
+        std::string line_ending() const { return "\n"; }
     };
 
-    class linux_platform: public i_platform {
+    class unix_platform {
       public:
-        std::string os_name() const override { return "linux"; }
-        char path_separator() const override { return '/'; }
-        std::string line_ending() const override { return "\n"; }
+        std::string os_name() const { return "unix"; }
+        char path_separator() const { return '/'; }
+        std::string line_ending() const { return "\n"; }
     };
 
-    class unix_platform: public i_platform {
-      public:
-        std::string os_name() const override { return "unix"; }
-        char path_separator() const override { return '/'; }
-        std::string line_ending() const override { return "\n"; }
-    };
-
-    // 编译期选中当前平台实现（互斥，仅一个分支参与重载决议）。
-    inline std::unique_ptr<i_platform> create_platform() {
+    // 编译期选中当前平台实现（互斥，仅一个分支参与重载决议），返回拥有句柄。
+    inline platform_proxy create_platform() {
         if constexpr (os == os_id::kWindowsNt) {
-            return std::make_unique<windows_platform>();
+            return make_platform<windows_platform>();
         } else if constexpr (os == os_id::kLinuxOs) {
-            return std::make_unique<linux_platform>();
+            return make_platform<linux_platform>();
         } else {
-            return std::make_unique<unix_platform>();
+            return make_platform<unix_platform>();
         }
     }
 

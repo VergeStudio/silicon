@@ -24,8 +24,9 @@ target("proxy", function()
     -- proxy_macros.h 需随库安装：dispatch 宏无法经模块导出，消费方必须
     -- 在全局模块片段 #include 后才能定义自己的 facade。
     add_headerfiles("include/silicon/proxy/common.h", "include/silicon/proxy/proxy_macros.h")
-    -- silicon.exception 模块由 core 目标编译，依赖 core 以获取其 BMI。
-    add_deps("silicon::core")
+    -- silicon.exception 已抽离为独立 target（不再依赖整个 core），
+    -- 借此打破 core → platform → proxy → core 的循环依赖。
+    add_deps("silicon::exception")
 
     add_files("include/silicon/proxy/**.cppm", {public = true})
 
