@@ -23,8 +23,8 @@ JsonFileConfig::JsonFileConfig(): impl_(std::make_unique<impl>()) {}
 JsonFileConfig::~JsonFileConfig() = default;
 
 // ── JsonFileConfig methods ────────────────────────────────────────────────
-auto JsonFileConfig::Load(const std::string &path, const fs::IFileSystem &filesystem) -> result<void> {
-    auto content = filesystem.Read(path);
+auto JsonFileConfig::Load(const std::string &path, const fs::file_system_view &filesystem) -> result<void> {
+    auto content = filesystem->read(path);
     if(!content) return std::unexpected(make_error_code(config_error::kLoadFailed));
 
     auto parsed = silicon::json::parse(content.value());

@@ -14,18 +14,18 @@ export module silicon.config.json;
 import silicon.json;
 import silicon.fs;
 
-export import silicon.config.loader.interface;
+export import silicon.config.error;
 export import silicon.config.config_value;
 
 export namespace silicon::config {
-/// 基于 JSON 文件的配置加载器（平坦 key=value 映射）
-CONFIG_API class JsonFileConfig: public ILoader {
+/// 基于 JSON 文件的配置加载器（平坦 key=value 映射）。
+/// 满足 silicon.fs 的 file_system_facade（鸭子类型），从给定文件系统句柄读取。
+CONFIG_API class JsonFileConfig {
   public:
     JsonFileConfig();
     ~JsonFileConfig();
-    result<void> Load(const std::string &path, const fs::IFileSystem &fs);
+    result<void> Load(const std::string &path, const fs::file_system_view &fs);
 
-    // 注意：基类 ILoader 仅声明 virtual Load()；get/all 并非虚函数覆写。
     std::optional<ConfigValue> Get(std::string_view key) const;
     std::map<std::string, ConfigValue, std::less<>> All() const;
 
