@@ -3,7 +3,7 @@
 module;
 
 #ifdef SILICON_FEATURE_TLS
-#    if defined(_WIN32) || defined(_WIN64)
+#    if defined(SILICON_PLATFORM_WINDOWS)
 #        include <winsock2.h>
 #        include <ws2tcpip.h>
 #    else

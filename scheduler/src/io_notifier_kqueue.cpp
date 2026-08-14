@@ -1,6 +1,6 @@
 module;
 
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
 #include <sys/event.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -18,7 +18,7 @@ module silicon.scheduler;
 
 import :poll_info_impl;
 
-#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
 using namespace std::chrono_literals;
 
 // 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。

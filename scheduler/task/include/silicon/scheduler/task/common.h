@@ -1,7 +1,7 @@
 #ifndef SILICON_SCHEDULER_TASK_COMMON_H
 #define SILICON_SCHEDULER_TASK_COMMON_H
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(TASK_SHARED_LIB)
 #        if defined(TASK_EXPORT)
 #            define TASK_API __declspec(dllexport)

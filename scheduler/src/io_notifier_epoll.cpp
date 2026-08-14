@@ -1,6 +1,6 @@
 module;
 
-#if defined(__linux__)
+#if defined(SILICON_PLATFORM_LINUX)
 #include <sys/epoll.h>
 #include <sys/timerfd.h>
 #include <sys/types.h>
@@ -16,7 +16,7 @@ module silicon.scheduler;
 
 import :poll_info_impl;
 
-#if defined(__linux__)
+#if defined(SILICON_PLATFORM_LINUX)
 using namespace std::chrono_literals;
 
 // 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。

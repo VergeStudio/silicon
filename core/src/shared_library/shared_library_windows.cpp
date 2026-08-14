@@ -1,7 +1,7 @@
 module;
 #include <memory>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    include <Windows.h>
 #endif
 
@@ -16,7 +16,7 @@ import silicon.platform;
 
 #include "shared_library_impl.hpp"
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 
 #include "libloaderapi.h"
 #include "minwindef.h"
@@ -80,4 +80,4 @@ void *shared_library::find_symbol(const std::string &name) {
 
 } // namespace silicon::library
 
-#endif // defined(_WIN32) || defined(_WIN64)
+#endif // defined(SILICON_PLATFORM_WINDOWS)

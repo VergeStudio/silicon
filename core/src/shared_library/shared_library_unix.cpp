@@ -1,7 +1,7 @@
 module;
 #include <memory>
 
-#if defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
+#if defined(SILICON_PLATFORM_UNIX)
 #    include <dlfcn.h>
 #endif
 
@@ -16,7 +16,7 @@ import silicon.platform;
 
 #include "shared_library_impl.hpp"
 
-#if defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
+#if defined(SILICON_PLATFORM_UNIX)
 
 // 平台无关成员（构造函数/is_loaded/get_path）定义在公共实现单元 shared_library.cpp。
 // 本文件仅提供 POSIX 差异成员：load/unload（dlopen 系）、prefix/suffix、find_symbol（dlsym）。
@@ -98,4 +98,4 @@ void *shared_library::find_symbol(const std::string &name) {
 
 } // namespace silicon::library
 
-#endif // defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
+#endif // defined(SILICON_PLATFORM_UNIX)

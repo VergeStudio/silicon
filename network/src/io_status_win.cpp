@@ -6,7 +6,7 @@
 
 module;
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    ifndef WIN32_LEAN_AND_MEAN
 #        define WIN32_LEAN_AND_MEAN
 #    endif
@@ -17,7 +17,7 @@ module;
 
 module silicon.network;
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 
 namespace silicon::network {
 
@@ -48,4 +48,4 @@ auto make_io_status_from_native_impl(int native_code) -> io_status {
 
 } // namespace silicon::network
 
-#endif // defined(_WIN32) || defined(_WIN64)
+#endif // defined(SILICON_PLATFORM_WINDOWS)

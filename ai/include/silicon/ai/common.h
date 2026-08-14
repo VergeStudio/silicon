@@ -5,7 +5,7 @@
 // Windows: _WIN32, _WIN64
 // Unix-like: __linux__, __APPLE__, etc.
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(AI_SHARED_LIB)
 #        if defined(AI_EXPORT)
 #            define AI_API __declspec(dllexport)

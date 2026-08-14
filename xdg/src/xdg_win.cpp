@@ -12,7 +12,7 @@ module;
 
 module silicon.xdg;
 
-#if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 
 namespace silicon::xdg {
 
@@ -58,4 +58,4 @@ std::string data_dirs_default() { return ""; }
 
 } // namespace silicon::xdg
 
-#endif // defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
+#endif // defined(SILICON_PLATFORM_WINDOWS)

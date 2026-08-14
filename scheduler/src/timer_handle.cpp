@@ -25,7 +25,7 @@ class timer_handle::Impl {
     const void *m_timer_handle_ptr{nullptr};
 };
 
-#if defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#if defined(SILICON_PLATFORM_BSD) || defined(SILICON_PLATFORM_APPLE)
 
 static auto kqueue_current_timer_fd = std::atomic<fd_t>{0};
 
@@ -36,7 +36,7 @@ timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
     (void)notifier;
 }
 
-#elif defined(__linux__)
+#elif defined(SILICON_PLATFORM_LINUX)
 
 timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
     : m_p(std::make_unique<Impl>()) {
@@ -45,7 +45,7 @@ timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
     notifier.watch(m_p->m_fd, poll_op::read, const_cast<void *>(m_p->m_timer_handle_ptr), true);
 }
 
-#elif defined(_WIN32)
+#elif defined(SILICON_PLATFORM_WINDOWS)
 
 timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
     : m_p(std::make_unique<Impl>()) {

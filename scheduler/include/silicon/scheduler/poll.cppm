@@ -10,16 +10,16 @@ module;
 #include <iostream>
 #include <string>
 
-#if defined(__linux__)
+#if defined(SILICON_PLATFORM_LINUX)
 #    include <sys/epoll.h>
-#elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#elif defined(SILICON_PLATFORM_BSD) || defined(SILICON_PLATFORM_APPLE)
 #    include <sys/event.h>
-#elif defined(_WIN32)
+#elif defined(SILICON_PLATFORM_WINDOWS)
 #    include <winsock2.h>
 #    include <windows.h>
 #    include <io.h> // ::_write
 #endif
-#if !defined(_WIN32)
+#if !defined(SILICON_PLATFORM_WINDOWS)
 #    include <unistd.h>
 #endif
 
@@ -30,7 +30,7 @@ import :pipe;
 import :fd;
 
 export namespace silicon::coroutine {
-#if defined(__linux__)
+#if defined(SILICON_PLATFORM_LINUX)
 enum class poll_op : uint64_t {
     /// Poll for read operations.
     read = EPOLLIN,
@@ -39,7 +39,7 @@ enum class poll_op : uint64_t {
     /// Poll for read and write operations.
     read_write = EPOLLIN | EPOLLOUT
 };
-#elif defined(__FreeBSD__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#elif defined(SILICON_PLATFORM_BSD) || defined(SILICON_PLATFORM_APPLE)
 enum class poll_op : int64_t {
     /// Poll for read operations.
     read = EVFILT_READ,
@@ -48,7 +48,7 @@ enum class poll_op : int64_t {
     /// Poll for read and write operations.
     read_write = -5,
 };
-#elif defined(_WIN32)
+#elif defined(SILICON_PLATFORM_WINDOWS)
 enum class poll_op : uint64_t {
     /// Poll for read operations.
     read = 0x01,

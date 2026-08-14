@@ -17,7 +17,7 @@ TEST_CASE("create_platform 返回非空的当前平台实现") {
 TEST_CASE("create_platform 行为符合当前 OS") {
     auto p = create_platform();
     REQUIRE(p != nullptr);
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
     CHECK(p->OsName() == "windows");
     CHECK(p->PathSeparator() == '\\');
     CHECK(p->LineEnding() == "\r\n");

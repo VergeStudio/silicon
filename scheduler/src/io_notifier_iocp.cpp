@@ -1,6 +1,6 @@
 module;
 
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #include <winsock2.h>
 #include <windows.h>
 #include <mswsock.h>
@@ -19,7 +19,7 @@ module silicon.scheduler;
 
 import :poll_info_impl;
 
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
 using namespace std::chrono_literals;
 
 // 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。

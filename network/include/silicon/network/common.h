@@ -1,7 +1,7 @@
 #ifndef SILICON_NET_COMMON_H
 #define SILICON_NET_COMMON_H
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(NET_SHARED_LIB)
 #        if defined(NET_EXPORT)
 #            define NET_API __declspec(dllexport)

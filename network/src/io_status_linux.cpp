@@ -13,7 +13,7 @@ module;
 
 module silicon.network;
 
-#if defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
+#if defined(SILICON_PLATFORM_UNIX)
 
 namespace silicon::network {
 
@@ -60,4 +60,4 @@ auto make_io_status_from_native_impl(int native_code) -> io_status {
 
 } // namespace silicon::network
 
-#endif // defined(__unix__) || defined(__unix) || defined(unix) || defined(__APPLE__)
+#endif // defined(SILICON_PLATFORM_UNIX)

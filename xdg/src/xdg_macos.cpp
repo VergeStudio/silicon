@@ -7,14 +7,14 @@ module;
 #include <cstdlib>
 #include <string>
 
-#if defined(__APPLE__)
+#if defined(SILICON_PLATFORM_APPLE)
 #    include <pwd.h>
 #    include <unistd.h>
 #endif
 
 module silicon.xdg;
 
-#if defined(__APPLE__)
+#if defined(SILICON_PLATFORM_APPLE)
 
 namespace silicon::xdg {
 
@@ -53,4 +53,4 @@ std::string data_dirs_default() { return "/usr/local/share:/usr/share"; }
 
 } // namespace silicon::xdg
 
-#endif // defined(__APPLE__)
+#endif // defined(SILICON_PLATFORM_APPLE)

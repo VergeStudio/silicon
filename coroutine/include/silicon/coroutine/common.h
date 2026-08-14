@@ -2,7 +2,7 @@
 #define SILICON_COROUTINE_COMMON_H
 
 // Platform detection using standard predefined macros.
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(SILICON_SHARED_LIB)
 #        if defined(SILICON_EXPORT)
 #            define COROUTINE_API __declspec(dllexport)

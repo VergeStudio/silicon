@@ -11,7 +11,7 @@
 
 module;
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    include <io.h>
 #    include <winsock2.h>
 #    include <ws2tcpip.h>
@@ -367,7 +367,7 @@ class socket_address {
             sin->sin_port = htons(port);
 
             // BSD-specific field, redundant for input
-#    if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#    if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
             sin->sin_len = sizeof(sockaddr_in);
 #    endif
 
@@ -379,7 +379,7 @@ class socket_address {
             sin6->sin6_port = htons(port);
 
             // BSD-specific field
-#    if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#    if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
             sin6->sin6_len = sizeof(sockaddr_in6);
 #    endif
 

@@ -12,7 +12,7 @@ module;
 
 
 
-#if !defined(_WIN32)
+#if !defined(SILICON_PLATFORM_WINDOWS)
 #    include <unistd.h>
 #endif
 

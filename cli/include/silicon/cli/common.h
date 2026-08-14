@@ -5,7 +5,7 @@
 // Windows: _WIN32, _WIN64
 // Unix-like: __linux__, __APPLE__, etc.
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(CLI_SHARED_LIB)
 #        if defined(CLI_EXPORT)
 #            define CLI_API __declspec(dllexport)

@@ -10,7 +10,7 @@ module;
 
 module silicon.xdg;
 
-#if (defined(__unix__) || defined(__unix) || defined(unix)) && !defined(__APPLE__)
+#if (defined(SILICON_PLATFORM_UNIX) && !defined(SILICON_PLATFORM_APPLE))
 
 namespace silicon::xdg {
 
@@ -47,4 +47,4 @@ std::string data_dirs_default() { return "/usr/local/share:/usr/share"; }
 
 } // namespace silicon::xdg
 
-#endif // (defined(__unix__) || defined(__unix) || defined(unix)) && !defined(__APPLE__)
+#endif // (defined(SILICON_PLATFORM_UNIX) && !defined(SILICON_PLATFORM_APPLE))

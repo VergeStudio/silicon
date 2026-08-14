@@ -6,7 +6,7 @@ module;
 #include <string>
 #include <utility>
 
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    include <io.h> // ::_write
 #else
 #    include <unistd.h> // ::write
@@ -121,7 +121,7 @@ auto poll_stop_source::get_token() const -> poll_stop_token {
 
 auto poll_stop_source::signal_stop() -> void {
     const int value{1};
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
     int written = ::_write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));
 #else
     ssize_t written = ::write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));

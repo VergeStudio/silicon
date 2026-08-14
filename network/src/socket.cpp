@@ -7,7 +7,7 @@
 
 module;
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    ifndef WIN32_LEAN_AND_MEAN
 #        define WIN32_LEAN_AND_MEAN
 #    endif
@@ -152,14 +152,14 @@ auto make_accept_socket(const socket::options &opts, const network::socket_addre
 
     [[maybe_unused]] int sock_opt{1};
 
-#if defined(__linux__)
+#if defined(SILICON_PLATFORM_LINUX)
     // On Linux the address and port should be marked for reuse.
     if(setsockopt(s.native_handle(), SOL_SOCKET, SO_REUSEADDR, &sock_opt, sizeof(sock_opt)) < 0) {
         return std::unexpected(make_error_code(network_error::kSetSockOptFailed));
     }
 #endif
 
-#if !defined(_WIN32)
+#if !defined(SILICON_PLATFORM_WINDOWS)
     // SO_REUSEPORT is a BSD/Linux socket option; Windows has no equivalent
     // (SO_REUSEADDR already covers the port-reuse semantics there).
     if(setsockopt(s.native_handle(), SOL_SOCKET, SO_REUSEPORT, &sock_opt, static_cast<int>(sizeof(sock_opt))) < 0) {

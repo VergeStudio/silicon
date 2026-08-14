@@ -1,7 +1,7 @@
 #ifndef SILICON_LOGGER_COMMON_H
 #define SILICON_LOGGER_COMMON_H
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(LOGGER_SHARED_LIB)
 #        if defined(LOGGER_EXPORT)
 #            define LOGGER_API __declspec(dllexport)

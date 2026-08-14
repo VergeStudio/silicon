@@ -1,6 +1,6 @@
 module;
 
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #    include <Windows.h> // GetLastError
 #else
 #    include <sys/socket.h>
@@ -457,7 +457,7 @@ auto io_scheduler::update_timeout(time_point now) -> void {
         auto amount = tp - now;
 
         if(!m_p->m_io_notifier.watch_timer(m_p->m_timer, amount)) {
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
             std::cerr << "Failed to set timer, error=[" << GetLastError() << "].";
 #else
             std::cerr << "Failed to set timerfd errorno=[" << std::system_category().message(errno) << "].";

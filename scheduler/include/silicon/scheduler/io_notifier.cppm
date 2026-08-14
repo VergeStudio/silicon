@@ -5,16 +5,16 @@ module;
 #include <memory>
 #include <vector>
 
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
 #include <winsock2.h>
 #include <windows.h>
 #include <mswsock.h>
-#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#elif defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
 #include <sys/event.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#elif defined(__linux__)
+#elif defined(SILICON_PLATFORM_LINUX)
 #include <sys/epoll.h>
 #include <sys/timerfd.h>
 #include <sys/types.h>
@@ -65,7 +65,7 @@ class io_notifier {
 
     // 单次 epoll_wait / kevent 的最大事件数；Windows 的 IOCP 完成包数量级不同，取较大值。
     static constexpr std::size_t m_max_events =
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
         64;
 #else
         16;
@@ -99,7 +99,7 @@ class io_notifier {
                      std::chrono::milliseconds timeout) -> void;
 
     auto native_handle() const ->
-#if defined(_WIN32)
+#if defined(SILICON_PLATFORM_WINDOWS)
         HANDLE;
 #else
         fd_t;

@@ -25,6 +25,25 @@ end
 
 set_toolchains("clang")
 
+-- ── 平台宏（全仓唯一来源 / single source of truth）──────────────────────────
+-- SILICON_PLATFORM_* 在构建系统顶层统一定义，供所有模块（含 C++20 模块实现单元、
+-- 全局模块片段 GMF 区、10 个平台分离文件，以及原先因宏未定义而失效的
+-- fs.cpp / tui.cpp / tui.cppm 分支）直接使用，无需 #include。
+-- 仅覆盖 OS 族；编译器宏（_MSC_VER / __GNUC__ / __clang__ 等）不在此列。
+-- 注意：silicon.platform 模块另以 constexpr 枚举做编译期 OS 检测，二者正交。
+if is_plat("windows") then
+    add_defines("SILICON_PLATFORM_WINDOWS=1")
+else
+    add_defines("SILICON_PLATFORM_UNIX=1")
+    if is_plat("linux") then
+        add_defines("SILICON_PLATFORM_LINUX=1")
+    elseif is_plat("macosx") then
+        add_defines("SILICON_PLATFORM_APPLE=1")
+    elseif is_plat("bsd") then
+        add_defines("SILICON_PLATFORM_BSD=1")
+    end
+end
+
 namespace("silicon", function()
     includes("./**")
 end)
