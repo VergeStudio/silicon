@@ -64,10 +64,4 @@ http_response curl_http_client::request(const http_request &req) const {
     return resp;
 }
 
-http_response i_http_client::get(const std::string &url) const {
-    http_request req;
-    req.url() = url;
-    return request(req);
-}
-
 } // namespace silicon::http

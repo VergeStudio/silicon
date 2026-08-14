@@ -13,6 +13,12 @@ export module silicon.http;
 
 export import silicon.http.error;
 
+// proxy 的 dispatch 宏走头文件通道，本模块定义门面须在全局模块片段显式
+// 包含，随后再 import silicon.proxy（宏不随 C++20 模块导出）。
+#include <silicon/proxy/proxy_macros.h>
+
+import silicon.proxy;
+
 export namespace silicon::http {
 
 struct http_response {
@@ -87,22 +93,36 @@ struct http_request {
 
 };
 
-/// HTTP 客户端抽象（可注入，TDD 使用 fake_http_client）
-class i_http_client {
-  public:
-    virtual ~i_http_client() = default;
-    virtual http_response request(const http_request &req) const = 0;
-    http_response get(const std::string &url) const;
-};
+/// HTTP 客户端门面（type-erased，鸭子类型满足即可；取消抽象基类）
+PRO_DEF_MEM_DISPATCH(MemHttpClientRequest, request);
+struct http_client_facade : silicon::proxy::facade_builder
+    ::add_convention<MemHttpClientRequest,
+                     http_response(const http_request &) const>::build {};
+
+using http_client_proxy = silicon::proxy::proxy<http_client_facade>;
+using http_client_view = silicon::proxy::proxy_view<http_client_facade>;
+
+template <class T, class... Args>
+[[nodiscard]] http_client_proxy make_http_client(Args &&...args) {
+    return silicon::proxy::make_proxy<http_client_facade, T>(
+        std::forward<Args>(args)...);
+}
+
+/// 便利封装：等价于对 url 发起一次 GET request
+inline http_response get(const http_client_view &client, const std::string &url) {
+    http_request req;
+    req.url(url);
+    return client->request(req);
+}
 
 /// 基于 shell curl 的实现（沙箱内网络受限时可用本地模拟）
-class curl_http_client: public i_http_client {
+class curl_http_client {
   public:
-    http_response request(const http_request &req) const override;
+    http_response request(const http_request &req) const;
 };
 
 /// 打桩实现（返回预设响应，用于 TDD）
-class fake_http_client: public i_http_client {
+class fake_http_client {
 
     struct impl {
       public:
@@ -113,7 +133,7 @@ class fake_http_client: public i_http_client {
 
   public:
     explicit fake_http_client(http_response response = {200, "{}"});
-    http_response request(const http_request &) const override;
+    http_response request(const http_request &) const;
     std::size_t call_count() const;
 };
 
