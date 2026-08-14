@@ -4,8 +4,8 @@
 为 siliconcode CLI 提供轻量命令行参数解析：子命令、位置参数、命名标志（`--name value` / `--flag`）。
 
 ## 接口
-- `i_parser`：解析 `argv`，返回 `std::expected<parse_result, std::error_code>`。
-- `Parser`：默认实现，支持通过声明式 schema 做失败校验。
+- `parser_facade`（silicon.proxy 门面）：解析 `argv`，返回 `std::expected<parse_result, std::error_code>`；提供 `parser_proxy` / `parser_view` 类型擦除句柄与 `make_parser<T>` 构造助手。目标类型以鸭子类型满足，无需继承抽象基类。
+- `Parser`：默认实现，支持通过声明式 schema 做失败校验；鸭子类型满足 `parser_facade`。
 
 ## 解析结果 `parse_result`
 - `command()`：首个非 flag 位置参数（子命令），无则为空。

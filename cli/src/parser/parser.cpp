@@ -10,7 +10,7 @@ module;
 
 module silicon.cli.parser;
 
-import silicon.cli.parser.interface;
+import silicon.cli.parser;
 import silicon.cli.error;
 
 namespace silicon::cli {
