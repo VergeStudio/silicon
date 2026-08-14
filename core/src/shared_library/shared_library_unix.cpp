@@ -20,7 +20,7 @@ import silicon.platform;
 
 // 平台无关成员（构造函数/is_loaded/get_path）定义在公共实现单元 shared_library.cpp。
 // 本文件仅提供 POSIX 差异成员：load/unload（dlopen 系）、prefix/suffix、find_symbol（dlsym）。
-// 守卫与 shared_library_windows.cpp 的 _WIN32 守卫互斥，恰好一个文件定义同组符号。
+// 守卫与 shared_library_windows.cpp 的 SILICON_PLATFORM_WINDOWS 守卫互斥，恰好一个文件定义同组符号。
 namespace silicon::library {
 
 auto shared_library::load(const std::string &path, int32_t flags) -> std::expected<void, std::error_code> {

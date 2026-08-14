@@ -68,7 +68,7 @@ export namespace silicon::os {
 
 // 读取环境变量。未设置或为空时返回空字符串。
 inline std::string get_env(const char *name) {
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     char *buf = nullptr;
     size_t len = 0;
     if(_dupenv_s(&buf, &len, name) == 0 && buf != nullptr) {

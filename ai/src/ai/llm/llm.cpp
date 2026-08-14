@@ -161,7 +161,7 @@ http_provider::http_result http_provider::post_json(const std::string &url, cons
     cmd += " -w \"\\n%{http_code}\"";
     cmd += " \"" + url + "\"";
 
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     FILE *pipe = _popen(cmd.c_str(), "r");
 #else
     FILE *pipe = popen(cmd.c_str(), "r");
@@ -171,7 +171,7 @@ http_provider::http_result http_provider::post_json(const std::string &url, cons
         std::string all;
         char buf[4096];
         while(std::fgets(buf, sizeof(buf), pipe)) all += buf;
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
         _pclose(pipe);
 #else
         pclose(pipe);

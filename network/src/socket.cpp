@@ -28,7 +28,7 @@ module silicon.network;
 
 import silicon.coroutine;
 
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
 // Winsock uses SD_RECEIVE/SD_SEND/SD_BOTH instead of the POSIX SHUT_RD/WR/RDWR.
 #    ifndef SHUT_RD
 #        define SHUT_RD SD_RECEIVE
@@ -50,7 +50,7 @@ auto socket::type_to_os(type_t type) -> result<int> {
 
 auto socket::operator=(const socket &other) noexcept -> socket & {
     this->close();
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     // Windows has no dup() for SOCKET handles; shallow-copy the handle.
     this->m_fd = other.m_fd;
 #else
@@ -72,7 +72,7 @@ auto socket::blocking(blocking_t block) -> bool {
         return false;
     }
 
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     // Windows has no fcntl; non-blocking mode is controlled via ioctlsocket(FIONBIO).
     unsigned long mode = (block == blocking_t::yes) ? 0u : 1u;
     return (ioctlsocket(m_fd, FIONBIO, &mode) == 0);
@@ -111,7 +111,7 @@ auto socket::shutdown(silicon::coroutine::poll_op how) -> bool {
 
 auto socket::close() -> void {
     if(m_fd != -1) {
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
         ::closesocket(m_fd);
 #else
         ::close(m_fd);
@@ -185,7 +185,7 @@ auto make_accept_socket(const socket::options &opts, const network::socket_addre
 auto socket::accept(socket_address &client_endpoint) -> socket {
     auto [addr, addrlen] = client_endpoint.data();
 
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     // Winsock's accept() takes an int* for addrlen and returns a SOCKET handle.
     int len = static_cast<int>(addrlen);
     auto raw = ::accept(m_fd, const_cast<sockaddr *>(addr), &len);
@@ -197,7 +197,7 @@ auto socket::accept(socket_address &client_endpoint) -> socket {
 }
 
 auto socket::last_error() const -> int {
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     return static_cast<int>(WSAGetLastError());
 #else
     return errno;
@@ -207,7 +207,7 @@ auto socket::last_error() const -> int {
 auto socket::connect(const socket_address &endpoint) -> int {
     auto [addr, addrlen] = endpoint.data();
 
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     // Winsock's connect() takes an int for addrlen and returns SOCKET_ERROR (-1)
     // on failure (check last_error() == WSAEWOULDBLOCK for async in-progress).
     int len = static_cast<int>(addrlen);
@@ -221,7 +221,7 @@ auto socket::in_progress() const -> bool {
     // A non-blocking connect() that has not yet completed returns EINPROGRESS
     // on POSIX or WSAEWOULDBLOCK on Windows; either way the connection is
     // establishing asynchronously and the caller should poll for writability.
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     return (last_error() == WSAEWOULDBLOCK);
 #else
     return (last_error() == EINPROGRESS);

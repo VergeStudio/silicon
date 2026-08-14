@@ -539,7 +539,7 @@ class socket final: public i_socket {
     socket() = default;
     explicit socket(int fd): m_fd(fd) {}
 
-#    ifdef _WIN32
+#    if defined(SILICON_PLATFORM_WINDOWS)
     // Windows has no dup() for SOCKET handles; shallow-copy the handle.
     socket(const socket &other): m_fd(other.m_fd) {}
 #    else

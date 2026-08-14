@@ -24,7 +24,7 @@ std::string date_source::current_date() const {
     auto tp = impl_->clock_->now();
     auto tt = std::chrono::system_clock::to_time_t(tp);
     std::tm gmt{};
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     gmtime_s(&gmt, &tt);
 #else
     gmtime_r(&tt, &gmt);

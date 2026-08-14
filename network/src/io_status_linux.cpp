@@ -2,7 +2,7 @@
 // 平台无关的 io_status 公共实现（message()/make_io_status_from_native/
 // make_io_status_from_poll_status/to_string）在公共实现单元 io_status.cpp；
 // 本文件仅提供平台差异的 message_impl / make_io_status_from_native_impl。
-// 守卫与 io_status_win.cpp 的 _WIN32 守卫互斥，恰好一个文件定义同组符号。
+// 守卫与 io_status_win.cpp 的 SILICON_PLATFORM_WINDOWS 守卫互斥，恰好一个文件定义同组符号。
 
 module;
 

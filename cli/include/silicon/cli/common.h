@@ -1,9 +1,10 @@
 #ifndef SILICON_CLI_COMMON_H
 #define SILICON_CLI_COMMON_H
 
-// Platform detection using standard predefined macros (no custom macros needed).
-// Windows: _WIN32, _WIN64
-// Unix-like: __linux__, __APPLE__, etc.
+// Platform detection via SILICON_PLATFORM_* macros (single source: xmake.lua root;
+// see core/include/silicon/core/common.h). Do NOT use raw predefined OS macros.
+// Windows: SILICON_PLATFORM_WINDOWS
+// Unix-like: SILICON_PLATFORM_UNIX / LINUX / APPLE / BSD
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(CLI_SHARED_LIB)

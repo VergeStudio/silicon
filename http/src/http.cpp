@@ -34,7 +34,7 @@ http_response curl_http_client::request(const http_request &req) const {
     }
     cmd += " '" + req.url() + "' 2>/dev/null";
 
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     FILE *pipe = _popen(cmd.c_str(), "r");
 #else
     FILE *pipe = popen(cmd.c_str(), "r");
@@ -48,7 +48,7 @@ http_response curl_http_client::request(const http_request &req) const {
     std::string all;
     char buf[4096];
     while(fgets(buf, sizeof(buf), pipe)) all += buf;
-#ifdef _WIN32
+#if defined(SILICON_PLATFORM_WINDOWS)
     _pclose(pipe);
 #else
     pclose(pipe);

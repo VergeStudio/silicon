@@ -1,6 +1,6 @@
 // 实现单元（Linux / 其余 POSIX 分支）：silicon.xdg
 // 仅提供平台差异辅助；8 个导出 API 的统一框架在 xdg.cpp（平台公共层）。
-// 守卫：unix 系 && !__APPLE__。语义遵循 freedesktop XDG Base Directory
+// 守卫：SILICON_PLATFORM_UNIX && !SILICON_PLATFORM_APPLE。语义遵循 freedesktop XDG Base Directory
 // Specification：优先环境变量（由 xdg.cpp 读取），回退 $HOME 下
 // .config/.local/share/.cache/.local/state 约定路径。
 module;
