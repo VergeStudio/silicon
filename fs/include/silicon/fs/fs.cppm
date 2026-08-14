@@ -2,17 +2,18 @@ module;
 
 #include <cstddef>
 #include <expected>
-#include <filesystem>
-#include <fstream>
-#include <memory>
-#include <sstream>
 #include <string>
 #include <string_view>
-#include <system_error>
 #include <vector>
 
 export module silicon.fs;
 export import silicon.fs.error;
+
+// proxy 的 dispatch 宏走头文件通道，本模块定义门面须在全局模块片段显式
+// 包含，随后再 import silicon.proxy（宏不随 C++20 模块导出）。
+#include <silicon/proxy/proxy_macros.h>
+
+import silicon.proxy;
 
 export namespace silicon::fs {
 
@@ -22,38 +23,46 @@ export namespace silicon::fs {
 template<typename T>
 using result = std::expected<T, std::error_code>;
 
+// ── 类型擦除门面（silicon.proxy，替代原 i_file_system 抽象基类） ─────
+//
+// 目标类型无需继承任何基类，只要拥有下列同名成员即自动满足门面（鸭子类型）。
+// 既有的具体类 win32_file_system / posix_file_system 直接接入，不再耦合继承体系。
 
-/// 文件系统抽象（统一接口）。
-/// 文本 read/write 平台无关地以 UTF-8 表达；平台相关细节
-/// （Windows 文本 CRLF 归一化、POSIX 目录默认权限）由具体实现处理。
-class i_file_system {
-  public:
-    virtual ~i_file_system() = default;
+PRO_DEF_MEM_DISPATCH(MemFsRead, read);
+PRO_DEF_MEM_DISPATCH(MemFsWrite, write);
+PRO_DEF_MEM_DISPATCH(MemFsReadBinary, read_binary);
+PRO_DEF_MEM_DISPATCH(MemFsWriteBinary, write_binary);
+PRO_DEF_MEM_DISPATCH(MemFsExists, exists);
+PRO_DEF_MEM_DISPATCH(MemFsListDir, list_dir);
+PRO_DEF_MEM_DISPATCH(MemFsCreateDirs, create_directories);
 
-    /// 文本读取，返回 UTF-8 内容
-    virtual result<std::string> read(const std::string &path) const = 0;
-    /// 文本写入（平台相关：Windows 归一化为 CRLF，POSIX 保持 LF）
-    virtual result<void> write(const std::string &path, const std::string &content) const = 0;
+/// 文件系统门面：满足 read / write / read_binary / write_binary / exists /
+/// list_dir / create_directories 七个 const 成员。
+struct file_system_facade
+    : silicon::proxy::facade_builder                                                           //
+      ::add_convention<MemFsRead, result<std::string>(const std::string &) const>              //
+      ::add_convention<MemFsWrite, result<void>(const std::string &, const std::string &) const> //
+      ::add_convention<MemFsReadBinary, result<std::vector<std::byte>>(const std::string &) const> //
+      ::add_convention<MemFsWriteBinary, result<void>(const std::string &, const std::vector<std::byte> &) const> //
+      ::add_convention<MemFsExists, bool(const std::string &) const>                           //
+      ::add_convention<MemFsListDir, result<std::vector<std::string>>(const std::string &) const> //
+      ::add_convention<MemFsCreateDirs, bool(const std::string &) const>                        //
+      ::build {};
 
-    /// 二进制读取
-    virtual result<std::vector<std::byte>> read_binary(const std::string &path) const = 0;
-    /// 二进制写入
-    virtual result<void> write_binary(const std::string &path, const std::vector<std::byte> &data) const = 0;
+/// 拥有所有权的类型擦除句柄（值语义）。
+using file_system_proxy = silicon::proxy::proxy<file_system_facade>;
 
-    virtual bool exists(const std::string &path) const = 0;
-    virtual result<std::vector<std::string>> list_dir(const std::string &path) const = 0;
-    virtual bool create_directories(const std::string &path) const = 0;
-};
+/// 非拥有观察视图，等价于裸指针但不要求继承。
+using file_system_view = silicon::proxy::proxy_view<file_system_facade>;
 
-} // namespace silicon::fs
+/// 就地构造任意满足门面的目标类型并擦除为 file_system_proxy；句柄按值持有。
+template<class T, class... Args>
+[[nodiscard]] file_system_proxy make_file_system(Args &&...args) {
+    return silicon::proxy::make_proxy<file_system_facade, T>(std::forward<Args>(args)...);
+}
 
-// ── 分平台实现（file_system_base / win32_file_system / posix_file_system） ──
-// 已并入模块实现单元 fs/src/fs.cpp：按 SILICON_PLATFORM_* 宏在编译期选用
-// 对应平台实现（宏由顶层 xmake.lua 定义），create_file_system() 亦在该单元定义。
-
-export namespace silicon::fs {
-
-/// 工厂：返回当前平台的文件系统实现（具体类型由上面选中的头文件提供）。
-std::unique_ptr<i_file_system> create_file_system();
+/// 工厂：返回当前平台的文件系统实现（具体类型由 SILICON_PLATFORM_* 宏选中），
+/// 以类型擦除句柄承载，调用方无需感知具体平台类型。
+file_system_proxy create_file_system();
 
 } // namespace silicon::fs
