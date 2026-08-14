@@ -50,25 +50,25 @@ tool_registry::tool_registry() : impl_(std::make_unique<impl>()) {}
 provider_registry::provider_registry() : impl_(std::make_unique<impl>()) {}
 scripted_provider::scripted_provider() : impl_(std::make_unique<impl>()) {}
 
-bool tool_registry::register_tool(std::unique_ptr<i_tool> tool) {
+bool tool_registry::register_tool(tool_proxy tool) {
     auto name = std::string(tool->name());
     return impl_->tools_.emplace(std::move(name), std::move(tool)).second;
 }
 
-i_tool *tool_registry::get_tool(std::string_view name) const {
+tool_proxy tool_registry::get_tool(std::string_view name) const {
     auto it = impl_->tools_.find(name);
-    return it != impl_->tools_.end() ? it->second.get() : nullptr;
+    return it != impl_->tools_.end() ? it->second : tool_proxy{};
 }
 
 std::size_t tool_registry::tool_count() const { return impl_->tools_.size(); }
 
-bool provider_registry::register_provider(std::string id, std::unique_ptr<i_provider> provider) {
+bool provider_registry::register_provider(std::string id, provider_proxy provider) {
     return impl_->providers_.emplace(std::move(id), std::move(provider)).second;
 }
 
-i_provider *provider_registry::get_provider(std::string_view id) const {
+provider_proxy provider_registry::get_provider(std::string_view id) const {
     auto it = impl_->providers_.find(id);
-    return it != impl_->providers_.end() ? it->second.get() : nullptr;
+    return it != impl_->providers_.end() ? it->second : provider_proxy{};
 }
 
 std::vector<std::string> provider_registry::list_providers() const {

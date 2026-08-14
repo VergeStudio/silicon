@@ -8,25 +8,25 @@ import silicon.json;
 
 using namespace silicon::ai::llm;
 
-// ── 测试夹具：具体 i_tool / i_provider ───────────────────────────
+// ── 测试夹具：具体类型（鸭子类型满足 facade，无需继承 i_*） ────────
 
-class EchoTool: public i_tool {
+class EchoTool {
   public:
-    std::string_view name() const override { return "echo"; }
-    std::string_view description() const override { return "echoes input"; }
-    tool_output execute(const tool_call &call) override {
+    std::string_view name() const { return "echo"; }
+    std::string_view description() const { return "echoes input"; }
+    tool_output execute(const tool_call &call) {
         tool_output out;
         out.content() = "echo:" + call.arguments();
         return out;
     }
 };
 
-class ConstProvider: public i_provider {
+class ConstProvider {
     std::string text_;
 
   public:
     explicit ConstProvider(std::string t): text_(std::move(t)) {}
-    result<chat_response> chat(const conversation &, const model_request_options &) override {
+    result<chat_response> chat(const conversation &, const model_request_options &) {
         chat_response r;
         r.content() = text_;
         r.finish_reason() = "stop";
@@ -36,55 +36,55 @@ class ConstProvider: public i_provider {
     }
 };
 
-// ── i_tool_registry ──────────────────────────────────────────────
+// ── tool_registry ────────────────────────────────────────────────
 
-TEST_CASE("i_tool_registry 注册并按 name 查询") {
+TEST_CASE("tool_registry 注册并按 name 查询") {
     tool_registry reg;
     CHECK(reg.tool_count() == 0);
-    CHECK(reg.register_tool(std::make_unique<EchoTool>()));
+    CHECK(reg.register_tool(make_tool<EchoTool>()));
     CHECK(reg.tool_count() == 1);
 
-    auto *t = reg.get_tool("echo");
-    CHECK(t != nullptr);
+    auto t = reg.get_tool("echo");
+    CHECK(t);
     CHECK(t->name() == "echo");
 
     auto out = t->execute(tool_call{"1", "echo", "\"hi\""});
     CHECK(out.content() == "echo:\"hi\"");
 }
 
-TEST_CASE("i_tool_registry 重复 name 注册返回 false") {
+TEST_CASE("tool_registry 重复 name 注册返回 false") {
     tool_registry reg;
-    CHECK(reg.register_tool(std::make_unique<EchoTool>()));
-    CHECK_FALSE(reg.register_tool(std::make_unique<EchoTool>()));
+    CHECK(reg.register_tool(make_tool<EchoTool>()));
+    CHECK_FALSE(reg.register_tool(make_tool<EchoTool>()));
     CHECK(reg.tool_count() == 1);
 }
 
-TEST_CASE("i_tool_registry get_tool 未知 name 返回 nullptr") {
+TEST_CASE("tool_registry get_tool 未知 name 返回空句柄") {
     tool_registry reg;
-    CHECK(reg.get_tool("missing") == nullptr);
+    CHECK_FALSE(reg.get_tool("missing"));
 }
 
-// ── i_provider_registry ──────────────────────────────────────────
+// ── provider_registry ────────────────────────────────────────────
 
-TEST_CASE("i_provider_registry 注册/查询/列举") {
+TEST_CASE("provider_registry 注册/查询/列举") {
     provider_registry reg;
-    CHECK(reg.register_provider("openai", std::make_unique<ConstProvider>("a")));
-    CHECK(reg.register_provider("anthropic", std::make_unique<ConstProvider>("b")));
+    CHECK(reg.register_provider("openai", make_provider<ConstProvider>("a")));
+    CHECK(reg.register_provider("anthropic", make_provider<ConstProvider>("b")));
     CHECK(reg.list_providers().size() == 2);
 
-    auto *p = reg.get_provider("openai");
-    CHECK(p != nullptr);
+    auto p = reg.get_provider("openai");
+    CHECK(p);
     auto r = p->chat({}, {});
     CHECK(r);
     CHECK(r->content() == "a");
 
-    CHECK(reg.get_provider("missing") == nullptr);
+    CHECK_FALSE(reg.get_provider("missing"));
 }
 
-TEST_CASE("i_provider_registry 重复 id 注册返回 false") {
+TEST_CASE("provider_registry 重复 id 注册返回 false") {
     provider_registry reg;
-    CHECK(reg.register_provider("openai", std::make_unique<ConstProvider>("a")));
-    CHECK_FALSE(reg.register_provider("openai", std::make_unique<ConstProvider>("b")));
+    CHECK(reg.register_provider("openai", make_provider<ConstProvider>("a")));
+    CHECK_FALSE(reg.register_provider("openai", make_provider<ConstProvider>("b")));
     CHECK(reg.list_providers().size() == 1);
 }
 
