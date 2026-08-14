@@ -24,37 +24,25 @@ export namespace silicon::ai::llm {
 
 struct message {
 
-    struct impl {
-      public:
-        std::string role_; // "user" / "assistant" / "system" / "tool"
-        std::string content_;
-        std::string tool_call_id_;
-    };
-    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
+    struct impl;                 // 完整定义下沉至 llm.cpp（message 非模版）
+    std::shared_ptr<impl> impl_;
 
   public:
-    message() = default;
+    message();
     /// 便利构造：保留原聚合初始化 `message{"user", "hi"}` 的调用形态
-    message(std::string r, std::string c, std::string tcid = {}) {
-        impl_->role_ = std::move(r);
-        impl_->content_ = std::move(c);
-        impl_->tool_call_id_ = std::move(tcid);
-    }
-    message(const message &o): impl_(std::make_shared<impl>(*o.impl_)) {}
-    message &operator=(const message &o) {
-        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
-        return *this;
-    }
-    message(message &&) noexcept = default;
-    message &operator=(message &&) noexcept = default;
+    message(std::string r, std::string c, std::string tcid = {});
+    message(const message &o);
+    message &operator=(const message &o);
+    message(message &&) noexcept;
+    message &operator=(message &&) noexcept;
 
   public:
-    std::string &role() { return impl_->role_; }
-    const std::string &role() const { return impl_->role_; }
-    std::string &content() { return impl_->content_; }
-    const std::string &content() const { return impl_->content_; }
-    std::string &tool_call_id() { return impl_->tool_call_id_; }
-    const std::string &tool_call_id() const { return impl_->tool_call_id_; }
+    std::string &role();
+    const std::string &role() const;
+    std::string &content();
+    const std::string &content() const;
+    std::string &tool_call_id();
+    const std::string &tool_call_id() const;
 
 };
 
@@ -62,34 +50,25 @@ using conversation = std::vector<message>;
 
 struct model_request_options {
 
-    struct impl {
-      public:
-        std::string model_;
-        double temperature_ = 0.7;
-        int32_t max_tokens_ = 4096;
-        std::map<std::string, std::string, std::less<>> extra_;
-    };
-    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
+    struct impl;                 // 完整定义下沉至 llm.cpp（model_request_options 非模版）
+    std::shared_ptr<impl> impl_;
 
   public:
-    model_request_options() = default;
-    model_request_options(const model_request_options &o): impl_(std::make_shared<impl>(*o.impl_)) {}
-    model_request_options &operator=(const model_request_options &o) {
-        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
-        return *this;
-    }
-    model_request_options(model_request_options &&) noexcept = default;
-    model_request_options &operator=(model_request_options &&) noexcept = default;
+    model_request_options();
+    model_request_options(const model_request_options &o);
+    model_request_options &operator=(const model_request_options &o);
+    model_request_options(model_request_options &&) noexcept;
+    model_request_options &operator=(model_request_options &&) noexcept;
 
   public:
-    std::string &model() { return impl_->model_; }
-    const std::string &model() const { return impl_->model_; }
-    double &temperature() { return impl_->temperature_; }
-    const double &temperature() const { return impl_->temperature_; }
-    int32_t &max_tokens() { return impl_->max_tokens_; }
-    const int32_t &max_tokens() const { return impl_->max_tokens_; }
-    std::map<std::string, std::string, std::less<>> &extra() { return impl_->extra_; }
-    const std::map<std::string, std::string, std::less<>> &extra() const { return impl_->extra_; }
+    std::string &model();
+    const std::string &model() const;
+    double &temperature();
+    const double &temperature() const;
+    int32_t &max_tokens();
+    const int32_t &max_tokens() const;
+    std::map<std::string, std::string, std::less<>> &extra();
+    const std::map<std::string, std::string, std::less<>> &extra() const;
 
 };
 
@@ -139,67 +118,47 @@ class i_protocol_adapter {
 
 struct tool_call {
 
-    struct impl {
-      public:
-        std::string id_;
-        std::string name_;
-        std::string arguments_; // JSON string
-    };
-    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
+    struct impl;                 // 完整定义下沉至 llm.cpp（tool_call 非模版）
+    std::shared_ptr<impl> impl_;
 
   public:
-    tool_call() = default;
+    tool_call();
     /// 便利构造：保留原聚合初始化 `tool_call{"1", "echo", "{}"}` 的调用形态
-    tool_call(std::string i, std::string n, std::string args = {}) {
-        impl_->id_ = std::move(i);
-        impl_->name_ = std::move(n);
-        impl_->arguments_ = std::move(args);
-    }
-    tool_call(const tool_call &o): impl_(std::make_shared<impl>(*o.impl_)) {}
-    tool_call &operator=(const tool_call &o) {
-        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
-        return *this;
-    }
-    tool_call(tool_call &&) noexcept = default;
-    tool_call &operator=(tool_call &&) noexcept = default;
+    tool_call(std::string i, std::string n, std::string args = {});
+    tool_call(const tool_call &o);
+    tool_call &operator=(const tool_call &o);
+    tool_call(tool_call &&) noexcept;
+    tool_call &operator=(tool_call &&) noexcept;
 
   public:
-    std::string &id() { return impl_->id_; }
-    const std::string &id() const { return impl_->id_; }
-    std::string &name() { return impl_->name_; }
-    const std::string &name() const { return impl_->name_; }
-    std::string &arguments() { return impl_->arguments_; }
-    const std::string &arguments() const { return impl_->arguments_; }
+    std::string &id();
+    const std::string &id() const;
+    std::string &name();
+    const std::string &name() const;
+    std::string &arguments();
+    const std::string &arguments() const;
 
 };
 
 struct tool_output {
 
-    struct impl {
-      public:
-        std::string content_;
-        bool truncated_ = false;
-        std::string managed_output_path_;
-    };
-    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
+    struct impl;                 // 完整定义下沉至 llm.cpp（tool_output 非模版）
+    std::shared_ptr<impl> impl_;
 
   public:
-    tool_output() = default;
-    tool_output(const tool_output &o): impl_(std::make_shared<impl>(*o.impl_)) {}
-    tool_output &operator=(const tool_output &o) {
-        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
-        return *this;
-    }
-    tool_output(tool_output &&) noexcept = default;
-    tool_output &operator=(tool_output &&) noexcept = default;
+    tool_output();
+    tool_output(const tool_output &o);
+    tool_output &operator=(const tool_output &o);
+    tool_output(tool_output &&) noexcept;
+    tool_output &operator=(tool_output &&) noexcept;
 
   public:
-    std::string &content() { return impl_->content_; }
-    const std::string &content() const { return impl_->content_; }
-    bool &truncated() { return impl_->truncated_; }
-    const bool &truncated() const { return impl_->truncated_; }
-    std::string &managed_output_path() { return impl_->managed_output_path_; }
-    const std::string &managed_output_path() const { return impl_->managed_output_path_; }
+    std::string &content();
+    const std::string &content() const;
+    bool &truncated();
+    const bool &truncated() const;
+    std::string &managed_output_path();
+    const std::string &managed_output_path() const;
 
 };
 
@@ -314,28 +273,21 @@ class http_provider: public i_provider {
 
     struct http_result {
 
-        struct impl {
-          public:
-            int status_ = 0;
-            std::string body_;
-        };
-        std::shared_ptr<impl> impl_{std::make_shared<impl>()};
+        struct impl;                 // 完整定义下沉至 llm.cpp（http_result 非模版）
+        std::shared_ptr<impl> impl_;
 
       public:
-        http_result() = default;
-        http_result(const http_result &o): impl_(std::make_shared<impl>(*o.impl_)) {}
-        http_result &operator=(const http_result &o) {
-            if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
-            return *this;
-        }
-        http_result(http_result &&) noexcept = default;
-        http_result &operator=(http_result &&) noexcept = default;
+        http_result();
+        http_result(const http_result &o);
+        http_result &operator=(const http_result &o);
+        http_result(http_result &&) noexcept;
+        http_result &operator=(http_result &&) noexcept;
 
       public:
-        int &status() { return impl_->status_; }
-        const int &status() const { return impl_->status_; }
-        std::string &body() { return impl_->body_; }
-        const std::string &body() const { return impl_->body_; }
+        int &status();
+        const int &status() const;
+        std::string &body();
+        const std::string &body() const;
     };
 
     // 用临时文件承载请求体，避开 JSON 中的引号转义问题；跨平台用 -H 传头。
