@@ -180,7 +180,7 @@ class queue {
   private:
     friend awaiter;
 
-    struct Impl {
+    struct impl {
       public:
         /// @brief The list of pop() awaiters.
         awaiter *m_waiters{nullptr};
@@ -192,7 +192,7 @@ class queue {
         std::atomic<running_state_t> m_running_state{running_state_t::kRunning};
     };
 
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 } // namespace silicon::coroutine

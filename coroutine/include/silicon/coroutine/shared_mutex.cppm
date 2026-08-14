@@ -92,7 +92,7 @@ class shared_mutex {
      *          parallel.
      */
   private:
-    explicit shared_mutex(std::unique_ptr<executor_type> &e): m_p(std::make_unique<Impl>()) {
+    explicit shared_mutex(std::unique_ptr<executor_type> &e): m_p(std::make_unique<impl>()) {
         m_p->m_executor = e.get();
     }
 
@@ -260,7 +260,7 @@ class shared_mutex {
         locked_exclusive
     };
 
-    struct Impl {
+    struct impl {
       public:
         /// @brief This executor is for resuming multiple shared waiters.
         executor_type *m_executor{nullptr};
@@ -278,7 +278,7 @@ class shared_mutex {
         std::atomic<shared_lock_operation<executor_type> *> m_tail_waiter{nullptr};
     };
 
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 
     auto try_lock_shared_locked() -> bool {
         if(m_p->m_state == state::unlocked) {

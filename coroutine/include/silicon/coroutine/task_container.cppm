@@ -34,7 +34,7 @@ public:
      *           from a scheduler, this would usually be that scheduler instance.
      */
   private:
-    explicit task_container(std::shared_ptr<executor_type> e) : m_p(std::make_unique<Impl>()) {
+    explicit task_container(std::shared_ptr<executor_type> e) : m_p(std::make_unique<impl>()) {
         m_p->m_executor = std::move(e);
     }
 
@@ -110,7 +110,7 @@ public:
     }
 
 private:
-    struct Impl {
+    struct impl {
       public:
         /// The number of alive tasks.
         std::atomic<std::size_t> m_size{};
@@ -118,7 +118,7 @@ private:
         std::shared_ptr<executor_type> m_executor{nullptr};
     };
 
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 } // namespace silicon::coroutine

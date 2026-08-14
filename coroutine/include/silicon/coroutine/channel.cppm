@@ -59,7 +59,7 @@ class channel {
         kStopped,
     };
 
-    struct Impl;
+    struct impl;
 
   public:
     struct send_operation {
@@ -208,9 +208,9 @@ class channel {
     auto try_resume_senders() -> silicon::scheduler::task<void>;
     auto try_resume_receivers() -> silicon::scheduler::task<void>;
 
-    struct Impl {
+    struct impl {
       public:
-        explicit Impl(size_t capacity);
+        explicit impl(size_t capacity);
 
         auto store(element_type &&element) -> void;
         auto take() -> std::optional<element_type>;
@@ -232,7 +232,7 @@ class channel {
         recv_operation *m_recv_waiters_tail{nullptr};
     };
 
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 } // namespace silicon::coroutine

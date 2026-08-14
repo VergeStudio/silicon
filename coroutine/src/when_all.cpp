@@ -11,7 +11,7 @@ module silicon.coroutine;
 namespace silicon::coroutine {
 
 /// Implementation state of silicon::coroutine::when_all_latch.
-struct when_all_latch::Impl {
+struct when_all_latch::impl {
   public:
     /// The number of tasks that are being waited on.
     std::atomic<std::size_t> m_count;
@@ -19,11 +19,11 @@ struct when_all_latch::Impl {
     std::coroutine_handle<> m_awaiting_coroutine{nullptr};
 };
 
-when_all_latch::when_all_latch(std::size_t count) noexcept: m_p(std::make_unique<Impl>()) {
+when_all_latch::when_all_latch(std::size_t count) noexcept: m_p(std::make_unique<impl>()) {
     m_p->m_count = count + 1;
 }
 
-when_all_latch::when_all_latch(when_all_latch &&other): m_p(std::make_unique<Impl>()) {
+when_all_latch::when_all_latch(when_all_latch &&other): m_p(std::make_unique<impl>()) {
     m_p->m_count              = other.m_p->m_count.load(std::memory_order::acquire);
     m_p->m_awaiting_coroutine = std::exchange(other.m_p->m_awaiting_coroutine, nullptr);
 }

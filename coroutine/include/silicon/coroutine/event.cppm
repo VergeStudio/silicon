@@ -136,10 +136,10 @@ class event {
     /// For access to m_p.
     friend struct awaiter;
 
-    /// PIMPL：Impl 仅前置声明，定义置于 src/event.cpp。
-    struct Impl;
+    /// PIMPL：impl 仅前置声明，定义置于 src/event.cpp。
+    struct impl;
     /// Hidden implementation state.
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 
     /**
      * Reverses the set of waiters from LIFO->FIFO and returns the new head.
@@ -148,7 +148,7 @@ class event {
 
     /**
      * 非模板钩子：把状态原子交换为 this 并返回旧值。
-     * 供接口单元中的 `set(executor)` 模板重载使用，避免 Impl 泄漏到接口单元。
+     * 供接口单元中的 `set(executor)` 模板重载使用，避免 impl 泄漏到接口单元。
      */
     auto exchange_set_state() noexcept -> void *;
 };

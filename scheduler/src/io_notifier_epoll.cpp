@@ -37,7 +37,7 @@ using event_t = struct ::epoll_event;
 // ---------------------------------------------------------------------------
 // PIMPL: epoll backend state for io_notifier.
 // ---------------------------------------------------------------------------
-struct io_notifier::Impl {
+struct io_notifier::impl {
     fd_t m_fd{-1};
 };
 
@@ -81,7 +81,7 @@ static auto event_to_poll_status(const event_t &event) -> poll_status {
     throw std::runtime_error{"invalid epoll state"};
 }
 
-io_notifier::io_notifier(): m_p(std::make_unique<Impl>()) {
+io_notifier::io_notifier(): m_p(std::make_unique<impl>()) {
     m_p->m_fd = ::epoll_create1(EPOLL_CLOEXEC);
 }
 

@@ -521,15 +521,15 @@ class condition_variable {
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
-    struct Impl;
-    std::unique_ptr<Impl> m_p;
+    struct impl;
+    std::unique_ptr<impl> m_p;
 
     /**
      * @brief Non-template hooks over the hidden waiter list.
      *
      * The templated notify_*(executor) overloads and the templated wait_[for|until]() awaiters live in
-     * this interface unit but still need to mutate the waiter list held by Impl.  Routing those accesses
-     * through non-template members keeps Impl defined only in condition_variable.cpp.
+     * this interface unit but still need to mutate the waiter list held by impl.  Routing those accesses
+     * through non-template members keeps impl defined only in condition_variable.cpp.
      */
     /// @brief Pops the entire waiter list, the caller owns the returned intrusive list.
     auto pop_all_waiters() noexcept -> awaiter_base *;

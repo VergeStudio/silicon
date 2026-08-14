@@ -123,7 +123,7 @@ auto channel<element_type>::recv_operation::await_resume() noexcept -> expected<
 
 template<typename element_type>
 channel<element_type>::channel(size_t capacity)
-    : m_p(std::make_unique<Impl>(capacity)) {}
+    : m_p(std::make_unique<impl>(capacity)) {}
 
 template<typename element_type>
 channel<element_type>::~channel() {
@@ -330,23 +330,23 @@ auto channel<element_type>::try_resume_receivers() -> silicon::scheduler::task<v
 }
 
 // ===========================================================================
-// channel::Impl
+// channel::impl
 // ===========================================================================
 
 template<typename element_type>
-channel<element_type>::Impl::Impl(size_t capacity)
+channel<element_type>::impl::impl(size_t capacity)
     : m_capacity(capacity),
       m_slots(capacity) {}
 
 template<typename element_type>
-auto channel<element_type>::Impl::store(element_type &&element) -> void {
+auto channel<element_type>::impl::store(element_type &&element) -> void {
     m_slots[m_tail] = std::move(element);
     m_tail = (m_tail + 1) % m_capacity;
     m_count.fetch_add(1, std::memory_order::release);
 }
 
 template<typename element_type>
-auto channel<element_type>::Impl::take() -> std::optional<element_type> {
+auto channel<element_type>::impl::take() -> std::optional<element_type> {
     auto element = std::move(m_slots[m_head]);
     m_slots[m_head].reset();
     m_head = (m_head + 1) % m_capacity;
@@ -355,7 +355,7 @@ auto channel<element_type>::Impl::take() -> std::optional<element_type> {
 }
 
 template<typename element_type>
-auto channel<element_type>::Impl::append_send_waiter(send_operation *op) -> void {
+auto channel<element_type>::impl::append_send_waiter(send_operation *op) -> void {
     op->m_next = nullptr;
     if(m_send_waiters_tail != nullptr) {
         m_send_waiters_tail->m_next = op;
@@ -366,7 +366,7 @@ auto channel<element_type>::Impl::append_send_waiter(send_operation *op) -> void
 }
 
 template<typename element_type>
-auto channel<element_type>::Impl::pop_send_waiter() -> send_operation * {
+auto channel<element_type>::impl::pop_send_waiter() -> send_operation * {
     auto *op = m_send_waiters_head;
     if(op != nullptr) {
         m_send_waiters_head = op->m_next;
@@ -379,7 +379,7 @@ auto channel<element_type>::Impl::pop_send_waiter() -> send_operation * {
 }
 
 template<typename element_type>
-auto channel<element_type>::Impl::append_recv_waiter(recv_operation *op) -> void {
+auto channel<element_type>::impl::append_recv_waiter(recv_operation *op) -> void {
     op->m_next = nullptr;
     if(m_recv_waiters_tail != nullptr) {
         m_recv_waiters_tail->m_next = op;
@@ -390,7 +390,7 @@ auto channel<element_type>::Impl::append_recv_waiter(recv_operation *op) -> void
 }
 
 template<typename element_type>
-auto channel<element_type>::Impl::pop_recv_waiter() -> recv_operation * {
+auto channel<element_type>::impl::pop_recv_waiter() -> recv_operation * {
     auto *op = m_recv_waiters_head;
     if(op != nullptr) {
         m_recv_waiters_head = op->m_next;

@@ -77,7 +77,7 @@ auto queue<element_type>::awaiter::await_resume() noexcept -> expected<element_t
 
 template<typename element_type>
 queue<element_type>::queue()
-    : m_p(std::make_unique<Impl>()) {}
+    : m_p(std::make_unique<impl>()) {}
 
 template<typename element_type>
 queue<element_type>::~queue() {

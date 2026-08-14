@@ -28,8 +28,8 @@ export namespace silicon::scheduler {
 
 
 class timer_handle {
-    struct Impl;
-    std::unique_ptr<Impl> m_p;
+    struct impl;
+    std::unique_ptr<impl> m_p;
 
   public:
     timer_handle(const void *timer_handle_ptr, io_notifier &notifier);

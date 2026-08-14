@@ -24,9 +24,9 @@ import silicon.core;
 
 namespace silicon::ai::llm {
 
-tool_registry::tool_registry() : impl_(std::make_unique<Impl>()) {}
-provider_registry::provider_registry() : impl_(std::make_unique<Impl>()) {}
-scripted_provider::scripted_provider() : impl_(std::make_unique<Impl>()) {}
+tool_registry::tool_registry() : impl_(std::make_unique<impl>()) {}
+provider_registry::provider_registry() : impl_(std::make_unique<impl>()) {}
+scripted_provider::scripted_provider() : impl_(std::make_unique<impl>()) {}
 
 bool tool_registry::register_tool(std::unique_ptr<i_tool> tool) {
     auto name = std::string(tool->name());

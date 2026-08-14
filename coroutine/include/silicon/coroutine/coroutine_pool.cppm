@@ -39,7 +39,7 @@ template<concepts::executor Executor>
 class coroutine_pool {
   private:
     explicit coroutine_pool(std::shared_ptr<Executor> executor, std::size_t pool_size)
-        : m_p(std::make_unique<Impl>(pool_size)) {
+        : m_p(std::make_unique<impl>(pool_size)) {
         m_p->m_executor = std::move(executor);
         // 在底层执行器上拉起 N 个常驻 worker 协程（"池"本体）。
         for(std::size_t i = 0; i < pool_size; ++i) {
@@ -226,9 +226,9 @@ class coroutine_pool {
         co_await m_p->m_channel.close();
     }
 
-    struct Impl {
+    struct impl {
       public:
-        explicit Impl(std::size_t capacity)
+        explicit impl(std::size_t capacity)
             : m_channel{capacity} {}
 
         std::shared_ptr<Executor> m_executor{nullptr};
@@ -239,7 +239,7 @@ class coroutine_pool {
         std::exception_ptr m_last_error{nullptr};
     };
 
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 } // namespace silicon::coroutine

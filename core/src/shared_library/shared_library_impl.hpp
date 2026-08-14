@@ -2,7 +2,7 @@
 
 // shared_library 的 PIMPL 实现体定义。
 //
-// 各平台实现单元（windows/unix/vx/hpux）都需要 Impl 的完整类型，故集中于此私有
+// 各平台实现单元（windows/unix/vx/hpux）都需要 impl 的完整类型，故集中于此私有
 // 头文件共享；它不随 add_headerfiles 对外安装，也不属于模块接口的一部分。
 //
 // 使用约定：
@@ -14,7 +14,7 @@
 
 namespace silicon::library {
 
-struct shared_library::Impl {
+struct shared_library::impl {
     std::string path_;
     void *handle_{nullptr};
     std::mutex mutex_;

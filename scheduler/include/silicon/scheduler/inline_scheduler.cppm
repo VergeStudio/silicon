@@ -30,8 +30,8 @@ export namespace silicon::scheduler {
 /// size / empty）。m_size 计数与自删除任务的所有权语义照搬 thread_pool，仅把
 /// "队列 + 工作线程" 替换为 "当前线程内联 resume()"。
 class inline_scheduler final : public i_scheduler {
-    struct Impl;
-    std::unique_ptr<Impl> m_impl;
+    struct impl;
+    std::unique_ptr<impl> m_impl;
 
   public:
     inline_scheduler();

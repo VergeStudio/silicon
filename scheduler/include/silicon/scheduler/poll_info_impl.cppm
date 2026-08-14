@@ -31,15 +31,15 @@ using silicon::coroutine::time_point;
 namespace silicon::scheduler {
 
 /**
- * Full definition of `poll_info::Impl`, kept in a non-exported module partition so the
+ * Full definition of `poll_info::impl`, kept in a non-exported module partition so the
  * implementation state of a poll operation is invisible outside `silicon.scheduler`.
  *
- * The interface unit (`silicon.scheduler:poll_info`) only forward-declares `Impl` and
+ * The interface unit (`silicon.scheduler:poll_info`) only forward-declares `impl` and
  * declares the members that touch it out-of-line; the out-of-line definitions live in
  * `scheduler/src/detail/poll_info.cpp`.  Backend implementation units that dereference
- * `poll_info::Impl` import this partition directly.
+ * `poll_info::impl` import this partition directly.
  */
-struct poll_info::Impl {
+struct poll_info::impl {
   public:
     /// The file descriptor being polled on.  This is needed so that if the timeout occurs first
     /// then the event loop can immediately disable the event within epoll.

@@ -33,11 +33,11 @@ class i_date_source {
 
 /// 默认日期实现（基于 i_clock，返回 UTC 日期 YYYY-MM-DD）
 class date_source : public i_date_source {
-    struct Impl {
+    struct impl {
       public:
         const i_clock* clock_{nullptr};
     };
-    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
+    std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 
   public:
     explicit date_source(const i_clock& clock) { impl_->clock_ = &clock; }

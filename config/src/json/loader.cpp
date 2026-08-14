@@ -15,11 +15,11 @@ import silicon.config.error;
 namespace silicon::config {
 
 // ── Pimpl ─────────────────────────────────────────────────────────────────
-struct JsonFileConfig::Impl {
+struct JsonFileConfig::impl {
     std::map<std::string, ConfigValue, std::less<>> entries_;
 };
 
-JsonFileConfig::JsonFileConfig(): impl_(std::make_unique<Impl>()) {}
+JsonFileConfig::JsonFileConfig(): impl_(std::make_unique<impl>()) {}
 JsonFileConfig::~JsonFileConfig() = default;
 
 // ── JsonFileConfig methods ────────────────────────────────────────────────

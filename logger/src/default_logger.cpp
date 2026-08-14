@@ -18,12 +18,12 @@ import silicon.util;
 namespace silicon::logger {
 
 // Pimpl implementation — spdlog types live here, invisible to module consumers
-struct default_logger::Impl {
+struct default_logger::impl {
     std::shared_ptr<spdlog::logger> spdlog_logger{nullptr};
     const std::string_view pattern{"%^[%Y-%m-%d %H:%M:%S.%e][%t][%l]%v%$"};
 };
 
-default_logger::default_logger(): impl_(std::make_unique<Impl>()) {}
+default_logger::default_logger(): impl_(std::make_unique<impl>()) {}
 
 default_logger::~default_logger() noexcept = default;
 

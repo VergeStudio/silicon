@@ -19,12 +19,12 @@ static auto make_spawned_joinable_wait_task(std::unique_ptr<task::task_group<inl
 }
 
 
-struct inline_scheduler::Impl {
+struct inline_scheduler::impl {
     std::atomic<bool> m_stop{false};
     std::atomic<std::size_t> m_size{0};
 };
 
-inline_scheduler::inline_scheduler(): m_impl(std::make_unique<Impl>()) {}
+inline_scheduler::inline_scheduler(): m_impl(std::make_unique<impl>()) {}
 
 inline_scheduler::~inline_scheduler() {
     // 内联调度器不拥有线程，shutdown() 仅置停止标志，无需等待任何线程退出。

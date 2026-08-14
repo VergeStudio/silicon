@@ -103,8 +103,8 @@ class poll_stop_token {
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
-    struct Impl;
-    std::unique_ptr<Impl> m_p;
+    struct impl;
+    std::unique_ptr<impl> m_p;
 };
 
 class poll_stop_source {
@@ -125,8 +125,8 @@ class poll_stop_source {
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
-    struct Impl;
-    std::unique_ptr<Impl> m_p;
+    struct impl;
+    std::unique_ptr<impl> m_p;
 };
 
 } // namespace silicon::coroutine

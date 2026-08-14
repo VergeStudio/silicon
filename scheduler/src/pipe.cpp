@@ -24,12 +24,12 @@ module silicon.scheduler;
 namespace silicon::coroutine
 {
 
-class pipe_t::Impl {
+class pipe_t::impl {
   public:
     std::array<fd_t, 2> m_fds{-1};
 };
 
-pipe_t::pipe_t(): m_p(std::make_unique<Impl>())
+pipe_t::pipe_t(): m_p(std::make_unique<impl>())
 {
     // Using pipe instead of pipe2 since macos does not have support for pipe2.
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -68,7 +68,7 @@ pipe_t::~pipe_t()
     close();
 }
 
-pipe_t::pipe_t(const pipe_t& other): m_p(std::make_unique<Impl>())
+pipe_t::pipe_t(const pipe_t& other): m_p(std::make_unique<impl>())
 {
 #if defined(SILICON_PLATFORM_WINDOWS)
     m_p->m_fds[0] = _dup(other.m_p->m_fds[0]);
@@ -79,7 +79,7 @@ pipe_t::pipe_t(const pipe_t& other): m_p(std::make_unique<Impl>())
 #endif
 }
 
-pipe_t::pipe_t(pipe_t&& other) noexcept: m_p(std::make_unique<Impl>())
+pipe_t::pipe_t(pipe_t&& other) noexcept: m_p(std::make_unique<impl>())
 {
     m_p->m_fds = std::exchange(other.m_p->m_fds, {-1});
 }

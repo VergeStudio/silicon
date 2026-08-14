@@ -70,10 +70,10 @@ class latch {
     auto operator co_await() const noexcept -> event::awaiter;
 
   private:
-    /// PIMPL：Impl 仅前置声明，定义置于 src/latch.cpp。
-    struct Impl;
+    /// PIMPL：impl 仅前置声明，定义置于 src/latch.cpp。
+    struct impl;
     /// Hidden implementation state.
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 
     /**
      * 非模板钩子：递减计数，返回是否刚好归零（需要触发内部 event）。

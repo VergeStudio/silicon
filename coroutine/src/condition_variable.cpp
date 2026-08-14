@@ -9,13 +9,13 @@ module silicon.coroutine;
 namespace silicon::coroutine {
 
 /// Implementation state of silicon::coroutine::condition_variable.
-struct condition_variable::Impl {
+struct condition_variable::impl {
   public:
     /// @brief The list of waiters.
     std::atomic<awaiter_base *> m_awaiters{nullptr};
 };
 
-condition_variable::condition_variable(): m_p(std::make_unique<Impl>()) {}
+condition_variable::condition_variable(): m_p(std::make_unique<impl>()) {}
 
 condition_variable::~condition_variable() = default;
 

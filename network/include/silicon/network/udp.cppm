@@ -3,8 +3,8 @@
 // UDP peer abstraction. Template read/write methods are kept inline in module
 // purview. Pulls :core types and the scheduler task / coroutine primitives.
 //
-// PIMPL: 所有数据成员位于 udp::peer::Impl（定义于实现单元 peer.cpp），
-// 接口单元仅前向声明 struct Impl 并持有 std::unique_ptr<Impl> impl_。
+// PIMPL: 所有数据成员位于 udp::peer::impl（定义于实现单元 peer.cpp），
+// 接口单元仅前向声明 struct impl 并持有 std::unique_ptr<impl> impl_。
 
 module;
 
@@ -151,8 +151,8 @@ class peer final: public i_udp_peer {
     peer(silicon::scheduler::io_scheduler *scheduler, network::socket sock, bool bound);
 
     /// PIMPL 实现体（完整类型定义于 peer.cpp）。
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    struct impl;
+    std::unique_ptr<impl> impl_;
 };
 
 } // namespace silicon::network::udp

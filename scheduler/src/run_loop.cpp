@@ -22,7 +22,7 @@ static auto make_spawned_joinable_wait_task(std::unique_ptr<task::task_group<run
 }
 
 
-struct run_loop::Impl {
+struct run_loop::impl {
     std::mutex m_mutex{};
     std::condition_variable m_cv{};
     std::deque<std::coroutine_handle<>> m_queue{};
@@ -30,7 +30,7 @@ struct run_loop::Impl {
     std::atomic<std::size_t> m_size{0};
 };
 
-run_loop::run_loop(): m_impl(std::make_unique<Impl>()) {}
+run_loop::run_loop(): m_impl(std::make_unique<impl>()) {}
 
 run_loop::~run_loop() {
     // 仅唤醒可能阻塞在空队列上的 run()；不等待 run() 所在的外部线程退出

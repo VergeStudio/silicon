@@ -182,7 +182,7 @@ class ring_buffer {
     friend produce_operation;
     friend consume_operation;
 
-    struct Impl {
+    struct impl {
       public:
         silicon::coroutine::mutex m_mutex{};
 
@@ -202,7 +202,7 @@ class ring_buffer {
         std::atomic<running_state_t> m_running_state{running_state_t::kRunning};
     };
 
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 
     auto try_resume_producers() -> silicon::scheduler::task<void>;
     auto try_resume_consumers() -> silicon::scheduler::task<void>;

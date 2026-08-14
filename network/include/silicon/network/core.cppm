@@ -81,20 +81,20 @@ enum class connect_status {
 auto to_string(const connect_status &status) -> result<std::string_view>;
 
 class hostname {
-    struct Impl {
+    struct impl {
       public:
         std::string m_hostname;
     };
-    std::shared_ptr<Impl> m_p{std::make_shared<Impl>()};
+    std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 
   public:
     hostname() = default;
-    explicit hostname(std::string hn): m_p(std::make_shared<Impl>()) { m_p->m_hostname = std::move(hn); }
+    explicit hostname(std::string hn): m_p(std::make_shared<impl>()) { m_p->m_hostname = std::move(hn); }
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
-    hostname(const hostname &o): m_p(std::make_shared<Impl>(*o.m_p)) {}
+    hostname(const hostname &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     hostname(hostname &&) noexcept = default;
     auto operator=(const hostname &o) -> hostname & {
-        if(this != &o) { m_p = std::make_shared<Impl>(*o.m_p); }
+        if(this != &o) { m_p = std::make_shared<impl>(*o.m_p); }
         return *this;
     }
     auto operator=(hostname &&) noexcept -> hostname & = default;
@@ -233,10 +233,10 @@ class ip_address {
     }
 
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
-    ip_address(const ip_address &o): m_p(std::make_shared<Impl>(*o.m_p)) {}
+    ip_address(const ip_address &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     ip_address(ip_address &&) noexcept = default;
     auto operator=(const ip_address &o) -> ip_address & {
-        if(this != &o) { m_p = std::make_shared<Impl>(*o.m_p); }
+        if(this != &o) { m_p = std::make_shared<impl>(*o.m_p); }
         return *this;
     }
     auto operator=(ip_address &&) noexcept -> ip_address & = default;
@@ -293,12 +293,12 @@ class ip_address {
     }
 
   private:
-    struct Impl {
+    struct impl {
       public:
         domain_t m_domain{domain_t::kIpv4};
         std::array<uint8_t, ipv6_len> m_data{};
     };
-    std::shared_ptr<Impl> m_p{std::make_shared<Impl>()};
+    std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 };
 
 /// @brief Abstract interface for a network socket.
@@ -341,12 +341,12 @@ class i_socket {
  * Represents IP address and port.
  */
 class socket_address {
-    struct Impl {
+    struct impl {
       public:
         sockaddr_storage m_storage{};
         socklen_t m_len = sizeof(sockaddr_storage);
     };
-    std::shared_ptr<Impl> m_p{std::make_shared<Impl>()};
+    std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 
   public:
     /// 由文本 ip + 端口构造。文本解析失败时返回
@@ -392,10 +392,10 @@ class socket_address {
     }
 
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
-    socket_address(const socket_address &o): m_p(std::make_shared<Impl>(*o.m_p)) {}
+    socket_address(const socket_address &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     socket_address(socket_address &&) noexcept = default;
     auto operator=(const socket_address &o) -> socket_address & {
-        if(this != &o) { m_p = std::make_shared<Impl>(*o.m_p); }
+        if(this != &o) { m_p = std::make_shared<impl>(*o.m_p); }
         return *this;
     }
     auto operator=(socket_address &&) noexcept -> socket_address & = default;

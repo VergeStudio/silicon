@@ -33,8 +33,8 @@ export namespace silicon::scheduler {
 ///   - 承载 run() 的线程必须比 run_loop 对象更晚销毁——析构函数仅调用 finish()
 ///     唤醒等待中的 run()，不会等待其退出（run_loop 不持有线程，无法 join）。
 class run_loop final : public i_scheduler {
-    struct Impl;
-    std::unique_ptr<Impl> m_impl;
+    struct impl;
+    std::unique_ptr<impl> m_impl;
 
   public:
     run_loop();

@@ -12,7 +12,7 @@ module silicon.http;
 namespace silicon::http {
 
 fake_http_client::fake_http_client(http_response response)
-    : impl_(std::make_unique<Impl>()) { impl_->response_ = std::move(response); }
+    : impl_(std::make_unique<impl>()) { impl_->response_ = std::move(response); }
 
 http_response fake_http_client::request(const http_request &) const {
     ++impl_->call_count_;

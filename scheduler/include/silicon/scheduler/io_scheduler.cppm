@@ -444,9 +444,9 @@ class io_scheduler: public i_scheduler {
     auto io_notifier() -> silicon::scheduler::io_notifier & { return m_p->m_io_notifier; }
 
   private:
-    struct Impl {
+    struct impl {
       public:
-        explicit Impl(options &&opts)
+        explicit impl(options &&opts)
             : m_opts(std::move(opts)),
               m_io_notifier(),
               m_timer(static_cast<const void *>(&io_scheduler::m_timer_object), m_io_notifier) {}
@@ -489,7 +489,7 @@ class io_scheduler: public i_scheduler {
         std::vector<std::coroutine_handle<>> m_handles_to_resume{};
     };
 
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 
     static constexpr const int m_shutdown_object{0};
     static constexpr const void *m_shutdown_ptr = &m_shutdown_object;

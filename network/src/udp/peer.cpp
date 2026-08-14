@@ -1,6 +1,6 @@
 // Implementation unit for silicon::network::udp::peer.
 //
-// PIMPL：struct peer::Impl 在此定义；所有触及实现细节的方法体（含模板 sendto/recvfrom
+// PIMPL：struct peer::impl 在此定义；所有触及实现细节的方法体（含模板 sendto/recvfrom
 // 与协程 task<> 方法）也集中于此，以确保接口单元不暴露实现类型。
 
 module;
@@ -30,7 +30,7 @@ import silicon.scheduler;
 
 namespace silicon::network::udp {
 
-struct peer::Impl {
+struct peer::impl {
     /// The scheduler that will drive this udp client.
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     /// The udp socket.
@@ -90,7 +90,7 @@ auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, 
 }
 
 peer::peer(silicon::scheduler::io_scheduler *scheduler, network::socket sock, bool bound)
-    : impl_(std::make_unique<Impl>()) {
+    : impl_(std::make_unique<impl>()) {
     impl_->m_scheduler = scheduler;
     impl_->m_socket = std::move(sock);
     impl_->m_bound = bound;
@@ -103,7 +103,7 @@ peer::peer(peer &&other) noexcept
 }
 
 peer::peer(const peer &other) noexcept
-    : impl_(std::make_unique<Impl>()) {
+    : impl_(std::make_unique<impl>()) {
     impl_->m_scheduler = other.impl_->m_scheduler;
     impl_->m_socket = other.impl_->m_socket;
     impl_->m_bound = other.impl_->m_bound;
@@ -118,7 +118,7 @@ auto peer::operator=(peer &&other) noexcept -> peer & {
 
 auto peer::operator=(const peer &other) noexcept -> peer & {
     if(std::addressof(other) != this) {
-        impl_ = std::make_unique<Impl>();
+        impl_ = std::make_unique<impl>();
         impl_->m_scheduler = other.impl_->m_scheduler;
         impl_->m_socket = other.impl_->m_socket;
         impl_->m_bound = other.impl_->m_bound;

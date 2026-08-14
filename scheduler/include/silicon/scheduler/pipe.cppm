@@ -31,8 +31,8 @@ class pipe_t {
     auto close() -> void;
 
   private:
-    struct Impl;
-    std::unique_ptr<Impl> m_p;
+    struct impl;
+    std::unique_ptr<impl> m_p;
 };
 
 } // namespace silicon::coroutine

@@ -34,8 +34,8 @@ CLI_API struct parse_result {
 
   private:
     /// Implementation state, fully hidden in the implementation unit (src/parser/parse_result.cpp).
-    struct Impl;
-    std::shared_ptr<Impl> impl_;
+    struct impl;
+    std::shared_ptr<impl> impl_;
 };
 
 } // namespace silicon::cli

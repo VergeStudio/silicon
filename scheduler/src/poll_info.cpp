@@ -27,17 +27,17 @@ using silicon::coroutine::time_point;
 
 namespace silicon::scheduler {
 
-poll_info::poll_info(): m_p(std::make_unique<Impl>()) {}
+poll_info::poll_info(): m_p(std::make_unique<impl>()) {}
 
 poll_info::~poll_info() = default;
 
-poll_info::poll_info(fd_t fd, silicon::coroutine::poll_op op): m_p(std::make_unique<Impl>()) {
+poll_info::poll_info(fd_t fd, silicon::coroutine::poll_op op): m_p(std::make_unique<impl>()) {
     m_p->m_fd = fd;
     m_p->m_op = op;
 }
 
 poll_info::poll_info(fd_t fd, silicon::coroutine::poll_op op, std::optional<poll_stop_token> cancel_trigger)
-    : m_p(std::make_unique<Impl>()) {
+    : m_p(std::make_unique<impl>()) {
     m_p->m_fd             = fd;
     m_p->m_op             = op;
     m_p->m_cancel_trigger = std::move(cancel_trigger);

@@ -32,8 +32,8 @@ class global_logger {
 
  private:
     // Pimpl: hides spdlog types from the public interface
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    struct impl;
+    std::unique_ptr<impl> impl_;
     std::mutex mutex_;
     std::atomic<bool> is_initialized_{false};
 };

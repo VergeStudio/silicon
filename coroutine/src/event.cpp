@@ -9,7 +9,7 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-struct event::Impl {
+struct event::impl {
   public:
     /// The state of the event, nullptr is not set with zero awaiters.  Set to an awaiter* there
     /// are coroutines awaiting the event to be set, and set to the owning event the event has
@@ -20,7 +20,7 @@ struct event::Impl {
     mutable std::atomic<void *> m_state;
 };
 
-event::event(bool initially_set) noexcept: m_p(std::make_unique<Impl>()) {
+event::event(bool initially_set) noexcept: m_p(std::make_unique<impl>()) {
     m_p->m_state.store((initially_set) ? static_cast<void *>(this) : nullptr, std::memory_order::relaxed);
 }
 

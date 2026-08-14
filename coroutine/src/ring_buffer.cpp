@@ -113,7 +113,7 @@ auto ring_buffer<element, num_elements>::consume_operation::await_resume() -> ex
 
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::ring_buffer()
-    : m_p(std::make_unique<Impl>()) {
+    : m_p(std::make_unique<impl>()) {
     static_assert(num_elements != 0, "num_elements cannot be zero");
 }
 

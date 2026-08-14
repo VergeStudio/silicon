@@ -24,13 +24,13 @@ export namespace silicon::ai::llm {
 
 struct message {
 
-    struct Impl {
+    struct impl {
       public:
         std::string role_; // "user" / "assistant" / "system" / "tool"
         std::string content_;
         std::string tool_call_id_;
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
   public:
     message() = default;
@@ -40,9 +40,9 @@ struct message {
         impl_->content_ = std::move(c);
         impl_->tool_call_id_ = std::move(tcid);
     }
-    message(const message &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    message(const message &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     message &operator=(const message &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     message(message &&) noexcept = default;
@@ -62,20 +62,20 @@ using conversation = std::vector<message>;
 
 struct model_request_options {
 
-    struct Impl {
+    struct impl {
       public:
         std::string model_;
         double temperature_ = 0.7;
         int32_t max_tokens_ = 4096;
         std::map<std::string, std::string, std::less<>> extra_;
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
   public:
     model_request_options() = default;
-    model_request_options(const model_request_options &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    model_request_options(const model_request_options &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     model_request_options &operator=(const model_request_options &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     model_request_options(model_request_options &&) noexcept = default;
@@ -95,20 +95,20 @@ struct model_request_options {
 
 struct chat_response {
 
-    struct Impl {
+    struct impl {
       public:
         std::string content_;
         std::string finish_reason_; // "stop" / "length" / "tool_calls"
         int32_t prompt_tokens_ = 0;
         int32_t completion_tokens_ = 0;
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
   public:
     chat_response() = default;
-    chat_response(const chat_response &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    chat_response(const chat_response &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     chat_response &operator=(const chat_response &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     chat_response(chat_response &&) noexcept = default;
@@ -148,13 +148,13 @@ class i_protocol_adapter {
 
 struct tool_call {
 
-    struct Impl {
+    struct impl {
       public:
         std::string id_;
         std::string name_;
         std::string arguments_; // JSON string
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
   public:
     tool_call() = default;
@@ -164,9 +164,9 @@ struct tool_call {
         impl_->name_ = std::move(n);
         impl_->arguments_ = std::move(args);
     }
-    tool_call(const tool_call &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    tool_call(const tool_call &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     tool_call &operator=(const tool_call &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     tool_call(tool_call &&) noexcept = default;
@@ -184,19 +184,19 @@ struct tool_call {
 
 struct tool_output {
 
-    struct Impl {
+    struct impl {
       public:
         std::string content_;
         bool truncated_ = false;
         std::string managed_output_path_;
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
   public:
     tool_output() = default;
-    tool_output(const tool_output &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    tool_output(const tool_output &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     tool_output &operator=(const tool_output &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     tool_output(tool_output &&) noexcept = default;
@@ -243,11 +243,11 @@ class i_provider_registry {
 /// 内存工具注册表：重复 name 注册返回 false（不替换）。
 class tool_registry: public i_tool_registry {
 
-    struct Impl {
+    struct impl {
       public:
       std::map<std::string, std::unique_ptr<i_tool>, std::less<>> tools_;
     };
-    std::unique_ptr<Impl> impl_;
+    std::unique_ptr<impl> impl_;
 
   public:
     tool_registry();
@@ -260,11 +260,11 @@ class tool_registry: public i_tool_registry {
 /// 内存提供方注册表：重复 id 注册返回 false。
 class provider_registry: public i_provider_registry {
 
-    struct Impl {
+    struct impl {
       public:
       std::map<std::string, std::unique_ptr<i_provider>, std::less<>> providers_;
     };
-    std::unique_ptr<Impl> impl_;
+    std::unique_ptr<impl> impl_;
 
   public:
     provider_registry();
@@ -290,11 +290,11 @@ class json_protocol_adapter: public i_protocol_adapter {
 /// 队列耗尽返回 llm_error，绝不抛异常。
 class scripted_provider: public i_provider {
 
-    struct Impl {
+    struct impl {
       public:
       std::queue<chat_response> queue_;
     };
-    std::unique_ptr<Impl> impl_;
+    std::unique_ptr<impl> impl_;
 
   public:
     scripted_provider();
@@ -310,31 +310,31 @@ class scripted_provider: public i_provider {
 /// 选用 OpenAI 兼容协议，可对接 OpenAI / DeepSeek / Ollama / vLLM / LM Studio 等。
 class http_provider: public i_provider {
 
-    struct Impl {
+    struct impl {
       public:
         std::string base_url_;
         std::string api_key_;
         std::string model_;
         json_protocol_adapter adapter_;
     };
-    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
+    std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 
     static std::string env_or(const char *name, std::string def);
 
     struct http_result {
 
-        struct Impl {
+        struct impl {
           public:
             int status_ = 0;
             std::string body_;
         };
-        std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+        std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
       public:
         http_result() = default;
-        http_result(const http_result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+        http_result(const http_result &o): impl_(std::make_shared<impl>(*o.impl_)) {}
         http_result &operator=(const http_result &o) {
-            if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+            if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
             return *this;
         }
         http_result(http_result &&) noexcept = default;

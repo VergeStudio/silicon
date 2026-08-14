@@ -40,7 +40,7 @@ namespace silicon::scheduler {
 // Defined here (where it is complete) so the unique_ptr destructor and every
 // method that touches these members can be compiled.
 // ---------------------------------------------------------------------------
-struct io_notifier::Impl {
+struct io_notifier::impl {
     /// The IOCP handle.
     HANDLE m_iocp{};
 
@@ -82,7 +82,7 @@ static void CALLBACK timer_callback(PTP_CALLBACK_INSTANCE, void *ctx, PTP_TIMER 
 // ---------------------------------------------------------------------------
 
 io_notifier::io_notifier()
-    : m_p(std::make_unique<Impl>()) {
+    : m_p(std::make_unique<impl>()) {
     m_p->m_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
     if (!m_p->m_iocp) {
         throw std::system_error(GetLastError(), std::system_category(),

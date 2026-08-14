@@ -29,10 +29,10 @@ using config_value_data = std::variant<
     std::shared_ptr<std::map<std::string, config_value>>>;
 
 class CONFIG_API config_value {
-    struct Impl {
+    struct impl {
         config_value_data data_{nullptr};
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
   public:
     config_value() = default;
@@ -45,9 +45,9 @@ class CONFIG_API config_value {
     config_value(std::string v);
 
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
-    config_value(const config_value &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    config_value(const config_value &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     auto operator=(const config_value &o) -> config_value & {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     config_value(config_value &&) noexcept = default;

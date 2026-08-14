@@ -64,16 +64,16 @@ auto to_string(poll_status status) -> const std::string & {
 // --------------------------------------------------------------------------------------------
 
 /// Implementation state of silicon::coroutine::poll_stop_token.
-struct poll_stop_token::Impl {
+struct poll_stop_token::impl {
   public:
     fd_t m_receiver{-1};
 };
 
-poll_stop_token::poll_stop_token(fd_t receiver): m_p(std::make_unique<Impl>()) {
+poll_stop_token::poll_stop_token(fd_t receiver): m_p(std::make_unique<impl>()) {
     m_p->m_receiver = receiver;
 }
 
-poll_stop_token::poll_stop_token(const poll_stop_token &other): m_p(std::make_unique<Impl>()) {
+poll_stop_token::poll_stop_token(const poll_stop_token &other): m_p(std::make_unique<impl>()) {
     m_p->m_receiver = other.m_p->m_receiver;
 }
 
@@ -95,14 +95,14 @@ auto poll_stop_token::native_handle() const -> fd_t {
 // --------------------------------------------------------------------------------------------
 
 /// Implementation state of silicon::coroutine::poll_stop_source.
-struct poll_stop_source::Impl {
+struct poll_stop_source::impl {
   public:
     pipe_t m_pipe{};
 };
 
-poll_stop_source::poll_stop_source(): m_p(std::make_unique<Impl>()) {}
+poll_stop_source::poll_stop_source(): m_p(std::make_unique<impl>()) {}
 
-poll_stop_source::poll_stop_source(poll_stop_source &&other) noexcept: m_p(std::make_unique<Impl>()) {
+poll_stop_source::poll_stop_source(poll_stop_source &&other) noexcept: m_p(std::make_unique<impl>()) {
     *this = std::move(other);
 }
 

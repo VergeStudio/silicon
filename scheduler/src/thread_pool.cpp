@@ -29,7 +29,7 @@ make_spawned_joinable_wait_task(std::unique_ptr<silicon::scheduler::task_group<s
 }
 
 
-struct thread_pool::Impl {
+struct thread_pool::impl {
     options m_opts;
 
     struct alignas(64) ThreadState {
@@ -90,7 +90,7 @@ auto thread_pool::schedule_operation::await_suspend(std::coroutine_handle<void> 
     m_thread_pool.m_impl->schedule_impl(awaiting_coroutine);
 }
 
-thread_pool::thread_pool(options &&opts, private_constructor): m_impl(std::make_unique<Impl>()) {
+thread_pool::thread_pool(options &&opts, private_constructor): m_impl(std::make_unique<impl>()) {
     m_impl->m_opts = std::move(opts);
     auto n = m_impl->m_opts.thread_count;
     m_impl->m_threads.reserve(n);
@@ -178,7 +178,7 @@ auto thread_pool::queue_size() const noexcept -> std::size_t {
     return total;
 }
 
-auto thread_pool::Impl::executor(std::size_t idx) -> void {
+auto thread_pool::impl::executor(std::size_t idx) -> void {
     if(m_opts.on_thread_start_functor != nullptr) {
         m_opts.on_thread_start_functor(idx);
     }
@@ -233,7 +233,7 @@ auto thread_pool::Impl::executor(std::size_t idx) -> void {
     }
 }
 
-auto thread_pool::Impl::schedule_impl(std::coroutine_handle<void> handle) noexcept -> void {
+auto thread_pool::impl::schedule_impl(std::coroutine_handle<void> handle) noexcept -> void {
     if(handle == nullptr || handle.done()) return;
 
     auto idx = m_submit_idx.fetch_add(1, std::memory_order::relaxed) % m_states.size();

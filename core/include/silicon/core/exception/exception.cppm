@@ -22,10 +22,10 @@ export class CORE_API exception: public std::exception {
         impl_->message_ = silicon::util::str_cat(args...);
     }
 
-    // 异常对象必须可拷贝（[except.throw]），故 Impl 用 shared_ptr 承载 + 深拷贝。
-    exception(const exception &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    // 异常对象必须可拷贝（[except.throw]），故 impl 用 shared_ptr 承载 + 深拷贝。
+    exception(const exception &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     exception &operator=(const exception &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     exception(exception &&) noexcept = default;
@@ -35,11 +35,11 @@ export class CORE_API exception: public std::exception {
     const char *what() const noexcept override;
 
   private:
-    struct Impl {
+    struct impl {
       public:
         std::string message_;
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 };
 
 // This errors are usually related to problems which "probably" require code refactoring

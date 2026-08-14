@@ -94,8 +94,8 @@ export class shared_library final {
     void *find_symbol(const std::string &);
 
   private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    struct impl;
+    std::unique_ptr<impl> impl_;
 
 };
 

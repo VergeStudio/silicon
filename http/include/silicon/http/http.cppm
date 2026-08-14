@@ -17,13 +17,13 @@ export namespace silicon::http {
 
 struct http_response {
 
-    struct Impl {
+    struct impl {
       public:
         int status_code_ = 0;
         std::string body_;
         std::map<std::string, std::string> headers_;
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
   public:
     http_response() = default;
@@ -33,9 +33,9 @@ struct http_response {
         impl_->body_ = std::move(b);
         impl_->headers_ = std::move(h);
     }
-    http_response(const http_response &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    http_response(const http_response &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     http_response &operator=(const http_response &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     http_response(http_response &&) noexcept = default;
@@ -53,7 +53,7 @@ struct http_response {
 
 struct http_request {
 
-    struct Impl {
+    struct impl {
       public:
         std::string url_;
         std::string method_ = "GET";
@@ -61,13 +61,13 @@ struct http_request {
         std::map<std::string, std::string> headers_;
         int timeout_ms_ = 30000;
     };
-    std::shared_ptr<Impl> impl_{std::make_shared<Impl>()};
+    std::shared_ptr<impl> impl_{std::make_shared<impl>()};
 
   public:
     http_request() = default;
-    http_request(const http_request &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+    http_request(const http_request &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     http_request &operator=(const http_request &o) {
-        if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+        if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     http_request(http_request &&) noexcept = default;
@@ -104,12 +104,12 @@ class curl_http_client: public i_http_client {
 /// 打桩实现（返回预设响应，用于 TDD）
 class fake_http_client: public i_http_client {
 
-    struct Impl {
+    struct impl {
       public:
         http_response response_;
         mutable std::size_t call_count_ = 0;
     };
-    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
+    std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 
   public:
     explicit fake_http_client(http_response response = {200, "{}"});

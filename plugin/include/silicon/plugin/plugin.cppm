@@ -52,11 +52,11 @@ class i_plugin_registry {
 
 class plugin_registry: public i_plugin_registry {
 
-    struct Impl {
+    struct impl {
       public:
       std::map<std::string, std::shared_ptr<i_plugin>, std::less<>> plugins_;
     };
-    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
+    std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 
   public:
     auto register_plugin(std::shared_ptr<i_plugin> plugin) -> result<void> override;
@@ -123,11 +123,11 @@ template<class T>
 /// 只要满足 plugin_facade 即可注册，句柄按值持有。
 class proxy_plugin_registry {
 
-    struct Impl {
+    struct impl {
       public:
         std::map<std::string, plugin_proxy, std::less<>> plugins_;
     };
-    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
+    std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 
   public:
     /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。

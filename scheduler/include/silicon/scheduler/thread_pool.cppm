@@ -20,7 +20,7 @@ export namespace silicon::scheduler {
 
 /// @brief 基于工作窃取的 CPU 线程池调度器。
 ///
-/// 使用 pimpl：所有数据成员位于 thread_pool::Impl，定义在模块实现单元
+/// 使用 pimpl：所有数据成员位于 thread_pool::impl，定义在模块实现单元
 /// （thread_pool.cpp）。模板便捷重载（schedule<return_type>、
 /// resume<range_type>）在此内联定义。
 class thread_pool final: public i_scheduler {
@@ -107,8 +107,8 @@ class thread_pool final: public i_scheduler {
     [[nodiscard]] auto queue_empty() const noexcept -> bool { return queue_size() == 0; }
 
   private:
-    struct Impl;
-    std::unique_ptr<Impl> m_impl;
+    struct impl;
+    std::unique_ptr<impl> m_impl;
 
     auto resume_range_impl(std::vector<std::coroutine_handle<>> &handles) noexcept -> std::size_t;
 };

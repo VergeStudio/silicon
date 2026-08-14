@@ -26,8 +26,8 @@ export namespace silicon::scheduler {
 ///
 /// 实现 i_scheduler，因此可被 task_group / 上层组件统一驱动。
 class parallel_scheduler final : public i_scheduler {
-    struct Impl;
-    std::unique_ptr<Impl> m_impl;
+    struct impl;
+    std::unique_ptr<impl> m_impl;
 
   public:
     parallel_scheduler();

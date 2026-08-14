@@ -10,20 +10,20 @@ module silicon.cli.parser.parse_result;
 
 namespace silicon::cli {
 
-struct parse_result::Impl {
+struct parse_result::impl {
     std::string command_;                      // 子命令名（若无则为空）
     std::map<std::string, std::string> flags_; // --key value 或 --flag → "true"
     std::vector<std::string> positional_;      // 位置参数
 };
 
-parse_result::parse_result(): impl_(std::make_shared<Impl>()) {}
+parse_result::parse_result(): impl_(std::make_shared<impl>()) {}
 
 parse_result::~parse_result() = default;
 
-parse_result::parse_result(const parse_result &o): impl_(std::make_shared<Impl>(*o.impl_)) {}
+parse_result::parse_result(const parse_result &o): impl_(std::make_shared<impl>(*o.impl_)) {}
 
 parse_result &parse_result::operator=(const parse_result &o) {
-    if(this != &o) { impl_ = std::make_shared<Impl>(*o.impl_); }
+    if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
     return *this;
 }
 

@@ -79,7 +79,7 @@ template<std::ptrdiff_t max_value>
 class semaphore {
   public:
     explicit semaphore(const std::ptrdiff_t starting_value)
-        : m_p(std::make_unique<Impl>(starting_value)) {}
+        : m_p(std::make_unique<impl>(starting_value)) {}
 
     ~semaphore() { silicon::coroutine::sync_wait(shutdown()); }
 
@@ -179,9 +179,9 @@ class semaphore {
 
     /// Implementation state of the semaphore.  Defined in the interface unit since semaphore is a
     /// class template and all of its operations are instantiated at the point of use.
-    struct Impl {
+    struct impl {
       public:
-        explicit Impl(const std::ptrdiff_t starting_value): m_counter(starting_value) {}
+        explicit impl(const std::ptrdiff_t starting_value): m_counter(starting_value) {}
 
         /// @brief The current number of resources that are available to acquire.
         std::atomic<std::ptrdiff_t> m_counter;
@@ -194,7 +194,7 @@ class semaphore {
     };
 
     /// Hidden implementation state.
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 } // namespace silicon::coroutine

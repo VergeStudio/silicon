@@ -103,15 +103,15 @@ class scoped_lock {
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
-    struct Impl;
-    std::unique_ptr<Impl> m_p;
+    struct impl;
+    std::unique_ptr<impl> m_p;
 
     /**
      * @brief Non-template accessor for the currently owned mutex.
      *
      * silicon::coroutine::condition_variable has to unlock and re-lock the caller's mutex from both
      * implementation-unit code and templated wait hooks living in the interface unit.  Routing those
-     * accesses through this non-template hook keeps Impl fully hidden in mutex.cpp.
+     * accesses through this non-template hook keeps impl fully hidden in mutex.cpp.
      *
      * @return The owned mutex, or nullptr if the lock has already been released.
      */
@@ -162,8 +162,8 @@ class mutex {
     /// unlocked -> state == unlocked_value()
     /// locked but empty waiter list == nullptr
     /// locked with waiters == lock_operation_base*
-    struct Impl;
-    std::unique_ptr<Impl> m_p;
+    struct impl;
+    std::unique_ptr<impl> m_p;
 
     /// Inactive value, this cannot be nullptr since we want nullptr to signify that the mutex
     /// is locked but there are zero waiters, this makes it easy to CAS new waiters into the

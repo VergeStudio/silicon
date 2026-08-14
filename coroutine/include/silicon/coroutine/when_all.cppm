@@ -42,8 +42,8 @@ class when_all_latch {
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
-    struct Impl;
-    std::unique_ptr<Impl> m_p;
+    struct impl;
+    std::unique_ptr<impl> m_p;
 };
 
 template<typename task_container_type>
@@ -67,17 +67,17 @@ class when_all_ready_awaitable<std::tuple<>> {
 template<typename... task_types>
 class when_all_ready_awaitable<std::tuple<task_types...>> {
   public:
-    // 注意：Impl 必须一次性聚合初始化。when_all_latch 无默认构造，
+    // 注意：impl 必须一次性聚合初始化。when_all_latch 无默认构造，
     // when_all_task<T> 的移动赋值亦为 delete，故不可"先默认构造再逐成员赋值"。
     explicit when_all_ready_awaitable(task_types &&...tasks) noexcept(
             std::conjunction<std::is_nothrow_move_constructible<task_types>...>::value
     )
-        : m_p(new Impl{when_all_latch{sizeof...(task_types)}, std::tuple<task_types...>{std::move(tasks)...}}) {}
+        : m_p(new impl{when_all_latch{sizeof...(task_types)}, std::tuple<task_types...>{std::move(tasks)...}}) {}
 
     explicit when_all_ready_awaitable(std::tuple<task_types...> &&tasks) noexcept(
             std::is_nothrow_move_constructible_v<std::tuple<task_types...>>
     )
-        : m_p(new Impl{when_all_latch{sizeof...(task_types)}, std::move(tasks)}) {}
+        : m_p(new impl{when_all_latch{sizeof...(task_types)}, std::move(tasks)}) {}
 
     when_all_ready_awaitable(const when_all_ready_awaitable &) = delete;
     // PIMPL 语义下移动即转移实现指针，无需逐成员移动。
@@ -132,12 +132,12 @@ class when_all_ready_awaitable<std::tuple<task_types...>> {
         return m_p->m_latch.try_await(awaiting_coroutine);
     }
 
-    struct Impl {
+    struct impl {
       public:
         when_all_latch m_latch;
         std::tuple<task_types...> m_tasks;
     };
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 template<typename task_container_type>
@@ -145,7 +145,7 @@ class when_all_ready_awaitable {
   public:
     // 同上：聚合初始化，且 std::size(tasks) 在移动 tasks 之前按序求值。
     explicit when_all_ready_awaitable(task_container_type &&tasks) noexcept
-        : m_p(new Impl{when_all_latch{std::size(tasks)}, std::forward<task_container_type>(tasks)}) {}
+        : m_p(new impl{when_all_latch{std::size(tasks)}, std::forward<task_container_type>(tasks)}) {}
 
     when_all_ready_awaitable(const when_all_ready_awaitable &) = delete;
     when_all_ready_awaitable(when_all_ready_awaitable &&other) noexcept: m_p(std::move(other.m_p)) {}
@@ -202,12 +202,12 @@ class when_all_ready_awaitable {
         return m_p->m_latch.try_await(awaiting_coroutine);
     }
 
-    struct Impl {
+    struct impl {
       public:
         when_all_latch m_latch;
         task_container_type m_tasks;
     };
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 template<typename return_type>
@@ -274,13 +274,13 @@ class when_all_task_promise {
     }
 
   private:
-    struct Impl {
+    struct impl {
       public:
         when_all_latch *m_latch{nullptr};
         std::exception_ptr m_exception_ptr;
         std::add_pointer_t<return_type> m_return_value;
     };
-    std::unique_ptr<Impl> m_p{std::make_unique<Impl>()};
+    std::unique_ptr<impl> m_p{std::make_unique<impl>()};
 };
 
 template<>
@@ -322,12 +322,12 @@ class when_all_task_promise<void> {
     }
 
   private:
-    struct Impl {
+    struct impl {
       public:
         when_all_latch *m_latch{nullptr};
         std::exception_ptr m_exception_ptr;
     };
-    std::unique_ptr<Impl> m_p{std::make_unique<Impl>()};
+    std::unique_ptr<impl> m_p{std::make_unique<impl>()};
 };
 
 template<typename return_type>
@@ -340,11 +340,11 @@ class when_all_task {
     using promise_type = when_all_task_promise<return_type>;
     using coroutine_handle_type = typename promise_type::coroutine_handle_type;
 
-    when_all_task(coroutine_handle_type coroutine) noexcept: m_p(std::make_unique<Impl>()) { m_p->m_coroutine = coroutine; }
+    when_all_task(coroutine_handle_type coroutine) noexcept: m_p(std::make_unique<impl>()) { m_p->m_coroutine = coroutine; }
 
     when_all_task(const when_all_task &) = delete;
     when_all_task(when_all_task &&other) noexcept
-        : m_p(std::make_unique<Impl>()) {
+        : m_p(std::make_unique<impl>()) {
         m_p->m_coroutine = std::exchange(other.m_p->m_coroutine, coroutine_handle_type{});
     }
 
@@ -372,11 +372,11 @@ class when_all_task {
   private:
     auto start(when_all_latch &latch) noexcept -> void { m_p->m_coroutine.promise().start(latch); }
 
-    struct Impl {
+    struct impl {
       public:
         coroutine_handle_type m_coroutine{};
     };
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 template<>
@@ -389,11 +389,11 @@ class when_all_task<void> {
     using promise_type = when_all_task_promise<void>;
     using coroutine_handle_type = typename promise_type::coroutine_handle_type;
 
-    when_all_task(coroutine_handle_type coroutine) noexcept: m_p(std::make_unique<Impl>()) { m_p->m_coroutine = coroutine; }
+    when_all_task(coroutine_handle_type coroutine) noexcept: m_p(std::make_unique<impl>()) { m_p->m_coroutine = coroutine; }
 
     when_all_task(const when_all_task &) = delete;
     when_all_task(when_all_task &&other) noexcept
-        : m_p(std::make_unique<Impl>()) {
+        : m_p(std::make_unique<impl>()) {
         m_p->m_coroutine = std::exchange(other.m_p->m_coroutine, coroutine_handle_type{});
     }
 
@@ -414,11 +414,11 @@ class when_all_task<void> {
   private:
     auto start(when_all_latch &latch) noexcept -> void { m_p->m_coroutine.promise().start(latch); }
 
-    struct Impl {
+    struct impl {
       public:
         coroutine_handle_type m_coroutine{};
     };
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 template<

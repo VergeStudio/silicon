@@ -42,9 +42,9 @@ export namespace silicon::scheduler {
  * first one processed sets m_processed to true and any subsequent events in the same epoll batch
  * are effectively discarded.
  *
- * The implementation state (`Impl`) is defined in the non-exported partition
+ * The implementation state (`impl`) is defined in the non-exported partition
  * `silicon.scheduler:poll_info_impl`; its full definition is therefore invisible outside
- * `silicon.scheduler`.  Members that touch `Impl` are declared here and defined out-of-line in
+ * `silicon.scheduler`.  Members that touch `impl` are declared here and defined out-of-line in
  * `scheduler/src/detail/poll_info.cpp`.
  */
 struct poll_info {
@@ -53,7 +53,7 @@ struct poll_info {
     /// Implementation state of a poll operation.  Kept behind `m_p` so the layout of a poll
     /// operation is an implementation detail.  The full definition lives in the non-exported
     /// `silicon.scheduler:poll_info_impl` partition.
-    struct Impl;
+    struct impl;
 
     poll_info();
     ~poll_info();
@@ -78,7 +78,7 @@ struct poll_info {
 
     auto operator co_await() noexcept -> poll_awaiter { return poll_awaiter{*this}; }
 
-    std::unique_ptr<Impl> m_p;
+    std::unique_ptr<impl> m_p;
 };
 
 } // namespace silicon::scheduler

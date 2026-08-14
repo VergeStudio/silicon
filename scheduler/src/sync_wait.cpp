@@ -1,6 +1,6 @@
 module;
 
-// 实现单元全局片段：补齐 std 头，供 sync_wait_event::Impl 定义与成员函数使用。
+// 实现单元全局片段：补齐 std 头，供 sync_wait_event::impl 定义与成员函数使用。
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -9,14 +9,14 @@ module silicon.scheduler;
 
 namespace silicon::coroutine {
 
-class sync_wait_event::Impl {
+class sync_wait_event::impl {
   public:
     std::mutex m_mutex;
     std::condition_variable m_cv;
     std::atomic<bool> m_set{false};
 };
 
-sync_wait_event::sync_wait_event(bool initially_set): m_p(std::make_unique<Impl>()) {
+sync_wait_event::sync_wait_event(bool initially_set): m_p(std::make_unique<impl>()) {
     m_p->m_set = initially_set;
 }
 

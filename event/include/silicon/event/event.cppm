@@ -31,13 +31,13 @@ class EVENT_API event {
     void set_status(event_status s) noexcept;
 
   private:
-    // PIMPL：私有状态移入不透明 Impl，稳定 ABI、隐藏实现。
-    struct Impl {
+    // PIMPL：私有状态移入不透明 impl，稳定 ABI、隐藏实现。
+    struct impl {
         std::string name_;
         event_status status_{event_status::kSuccess};
     };
 
-    std::unique_ptr<Impl> impl_{std::make_unique<Impl>()};
+    std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 };
 
 } // namespace silicon::event

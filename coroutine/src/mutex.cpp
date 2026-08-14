@@ -9,7 +9,7 @@ module silicon.coroutine;
 namespace silicon::coroutine {
 
 /// Implementation state of silicon::coroutine::mutex.
-class mutex::Impl {
+class mutex::impl {
   public:
     /// unlocked -> state == unlocked_value()
     /// locked but empty waiter list == nullptr
@@ -53,13 +53,13 @@ auto lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_corouti
 
 
 /// Implementation state of silicon::coroutine::scoped_lock.
-struct scoped_lock::Impl {
+struct scoped_lock::impl {
   public:
     class silicon::coroutine::mutex *m_mutex{nullptr};
 };
 
 scoped_lock::scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy)
-    : m_p(std::make_unique<Impl>()) {
+    : m_p(std::make_unique<impl>()) {
     // Future -> support acquiring the lock?  Not sure how to do that without being able to
     // co_await in the constructor.
     (void)strategy;
@@ -91,7 +91,7 @@ auto scoped_lock::unlock() -> void {
     }
 }
 
-mutex::mutex() noexcept: m_p(std::make_unique<Impl>()) {
+mutex::mutex() noexcept: m_p(std::make_unique<impl>()) {
     m_p->m_state.store(const_cast<void *>(unlocked_value()), std::memory_order::relaxed);
 }
 

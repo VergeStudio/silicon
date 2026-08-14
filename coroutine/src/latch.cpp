@@ -8,9 +8,9 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-struct latch::Impl {
+struct latch::impl {
   public:
-    explicit Impl(std::int64_t count) noexcept: m_count(count), m_event(count <= 0) {}
+    explicit impl(std::int64_t count) noexcept: m_count(count), m_event(count <= 0) {}
 
     /// The number of tasks to wait for completion before triggering the event to resume.
     std::atomic<std::int64_t> m_count;
@@ -19,7 +19,7 @@ struct latch::Impl {
     event m_event;
 };
 
-latch::latch(std::int64_t count) noexcept: m_p(std::make_unique<Impl>(count)) {}
+latch::latch(std::int64_t count) noexcept: m_p(std::make_unique<impl>(count)) {}
 
 latch::~latch() = default;
 
