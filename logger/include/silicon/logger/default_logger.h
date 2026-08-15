@@ -11,26 +11,26 @@
 
 namespace silicon::logger {
 
-// 单一定义源：与模块接口 silicon.logger 导出的类保持一致（继承 logger、虚方法 override），
-// 避免 module 声明与 header 声明产生 ODR 双定义、导致跨 DLL 虚函数修饰名不匹配。
-class default_logger: public logger {
+// 单一定义源：与模块接口 silicon.logger 导出的类保持一致（鸭子类型满足 logger_facade，
+// 无需继承抽象基类），避免 module 声明与 header 声明产生 ODR 双定义。
+class default_logger {
   public:
     default_logger();
-    ~default_logger() noexcept override;
+    ~default_logger() noexcept;
 
   public:
     void init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
     void create_logger(log_level, const std::string_view &, int32_t);
-    void set_log_level(log_level) const override;
+    void set_log_level(log_level) const;
     void stop();
 
   public:
-    void trace(const std::string_view &, std::source_location &&) const override;
-    void debug(const std::string_view &, std::source_location &&) const override;
-    void info(const std::string_view &, std::source_location &&) const override;
-    void warning(const std::string_view &, std::source_location &&) const override;
-    void error(const std::string_view &, std::source_location &&) const override;
-    void critical(const std::string_view &, std::source_location &&) const override;
+    void trace(const std::string_view &, std::source_location &&) const;
+    void debug(const std::string_view &, std::source_location &&) const;
+    void info(const std::string_view &, std::source_location &&) const;
+    void warning(const std::string_view &, std::source_location &&) const;
+    void error(const std::string_view &, std::source_location &&) const;
+    void critical(const std::string_view &, std::source_location &&) const;
 
   private:
     // Pimpl: hides spdlog types from the public interface

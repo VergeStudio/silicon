@@ -1,8 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <source_location>
-#include <string_view>
 
 namespace silicon::logger {
 
@@ -16,26 +14,7 @@ enum class log_level : std::uint8_t {
     kOff,
 };
 
-/// @brief Abstract interface for a logger.
-///
-/// The concrete default_logger implements this interface.
-class logger {
-  public:
-    logger() = default;
-    logger(const logger &) = delete;
-    logger(logger &&) = delete;
-    auto operator=(const logger &) -> logger & = delete;
-    auto operator=(logger &&) -> logger & = delete;
-    virtual ~logger() = default;
-
-    virtual void trace(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void debug(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void info(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void warning(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void error(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-    virtual void critical(const std::string_view &msg, std::source_location &&loc = std::source_location::current()) const = 0;
-
-    virtual void set_log_level(log_level level) const = 0;
-};
+/// @brief logger 接口已由 silicon.proxy 门面承载（见 logger.cppm 的 logger_facade）。
+/// 具体实现（default_logger）以鸭子类型满足门面，无需继承抽象基类。
 
 } // namespace silicon::logger
