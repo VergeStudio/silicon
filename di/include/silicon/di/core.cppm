@@ -30,9 +30,11 @@ module;
 #include <expected>
 #include <system_error>
 #include <iostream>
+#include <silicon/proxy/proxy_macros.h>
 
 export module silicon.di:core;
 export import silicon.di.error;
+import silicon.proxy;
 
 
 // Logical functional partitioning of the single self-contained :core
@@ -4840,24 +4842,59 @@ struct context_destructible {
     void (*dtor)(void*);
 };
 
+// context_closure 接口：类型擦除门面（替代原抽象基类 context_closure_base 的纯虚方法）
+PRO_DEF_MEM_DISPATCH(MemClosureReset, reset);
+PRO_DEF_MEM_DISPATCH(MemClosureArena, arena_storage);
+PRO_DEF_MEM_DISPATCH(MemClosureAddDtor, add_destructor);
+
+struct context_closure_facade
+    : silicon::proxy::facade_builder
+      ::add_convention<MemClosureReset, void()>
+      ::add_convention<MemClosureArena, arena<>&()>
+      ::add_convention<MemClosureAddDtor, void(void*, void (*)(void*))>
+      ::build {};
+
+using context_closure_proxy = silicon::proxy::proxy<context_closure_facade>;
+using context_closure_view = silicon::proxy::proxy_view<context_closure_facade>;
+
+template<class T, class... Args>
+[[nodiscard]] context_closure_proxy make_context_closure(Args &&...args) {
+    return silicon::proxy::make_proxy<context_closure_facade, T>(std::forward<Args>(args)...);
+}
+
+// 适配器：把具体 closure 的 do_* 实现桥接到 context_closure_facade
+template<class Closure>
+struct closure_strategy {
+    Closure* self;
+    void reset() { self->do_reset(); }
+    arena<>& arena_storage() { return self->do_arena_storage(); }
+    void add_destructor(void* instance, void (*dtor)(void*)) { self->do_add_destructor(instance, dtor); }
+};
+
+// 保留 context_closure_base 作为闭包节点类型（被 closures_ 以 context_closure_base* 持有，
+// 多态调用 reset()/arena_storage()/add_destructor()），内部以类型擦除 strategy_ 承载具体实现。
 struct context_closure_base {
-    virtual ~context_closure_base() = default;
-    virtual void reset() = 0;
-    virtual arena<>& arena_storage() = 0;
-    virtual void add_destructor(void* instance, void (*dtor)(void*)) = 0;
+    context_closure_proxy strategy_{};
+    void reset() { strategy_.reset(); }
+    arena<>& arena_storage() { return strategy_.arena_storage(); }
+    void add_destructor(void* instance, void (*dtor)(void*)) { strategy_.add_destructor(instance, dtor); }
 };
 
 struct context_closure : context_closure_base {
     context_closure()
         : arena_(arena_buffer_)
-        , destructibles_(arena_) {}
+        , destructibles_(arena_) {
+        // 在构造函数体内（complete-class 上下文）初始化 strategy_，
+        // 此时 do_* 已声明，closure_strategy<context_closure> 可被完整实例化。
+        strategy_ = make_context_closure<closure_strategy<context_closure>>(this);
+    }
 
     ~context_closure() { reset(); }
 
     context_closure(const context_closure&) = delete;
     context_closure& operator=(const context_closure&) = delete;
 
-    void reset() {
+    void do_reset() {
         if (!destructibles_.empty()) {
             for (auto it = destructibles_.rbegin(); it != destructibles_.rend();
                  ++it) {
@@ -4881,9 +4918,9 @@ struct context_closure : context_closure_base {
     std::vector<context_destructible, arena_allocator<context_destructible>>
         destructibles_;
 
-    arena<>& arena_storage() override { return arena_; }
+    arena<>& do_arena_storage() { return arena_; }
 
-    void add_destructor(void* instance, void (*dtor)(void*)) override {
+    void do_add_destructor(void* instance, void (*dtor)(void*)) {
         destructibles_.push_back({instance, dtor});
     }
 };
@@ -4952,14 +4989,16 @@ struct fixed_context_closure : context_closure_base {
         temporary_slot_capacity_ == 0 ? 1 : temporary_slot_capacity_;
 
     fixed_context_closure()
-        : arena_(arena_buffer_) {}
+        : arena_(arena_buffer_) {
+        strategy_ = make_context_closure<closure_strategy<fixed_context_closure>>(this);
+    }
 
     ~fixed_context_closure() { reset(); }
 
     fixed_context_closure(const fixed_context_closure&) = delete;
     fixed_context_closure& operator=(const fixed_context_closure&) = delete;
 
-    void reset() {
+    void do_reset() {
         while (destructible_count_ != 0) {
             auto& destructible = destructibles_[--destructible_count_];
             destructible.dtor(destructible.instance);
@@ -4968,9 +5007,9 @@ struct fixed_context_closure : context_closure_base {
         arena_.reset();
     }
 
-    arena<>& arena_storage() override { return arena_; }
+    arena<>& do_arena_storage() { return arena_; }
 
-    void add_destructor(void* instance, void (*dtor)(void*)) override {
+    void do_add_destructor(void* instance, void (*dtor)(void*)) {
         assert(destructible_count_ < destructible_capacity_);
         destructibles_[destructible_count_++] = {instance, dtor};
     }
