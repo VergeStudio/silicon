@@ -29,48 +29,42 @@ using result = std::expected<T, std::error_code>;
 
 
 /// 插件生命周期
-class i_plugin {
-  public:
-    virtual ~i_plugin() = default;
-    virtual std::string_view name() const = 0;
-    virtual bool on_load() { return true; }
-    virtual bool on_unload() { return true; }
-    virtual bool on_reload() { return true; }
-};
+///
+/// 已全面 proxy 化：原 i_plugin 抽象基类删除，生命周期由 plugin_facade
+/// 以类型擦除描述（name / on_load / on_unload / on_reload）。任意满足
+/// 该门面的类型（含既有的 shared_ptr<X>，只要 X 具约定成员）皆可擦除为
+/// plugin_proxy / plugin_view，无需继承任何基类。
 
-/// 插件注册表
-class i_plugin_registry {
-  public:
-    virtual ~i_plugin_registry() = default;
-    [[nodiscard]] virtual auto register_plugin(std::shared_ptr<i_plugin> plugin) -> result<void> = 0;
-    virtual i_plugin *get_plugin(std::string_view name) const = 0;
-    [[nodiscard]] virtual auto remove_plugin(std::string_view name) -> result<void> = 0;
-    virtual std::vector<std::string> list_plugins() const = 0;
-};
-
-// ── 默认实现 ─────────────────────────────────────────────────────
-
-class plugin_registry: public i_plugin_registry {
+/// 经典注册表（基于 proxy 句柄）。与 proxy_plugin_registry 并存：
+/// 前者保留 shared_ptr 风格的 `name()` 查询 API（register_plugin/get_plugin/
+/// remove_plugin/list_plugins），后者提供 emplace 就地构造与 `get()` 返回
+/// 句柄指针。两者底层均以 plugin_proxy 值持有，跨 DLL / ABI 边界安全。
+class plugin_registry {
 
     struct impl {
       public:
-      std::map<std::string, std::shared_ptr<i_plugin>, std::less<>> plugins_;
+      std::map<std::string, plugin_proxy, std::less<>> plugins_;
     };
     std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 
   public:
-    auto register_plugin(std::shared_ptr<i_plugin> plugin) -> result<void> override;
-    i_plugin *get_plugin(std::string_view name) const override;
-    auto remove_plugin(std::string_view name) -> result<void> override;
-    std::vector<std::string> list_plugins() const override;
+    /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。
+    [[nodiscard]] auto register_plugin(plugin_proxy plugin) -> result<void>;
 
-};
+    /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
+    template<class T, class... Args>
+    [[nodiscard]] auto emplace(Args &&...args) -> result<void> {
+        return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
+    }
 
-/// 动态插件加载器（stub：完整实现需 shared_library + dlopen）
-class i_plugin_loader {
-  public:
-    virtual ~i_plugin_loader() = default;
-    virtual std::shared_ptr<i_plugin> load(const std::string &path) = 0;
+    /// 查询；不存在返回 nullptr。返回句柄的所有权仍属注册表。
+    plugin_proxy *get_plugin(std::string_view name) const;
+
+    /// 移除并触发 on_unload；不存在返回 kNotFound。
+    [[nodiscard]] auto remove_plugin(std::string_view name) -> result<void>;
+
+    std::vector<std::string> list_plugins() const;
+
 };
 
 // ── 类型擦除接入层（silicon.proxy）────────────────────────────────
@@ -78,7 +72,7 @@ class i_plugin_loader {
 // 插件是天然的跨 DLL / ABI 边界：宿主与插件常由不同编译单元、甚至不同
 // 编译器版本产出，虚表布局一旦变化即不兼容。proxy 用「胖指针 + vtable
 // 值」替代继承，目标类型无需继承任何基类，也不共享 RTTI/虚表，因此更适
-// 合该边界。以下设施与上方 i_plugin 体系并存，互不破坏。
+// 合该边界。以下设施为唯一的接口范式。
 
 /// 成员派发器：把 `.name()` / `.on_load()` 等调用擦除为 proxy 约定。
 PRO_DEF_MEM_DISPATCH(MemPluginName, name);
@@ -86,10 +80,10 @@ PRO_DEF_MEM_DISPATCH(MemPluginOnLoad, on_load);
 PRO_DEF_MEM_DISPATCH(MemPluginOnUnload, on_unload);
 PRO_DEF_MEM_DISPATCH(MemPluginOnReload, on_reload);
 
-/// 插件门面：任何具备下列成员的类型都自动满足，无需继承 i_plugin。
+/// 插件门面：任何具备下列成员的类型都自动满足，无需继承任何基类。
 ///   std::string_view name() const;
 ///   bool on_load();  bool on_unload();  bool on_reload();
-/// 既有的 `std::shared_ptr<i_plugin>` / `i_plugin*` 亦天然满足，可直接桥接。
+/// 既有的具约定成员的类型（含 `std::shared_ptr<X>`）亦天然满足，可直接桥接。
 struct plugin_facade
     : silicon::proxy::facade_builder                                        //
       ::add_convention<MemPluginName, std::string_view() const>             //
@@ -102,7 +96,7 @@ struct plugin_facade
 /// 用法与指针一致：`p->name()`、`if (p) ...`。
 using plugin_proxy = silicon::proxy::proxy<plugin_facade>;
 
-/// 非拥有观察视图，等价于 `i_plugin*` 但不要求继承。
+/// 非拥有观察视图，等价于裸指针但不要求继承。
 using plugin_view = silicon::proxy::proxy_view<plugin_facade>;
 
 /// 就地构造任意满足 plugin_facade 的目标类型并擦除为 plugin_proxy。
@@ -119,7 +113,7 @@ template<class T>
 }
 
 /// 基于 proxy 的插件注册表。
-/// 与 plugin_registry 的差异：目标类型无需继承 i_plugin，也无需 shared_ptr —
+/// 与 plugin_registry 的差异：目标类型无需继承任何基类，也无需 shared_ptr —
 /// 只要满足 plugin_facade 即可注册，句柄按值持有。
 class proxy_plugin_registry {
 

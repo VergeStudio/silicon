@@ -6,13 +6,13 @@ import silicon.plugin;
 using namespace silicon::plugin;
 
 namespace {
-struct TestPlugin: i_plugin {
-    std::string_view name() const override {
+struct TestPlugin {
+    std::string_view name() const {
         static auto n = std::string("test");
         return n;
     }
     bool loaded = false;
-    bool on_load() override {
+    bool on_load() {
         loaded = true;
         return true;
     }
@@ -41,7 +41,9 @@ TEST_CASE("plugin_registry: 注册与查询") {
     plugin_registry reg;
     auto p = std::make_shared<TestPlugin>();
     CHECK(reg.register_plugin(p).has_value());
-    CHECK(reg.get_plugin("test") == p.get());
+    auto *got = reg.get_plugin("test");
+    REQUIRE(got != nullptr);
+    CHECK((*got)->name() == "test");
     CHECK(reg.list_plugins().size() == 1);
 }
 
@@ -63,7 +65,7 @@ TEST_CASE("plugin_registry: 移除触发 on_unload") {
 
 // ── proxy 类型擦除 ───────────────────────────────────────────────
 
-TEST_CASE("proxy: 非侵入式插件视图（不继承 i_plugin）") {
+TEST_CASE("proxy: 非侵入式插件视图（无需继承基类）") {
     DuckPlugin duck{.name = "duck"};
     plugin_view v = make_plugin_view(duck);
     CHECK(static_cast<bool>(v));
@@ -86,7 +88,7 @@ TEST_CASE("proxy: 拥有所有权的插件句柄") {
     CHECK_FALSE(static_cast<bool>(empty));
 }
 
-TEST_CASE("proxy: 桥接既有 i_plugin 实现") {
+TEST_CASE("proxy: 桥接既有具约定成员的类型") {
     // shared_ptr<T> 本身即 pointer-like，且 TestPlugin 具备全部约定成员，
     // 因此无需任何适配器即可擦除为 plugin_proxy。
     auto sp = std::make_shared<TestPlugin>();
@@ -117,7 +119,7 @@ TEST_CASE("proxy_plugin_registry: 移除触发 on_unload") {
     CHECK_FALSE(reg.remove("x").has_value());
 }
 
-TEST_CASE("proxy_plugin_registry: 混合注册 i_plugin 与鸭子类型") {
+TEST_CASE("proxy_plugin_registry: 混合注册可擦除目标与鸭子类型") {
     proxy_plugin_registry reg;
     CHECK(reg.register_plugin(std::make_shared<TestPlugin>()).has_value());   // 继承体系
     CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "d"}).has_value()); // 非侵入式

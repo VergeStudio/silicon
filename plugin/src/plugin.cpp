@@ -15,7 +15,7 @@ import silicon.plugin.error;
 
 namespace silicon::plugin {
 
-auto plugin_registry::register_plugin(std::shared_ptr<i_plugin> plugin) -> result<void> {
+auto plugin_registry::register_plugin(plugin_proxy plugin) -> result<void> {
     if(!plugin) return std::unexpected(make_error_code(plugin_error::kNullPlugin));
     auto name = std::string(plugin->name());
     if(impl_->plugins_.contains(name)) return std::unexpected(make_error_code(plugin_error::kDuplicate));
@@ -23,9 +23,9 @@ auto plugin_registry::register_plugin(std::shared_ptr<i_plugin> plugin) -> resul
     return {};
 }
 
-i_plugin *plugin_registry::get_plugin(std::string_view name) const {
+plugin_proxy *plugin_registry::get_plugin(std::string_view name) const {
     auto it = impl_->plugins_.find(name);
-    return (it != impl_->plugins_.end()) ? it->second.get() : nullptr;
+    return (it != impl_->plugins_.end()) ? std::addressof(it->second) : nullptr;
 }
 
 auto plugin_registry::remove_plugin(std::string_view name) -> result<void> {
