@@ -28,12 +28,15 @@ module;
 #include <span>
 #include <utility>
 
+#include <silicon/proxy/proxy_macros.h>
+
 export module silicon.network:tls;
 
 export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
+import silicon.proxy;
 
 #ifdef SILICON_FEATURE_TLS
 
@@ -181,39 +184,38 @@ class context {
     auto native_handle() const -> const SSL_CTX * { return m_ssl_ctx; }
 };
 
-/// @brief Abstract interface for a TLS client connection.
-class i_tls_client {
-  public:
-    i_tls_client() = default;
-    i_tls_client(const i_tls_client &) = delete;
-    i_tls_client(i_tls_client &&) = delete;
-    auto operator=(const i_tls_client &) -> i_tls_client & = delete;
-    auto operator=(i_tls_client &&) -> i_tls_client & = delete;
-    virtual ~i_tls_client() = default;
+/// @brief 类型擦除门面：TLS 客户端的可擦除接口（取代原 i_tls_client 抽象基类）。
+///
+/// 任何满足下列成员的类型（含 tls::client）都自动满足该门面，无需继承：
+///   silicon::scheduler::task<connection_status> connect(std::chrono::milliseconds);
+PRO_DEF_MEM_DISPATCH(MemTlsClientConnect, connect);
 
-    virtual auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<connection_status> = 0;
-};
+struct tls_client_facade
+    : silicon::proxy::facade_builder                                                  //
+      ::add_convention<MemTlsClientConnect,                                          //
+                       silicon::scheduler::task<connection_status>(std::chrono::milliseconds)> //
+      ::build {};
 
-class i_tls_server {
-  public:
-    i_tls_server() = default;
-    i_tls_server(const i_tls_server &) = delete;
-    i_tls_server(i_tls_server &&) = delete;
-    auto operator=(const i_tls_server &) -> i_tls_server & = delete;
-    auto operator=(i_tls_server &&) -> i_tls_server & = delete;
-    virtual ~i_tls_server() = default;
+using tls_client_proxy = silicon::proxy::proxy<tls_client_facade>;
+using tls_client_view = silicon::proxy::proxy_view<tls_client_facade>;
 
-    virtual auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<silicon::coroutine::poll_status> = 0;
+template<class T, class... Args>
+[[nodiscard]] tls_client_proxy make_tls_client_proxy(Args &&...args) {
+    return silicon::proxy::make_proxy<tls_client_facade, T>(std::forward<Args>(args)...);
+}
 
-    virtual auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30})
-            -> silicon::scheduler::task<client> = 0;
-};
+template<class T>
+    requires silicon::proxy::proxiable_target<T, tls_client_facade>
+[[nodiscard]] tls_client_view make_tls_client_view(T &target) noexcept {
+    return silicon::proxy::make_proxy_view<tls_client_facade>(target);
+}
+
+/// @brief TLS 服务端门面（tls_server_facade）定义见本文件下方 client 完整声明之后，
+///        因其 accept 返回类型引用 tls::client，需待 client 完整声明后方可命名。
 
 class server;
 
-class client final: public i_tls_client {
+class client final {
   public:
     /**
      * Creates a new tls client that can connect to an ip address + port. By default, the socket
@@ -239,7 +241,7 @@ class client final: public i_tls_client {
     client(client &&other) noexcept;
     auto operator=(const client &) noexcept -> client & = delete;
     auto operator=(client &&other) noexcept -> client &;
-    ~client() override;
+    ~client();
 
     /**
      * @return The tcp socket this client is using.
@@ -255,7 +257,7 @@ class client final: public i_tls_client {
      * @param timeout How long to wait for the connection to establish? Timeout of zero is indefinite.
      * @return The result status of trying to connect.
      */
-    auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status> override;
+    auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status>;
 
     /**
      * Receives incoming data into the given buffer. This function will automatically poll for readability.
@@ -536,7 +538,39 @@ class client final: public i_tls_client {
     auto tls_shutdown_and_free(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<void>;
 };
 
-class server final: public i_tls_server {
+/// @brief 类型擦除门面：TLS 服务端的可擦除接口（取代原 i_tls_server 抽象基类）。
+///
+/// 任何满足下列成员的类型（含 tls::server）都自动满足该门面，无需继承：
+///   silicon::scheduler::task<silicon::coroutine::poll_status> poll(std::chrono::milliseconds);
+///   silicon::scheduler::task<client> accept(std::chrono::milliseconds);
+/// 因 accept 返回类型引用 tls::client，本门面定义于 client 完整声明之后。
+PRO_DEF_MEM_DISPATCH(MemTlsServerPoll, poll);
+PRO_DEF_MEM_DISPATCH(MemTlsServerAccept, accept);
+
+struct tls_server_facade
+    : silicon::proxy::facade_builder                                                          //
+      ::add_convention<MemTlsServerPoll,                                                      //
+                       silicon::scheduler::task<silicon::coroutine::poll_status>(
+                               std::chrono::milliseconds)>                                     //
+      ::add_convention<MemTlsServerAccept,                                                    //
+                       silicon::scheduler::task<client>(std::chrono::milliseconds)>           //
+      ::build {};
+
+using tls_server_proxy = silicon::proxy::proxy<tls_server_facade>;
+using tls_server_view = silicon::proxy::proxy_view<tls_server_facade>;
+
+template<class T, class... Args>
+[[nodiscard]] tls_server_proxy make_tls_server_proxy(Args &&...args) {
+    return silicon::proxy::make_proxy<tls_server_facade, T>(std::forward<Args>(args)...);
+}
+
+template<class T>
+    requires silicon::proxy::proxiable_target<T, tls_server_facade>
+[[nodiscard]] tls_server_view make_tls_server_view(T &target) noexcept {
+    return silicon::proxy::make_proxy_view<tls_server_facade>(target);
+}
+
+class server final {
   public:
     struct options {
         /// The kernel backlog of connections to buffer.
@@ -563,7 +597,7 @@ class server final: public i_tls_server {
     server(server &&other);
     auto operator=(const server &) -> server & = delete;
     auto operator=(server &&other) -> server &;
-    ~server() override = default;
+    ~server() = default;
 
     /**
      * Polls for new incoming tcp connections.
@@ -571,7 +605,7 @@ class server final: public i_tls_server {
      * @return The result of the poll, 'event' means the poll was successful and there is at least 1
      *         connection ready to be accepted.
      */
-    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<silicon::coroutine::poll_status> override {
+    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<silicon::coroutine::poll_status> {
         return m_scheduler->poll(m_accept_socket.native_handle(), silicon::coroutine::poll_op::read, timeout, m_cancel_trigger.get_token());
     }
 
@@ -581,7 +615,7 @@ class server final: public i_tls_server {
      * @param timeout The timeout to complete the TLS handshake.
      * @return The newly connected tcp client connection.
      */
-    auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30}) -> silicon::scheduler::task<silicon::network::tls::client> override;
+    auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30}) -> silicon::scheduler::task<silicon::network::tls::client>;
 
     /**
      * @return The tcp accept socket this server is using.

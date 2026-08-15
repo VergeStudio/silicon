@@ -24,58 +24,64 @@ module;
 #include <span>
 #include <utility>
 
+#include <silicon/proxy/proxy_macros.h>
+
 export module silicon.network:tcp;
 
 export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
+import silicon.proxy;
 
 export namespace silicon::network::tcp {
 
-/// @brief Abstract interface for a TCP client connection.
+/// @brief 类型擦除门面：TCP 客户端的可擦除接口（取代原 i_tcp_client 抽象基类）。
 ///
-/// The concrete tcp::client class implements this interface.
-/// Template methods (read_some, read_exact, write_some, write_all, recv, send)
-/// remain in the concrete class — they cannot be virtual.
-class i_tcp_client {
-  public:
-    i_tcp_client() = default;
-    i_tcp_client(const i_tcp_client &) = delete;
-    i_tcp_client(i_tcp_client &&) = delete;
-    auto operator=(const i_tcp_client &) -> i_tcp_client & = delete;
-    auto operator=(i_tcp_client &&) -> i_tcp_client & = delete;
-    virtual ~i_tcp_client() = default;
+/// 任何满足下列成员的类型（含 tcp::client）都自动满足该门面，无需继承：
+///   network::socket& socket();
+///   const network::socket& socket() const;
+///   silicon::scheduler::task<network::connect_status> connect(std::chrono::milliseconds);
+///   silicon::scheduler::task<silicon::coroutine::poll_status> poll(poll_op, std::chrono::milliseconds);
+/// 模板方法（read_some/read_exact/write_some/write_all/recv/send）保留在具体类，
+/// 因 pro·xy 门面无法擦除模板成员。
+PRO_DEF_MEM_DISPATCH(MemTcpClientSocket, socket);
+PRO_DEF_MEM_DISPATCH(MemTcpClientConnect, connect);
+PRO_DEF_MEM_DISPATCH(MemTcpClientPoll, poll);
 
-    [[nodiscard]] virtual auto socket() -> network::socket & = 0;
-    [[nodiscard]] virtual auto socket() const -> const network::socket & = 0;
+struct tcp_client_facade
+    : silicon::proxy::facade_builder                                         //
+      ::add_convention<MemTcpClientSocket,                                  //
+                       network::socket &(),                                 //
+                       const network::socket &() const>                     //
+      ::add_convention<MemTcpClientConnect,                                 //
+                       silicon::scheduler::task<network::connect_status>(std::chrono::milliseconds)> //
+      ::add_convention<MemTcpClientPoll,                                    //
+                       silicon::scheduler::task<silicon::coroutine::poll_status>(
+                               silicon::coroutine::poll_op, std::chrono::milliseconds)> //
+      ::build {};
 
-    virtual auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<network::connect_status> = 0;
+using tcp_client_proxy = silicon::proxy::proxy<tcp_client_facade>;
+using tcp_client_view = silicon::proxy::proxy_view<tcp_client_facade>;
 
-    virtual auto poll(
-            silicon::coroutine::poll_op op,
-            std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
-    ) -> silicon::scheduler::task<silicon::coroutine::poll_status> = 0;
-};
+template<class T, class... Args>
+[[nodiscard]] tcp_client_proxy make_tcp_client_proxy(Args &&...args) {
+    return silicon::proxy::make_proxy<tcp_client_facade, T>(std::forward<Args>(args)...);
+}
 
-/// @brief Abstract interface for a TCP server.
-class i_tcp_server {
-  public:
-    i_tcp_server() = default;
-    i_tcp_server(const i_tcp_server &) = delete;
-    i_tcp_server(i_tcp_server &&) = delete;
-    auto operator=(const i_tcp_server &) -> i_tcp_server & = delete;
-    auto operator=(i_tcp_server &&) -> i_tcp_server & = delete;
-    virtual ~i_tcp_server() = default;
+template<class T>
+    requires silicon::proxy::proxiable_target<T, tcp_client_facade>
+[[nodiscard]] tcp_client_view make_tcp_client_view(T &target) noexcept {
+    return silicon::proxy::make_proxy_view<tcp_client_facade>(target);
+}
 
-    virtual auto accept(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<silicon::coroutine::expected<client, io_status>> = 0;
-};
+/// @brief TCP 服务端门面（tcp_server_facade）定义见本文件下方 client 完整声明之后，
+///        因其 accept 返回类型引用 tcp::client，需待 client 完整声明后方可命名。
+class client;
 
 class server;
 
-class client final: public i_tcp_client {
+class client final {
   public:
     /**
      * Creates a new tcp client that can connect to an ip address + port.
@@ -95,14 +101,14 @@ class client final: public i_tcp_client {
     client(client &&other) noexcept;
     auto operator=(const client &other) noexcept -> client &;
     auto operator=(client &&other) noexcept -> client &;
-    ~client() override;
+    ~client();
 
     /**
      * @return The tcp socket this client is using.
      * @{
      **/
-    [[nodiscard]] auto socket() -> network::socket & override;
-    [[nodiscard]] auto socket() const -> const network::socket & override;
+    [[nodiscard]] auto socket() -> network::socket &;
+    [[nodiscard]] auto socket() const -> const network::socket &;
     /** @} */
 
     /**
@@ -112,7 +118,7 @@ class client final: public i_tcp_client {
      * @return The result status of trying to connect.
      */
     auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<network::connect_status> override;
+            -> silicon::scheduler::task<network::connect_status>;
 
     /**
      * Attempts to asynchronously read data from the socket into the provided buffer.
@@ -222,7 +228,7 @@ class client final: public i_tcp_client {
             -> silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>>;
 
     auto poll(const silicon::coroutine::poll_op op, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<silicon::coroutine::poll_status> override;
+            -> silicon::scheduler::task<silicon::coroutine::poll_status>;
 
     template<
             silicon::coroutine::concepts::mutable_buffer buffer_type,
@@ -248,7 +254,35 @@ class client final: public i_tcp_client {
     client(silicon::scheduler::io_scheduler *scheduler, network::socket_address endpoint, network::socket sock);
 };
 
-class server final: public i_tcp_server {
+/// @brief 类型擦除门面：TCP 服务端的可擦除接口（取代原 i_tcp_server 抽象基类）。
+///
+/// 任何满足下列成员的类型（含 tcp::server）都自动满足该门面，无需继承：
+///   silicon::scheduler::task<silicon::coroutine::expected<client, io_status>> accept(std::chrono::milliseconds);
+/// 因 accept 返回类型引用 tcp::client，本门面定义于 client 完整声明之后。
+PRO_DEF_MEM_DISPATCH(MemTcpServerAccept, accept);
+
+struct tcp_server_facade
+    : silicon::proxy::facade_builder                                                       //
+      ::add_convention<MemTcpServerAccept,                                                 //
+                       silicon::scheduler::task<silicon::coroutine::expected<client, io_status>>(
+                               std::chrono::milliseconds)>                                  //
+      ::build {};
+
+using tcp_server_proxy = silicon::proxy::proxy<tcp_server_facade>;
+using tcp_server_view = silicon::proxy::proxy_view<tcp_server_facade>;
+
+template<class T, class... Args>
+[[nodiscard]] tcp_server_proxy make_tcp_server_proxy(Args &&...args) {
+    return silicon::proxy::make_proxy<tcp_server_facade, T>(std::forward<Args>(args)...);
+}
+
+template<class T>
+    requires silicon::proxy::proxiable_target<T, tcp_server_facade>
+[[nodiscard]] tcp_server_view make_tcp_server_view(T &target) noexcept {
+    return silicon::proxy::make_proxy_view<tcp_server_facade>(target);
+}
+
+class server final {
   public:
     struct options {
         /// The kernel backlog of connections to buffer.
@@ -276,7 +310,7 @@ class server final: public i_tcp_server {
     server(server &&other);
     auto operator=(const server &) -> server & = delete;
     auto operator=(server &&other) -> server &;
-    ~server() override;
+    ~server();
 
     /**
      * Asynchronously waits for an incoming TCP connection and accepts it.
@@ -285,7 +319,7 @@ class server final: public i_tcp_server {
      * @return The newly connected tcp client connection on success or an io_status describing the failure.
      */
     auto accept(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<silicon::coroutine::expected<network::tcp::client, io_status>> override;
+            -> silicon::scheduler::task<silicon::coroutine::expected<network::tcp::client, io_status>>;
 
     /**
      * @return The tcp accept socket this server is using.

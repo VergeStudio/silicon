@@ -31,7 +31,7 @@ target("network", function()
     --     跨模块符号（coroutine/scheduler/task）改用 `import` 而非文本包含。
     -- 依赖方向保持单向：network -> coroutine -> scheduler -> task。
     -- 错误码体系由各模块自维护：silicon.network 内置 network_error + network_category。
-    add_deps("silicon::coroutine", "silicon::scheduler")
+    add_deps("silicon::coroutine", "silicon::scheduler", "silicon::proxy")
 
     add_includedirs("include", {public = true})
     add_packages("c-ares", {public = true})

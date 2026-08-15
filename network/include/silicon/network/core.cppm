@@ -37,10 +37,13 @@ module;
 #include <system_error>
 #include <utility>
 
+#include <silicon/proxy/proxy_macros.h>
+
 export module silicon.network:core;
 export import silicon.network.error;
 
 export import silicon.coroutine;
+import silicon.proxy;
 
 export namespace silicon::network {
 
@@ -301,41 +304,50 @@ class ip_address {
     std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 };
 
-/// @brief Abstract interface for a network socket.
+/// @brief 类型擦除门面：网络套接字的可擦除接口（取代原 i_socket 抽象基类）。
 ///
-/// The concrete socket class (silicon::network::socket) implements this
-/// interface. socket retains its value semantics (copy via dup, move, etc.)
-/// and the virtual destructor is a small extra cost for a thin fd wrapper.
-///
-/// Usage in DI:
-///   c.bind<i_socket>().to<socket>(di::in_unique);
-class i_socket {
-  public:
-    i_socket() = default;
-    i_socket(const i_socket &) = delete;
-    i_socket(i_socket &&) = delete;
-    auto operator=(const i_socket &) -> i_socket & = delete;
-    auto operator=(i_socket &&) -> i_socket & = delete;
+/// 任何满足下列成员的类型（含 network::socket）都自动满足该门面，无需继承：
+///   bool is_ok() const;
+///   bool blocking(int);
+///   bool shutdown(int);
+///   void close();
+///   int native_handle() const;
+/// 句柄语义见 socket_proxy（拥有所有权，值语义）与 socket_view（非拥有观察）。
+PRO_DEF_MEM_DISPATCH(MemSocketIsOk, is_ok);
+PRO_DEF_MEM_DISPATCH(MemSocketBlocking, blocking);
+PRO_DEF_MEM_DISPATCH(MemSocketShutdown, shutdown);
+PRO_DEF_MEM_DISPATCH(MemSocketClose, close);
+PRO_DEF_MEM_DISPATCH(MemSocketNativeHandle, native_handle);
 
-    virtual ~i_socket() = default;
+struct socket_facade
+    : silicon::proxy::facade_builder                                //
+      ::add_convention<MemSocketIsOk, bool() const>                //
+      ::add_convention<MemSocketBlocking, bool(int)>               //
+      ::add_convention<MemSocketShutdown, bool(int)>               //
+      ::add_convention<MemSocketClose, void()>                     //
+      ::add_convention<MemSocketNativeHandle, int() const>         //
+      ::build {};
 
-    /// @brief Returns true if the socket's fd is valid.
-    [[nodiscard]] virtual auto is_ok() const -> bool = 0;
+/// 拥有所有权的类型擦除套接字句柄（值语义；小对象内联，无堆分配）。
+using socket_proxy = silicon::proxy::proxy<socket_facade>;
 
-    /// @brief Sets the socket to the given blocking mode.
-    /// @param block blocking_t::yes or blocking_t::no
-    /// @return true on success.
-    virtual auto blocking(int block) -> bool = 0;
+/// 非拥有观察视图，等价于 `i_socket*` 但不要求继承。
+using socket_view = silicon::proxy::proxy_view<socket_facade>;
 
-    /// @brief Shuts the socket down with the given operations.
-    virtual auto shutdown(int how) -> bool = 0;
+/// 就地构造任意满足 socket_facade 的目标类型并擦除为 socket_proxy。
+/// 注意：network::make_socket(opts, ...) 仍返回值类型 result<socket>，
+/// 此处工厂名 make_socket_proxy 以规避重载冲突。
+template<class T, class... Args>
+[[nodiscard]] socket_proxy make_socket_proxy(Args &&...args) {
+    return silicon::proxy::make_proxy<socket_facade, T>(std::forward<Args>(args)...);
+}
 
-    /// @brief Closes the socket and sets it to an invalid state.
-    virtual auto close() -> void = 0;
-
-    /// @brief Returns the native handle (file descriptor).
-    [[nodiscard]] virtual auto native_handle() const -> int = 0;
-};
+/// 为已存在的对象创建非拥有视图；调用方负责保证生命周期。
+template<class T>
+    requires silicon::proxy::proxiable_target<T, socket_facade>
+[[nodiscard]] socket_view make_socket_view(T &target) noexcept {
+    return silicon::proxy::make_proxy_view<socket_facade>(target);
+}
 
 /**
  * Represents IP address and port.
@@ -509,7 +521,7 @@ inline auto operator<<(std::ostream &os, const socket_address &ep) -> std::ostre
     return os << (text ? *text : std::string{"<invalid socket_address: "} + text.error().message() + ">");
 }
 
-class socket final: public i_socket {
+class socket final {
   public:
     enum class type_t {
         /// udp datagram socket
@@ -549,14 +561,14 @@ class socket final: public i_socket {
     auto operator=(const socket &other) noexcept -> socket &;
     auto operator=(socket &&other) noexcept -> socket &;
 
-    ~socket() override { close(); }
+    ~socket() { close(); }
 
     /**
      * This function returns true if the socket's file descriptor is a valid number, however it does
      * not imply if the socket is still usable.
      * @return True if the socket file descriptor is > 0.
      */
-    [[nodiscard]] auto is_ok() const -> bool override { return m_fd != -1; }
+    [[nodiscard]] auto is_ok() const -> bool { return m_fd != -1; }
 
     explicit operator bool() const { return is_ok(); }
 
@@ -564,24 +576,24 @@ class socket final: public i_socket {
      * @param block Sets the socket to the given blocking mode.
      */
     auto blocking(blocking_t block) -> bool;
-    auto blocking(int block) -> bool override { return blocking(static_cast<blocking_t>(block)); }
+    auto blocking(int block) -> bool { return blocking(static_cast<blocking_t>(block)); }
 
     /**
      * @param how Shuts the socket down with the given operations.
      * @return Returns true if the sockets given operations were shutdown.
      */
     auto shutdown(silicon::coroutine::poll_op how = silicon::coroutine::poll_op::read_write) -> bool;
-    auto shutdown(int how) -> bool override { return shutdown(static_cast<silicon::coroutine::poll_op>(how)); }
+    auto shutdown(int how) -> bool { return shutdown(static_cast<silicon::coroutine::poll_op>(how)); }
 
     /**
      * Closes the socket and sets this socket to an invalid state.
      */
-    auto close() -> void override;
+    auto close() -> void;
 
     /**
      * @return The native handle (file descriptor) for this socket.
      */
-    auto native_handle() const -> int override { return m_fd; }
+    auto native_handle() const -> int { return m_fd; }
 
     /**
      * Accepts a pending incoming connection on a listening (accept) socket.

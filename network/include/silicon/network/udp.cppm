@@ -21,30 +21,48 @@ module;
 #include <memory>
 #include <span>
 
+#include <silicon/proxy/proxy_macros.h>
+
 export module silicon.network:udp;
 
 export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :core;
+import silicon.proxy;
 
 export namespace silicon::network::udp {
 
-/// @brief Abstract interface for a UDP peer.
-class i_udp_peer {
-  public:
-    i_udp_peer() = default;
-    i_udp_peer(const i_udp_peer &) = delete;
-    i_udp_peer(i_udp_peer &&) = delete;
-    auto operator=(const i_udp_peer &) -> i_udp_peer & = delete;
-    auto operator=(i_udp_peer &&) -> i_udp_peer & = delete;
-    virtual ~i_udp_peer() = default;
+/// @brief 类型擦除门面：UDP 对等端的可擦除接口（取代原 i_udp_peer 抽象基类）。
+///
+/// 任何满足下列成员的类型（含 udp::peer）都自动满足该门面，无需继承：
+///   network::socket& socket() noexcept;
+///   const network::socket& socket() const noexcept;
+/// 模板方法（write_to/read_from/sendto/recvfrom）保留在具体类，因 pro·xy 门面无法擦除模板成员。
+PRO_DEF_MEM_DISPATCH(MemUdpPeerSocket, socket);
 
-    virtual auto socket() noexcept -> network::socket & = 0;
-    virtual auto socket() const noexcept -> const network::socket & = 0;
-};
+struct udp_peer_facade
+    : silicon::proxy::facade_builder                  //
+      ::add_convention<MemUdpPeerSocket,             //
+                       network::socket &() noexcept, //
+                       const network::socket &() const noexcept> //
+      ::build {};
 
-class peer final: public i_udp_peer {
+using udp_peer_proxy = silicon::proxy::proxy<udp_peer_facade>;
+using udp_peer_view = silicon::proxy::proxy_view<udp_peer_facade>;
+
+template<class T, class... Args>
+[[nodiscard]] udp_peer_proxy make_udp_peer_proxy(Args &&...args) {
+    return silicon::proxy::make_proxy<udp_peer_facade, T>(std::forward<Args>(args)...);
+}
+
+template<class T>
+    requires silicon::proxy::proxiable_target<T, udp_peer_facade>
+[[nodiscard]] udp_peer_view make_udp_peer_view(T &target) noexcept {
+    return silicon::proxy::make_proxy_view<udp_peer_facade>(target);
+}
+
+class peer final {
   public:
     /**
      * Creates a udp peer that can send packets but not receive them.  This udp peer will not explicitly
@@ -73,17 +91,17 @@ class peer final: public i_udp_peer {
     peer(peer &&) noexcept;
     auto operator=(const peer &) noexcept -> peer &;
     auto operator=(peer &&) noexcept -> peer &;
-    ~peer() override;
+    ~peer();
 
     /**
      * @return A reference to the underlying socket.
      */
-    auto socket() noexcept -> network::socket & override;
+    auto socket() noexcept -> network::socket &;
 
     /**
      * @return A const reference to the underlying socket.
      */
-    auto socket() const noexcept -> const network::socket & override;
+    auto socket() const noexcept -> const network::socket &;
 
     /**
      * @param peer_info The peer to send the data to.
