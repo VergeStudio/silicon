@@ -4857,7 +4857,7 @@ struct context_closure : context_closure_base {
     context_closure(const context_closure&) = delete;
     context_closure& operator=(const context_closure&) = delete;
 
-    void reset() override {
+    void reset() {
         if (!destructibles_.empty()) {
             for (auto it = destructibles_.rbegin(); it != destructibles_.rend();
                  ++it) {
@@ -4959,7 +4959,7 @@ struct fixed_context_closure : context_closure_base {
     fixed_context_closure(const fixed_context_closure&) = delete;
     fixed_context_closure& operator=(const fixed_context_closure&) = delete;
 
-    void reset() override {
+    void reset() {
         while (destructible_count_ != 0) {
             auto& destructible = destructibles_[--destructible_count_];
             destructible.dtor(destructible.instance);
@@ -13378,11 +13378,8 @@ construct_static_binding_value(ResolveNormalized&& resolve_normalized) {
 
 
 export namespace silicon::di {
-class resettable {
-  public:
-    virtual ~resettable() = default;
-    virtual void reset() = 0;
-};
+// resettable 抽象基类已移除：全仓无多态持有者（3 个 storage 策略仅继承之），
+// 鸭子类型即满足，无需 proxy 门面（无类型擦除消费者）。
 } // export namespace silicon::di
 
 // --- storage/external.h ---
@@ -13633,7 +13630,7 @@ class storage_instance<external, Type*, StoredType, void> {
 template <typename Type, typename StoredType, typename Factory,
           typename Conversions>
 class storage<external, Type, StoredType, Factory, Conversions>
-    : public resettable {
+    {
     storage_instance<external, Type, StoredType, void> instance_;
 
   public:
@@ -13651,7 +13648,7 @@ class storage<external, Type, StoredType, Factory, Conversions>
     }
     constexpr bool is_resolved() const { return true; }
 
-    void reset() override {}
+    void reset() {}
 };
 
 } // export namespace silicon::di
@@ -14028,7 +14025,7 @@ class storage_instance<shared, Type*, StoredType*, Factory>
 template <typename Type, typename StoredType, typename Factory,
           typename Conversions>
 class storage<shared, Type, StoredType, Factory, Conversions>
-    : public resettable {
+    {
     // TODO
     // static_assert(std::is_trivially_destructible_v< Type > ==
     // std::is_trivially_destructible_v< storage_instance< Type, shared > >);
@@ -14051,7 +14048,7 @@ class storage<shared, Type, StoredType, Factory, Conversions>
     }
 
     bool is_resolved() const { return !instance_.empty(); }
-    void reset() override { instance_.reset(); }
+    void reset() { instance_.reset(); }
 };
 
 } // export namespace silicon::di
@@ -14297,7 +14294,7 @@ class storage_instance<shared_cyclical, std::shared_ptr<Type>,
 template <typename Type, typename StoredType, typename Factory,
           typename Conversions>
 class storage<shared_cyclical, Type, StoredType, Factory, Conversions>
-    : public resettable {
+    {
     struct conversion_entry {
         explicit conversion_entry(type_descriptor key) : descriptor(key) {}
         virtual ~conversion_entry() = default;
@@ -14371,7 +14368,7 @@ class storage<shared_cyclical, Type, StoredType, Factory, Conversions>
 
     bool is_resolved() const { return !instance_.empty(); }
 
-    void reset() override {
+    void reset() {
         // Graph objects can keep references to rebound shared_ptr interface
         // handles stored in `conversions_`. Destroy the object graph first so
         // those references stay valid for any destructor work.
