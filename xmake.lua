@@ -23,7 +23,15 @@ if is_mode("release") then
     end
 end
 
-set_toolchains("clang")
+-- 工具链选择：
+--   Windows 使用 MSVC —— MSVC 原生随附 C++ 标准库模块（import std; 可直接使用），
+--   而本机 clang 无预编译 std 模块 BMI，无法编译 import std;。
+--   非 Windows 平台继续用 clang。
+if is_plat("windows") then
+    set_toolchains("msvc")
+else
+    set_toolchains("clang")
+end
 
 -- ── 平台宏（全仓唯一来源 / single source of truth）──────────────────────────
 -- SILICON_PLATFORM_* 在构建系统顶层统一定义，供所有模块（含 C++20 模块实现单元、
