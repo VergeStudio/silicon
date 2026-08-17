@@ -13,7 +13,7 @@ target("ai", function()
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("ai.config.cppm.in")
-    add_files("$(builddir)/silicon/ai/config.*.cppm", {public = true})
+    add_files("$(builddir)/silicon/config/ai.*.cppm", {public = true})
 end)
 
 target("ai.test", function()
