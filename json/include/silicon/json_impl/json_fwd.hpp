@@ -1,9 +1,9 @@
 //     __ _____ _____ _____
-//  __|  |   __|     |   | |  JSON for Modern C++
+//  __|  |   __|     |   | |  silicon JSON
 // |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/silicon/json
+// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
 //
-// SPDX-FileCopyrightText: 2013-2023 Niels Lohmann <https://silicon.me>
+// SPDX-FileCopyrightText: silicon contributors
 // SPDX-License-Identifier: MIT
 
 #ifndef INCLUDE_SILICON_JSON_FWD_HPP_
@@ -17,7 +17,7 @@
 #include <vector> // vector
 
 /*!
-@brief namespace for Niels Lohmann
+@brief namespace for silicon JSON
 @see https://github.com/silicon
 @since version 1.0.0
 */

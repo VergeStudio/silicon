@@ -1,9 +1,9 @@
 //     __ _____ _____ _____
-//  __|  |   __|     |   | |  JSON for Modern C++
+//  __|  |   __|     |   | |  silicon JSON
 // |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/silicon/json
+// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
 //
-// SPDX-FileCopyrightText: 2013-2023 Niels Lohmann <https://silicon.me>
+// SPDX-FileCopyrightText: silicon contributors
 // SPDX-License-Identifier: MIT
 
 /****************************************************************************\
@@ -68,7 +68,7 @@
 #endif
 
 /*!
-@brief namespace for Niels Lohmann
+@brief namespace for silicon JSON
 @see https://github.com/silicon
 @since version 1.0.0
 */
@@ -244,9 +244,9 @@ silicon_BASIC_JSON_TPL_DECLARATION class basic_json // NOLINT(cppcoreguidelines-
     static basic_json meta() {
         basic_json result;
 
-        result["copyright"] = "(C) 2013-2023 Niels Lohmann";
-        result["name"] = "JSON for Modern C++";
-        result["url"] = "https://github.com/silicon/json";
+        result["copyright"] = "(C) silicon contributors";
+        result["name"] = "silicon JSON";
+        result["url"] = "https://github.com/VergeStudio/silicon";
         result["version"]["string"] =
                 detail::concat(std::to_string(SILICON_JSON_VERSION_MAJOR), '.', std::to_string(SILICON_JSON_VERSION_MINOR), '.', std::to_string(SILICON_JSON_VERSION_PATCH));
         result["version"]["major"] = SILICON_JSON_VERSION_MAJOR;
