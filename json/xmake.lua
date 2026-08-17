@@ -12,10 +12,8 @@ target("json", function()
     add_headerfiles("include/silicon/json/**.hpp")
     add_headerfiles("include/silicon/json_impl/**.hpp")
 
-    -- silicon.exception 模块由 core 目标编译（core/include/silicon/core/exception/exception.cppm），
-    -- 独立的 silicon::exception target 并不存在，依赖 core 以获取其 BMI。
-    add_deps("silicon::core")
-
+    -- json 模块的异常层级沿用上游 nlohmann 设计（detail::exception 派生自 std::exception），
+    -- 不依赖 silicon::exception，故无需附加 silicon 模块依赖。
     add_files("include/silicon/json/**.cppm", {public = true})
 end)
 

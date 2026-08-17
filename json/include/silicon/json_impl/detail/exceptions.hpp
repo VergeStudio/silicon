@@ -33,7 +33,7 @@ namespace detail {
 
 /// @brief general exception of the @ref basic_json class
 /// @sa https://json.silicon.me/api/basic_json/exception/
-class exception: public ::silicon::exception::Exception {
+class exception: public std::exception {
   public:
     /// returns the explanatory string
     const char *what() const noexcept override {
