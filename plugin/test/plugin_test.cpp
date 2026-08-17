@@ -121,7 +121,7 @@ TEST_CASE("proxy_plugin_registry: 移除触发 on_unload") {
 
 TEST_CASE("proxy_plugin_registry: 混合注册可擦除目标与鸭子类型") {
     proxy_plugin_registry reg;
-    CHECK(reg.register_plugin(std::make_shared<TestPlugin>()).has_value());   // 继承体系
+    CHECK(reg.register_plugin(std::make_shared<TestPlugin>()).has_value());   // shared_ptr 擦除（鸭子类型，无需继承）
     CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "d"}).has_value()); // 非侵入式
     CHECK(reg.list().size() == 2);
     CHECK(reg.get("test") != nullptr);
