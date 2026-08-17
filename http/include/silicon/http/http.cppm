@@ -93,7 +93,7 @@ struct http_request {
 
 };
 
-/// HTTP 客户端门面（type-erased，鸭子类型满足即可；取消抽象基类）
+/// HTTP 客户端门面（type-erased，鸭子类型满足即可）
 PRO_DEF_MEM_DISPATCH(MemHttpClientRequest, request);
 struct http_client_facade : silicon::proxy::facade_builder
     ::add_convention<MemHttpClientRequest,

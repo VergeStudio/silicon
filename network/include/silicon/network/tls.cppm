@@ -184,7 +184,7 @@ class context {
     auto native_handle() const -> const SSL_CTX * { return m_ssl_ctx; }
 };
 
-/// @brief 类型擦除门面：TLS 客户端的可擦除接口（取代原 i_tls_client 抽象基类）。
+/// @brief 类型擦除门面：TLS 客户端的可擦除接口。
 ///
 /// 任何满足下列成员的类型（含 tls::client）都自动满足该门面，无需继承：
 ///   silicon::scheduler::task<connection_status> connect(std::chrono::milliseconds);
@@ -538,7 +538,7 @@ class client final {
     auto tls_shutdown_and_free(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<void>;
 };
 
-/// @brief 类型擦除门面：TLS 服务端的可擦除接口（取代原 i_tls_server 抽象基类）。
+/// @brief 类型擦除门面：TLS 服务端的可擦除接口。
 ///
 /// 任何满足下列成员的类型（含 tls::server）都自动满足该门面，无需继承：
 ///   silicon::scheduler::task<silicon::coroutine::poll_status> poll(std::chrono::milliseconds);

@@ -35,9 +35,8 @@ module;
 export module silicon.scheduler:io_scheduler;
 export import silicon.scheduler.error;
 
-// io_scheduler 原为 silicon.coroutine:scheduler；其依赖的调度原语已一并迁入
-// 本模块，故重新使用同模块分区 import。协程 task 类型来自独立模块
-// silicon.scheduler.task。
+// io_scheduler 与调度原语同处本模块，复用同模块分区 import；协程 task
+// 类型来自独立模块 silicon.scheduler.task。
 import :concepts.range_of;
 import :awaiter_list;
 import :pipe;

@@ -23,7 +23,7 @@ import silicon.proxy;
 
 export namespace silicon::cli {
 
-// ── 类型擦除门面（silicon.proxy，替代原 i_parser 抽象基类） ─────────
+// ── 类型擦除门面（silicon.proxy）─────────
 //
 // 目标类型无需继承任何基类，只要拥有 `Parse` 成员即自动满足门面（鸭子类型）。
 // 既有的具体类 Parser 直接接入，不再耦合任何继承体系。

@@ -20,7 +20,7 @@ export import silicon.tui.error;
 
 export namespace silicon::tui {
 
-// ── 终端抽象（取消抽象基类，改为 silicon.proxy type-erased 门面）──
+// ── 终端抽象（silicon.proxy type-erased 门面）──
 
 PRO_DEF_MEM_DISPATCH(MemTerminalType, terminal_type);
 PRO_DEF_MEM_DISPATCH(MemTerminalWidth, width);
@@ -62,7 +62,7 @@ class default_terminal {
 };
 #endif
 
-// ── PTY 抽象（取消抽象基类，改为 silicon.proxy type-erased 门面）──
+// ── PTY 抽象（silicon.proxy type-erased 门面）──
 
 PRO_DEF_MEM_DISPATCH(MemPtyCreate, create);
 PRO_DEF_MEM_DISPATCH(MemPtyWrite, write);
@@ -89,7 +89,7 @@ template <class T>
     return silicon::proxy::make_proxy_view<pty_facade>(target);
 }
 
-// ── TUI 渲染器（取消抽象基类，改为 silicon.proxy type-erased 门面）──
+// ── TUI 渲染器（silicon.proxy type-erased 门面）──
 
 PRO_DEF_MEM_DISPATCH(MemRendererRender, render);
 PRO_DEF_MEM_DISPATCH(MemRendererClear, clear);

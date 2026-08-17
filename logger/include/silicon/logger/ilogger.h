@@ -14,7 +14,7 @@ enum class log_level : std::uint8_t {
     kOff,
 };
 
-/// @brief logger 接口已由 silicon.proxy 门面承载（见 logger.cppm 的 logger_facade）。
-/// 具体实现（default_logger）以鸭子类型满足门面，无需继承抽象基类。
+/// @brief logger 接口的类型擦除门面定义于 logger.cppm（logger_facade）。
+/// 具体实现（default_logger）以鸭子类型满足门面，无需继承。
 
 } // namespace silicon::logger

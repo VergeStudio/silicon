@@ -33,7 +33,7 @@ import silicon.proxy;
 
 export namespace silicon::network::udp {
 
-/// @brief 类型擦除门面：UDP 对等端的可擦除接口（取代原 i_udp_peer 抽象基类）。
+/// @brief 类型擦除门面：UDP 对等端的可擦除接口。
 ///
 /// 任何满足下列成员的类型（含 udp::peer）都自动满足该门面，无需继承：
 ///   network::socket& socket() noexcept;

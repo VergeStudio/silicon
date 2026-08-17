@@ -15,7 +15,7 @@ import silicon.proxy;
 
 export namespace silicon::scheduler {
 
-/// @brief 调度器统一行为规范（type-erased 门面，鸭子类型满足即可；取消抽象基类）。
+/// @brief 调度器统一行为规范（type-erased 门面，鸭子类型满足即可）。
 ///
 /// silicon 中所有可执行协程的调度器（CPU 密集型的 thread_pool、事件驱动的
 /// io_scheduler、inline_scheduler / parallel_scheduler / run_loop）只要满足本门面

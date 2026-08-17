@@ -53,7 +53,7 @@ class condition_variable {
         kAwaiterDead,
     };
 
-    // on_notify 接口：类型擦除门面（替代原 awaiter_base 的纯虚 on_notify）。
+    // on_notify 接口：类型擦除门面
     // awaiter_base 仍作为侵入式链表节点（m_next）被以 awaiter_base* 持有，
     // on_notify 经内部类型擦除 strategy_ 分派到具体 awaiter 的 do_on_notify。
     PRO_DEF_MEM_DISPATCH(MemNotify, on_notify);

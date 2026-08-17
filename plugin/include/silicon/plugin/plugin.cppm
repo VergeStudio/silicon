@@ -30,10 +30,9 @@ using result = std::expected<T, std::error_code>;
 
 /// 插件生命周期
 ///
-/// 已全面 proxy 化：原 i_plugin 抽象基类删除，生命周期由 plugin_facade
-/// 以类型擦除描述（name / on_load / on_unload / on_reload）。任意满足
-/// 该门面的类型（含既有的 shared_ptr<X>，只要 X 具约定成员）皆可擦除为
-/// plugin_proxy / plugin_view，无需继承任何基类。
+/// 插件生命周期由 plugin_facade 以类型擦除描述（name / on_load / on_unload /
+/// on_reload）。任意满足该门面的类型（含既有的 shared_ptr<X>，只要 X 具约定成员）
+/// 皆可擦除为 plugin_proxy / plugin_view，无需继承任何基类。
 
 /// 经典注册表（基于 proxy 句柄）。与 proxy_plugin_registry 并存：
 /// 前者保留 shared_ptr 风格的 `name()` 查询 API（register_plugin/get_plugin/

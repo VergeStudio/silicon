@@ -25,7 +25,7 @@ export import silicon.ai.llm.types;
 
 export namespace silicon::ai::llm {
 
-// ── 类型擦除门面（silicon.proxy，替代原 i_* 抽象基类） ─────────────
+// ── 类型擦除门面（silicon.proxy）─────────────
 //
 // 目标类型无需继承任何基类，只要拥有匹配签名的成员即自动满足门面（鸭子
 // 类型）。既有的具体类 scripted_provider / http_provider /

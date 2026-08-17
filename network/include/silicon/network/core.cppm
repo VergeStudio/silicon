@@ -304,7 +304,7 @@ class ip_address {
     std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 };
 
-/// @brief 类型擦除门面：网络套接字的可擦除接口（取代原 i_socket 抽象基类）。
+/// @brief 类型擦除门面：网络套接字的可擦除接口。
 ///
 /// 任何满足下列成员的类型（含 network::socket）都自动满足该门面，无需继承：
 ///   bool is_ok() const;

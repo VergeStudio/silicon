@@ -4842,7 +4842,7 @@ struct context_destructible {
     void (*dtor)(void*);
 };
 
-// context_closure 接口：类型擦除门面（替代原抽象基类 context_closure_base 的纯虚方法）
+// context_closure 接口：类型擦除门面
 PRO_DEF_MEM_DISPATCH(MemClosureReset, reset);
 PRO_DEF_MEM_DISPATCH(MemClosureArena, arena_storage);
 PRO_DEF_MEM_DISPATCH(MemClosureAddDtor, add_destructor);
@@ -13417,7 +13417,6 @@ construct_static_binding_value(ResolveNormalized&& resolve_normalized) {
 
 
 export namespace silicon::di {
-// resettable 抽象基类已移除：全仓无多态持有者（3 个 storage 策略仅继承之），
 // 鸭子类型即满足，无需 proxy 门面（无类型擦除消费者）。
 } // export namespace silicon::di
 

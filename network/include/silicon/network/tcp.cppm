@@ -36,7 +36,7 @@ import silicon.proxy;
 
 export namespace silicon::network::tcp {
 
-/// @brief 类型擦除门面：TCP 客户端的可擦除接口（取代原 i_tcp_client 抽象基类）。
+/// @brief 类型擦除门面：TCP 客户端的可擦除接口。
 ///
 /// 任何满足下列成员的类型（含 tcp::client）都自动满足该门面，无需继承：
 ///   network::socket& socket();
@@ -254,7 +254,7 @@ class client final {
     client(silicon::scheduler::io_scheduler *scheduler, network::socket_address endpoint, network::socket sock);
 };
 
-/// @brief 类型擦除门面：TCP 服务端的可擦除接口（取代原 i_tcp_server 抽象基类）。
+/// @brief 类型擦除门面：TCP 服务端的可擦除接口。
 ///
 /// 任何满足下列成员的类型（含 tcp::server）都自动满足该门面，无需继承：
 ///   silicon::scheduler::task<silicon::coroutine::expected<client, io_status>> accept(std::chrono::milliseconds);

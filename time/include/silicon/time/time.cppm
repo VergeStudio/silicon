@@ -15,7 +15,7 @@ import silicon.proxy;
 
 export namespace silicon::time {
 
-/// 时钟门面（type-erased，鸭子类型满足即可；取消抽象基类）
+/// 时钟门面（type-erased，鸭子类型满足即可）
 PRO_DEF_MEM_DISPATCH(MemClockNow, now);
 PRO_DEF_MEM_DISPATCH(MemClockNowMs, now_ms);
 struct clock_facade : silicon::proxy::facade_builder
@@ -46,7 +46,7 @@ class system_clock {
     std::int64_t now_ms() const;
 };
 
-/// 日期源门面：提供当前日期字符串（取消抽象基类）
+/// 日期源门面：提供当前日期字符串
 PRO_DEF_MEM_DISPATCH(MemDateSourceCurrentDate, current_date);
 struct date_source_facade : silicon::proxy::facade_builder
     ::add_convention<MemDateSourceCurrentDate, std::string() const>::build {};

@@ -23,7 +23,7 @@ export namespace silicon::fs {
 template<typename T>
 using result = std::expected<T, std::error_code>;
 
-// ── 类型擦除门面（silicon.proxy，替代原 i_file_system 抽象基类） ─────
+// ── 类型擦除门面（silicon.proxy）─────
 //
 // 目标类型无需继承任何基类，只要拥有下列同名成员即自动满足门面（鸭子类型）。
 // 既有的具体类 win32_file_system / posix_file_system 直接接入，不再耦合继承体系。

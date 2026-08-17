@@ -204,7 +204,7 @@ export namespace silicon::platform {
             return "";
     }
 
-    // ── Runtime abstraction（取消抽象基类，改为 silicon.proxy type-erased 门面）──
+    // ── Runtime abstraction（silicon.proxy type-erased 门面）──
 
     // 平台门面：鸭子类型满足即可（os_name / path_separator / line_ending 三约定）。
     PRO_DEF_MEM_DISPATCH(MemPlatformOsName, os_name);

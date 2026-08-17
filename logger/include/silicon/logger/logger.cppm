@@ -22,7 +22,7 @@ export namespace silicon::logger {
 
 using ::silicon::logger::log_level;
 
-// logger 接口：类型擦除门面（替代原抽象基类 logger）
+// logger 接口：类型擦除门面
 PRO_DEF_MEM_DISPATCH(MemLoggerTrace, trace);
 PRO_DEF_MEM_DISPATCH(MemLoggerDebug, debug);
 PRO_DEF_MEM_DISPATCH(MemLoggerInfo, info);
