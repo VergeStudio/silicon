@@ -1,8 +1,7 @@
 module;
 
-// Local fork of nlohmann/json, adapted to silicon namespace.
-// All types live in silicon::json_impl; the public type silicon::json::json
-// is re-exported below.
+// silicon JSON module — all types live in silicon::json_impl; the public
+// type silicon::json::json is re-exported below.
 #include <silicon/json_impl/json.hpp>
 
 export module silicon.json;
