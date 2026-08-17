@@ -14,6 +14,8 @@ module;
 #include <optional>
 #include <utility>
 
+#include <silicon/proxy/proxy_macros.h>
+
 
 #ifdef LIBCORO_FEATURE_NETWORKING
 #    include <stop_token>
@@ -33,6 +35,7 @@ import silicon.scheduler.task;
 import :event;
 import :mutex;
 import :when_any;
+import silicon.proxy;
 
 export namespace silicon::coroutine {
 
@@ -50,9 +53,39 @@ class condition_variable {
         kAwaiterDead,
     };
 
+    // on_notify 接口：类型擦除门面（替代原 awaiter_base 的纯虚 on_notify）。
+    // awaiter_base 仍作为侵入式链表节点（m_next）被以 awaiter_base* 持有，
+    // on_notify 经内部类型擦除 strategy_ 分派到具体 awaiter 的 do_on_notify。
+    PRO_DEF_MEM_DISPATCH(MemNotify, on_notify);
+
+    struct notify_facade
+        : silicon::proxy::facade_builder
+          ::add_convention<MemNotify, silicon::scheduler::task<notify_status_t>()>
+          ::build {};
+
+    using notify_proxy = silicon::proxy::proxy<notify_facade>;
+    using notify_view = silicon::proxy::proxy_view<notify_facade>;
+
+    template<class T, class... Args>
+    [[nodiscard]] notify_proxy make_notify(Args &&...args) {
+        return silicon::proxy::make_proxy<notify_facade, T>(std::forward<Args>(args)...);
+    }
+
+    template<class T>
+    [[nodiscard]] notify_view make_notify_view(T &target) noexcept {
+        return silicon::proxy::make_proxy_view<notify_facade>(target);
+    }
+
+    // 适配器：把具体 awaiter 的 do_on_notify 桥接到 notify_facade。
+    template<class Awaiter>
+    struct notify_strategy {
+        Awaiter* self;
+        silicon::scheduler::task<notify_status_t> on_notify() { return self->do_on_notify(); }
+    };
+
     struct awaiter_base {
         awaiter_base(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l);
-        virtual ~awaiter_base() = default;
+        ~awaiter_base() = default;
 
         awaiter_base(const awaiter_base &) = delete;
         awaiter_base(awaiter_base &&) = delete;
@@ -68,14 +101,16 @@ class condition_variable {
         /// @brief The lock that the wait() was called with.
         silicon::coroutine::scoped_lock &m_lock;
 
-        /// @brief Each awaiter type defines its own notify behavior.
-        /// @return The status of if the waiter's notify result.
-        virtual auto on_notify() -> silicon::scheduler::task<notify_status_t> = 0;
+        /// @brief 类型擦除 on_notify：经 strategy_ 分派到具体 awaiter 的 do_on_notify。
+        notify_proxy strategy_{};
+        auto on_notify() -> silicon::scheduler::task<notify_status_t> {
+            return strategy_.on_notify();
+        }
     };
 
     struct awaiter: public awaiter_base {
         awaiter(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l) noexcept;
-        ~awaiter() override = default;
+        ~awaiter() = default;
 
         awaiter(const awaiter &) = delete;
         awaiter(awaiter &&) = delete;
@@ -86,12 +121,12 @@ class condition_variable {
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
         auto await_resume() noexcept {}
 
-        auto on_notify() -> silicon::scheduler::task<notify_status_t> override;
+        auto do_on_notify() -> silicon::scheduler::task<notify_status_t>;
     };
 
     struct awaiter_with_predicate: public awaiter_base {
         awaiter_with_predicate(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, predicate_type p) noexcept;
-        ~awaiter_with_predicate() override = default;
+        ~awaiter_with_predicate() = default;
 
         awaiter_with_predicate(const awaiter_with_predicate &) = delete;
         awaiter_with_predicate(awaiter_with_predicate &&) = delete;
@@ -102,7 +137,7 @@ class condition_variable {
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
         auto await_resume() noexcept {}
 
-        auto on_notify() -> silicon::scheduler::task<notify_status_t> override;
+        auto do_on_notify() -> silicon::scheduler::task<notify_status_t>;
 
         /// @brief The wait predicate to execute on notify.
         predicate_type m_predicate;
@@ -114,7 +149,7 @@ class condition_variable {
         awaiter_with_predicate_stop_token(
                 silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, predicate_type p, std::stop_token stop_token
         ) noexcept;
-        ~awaiter_with_predicate_stop_token() override = default;
+        ~awaiter_with_predicate_stop_token() = default;
 
         awaiter_with_predicate_stop_token(const awaiter_with_predicate_stop_token &) = delete;
         awaiter_with_predicate_stop_token(awaiter_with_predicate_stop_token &&) = delete;
@@ -125,7 +160,7 @@ class condition_variable {
         auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
         auto await_resume() noexcept -> bool { return m_predicate_result; }
 
-        auto on_notify() -> silicon::scheduler::task<notify_status_t> override;
+        auto do_on_notify() -> silicon::scheduler::task<notify_status_t>;
 
         /// @brief The wait predicate to execute on notify.
         predicate_type m_predicate;
@@ -184,9 +219,9 @@ class condition_variable {
      */
     struct awaiter_with_wait_hook: public awaiter_base {
         awaiter_with_wait_hook(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, controller_data &data) noexcept;
-        ~awaiter_with_wait_hook() override = default;
+        ~awaiter_with_wait_hook() = default;
 
-        auto on_notify() -> silicon::scheduler::task<notify_status_t> override;
+        auto do_on_notify() -> silicon::scheduler::task<notify_status_t>;
 
         controller_data &m_data;
     };
@@ -206,8 +241,9 @@ class condition_variable {
               m_wait_for(wait_for),
               m_predicate(std::move(predicate)),
               m_stop_token(std::move(stop_token)) {
+            strategy_ = make_notify<notify_strategy<awaiter_with_wait>>(this);
         }
-        ~awaiter_with_wait() override = default;
+        ~awaiter_with_wait() = default;
 
         awaiter_with_wait(const awaiter_with_wait &) = delete;
         awaiter_with_wait(awaiter_with_wait &&) = delete;
@@ -313,7 +349,7 @@ class condition_variable {
             }
         }
 
-        auto on_notify() -> silicon::scheduler::task<notify_status_t> override { std::unreachable(); }
+        auto do_on_notify() -> silicon::scheduler::task<notify_status_t> { std::unreachable(); }
 
         /// @brief The io_executor used to wait for the timeout.
         std::unique_ptr<io_executor_type> &m_executor;
