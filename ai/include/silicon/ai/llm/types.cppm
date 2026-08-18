@@ -21,7 +21,7 @@ using result = std::expected<T, std::error_code>;
 
 struct message {
 
-    struct impl;                 // 完整定义下沉至 types.cpp（message 非模版）
+    struct impl; // 完整定义下沉至 types.cpp（message 非模版）
     std::shared_ptr<impl> impl_;
 
   public:
@@ -40,14 +40,13 @@ struct message {
     const std::string &content() const;
     std::string &tool_call_id();
     const std::string &tool_call_id() const;
-
 };
 
 using conversation = std::vector<message>;
 
 struct model_request_options {
 
-    struct impl;                 // 完整定义下沉至 types.cpp（model_request_options 非模版）
+    struct impl; // 完整定义下沉至 types.cpp（model_request_options 非模版）
     std::shared_ptr<impl> impl_;
 
   public:
@@ -66,7 +65,6 @@ struct model_request_options {
     const int32_t &max_tokens() const;
     std::map<std::string, std::string, std::less<>> &extra();
     const std::map<std::string, std::string, std::less<>> &extra() const;
-
 };
 
 struct chat_response {
@@ -90,12 +88,11 @@ struct chat_response {
     const int32_t &prompt_tokens() const;
     int32_t &completion_tokens();
     const int32_t &completion_tokens() const;
-
 };
 
 struct tool_call {
 
-    struct impl;                 // 完整定义下沉至 types.cpp（tool_call 非模版）
+    struct impl; // 完整定义下沉至 types.cpp（tool_call 非模版）
     std::shared_ptr<impl> impl_;
 
   public:
@@ -114,12 +111,11 @@ struct tool_call {
     const std::string &name() const;
     std::string &arguments();
     const std::string &arguments() const;
-
 };
 
 struct tool_output {
 
-    struct impl;                 // 完整定义下沉至 types.cpp（tool_output 非模版）
+    struct impl; // 完整定义下沉至 types.cpp（tool_output 非模版）
     std::shared_ptr<impl> impl_;
 
   public:
@@ -136,7 +132,6 @@ struct tool_output {
     const bool &truncated() const;
     std::string &managed_output_path();
     const std::string &managed_output_path() const;
-
 };
 
 } // namespace silicon::ai::llm

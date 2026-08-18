@@ -4,6 +4,7 @@ module;
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <expected>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -14,7 +15,6 @@ module;
 #include <string_view>
 #include <system_error>
 #include <vector>
-#include <expected>
 
 module silicon.ai.llm;
 import silicon.ai.llm.error;
@@ -32,7 +32,7 @@ struct http_provider::http_result::impl {
     std::string body_;
 };
 
-http_provider::http_result::http_result() : impl_(std::make_shared<impl>()) {}
+http_provider::http_result::http_result(): impl_(std::make_shared<impl>()) {}
 http_provider::http_result::http_result(const http_result &o): impl_(std::make_shared<impl>(*o.impl_)) {}
 http_provider::http_result &http_provider::http_result::operator=(const http_result &o) {
     if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
@@ -46,9 +46,39 @@ const int &http_provider::http_result::status() const { return impl_->status_; }
 std::string &http_provider::http_result::body() { return impl_->body_; }
 const std::string &http_provider::http_result::body() const { return impl_->body_; }
 
-tool_registry::tool_registry() : impl_(std::make_unique<impl>()) {}
-provider_registry::provider_registry() : impl_(std::make_unique<impl>()) {}
-scripted_provider::scripted_provider() : impl_(std::make_unique<impl>()) {}
+// ── 注册表 / provider PIMPL ─────────────────────────────────────
+
+struct tool_registry::impl {
+  public:
+    std::map<std::string, tool_proxy, std::less<>> tools_;
+};
+
+struct provider_registry::impl {
+  public:
+    std::map<std::string, provider_proxy, std::less<>> providers_;
+};
+
+struct scripted_provider::impl {
+  public:
+    std::queue<chat_response> queue_;
+};
+
+struct http_provider::impl {
+  public:
+    std::string base_url_;
+    std::string api_key_;
+    std::string model_;
+    json_protocol_adapter adapter_;
+};
+
+tool_registry::tool_registry(): impl_(std::make_unique<impl>()) {}
+tool_registry::~tool_registry() = default;
+
+provider_registry::provider_registry(): impl_(std::make_unique<impl>()) {}
+provider_registry::~provider_registry() = default;
+
+scripted_provider::scripted_provider(): impl_(std::make_unique<impl>()) {}
+scripted_provider::~scripted_provider() = default;
 
 bool tool_registry::register_tool(tool_proxy tool) {
     auto name = std::string(tool->name());
@@ -86,8 +116,7 @@ std::string json_protocol_adapter::encode_request(
     JsonValue req = JsonValue::object();
     req["model"] = JsonValue(opts.model());
     req["temperature"] = JsonValue(opts.temperature());
-    req["max_tokens"] =
-            JsonValue(static_cast<std::int64_t>(opts.max_tokens()));
+    req["max_tokens"] = JsonValue(static_cast<std::int64_t>(opts.max_tokens()));
 
     JsonValue messages = JsonValue::array();
     for(const auto &m: conv) {
@@ -140,10 +169,10 @@ result<chat_response> json_protocol_adapter::decode_response(std::string_view ra
        u != v.end() && u->is_object()) {
         if(auto pt = u->find("prompt_tokens");
            pt != u.end() && pt->is_number_integer())
-            resp.prompt_tokens() = static_cast<int32_t>((*pt).get<std::int64_t>());
+            resp.prompt_tokens() = static_cast<std::int32_t>((*pt).get<std::int64_t>());
         if(auto ct = u->find("completion_tokens");
            ct != u.end() && ct->is_number_integer())
-            resp.completion_tokens() = static_cast<int32_t>((*ct).get<std::int64_t>());
+            resp.completion_tokens() = static_cast<std::int32_t>((*ct).get<std::int64_t>());
     }
     return result<chat_response>(std::move(resp));
 }
@@ -211,11 +240,13 @@ http_provider::http_result http_provider::post_json(const std::string &url, cons
     return r;
 }
 
-http_provider::http_provider() {
+http_provider::http_provider(): impl_(std::make_unique<impl>()) {
     impl_->base_url_ = env_or("SILICONBUDDY_LLM_BASE_URL", "https://api.openai.com/v1");
     impl_->api_key_ = env_or("SILICONBUDDY_LLM_API_KEY", "");
     impl_->model_ = env_or("SILICONBUDDY_LLM_MODEL", "gpt-4o-mini");
 }
+
+http_provider::~http_provider() = default;
 
 bool http_provider::configured() const { return !impl_->api_key_.empty(); }
 

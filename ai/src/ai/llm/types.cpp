@@ -20,7 +20,7 @@ struct chat_response::impl {
     int32_t completion_tokens_ = 0;
 };
 
-chat_response::chat_response() : impl_(std::make_shared<impl>()) {}
+chat_response::chat_response(): impl_(std::make_shared<impl>()) {}
 chat_response::chat_response(const chat_response &o): impl_(std::make_shared<impl>(*o.impl_)) {}
 chat_response &chat_response::operator=(const chat_response &o) {
     if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
@@ -47,9 +47,9 @@ struct message::impl {
     std::string tool_call_id_;
 };
 
-message::message() : impl_(std::make_shared<impl>()) {}
+message::message(): impl_(std::make_shared<impl>()) {}
 message::message(std::string r, std::string c, std::string tcid)
-        : impl_(std::make_shared<impl>()) {
+    : impl_(std::make_shared<impl>()) {
     impl_->role_ = std::move(r);
     impl_->content_ = std::move(c);
     impl_->tool_call_id_ = std::move(tcid);
@@ -79,7 +79,7 @@ struct model_request_options::impl {
     std::map<std::string, std::string, std::less<>> extra_;
 };
 
-model_request_options::model_request_options() : impl_(std::make_shared<impl>()) {}
+model_request_options::model_request_options(): impl_(std::make_shared<impl>()) {}
 model_request_options::model_request_options(const model_request_options &o): impl_(std::make_shared<impl>(*o.impl_)) {}
 model_request_options &model_request_options::operator=(const model_request_options &o) {
     if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
@@ -106,9 +106,9 @@ struct tool_call::impl {
     std::string arguments_; // JSON string
 };
 
-tool_call::tool_call() : impl_(std::make_shared<impl>()) {}
+tool_call::tool_call(): impl_(std::make_shared<impl>()) {}
 tool_call::tool_call(std::string i, std::string n, std::string args)
-        : impl_(std::make_shared<impl>()) {
+    : impl_(std::make_shared<impl>()) {
     impl_->id_ = std::move(i);
     impl_->name_ = std::move(n);
     impl_->arguments_ = std::move(args);
@@ -137,7 +137,7 @@ struct tool_output::impl {
     std::string managed_output_path_;
 };
 
-tool_output::tool_output() : impl_(std::make_shared<impl>()) {}
+tool_output::tool_output(): impl_(std::make_shared<impl>()) {}
 tool_output::tool_output(const tool_output &o): impl_(std::make_shared<impl>(*o.impl_)) {}
 tool_output &tool_output::operator=(const tool_output &o) {
     if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
