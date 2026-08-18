@@ -11,6 +11,7 @@ module;
 #include <thread>
 #include <utility>
 #include <expected>
+#include <system_error>
 
 export module silicon.coroutine:coroutine_pool;
 

@@ -4,6 +4,7 @@ module;
 #include <atomic>
 #include <memory>    // std::unique_ptr
 #include <expected>
+#include <system_error>
 #include <coroutine>
 
 

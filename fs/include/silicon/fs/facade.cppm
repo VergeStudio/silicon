@@ -2,6 +2,7 @@ module;
 
 #include <cstddef>
 #include <expected>
+#include <system_error>
 #include <string>
 #include <string_view>
 #include <vector>
