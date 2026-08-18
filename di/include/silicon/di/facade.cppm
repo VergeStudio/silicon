@@ -32,12 +32,12 @@ module;
 #include <iostream>
 #include <silicon/proxy/proxy_macros.h>
 
-export module silicon.di:core;
+export module silicon.di:facade;
 export import silicon.di.error;
 import silicon.proxy;
 
 
-// Logical functional partitioning of the single self-contained :core
+// Logical functional partitioning of the single self-contained :facade
 // partition. The di subdirectories form a strongly-connected include
 // component, so C++20 + xmake require everything in ONE translation
 // unit. These banners only annotate the original per-directory

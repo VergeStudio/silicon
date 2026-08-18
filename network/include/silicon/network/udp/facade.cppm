@@ -28,7 +28,7 @@ export module silicon.network:udp;
 export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
-import :core;
+import :facade;
 import silicon.proxy;
 
 export namespace silicon::network::udp {

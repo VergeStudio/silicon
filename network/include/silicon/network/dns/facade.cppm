@@ -33,7 +33,7 @@ export module silicon.network:dns;
 export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
-import :core;
+import :facade;
 
 export namespace silicon::network::dns {
 

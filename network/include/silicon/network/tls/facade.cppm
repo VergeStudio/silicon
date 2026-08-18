@@ -35,7 +35,7 @@ export module silicon.network:tls;
 export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
-import :core;
+import :facade;
 import silicon.proxy;
 
 #ifdef SILICON_FEATURE_TLS

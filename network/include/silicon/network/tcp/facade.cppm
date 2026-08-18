@@ -31,7 +31,7 @@ export module silicon.network:tcp;
 export import silicon.coroutine;
 export import silicon.scheduler;
 export import silicon.scheduler.task;
-import :core;
+import :facade;
 import silicon.proxy;
 
 export namespace silicon::network::tcp {
