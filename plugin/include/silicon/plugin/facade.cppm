@@ -35,38 +35,6 @@ using result = std::expected<T, std::error_code>;
 /// on_reload）。任意满足该门面的类型（含既有的 shared_ptr<X>，只要 X 具约定成员）
 /// 皆可擦除为 plugin_proxy / plugin_view，无需继承任何基类。
 
-/// 经典注册表（基于 proxy 句柄）。与 proxy_plugin_registry 并存：
-/// 前者保留 shared_ptr 风格的 `name()` 查询 API（register_plugin/get_plugin/
-/// remove_plugin/list_plugins），后者提供 emplace 就地构造与 `get()` 返回
-/// 句柄指针。两者底层均以 plugin_proxy 值持有，跨 DLL / ABI 边界安全。
-class plugin_registry {
-
-    struct impl {
-      public:
-      std::map<std::string, plugin_proxy, std::less<>> plugins_;
-    };
-    std::unique_ptr<impl> impl_{std::make_unique<impl>()};
-
-  public:
-    /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。
-    [[nodiscard]] auto register_plugin(plugin_proxy plugin) -> result<void>;
-
-    /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
-    template<class T, class... Args>
-    [[nodiscard]] auto emplace(Args &&...args) -> result<void> {
-        return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
-    }
-
-    /// 查询；不存在返回 nullptr。返回句柄的所有权仍属注册表。
-    plugin_proxy *get_plugin(std::string_view name) const;
-
-    /// 移除并触发 on_unload；不存在返回 kNotFound。
-    [[nodiscard]] auto remove_plugin(std::string_view name) -> result<void>;
-
-    std::vector<std::string> list_plugins() const;
-
-};
-
 // ── 类型擦除接入层（silicon.proxy）────────────────────────────────
 //
 // 插件是天然的跨 DLL / ABI 边界：宿主与插件常由不同编译单元、甚至不同
@@ -111,6 +79,38 @@ template<class T>
 [[nodiscard]] plugin_view make_plugin_view(T &target) noexcept {
     return silicon::proxy::make_proxy_view<plugin_facade>(target);
 }
+
+/// 经典注册表（基于 proxy 句柄）。与 proxy_plugin_registry 并存：
+/// 前者保留 shared_ptr 风格的 `name()` 查询 API（register_plugin/get_plugin/
+/// remove_plugin/list_plugins），后者提供 emplace 就地构造与 `get()` 返回
+/// 句柄指针。两者底层均以 plugin_proxy 值持有，跨 DLL / ABI 边界安全。
+class plugin_registry {
+
+    struct impl {
+      public:
+      std::map<std::string, plugin_proxy, std::less<>> plugins_;
+    };
+    std::unique_ptr<impl> impl_{std::make_unique<impl>()};
+
+  public:
+    /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。
+    [[nodiscard]] auto register_plugin(plugin_proxy plugin) -> result<void>;
+
+    /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
+    template<class T, class... Args>
+    [[nodiscard]] auto emplace(Args &&...args) -> result<void> {
+        return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
+    }
+
+    /// 查询；不存在返回 nullptr。返回句柄的所有权仍属注册表。
+    plugin_proxy *get_plugin(std::string_view name) const;
+
+    /// 移除并触发 on_unload；不存在返回 kNotFound。
+    [[nodiscard]] auto remove_plugin(std::string_view name) -> result<void>;
+
+    std::vector<std::string> list_plugins() const;
+
+};
 
 /// 基于 proxy 的插件注册表。
 /// 与 plugin_registry 的差异：目标类型无需继承任何基类，也无需 shared_ptr —

@@ -5,6 +5,7 @@ module;
 #include <expected>
 #include <memory>
 #include <system_error>
+#include <coroutine>
 
 module silicon.network;
 

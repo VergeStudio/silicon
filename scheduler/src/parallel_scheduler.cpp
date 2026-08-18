@@ -5,8 +5,12 @@ module;
 #include <expected>
 #include <memory>
 #include <thread>
+#include <coroutine>
+#include <map>
+#include <optional>
 
 module silicon.scheduler;
+#include "poll_info_impl.hpp"
 
 namespace silicon::scheduler {
 
@@ -36,8 +40,8 @@ auto parallel_scheduler::spawn_detached(task<void> &&task) noexcept -> bool {
     return m_impl->m_pool->spawn_detached(std::move(task));
 }
 
-auto parallel_scheduler::spawn_joinable(task<void> &&task) noexcept -> task<void> {
-    return m_impl->m_pool->spawn_joinable(std::move(task));
+auto parallel_scheduler::spawn_joinable(task<void> &&t) noexcept -> task<void> {
+    return m_impl->m_pool->spawn_joinable(std::move(t));
 }
 
 auto parallel_scheduler::resume(std::coroutine_handle<> handle) noexcept -> bool {

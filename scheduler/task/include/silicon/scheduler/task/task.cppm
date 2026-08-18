@@ -50,7 +50,10 @@ struct promise_base {
     // type of initial_suspend/final_suspend at the co_await site).
     auto initial_suspend() noexcept { return std::suspend_always{}; }
     auto final_suspend() noexcept { return final_awaitable{}; }
-    auto continuation(std::coroutine_handle<> continuation) noexcept -> void;
+    // Inline: this function is invoked from template instantiations in OTHER
+    // modules (e.g. coroutine_pool's wrapper co_await). Defined in task.cpp it has
+    // module linkage; MSVC mis-resolves the cross-module call at runtime (SIGSEGV).
+    auto continuation(std::coroutine_handle<> continuation) noexcept -> void { m_continuation = continuation; }
 
   protected:
     std::coroutine_handle<> m_continuation{nullptr};

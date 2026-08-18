@@ -53,6 +53,7 @@ struct tool_facade
       ::add_convention<MemToolName, std::string_view() const>        //
       ::add_convention<MemToolDescription, std::string_view() const> //
       ::add_convention<MemToolExecute, tool_output(tool_call)>       //
+      ::support_copy<silicon::proxy::constraint_level::kNontrivial>     //
       ::build {};
 
 /// 提供方门面：满足 `result<chat_response> chat(conversation const&,
@@ -60,6 +61,7 @@ struct tool_facade
 struct provider_facade
     : silicon::proxy::facade_builder                                                                                //
       ::add_convention<MemProviderChat, result<chat_response>(const conversation &, const model_request_options &)> //
+      ::support_copy<silicon::proxy::constraint_level::kNontrivial>                                                    //
       ::build {};
 
 /// 协议适配器门面：满足 encode_request / decode_response 两个成员。

@@ -5,8 +5,11 @@ module;
 #include <cstddef>
 #include <memory>
 #include <utility>
+#include <map>
+#include <optional>
 
 module silicon.scheduler;
+#include "poll_info_impl.hpp"
 
 namespace silicon::scheduler {
 
@@ -62,8 +65,8 @@ auto inline_scheduler::resume(std::coroutine_handle<> handle) noexcept -> bool {
     return true;
 }
 
-auto inline_scheduler::spawn_joinable(task<void> &&task) noexcept -> task<void> {
-    auto group_ptr = std::make_unique<task_group<inline_scheduler>>(this, std::move(task));
+auto inline_scheduler::spawn_joinable(task<void> &&t) noexcept -> task<void> {
+    auto group_ptr = std::make_unique<task_group<inline_scheduler>>(this, std::move(t));
     return make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 

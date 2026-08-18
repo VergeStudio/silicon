@@ -9,8 +9,12 @@ module;
 #include <system_error> // std::error_code::message
 #include <thread>
 #include <utility> // std::move
+#include <coroutine>
+#include <map>
+#include <optional>
 
 module silicon.scheduler;
+#include "poll_info_impl.hpp"
 
 
 

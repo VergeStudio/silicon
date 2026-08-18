@@ -22,10 +22,6 @@ auto promise_base::final_awaitable::await_ready() const noexcept -> bool {
 
 auto promise_base::final_awaitable::await_resume() noexcept -> void {}
 
-auto promise_base::continuation(std::coroutine_handle<> continuation) noexcept -> void {
-    m_continuation = continuation;
-}
-
 [[nodiscard]] auto task_self_deleting::promise() const -> const promise_self_deleting & {
     return *m_promise;
 }

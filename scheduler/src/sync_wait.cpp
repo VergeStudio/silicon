@@ -4,8 +4,12 @@ module;
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
+#include <coroutine>
+#include <map>
+#include <optional>
 
 module silicon.scheduler;
+#include "poll_info_impl.hpp"
 
 namespace silicon::coroutine {
 

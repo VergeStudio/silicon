@@ -7,7 +7,7 @@ import silicon.cli;
 
 using namespace silicon::cli;
 
-TEST_CASE("CliParser: 无参数返回空结果") {
+TEST_CASE("en_empty_result") {
     Parser p;
     const char *argv[] = {"prog"};
     auto r = p.Parse(1, argv);
@@ -17,7 +17,7 @@ TEST_CASE("CliParser: 无参数返回空结果") {
     CHECK(r->positional().empty());
 }
 
-TEST_CASE("CliParser: 标志解析") {
+TEST_CASE("en_flag_parse") {
     Parser p;
     const char *argv[] = {"prog", "--name", "silicon", "-v", "pos1"};
     auto r = p.Parse(5, argv);
@@ -29,7 +29,7 @@ TEST_CASE("CliParser: 标志解析") {
     CHECK(r->positional()[0] == std::string("pos1"));
 }
 
-TEST_CASE("CliParser: 子命令+标志+位置参数") {
+TEST_CASE("en_subcmd_flags_positional") {
     Parser p;
     const char *argv[] = {"prog", "run", "--config", "dev.json", "arg1", "arg2"};
     auto r = p.Parse(6, argv);
@@ -39,7 +39,7 @@ TEST_CASE("CliParser: 子命令+标志+位置参数") {
     CHECK(r->positional().size() == 2);
 }
 
-TEST_CASE("CliParser: 未登记子命令返回 kUnknownSubcommand") {
+TEST_CASE("en_unknown_subcommand") {
     Parser p;
     p.AddSubcommand("run");
     p.AddSubcommand("build");
@@ -49,7 +49,7 @@ TEST_CASE("CliParser: 未登记子命令返回 kUnknownSubcommand") {
     CHECK(r.error() == make_error_code(cli_error::kUnknownSubcommand));
 }
 
-TEST_CASE("CliParser: 畸形 flag（裸 -/--）返回 kInvalidValue") {
+TEST_CASE("en_malformed_flag") {
     Parser p;
     const char *argv1[] = {"prog", "-"};
     auto r1 = p.Parse(2, argv1);
@@ -62,7 +62,7 @@ TEST_CASE("CliParser: 畸形 flag（裸 -/--）返回 kInvalidValue") {
     CHECK(r2.error() == make_error_code(cli_error::kInvalidValue));
 }
 
-TEST_CASE("CliParser: 未登记 flag 返回 kUnknownOption") {
+TEST_CASE("en_unknown_flag") {
     Parser p;
     p.AddFlag("name");
     const char *argv[] = {"prog", "--verbose"};
@@ -71,7 +71,7 @@ TEST_CASE("CliParser: 未登记 flag 返回 kUnknownOption") {
     CHECK(r.error() == make_error_code(cli_error::kUnknownOption));
 }
 
-TEST_CASE("CliParser: 必需值的 flag 缺值返回 kMissingArgument") {
+TEST_CASE("en_missing_value") {
     Parser p;
     p.AddFlag("name", true);
     const char *argv[] = {"prog", "--name"};
@@ -80,7 +80,7 @@ TEST_CASE("CliParser: 必需值的 flag 缺值返回 kMissingArgument") {
     CHECK(r.error() == make_error_code(cli_error::kMissingArgument));
 }
 
-TEST_CASE("CliParser: 登记后正常解析成功") {
+TEST_CASE("en_registered_ok") {
     Parser p;
     p.AddSubcommand("run");
     p.AddFlag("name", true);

@@ -29,7 +29,7 @@ std::string config_dirs_default();
 std::string data_dirs_default();
 
 // ── 平台无关辅助 ─────────────────────────────────────────────────
-std::vector<std::string> split_paths(const char *env, const char *def) {
+std::vector<std::string> split_paths(const char *env, const std::string &def) {
     std::vector<std::string> out;
     std::string s = env_or(env, def);
     std::stringstream ss(s);

@@ -5,6 +5,9 @@ module;
 #include <memory>
 #include <string>
 #include <utility>
+#include <coroutine>
+#include <map>
+#include <optional>
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    include <io.h> // ::_write
@@ -13,6 +16,7 @@ module;
 #endif
 
 module silicon.scheduler;
+#include "poll_info_impl.hpp"
 
 
 namespace silicon::coroutine {

@@ -14,6 +14,7 @@ module;
 #endif
 
 #include <string>
+#include <coroutine>
 
 module silicon.network;
 

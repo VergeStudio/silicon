@@ -27,11 +27,14 @@ module;
 #include <utility>
 #include <vector>
 #include <expected>
+#include <map>
 
 
 module silicon.scheduler;
+import silicon.scheduler;
 
 import :poll_info_impl;
+#include "poll_info_impl.hpp"
 
 
 

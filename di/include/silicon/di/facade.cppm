@@ -290,10 +290,6 @@ inline void append_described_type_name(std::string& name,
 
 
 
-template <typename T> constexpr std::string_view raw_type_name() {
-    return raw_type_name<T>();
-}
-
 template <typename T> constexpr type_descriptor describe_type() {
     auto descriptor = make_type_descriptor<std::remove_reference_t<T>>();
     descriptor.reference = make_type_reference_kind<T>();
@@ -440,7 +436,6 @@ private:
 };
 
 template <typename T, typename Tag> struct annotated_base<T, Tag, false>: annotated_base<T&, Tag, false> {};
-}
 
 template <typename T, typename Tag> struct annotated: annotated_base<T, Tag> {
     annotated(T&& value): annotated_base<T, Tag>(std::move(value)) {}
@@ -1646,8 +1641,6 @@ struct collection_traits<std::map<Key, Value, Compare, Allocator>> {
 
 
 
-template <class T>
-struct collection_traits : collection_traits<normalized_type_t<T>> {};
 } // export namespace silicon::di
 
 
@@ -1692,6 +1685,15 @@ std::size_t append_binding_collection(T& results,
     return count;
 }
 
+// --- expected 返回类型封装（di #47：全量迁移 std::expected）---
+// di 的 resolve 入口可能返回 T&（引用），而 std::expected<T&, E> 标准不允许；
+// 用 as_expected_t 把引用统一包成 reference_wrapper<T>，其余类型原样包入 expected。
+template <typename T>
+using as_expected_t = std::expected<
+    std::conditional_t<std::is_reference_v<T>,
+                       std::reference_wrapper<std::remove_reference_t<T>>,
+                       T>,
+    std::error_code>;
 template <typename T, typename PrimaryCountFn, typename SecondaryCountFn,
           typename PrimaryAppendFn, typename SecondaryAppendFn, typename Fn>
 as_expected_t<T> construct_binding_collection(PrimaryCountFn&& primary_count,
@@ -1751,8 +1753,6 @@ template <typename T>
 inline constexpr bool requires_complete_type_v =
     !std::is_void_v<T> && !std::is_function_v<T>;
 
-
-template <typename T, typename = void> struct is_complete : is_complete<T> {};
 } // export namespace silicon::di
 
 
@@ -2572,11 +2572,11 @@ using constructor_arity_detector =
 // Searches constructor arity in the inclusive range [0, N].
 template <typename T, typename Tag, template <typename...> typename IsConstructible,
           size_t N = SILICON_DI_CONSTRUCTOR_DETECTION_ARGS>
-struct constructor_detection;
+struct constructor_detection_impl;
 
 template <typename T, typename Tag = automatic>
 using default_constructor_detection =
-    constructor_detection<T, Tag, list_initialization,
+    constructor_detection_impl<T, Tag, list_initialization,
                           constructor_detection_traits<
                               normalized_type_t<T>>::max_arity>;
 
@@ -2673,7 +2673,7 @@ struct constructor_detection_dispatch<T, Tag, Arity,
 
 template <typename T, typename Tag, template <typename...> typename IsConstructible,
           size_t N>
-struct constructor_detection {
+struct constructor_detection_impl {
     // The detector owns policy: pick the highest matching arity once, then let
     // the runtime path instantiate only that winning constructor shape.
     // Search from high to low so the first match is the winning constructor
@@ -3355,9 +3355,9 @@ struct factory_traits<callable_factory<Signature, T>> {
 export namespace silicon::di {
 struct unique;
 template <typename... Registrations> struct static_registry;
-template <typename T> struct storage {
+template <typename T> struct storage_marker {
     using type = T;
-    template <typename U> using rebind_t = storage<U>;
+    template <typename U> using rebind_t = storage_marker<U>;
 };
 
 template <typename T> struct scope {
@@ -3387,9 +3387,9 @@ template <typename T> struct key {
     template <typename U> using rebind_t = key<U>;
 };
 
-template <typename T> struct conversions {
+template <typename T> struct conversions_marker {
     using type = T;
-    template <typename U> using rebind_t = conversions<U>;
+    template <typename U> using rebind_t = conversions_marker<U>;
 };
 
 template <typename... Args> struct dependencies {
@@ -3531,11 +3531,11 @@ struct parse_registration_args<
   private:
     using parsed_head = registration_args<
         registration_arg_t<ScopeType, ::silicon::di::scope<void>, Head>,
-        registration_arg_t<StorageType, ::silicon::di::storage<void>, Head>,
+        registration_arg_t<StorageType, ::silicon::di::storage_marker<void>, Head>,
         registration_arg_t<FactoryType, ::silicon::di::factory<void>, Head>,
         registration_arg_t<InterfaceType, ::silicon::di::interfaces<void>, Head>,
         registration_arg_t<KeyType, ::silicon::di::key<void>, Head>,
-        registration_arg_t<ConversionsType, ::silicon::di::conversions<void>, Head>,
+        registration_arg_t<ConversionsType, ::silicon::di::conversions_marker<void>, Head>,
         registration_arg_t<DependenciesType, ::silicon::di::dependencies<void>, Head>,
         registration_arg_t<BindingsType, ::silicon::di::bindings<void>, Head>>;
 
@@ -3545,21 +3545,21 @@ struct parse_registration_args<
 
 template <typename... Args>
 using parse_registration_args_t = typename parse_registration_args<
-    registration_args<::silicon::di::scope<void>, ::silicon::di::storage<void>,
+    registration_args<::silicon::di::scope<void>, ::silicon::di::storage_marker<void>,
                       ::silicon::di::factory<void>, ::silicon::di::interfaces<void>,
                       ::silicon::di::key<void>,
-                      ::silicon::di::conversions<void>,
+                      ::silicon::di::conversions_marker<void>,
                       ::silicon::di::dependencies<void>, ::silicon::di::bindings<void>>,
     Args...>::type;
 
 template <typename T>
 inline constexpr bool is_supported_registration_arg_v =
     registration_arg_matches<::silicon::di::scope<void>, T>::value ||
-    registration_arg_matches<::silicon::di::storage<void>, T>::value ||
+    registration_arg_matches<::silicon::di::storage_marker<void>, T>::value ||
     registration_arg_matches<::silicon::di::factory<void>, T>::value ||
     registration_arg_matches<::silicon::di::interfaces<void>, T>::value ||
     registration_arg_matches<::silicon::di::key<void>, T>::value ||
-    registration_arg_matches<::silicon::di::conversions<void>, T>::value ||
+    registration_arg_matches<::silicon::di::conversions_marker<void>, T>::value ||
     registration_arg_matches<::silicon::di::dependencies<void>, T>::value ||
     registration_arg_matches<::silicon::di::bindings<void>, T>::value;
 
@@ -3586,9 +3586,9 @@ using registration_scope_t = typename ParsedArgs::scope_type;
 template <typename ParsedArgs>
 using registration_storage_t = std::conditional_t<
     !std::is_same_v<typename ParsedArgs::storage_type,
-                    ::silicon::di::storage<void>>,
+                    ::silicon::di::storage_marker<void>>,
     typename ParsedArgs::storage_type,
-    ::silicon::di::storage<typename ParsedArgs::factory_type::type>>;
+    ::silicon::di::storage_marker<typename ParsedArgs::factory_type::type>>;
 
 template <typename ParsedArgs,
           typename Dependencies = typename ParsedArgs::dependencies_type>
@@ -3702,9 +3702,9 @@ using registration_interface_t = std::conditional_t<
 template <typename ParsedArgs>
 using registration_conversions_t = std::conditional_t<
     !std::is_same_v<typename ParsedArgs::conversions_type,
-                    ::silicon::di::conversions<void>>,
+                    ::silicon::di::conversions_marker<void>>,
     typename ParsedArgs::conversions_type,
-    ::silicon::di::conversions<conversions<
+    ::silicon::di::conversions_marker<conversions<
         typename registration_scope_t<ParsedArgs>::type,
         typename registration_storage_t<ParsedArgs>::type, runtime_type>>>;
 
@@ -3777,7 +3777,7 @@ template <typename... Args> struct type_registration {
 
     // Conversions are deduced from Storage and Scope
     using conversions_type = registration_conversions_t<parsed_args>;
-    static_assert(!std::is_same_v<conversions_type, conversions<void>>,
+    static_assert(!std::is_same_v<conversions_type, conversions_marker<void>>,
                   "failed to deduce a conversions type");
 
     using dependencies_type = registration_dependencies_t<parsed_args>;
@@ -4279,7 +4279,7 @@ template <typename T> inline constexpr auto is_none_v = is_none<T>::value;
 
 export namespace silicon::di {
 
-template <typename T> struct invoke {
+template <typename T> struct factory_invoke {
     template <typename Context, typename Container, typename Callable>
     static decltype(auto) construct(Context& ctx, Container& container,
                                     Callable&& callable) {
@@ -4875,9 +4875,9 @@ struct closure_strategy {
 // 多态调用 reset()/arena_storage()/add_destructor()），内部以类型擦除 strategy_ 承载具体实现。
 struct context_closure_base {
     context_closure_proxy strategy_{};
-    void reset() { strategy_.reset(); }
-    arena<>& arena_storage() { return strategy_.arena_storage(); }
-    void add_destructor(void* instance, void (*dtor)(void*)) { strategy_.add_destructor(instance, dtor); }
+    void reset() { strategy_->reset(); }
+    arena<>& arena_storage() { return strategy_->arena_storage(); }
+    void add_destructor(void* instance, void (*dtor)(void*)) { strategy_->add_destructor(instance, dtor); }
 };
 
 struct context_closure : context_closure_base {
@@ -6816,8 +6816,6 @@ template <typename T> class recursion_guard_wrapper {
 
 
 export namespace silicon::di {
-template <typename...>
-inline constexpr bool always_false_v = false;
 
 
 struct no_materialization_scope {
@@ -7141,15 +7139,6 @@ template <typename Request, bool RemoveRvalueReferences>
 using resolve_result_t =
     request_interface_t<resolve_request_t<Request, RemoveRvalueReferences>>;
 
-// --- expected 返回类型封装（di #47：全量迁移 std::expected）---
-// di 的 resolve 入口可能返回 T&（引用），而 std::expected<T&, E> 标准不允许；
-// 用 as_expected_t 把引用统一包成 reference_wrapper<T>，其余类型原样包入 expected。
-template <typename T>
-using as_expected_t = std::expected<
-    std::conditional_t<std::is_reference_v<T>,
-                       std::reference_wrapper<std::remove_reference_t<T>>,
-                       T>,
-    std::error_code>;
 
 template <typename Request>
 using resolve_expected_t = as_expected_t<request_interface_t<Request>>;
@@ -8924,18 +8913,18 @@ struct binding_matches
            std::is_same_v<Key, typename InterfaceBinding::key_type>)> {};
 
 template <typename Interface, typename Key, typename InterfaceBindings>
-struct bindings;
+struct binding_interface_match;
 
 template <typename Interface, typename Key>
-struct bindings<Interface, Key, type_list<>> {
+struct binding_interface_match<Interface, Key, type_list<>> {
     using type = type_list<>;
 };
 
 template <typename Interface, typename Key, typename Head, typename... Tail>
-struct bindings<Interface, Key, type_list<Head, Tail...>> {
+struct binding_interface_match<Interface, Key, type_list<Head, Tail...>> {
   private:
     using tail_type =
-        typename bindings<Interface, Key, type_list<Tail...>>::type;
+        typename binding_interface_match<Interface, Key, type_list<Tail...>>::type;
 
   public:
     using type =
@@ -8945,7 +8934,7 @@ struct bindings<Interface, Key, type_list<Head, Tail...>> {
 };
 
 template <typename Interface, typename Key, typename InterfaceBindings>
-using bindings_t = typename bindings<Interface, Key, InterfaceBindings>::type;
+using bindings_t = typename binding_interface_match<Interface, Key, InterfaceBindings>::type;
 
 template <typename Interface, typename Key, typename InterfaceBindings>
 struct binding_count;

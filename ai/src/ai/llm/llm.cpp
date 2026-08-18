@@ -87,7 +87,8 @@ bool tool_registry::register_tool(tool_proxy tool) {
 
 tool_proxy tool_registry::get_tool(std::string_view name) const {
     auto it = impl_->tools_.find(name);
-    return it != impl_->tools_.end() ? it->second : tool_proxy{};
+    if(it != impl_->tools_.end()) return it->second;
+    return tool_proxy{};
 }
 
 std::size_t tool_registry::tool_count() const { return impl_->tools_.size(); }
@@ -98,7 +99,8 @@ bool provider_registry::register_provider(std::string id, provider_proxy provide
 
 provider_proxy provider_registry::get_provider(std::string_view id) const {
     auto it = impl_->providers_.find(id);
-    return it != impl_->providers_.end() ? it->second : provider_proxy{};
+    if(it != impl_->providers_.end()) return it->second;
+    return provider_proxy{};
 }
 
 std::vector<std::string> provider_registry::list_providers() const {
@@ -168,10 +170,10 @@ result<chat_response> json_protocol_adapter::decode_response(std::string_view ra
     if(auto u = v.find("usage");
        u != v.end() && u->is_object()) {
         if(auto pt = u->find("prompt_tokens");
-           pt != u.end() && pt->is_number_integer())
+           pt != u->end() && pt->is_number_integer())
             resp.prompt_tokens() = static_cast<std::int32_t>((*pt).get<std::int64_t>());
         if(auto ct = u->find("completion_tokens");
-           ct != u.end() && ct->is_number_integer())
+           ct != u->end() && ct->is_number_integer())
             resp.completion_tokens() = static_cast<std::int32_t>((*ct).get<std::int64_t>());
     }
     return result<chat_response>(std::move(resp));

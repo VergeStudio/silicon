@@ -68,12 +68,12 @@ class condition_variable {
     using notify_view = silicon::proxy::proxy_view<notify_facade>;
 
     template<class T, class... Args>
-    [[nodiscard]] notify_proxy make_notify(Args &&...args) {
+    [[nodiscard]] static notify_proxy make_notify(Args &&...args) {
         return silicon::proxy::make_proxy<notify_facade, T>(std::forward<Args>(args)...);
     }
 
     template<class T>
-    [[nodiscard]] notify_view make_notify_view(T &target) noexcept {
+    [[nodiscard]] static notify_view make_notify_view(T &target) noexcept {
         return silicon::proxy::make_proxy_view<notify_facade>(target);
     }
 
@@ -105,7 +105,7 @@ class condition_variable {
         /// @brief 类型擦除 on_notify：经 strategy_ 分派到具体 awaiter 的 do_on_notify。
         notify_proxy strategy_{};
         auto on_notify() -> silicon::scheduler::task<notify_status_t> {
-            return strategy_.on_notify();
+            return strategy_->on_notify();
         }
     };
 

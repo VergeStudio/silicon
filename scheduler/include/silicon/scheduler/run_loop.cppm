@@ -58,7 +58,7 @@ class run_loop final {
 
     // —— scheduler_facade ——
     auto spawn_detached(task<void> &&task) noexcept -> bool;
-    auto spawn_joinable(task<void> &&task) noexcept -> task<void>;
+    auto spawn_joinable(task<void> &&t) noexcept -> task<void>;
     auto resume(std::coroutine_handle<> handle) noexcept -> bool;
     auto shutdown() noexcept -> void;
     auto is_shutdown() const -> bool;

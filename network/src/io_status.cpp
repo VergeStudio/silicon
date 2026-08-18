@@ -4,6 +4,7 @@ module;
 
 #include <string>
 #include <string_view>
+#include <coroutine>
 
 module silicon.network;
 

@@ -1,8 +1,10 @@
 #include <memory>
 #include <silicon/test/test.hpp>
+#include <ostream>
 #include <string>
 #include <string_view>
 import silicon.plugin;
+import silicon.proxy;
 using namespace silicon::plugin;
 
 namespace {
@@ -16,15 +18,17 @@ struct TestPlugin {
         loaded = true;
         return true;
     }
+    bool on_unload() { return true; }
+    bool on_reload() { return true; }
 };
 
 /// 不继承任何基类，仅具备约定成员 —— 验证 proxy 的非侵入式擦除。
 struct DuckPlugin {
-    std::string name;
+    std::string m_name;
     int load_count = 0;
     int unload_count = 0;
 
-    std::string_view name() const { return name; }
+    std::string_view name() const { return m_name; }
     bool on_load() {
         ++load_count;
         return true;
@@ -36,6 +40,7 @@ struct DuckPlugin {
     bool on_reload() { return true; }
 };
 } // namespace
+
 
 TEST_CASE("plugin_registry: 注册与查询") {
     plugin_registry reg;
@@ -66,7 +71,7 @@ TEST_CASE("plugin_registry: 移除触发 on_unload") {
 // ── proxy 类型擦除 ───────────────────────────────────────────────
 
 TEST_CASE("proxy: 非侵入式插件视图（无需继承基类）") {
-    DuckPlugin duck{.name = "duck"};
+    DuckPlugin duck{.m_name = "duck"};
     plugin_view v = make_plugin_view(duck);
     CHECK(static_cast<bool>(v));
     CHECK(v->name() == "duck");
@@ -76,7 +81,7 @@ TEST_CASE("proxy: 非侵入式插件视图（无需继承基类）") {
 }
 
 TEST_CASE("proxy: 拥有所有权的插件句柄") {
-    plugin_proxy p = make_plugin<DuckPlugin>(DuckPlugin{.name = "owned"});
+    plugin_proxy p = make_plugin<DuckPlugin>(DuckPlugin{.m_name = "owned"});
     CHECK(static_cast<bool>(p));
     CHECK(p->name() == "owned");
     CHECK(p->on_load());
@@ -100,9 +105,9 @@ TEST_CASE("proxy: 桥接既有具约定成员的类型") {
 
 TEST_CASE("proxy_plugin_registry: 注册鸭子类型与查询") {
     proxy_plugin_registry reg;
-    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "a"}).has_value());
-    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "b"}).has_value());
-    CHECK_FALSE(reg.emplace<DuckPlugin>(DuckPlugin{.name = "a"}).has_value()); // 重名
+    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.m_name = "a"}).has_value());
+    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.m_name = "b"}).has_value());
+    CHECK_FALSE(reg.emplace<DuckPlugin>(DuckPlugin{.m_name = "a"}).has_value()); // 重名
     CHECK(reg.list().size() == 2);
 
     auto *a = reg.get("a");
@@ -113,7 +118,7 @@ TEST_CASE("proxy_plugin_registry: 注册鸭子类型与查询") {
 
 TEST_CASE("proxy_plugin_registry: 移除触发 on_unload") {
     proxy_plugin_registry reg;
-    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "x"}).has_value());
+    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.m_name = "x"}).has_value());
     CHECK(reg.remove("x").has_value());
     CHECK(reg.get("x") == nullptr);
     CHECK_FALSE(reg.remove("x").has_value());
@@ -122,7 +127,7 @@ TEST_CASE("proxy_plugin_registry: 移除触发 on_unload") {
 TEST_CASE("proxy_plugin_registry: 混合注册可擦除目标与鸭子类型") {
     proxy_plugin_registry reg;
     CHECK(reg.register_plugin(std::make_shared<TestPlugin>()).has_value());   // shared_ptr 擦除（鸭子类型，无需继承）
-    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.name = "d"}).has_value()); // 非侵入式
+    CHECK(reg.emplace<DuckPlugin>(DuckPlugin{.m_name = "d"}).has_value()); // 非侵入式
     CHECK(reg.list().size() == 2);
     CHECK(reg.get("test") != nullptr);
     CHECK(reg.get("d") != nullptr);

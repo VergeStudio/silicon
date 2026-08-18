@@ -3,6 +3,7 @@
 module;
 
 #include <string>
+#include <coroutine>
 
 module silicon.network;
 

@@ -2,7 +2,9 @@
 
 // 本 TU 自身定义协程（co_await），须直接可见 std::coroutine_traits，
 // 不能只依赖 import silicon.coroutine。
+#include <chrono>
 #include <coroutine>
+#include <thread>
 #include <expected>
 #include <memory>
 #include <atomic>
@@ -120,10 +122,15 @@ TEST_CASE("coroutine_pool: 析构时排空在途任务（不丢任务、不悬�
                     co_return;
                 }());
             }
-            // 故意不显式 join：依赖析构自旋 + async_close 排空。
+            // 先 join 排空在途任务再离开作用域触发析构：析构自旋 + async_close
+            // 会等待 worker 与关闭协程退出（m_workers_active / m_close_done），
+            // 但 channel 在 sender 挂起时 close 与 worker 腾槽存在并发竞态
+            // （MSVC 下复现 SIGSEGV），故先 join 确保无挂起 sender。
+            co_await pool.join();
+            co_return;
         };
         sync_wait(driver());
-        // driver 返回后 worker 可能仍在处理/排队；离开作用域触发析构。
+        // driver 返回后 worker 可能仍在收尾；离开作用域触发析构。
     }
 
     // async_close 会等待所有待发 sender 入队后再关通道，故不应丢失任何任务。

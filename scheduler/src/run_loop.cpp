@@ -8,8 +8,11 @@ module;
 #include <memory>
 #include <mutex>
 #include <utility>
+#include <map>
+#include <optional>
 
 module silicon.scheduler;
+#include "poll_info_impl.hpp"
 
 namespace silicon::scheduler {
 
@@ -97,8 +100,8 @@ auto run_loop::spawn_detached(task<void> &&task) noexcept -> bool {
     return resume(wrapper.handle());
 }
 
-auto run_loop::spawn_joinable(task<void> &&task) noexcept -> task<void> {
-    auto group_ptr = std::make_unique<task_group<run_loop>>(this, std::move(task));
+auto run_loop::spawn_joinable(task<void> &&t) noexcept -> task<void> {
+    auto group_ptr = std::make_unique<task_group<run_loop>>(this, std::move(t));
     return make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 

@@ -5,6 +5,7 @@
 
 import silicon.ai.llm;
 import silicon.json;
+import silicon.proxy;
 
 using namespace silicon::ai::llm;
 
@@ -21,6 +22,7 @@ class EchoTool {
     }
 };
 
+
 class ConstProvider {
     std::string text_;
 
@@ -35,6 +37,7 @@ class ConstProvider {
         return result<chat_response>(std::move(r));
     }
 };
+
 
 // ── tool_registry ────────────────────────────────────────────────
 

@@ -14,10 +14,16 @@ module;
 #include <string>
 #include <system_error>
 #include <unordered_map>
+#include <coroutine>
+#include <map>
+#include <optional>
 
 module silicon.scheduler;
+import silicon.scheduler;
 
+import :poll_info;
 import :poll_info_impl;
+#include "poll_info_impl.hpp"
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 using namespace std::chrono_literals;

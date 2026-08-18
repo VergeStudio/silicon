@@ -8,6 +8,7 @@ module;
 
 #include <cstdint>
 #include <mutex>
+#include <coroutine>
 
 module silicon.network;
 

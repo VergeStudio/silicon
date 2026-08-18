@@ -1,16 +1,13 @@
 target("json", function()
-    -- 模块库：符号经由 .cppm 模块接口导出，shared 构建无需传统导出宏。
-    set_kind("$(kind)")
-
-    -- Windows DLL：C++20 模块附着实体不隐式 inline，MSVC 目标无自动导出，
-    -- 统一用 .def 全量导出，保证消费方可跨 DLL 链接模块符号。
-    if is_plat("windows") and is_config("kind", "shared") then
-        add_rules("utils.symbols.export_all", {export_classes = true})
-    end
+    -- 纯模块库（仅 .cppm，无 .cpp）：moduleonly 使模块接口与 header unit
+    -- 全部默认 public，消费方（json.test/ai/config）才能拿到 silicon.json 的
+    -- IFC 与 json.hpp 的 header unit IFC（static/shared 下 header unit 不跨目标
+    -- 传递，MSVC 消费方报 C7612）。
+    set_kind("moduleonly")
 
     add_includedirs("include", {public = true})
-    add_headerfiles("include/silicon/json/**.hpp")
-    add_headerfiles("include/silicon/json_impl/**.hpp")
+    add_headerfiles("include/silicon/json/**.hpp", {public = true})
+    add_headerfiles("include/silicon/json_impl/**.hpp", {public = true})
 
     -- json 模块的异常层级：detail::exception 派生自 std::exception，
     -- 不依赖 silicon::exception，故无需附加 silicon 模块依赖。

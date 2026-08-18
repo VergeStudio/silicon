@@ -26,8 +26,8 @@ CONFIG_API class JsonFileConfig {
     ~JsonFileConfig();
     result<void> Load(const std::string &path, const fs::file_system_view &fs);
 
-    std::optional<ConfigValue> Get(std::string_view key) const;
-    std::map<std::string, ConfigValue, std::less<>> All() const;
+    std::optional<config_value> Get(std::string_view key) const;
+    std::map<std::string, config_value, std::less<>> All() const;
 
   private:
     struct impl;

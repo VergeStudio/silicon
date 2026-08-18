@@ -1,5 +1,8 @@
 module;
 
+#include <coroutine>
+#include <optional>
+
 export module silicon.scheduler;
 export import silicon.scheduler.error;
 

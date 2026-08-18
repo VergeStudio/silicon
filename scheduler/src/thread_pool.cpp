@@ -16,8 +16,11 @@ module;
 #include <thread>
 #include <utility>
 #include <vector>
+#include <map>
+#include <optional>
 
 module silicon.scheduler;
+#include "poll_info_impl.hpp"
 
 namespace silicon::scheduler {
 

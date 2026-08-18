@@ -19,6 +19,7 @@ module;
 #include <optional>
 #include <span>
 #include <system_error>
+#include <coroutine>
 
 module silicon.network;
 

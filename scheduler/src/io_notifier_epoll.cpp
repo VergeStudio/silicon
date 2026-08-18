@@ -11,10 +11,15 @@ module;
 #include <cstdint>
 #include <memory>
 #include <stdexcept>
+#include <coroutine>
+#include <map>
+#include <optional>
 
 module silicon.scheduler;
+import silicon.scheduler;
 
 import :poll_info_impl;
+#include "poll_info_impl.hpp"
 
 #if defined(SILICON_PLATFORM_LINUX)
 using namespace std::chrono_literals;

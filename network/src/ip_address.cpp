@@ -8,6 +8,7 @@ module;
 #include <expected>
 #include <string_view>
 #include <system_error>
+#include <coroutine>
 
 module silicon.network;
 

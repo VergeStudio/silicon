@@ -7,6 +7,9 @@ module;
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <coroutine>
+#include <map>
+#include <optional>
 
 // 平台头必须置于全局模块片段（module 声明之前）；
 // 在 module purview 内文本包含会与 BMI 中的声明产生附着冲突。
@@ -20,6 +23,7 @@ module;
 #endif
 
 module silicon.scheduler;
+#include "poll_info_impl.hpp"
 
 namespace silicon::coroutine
 {

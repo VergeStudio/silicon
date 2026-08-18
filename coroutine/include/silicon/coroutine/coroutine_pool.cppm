@@ -44,6 +44,7 @@ class coroutine_pool {
         m_p->m_executor = std::move(executor);
         // 在底层执行器上拉起 N 个常驻 worker 协程（"池"本体）。
         for(std::size_t i = 0; i < pool_size; ++i) {
+            m_p->m_workers_active.fetch_add(1, std::memory_order::release);
             (void)m_p->m_executor->spawn_detached(worker());
         }
     }
@@ -78,9 +79,11 @@ class coroutine_pool {
 
     ~coroutine_pool() {
         shutdown();
-        // 自旋（短 sleep）至在途任务清空，避免悬挂（同 task_container 析构）。
+        // 自旋（短 sleep）至在途任务清空且 worker 全部退出，避免悬挂与 m_p 提前释放后的 use-after-free
+        // 跑竞态（同 task_container 析构）。
         // 注意：不要从运行在同一底层执行器上的协程内析构本对象，否则可能死锁。
-        while(!empty()) {
+        while(!empty() || m_p->m_workers_active.load(std::memory_order::acquire) > 0
+              || !m_p->m_close_done.load(std::memory_order::acquire)) {
             std::this_thread::sleep_for(std::chrono::milliseconds{10});
         }
     }
@@ -120,20 +123,34 @@ class coroutine_pool {
     auto spawn_joinable(silicon::scheduler::task<void>&& work)
             -> silicon::scheduler::task<void> {
         auto e = std::make_shared<silicon::coroutine::event>();
-        auto wrapper = [this, e, w = std::move(work)]() mutable -> silicon::scheduler::task<void> {
-            try {
-                co_await std::move(w);
-            } catch(...) {
-                capture_error();
-            }
-            e->set();
-        };
-        if(!spawn_detached(wrapper())) {
+        if(!spawn_detached(make_wrapper(this, e, std::move(work)))) {
             e->set(); // 入队失败则立即放行 join，避免悬挂。
         }
-        return [e]() -> silicon::scheduler::task<void> {
-            co_await *e;
-        }();
+        // MSVC module-boundary workaround: a lambda coroutine capturing a
+        // shared_ptr<event> inside this exported template member gets a corrupt
+        // coroutine frame -- co_await *e dereferences a dangling event
+        // (event::is_set() observed this == code-section address -> SIGSEGV).
+        // Use a named coroutine function so the capture lands in the frame.
+        return make_join_task(e);
+    }
+
+    /// Waits until the event is set. Named coroutine (not a lambda) to dodge
+    /// the MSVC lambda-capture-in-exported-template bug.
+    static auto make_join_task(std::shared_ptr<silicon::coroutine::event> e)
+            -> silicon::scheduler::task<void> {
+        co_await *e;
+    }
+    /// Runs the user task, then signals the event. Named coroutine (same MSVC
+    /// workaround as make_join_task: lambda captures in exported templates get
+    /// corrupt frames).
+    static auto make_wrapper(coroutine_pool *self, std::shared_ptr<silicon::coroutine::event> e,
+                             silicon::scheduler::task<void> w) -> silicon::scheduler::task<void> {
+        try {
+            co_await std::move(w);
+        } catch(...) {
+            self->capture_error();
+        }
+        e->set();
     }
 
     /**
@@ -205,6 +222,8 @@ class coroutine_pool {
             // 任务完成（无论成败）后释放一个在途名额。
             m_p->m_inflight.fetch_sub(1, std::memory_order::release);
         }
+        // 退出前释放常驻 worker 名额，允许析构等待其完成退出。
+        m_p->m_workers_active.fetch_sub(1, std::memory_order::release);
     }
 
     // 生产者协程：把任务送入通道（通道满时挂起，由消费者腾槽后唤醒）。
@@ -225,6 +244,7 @@ class coroutine_pool {
             co_await m_p->m_executor->yield();
         }
         co_await m_p->m_channel.close();
+        m_p->m_close_done.store(true, std::memory_order::release);
     }
 
     struct impl {
@@ -236,6 +256,8 @@ class coroutine_pool {
         channel<silicon::scheduler::task<void>> m_channel;
         std::atomic<std::size_t> m_inflight{0};
         std::atomic<std::size_t> m_pending_sends{0};
+        std::atomic<std::size_t> m_workers_active{0};
+        std::atomic<bool> m_close_done{false};
         std::atomic<bool> m_stopped{false};
         std::exception_ptr m_last_error{nullptr};
     };

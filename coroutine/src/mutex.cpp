@@ -1,6 +1,7 @@
 module;
 
 #include <atomic>
+#include <cstdio>
 #include <memory>
 #include <expected>
 

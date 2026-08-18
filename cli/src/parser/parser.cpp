@@ -44,13 +44,18 @@ std::expected<parse_result, std::error_code> Parser::Parse(int argc, const char 
         std::string_view arg(argv[i]);
         const bool looks_like_flag = !arg.empty() && arg[0] == '-';
         if(looks_like_flag) {
-            const size_t name_start = (arg.size() >= 2 && arg[1] == '-') ? 2 : 1;
+            const bool is_long = arg.size() >= 2 && arg[1] == '-';
+            const size_t name_start = is_long ? 2 : 1;
             std::string name(arg.substr(name_start));
             if(name.empty()) {
                 // 裸 '-' 或 '--'：畸形 flag（非法 flag）
                 return std::unexpected(make_error_code(cli_error::kInvalidValue));
             }
-            const bool next_is_value = (i + 1 < argc) && (argv[i + 1][0] != '-');
+            // 短 flag（-v）语义为布尔开关；长 flag（--name）默认携带值
+            // （除非后随 token 以 '-' 开头）。已登记的 requires_value=false
+            // 长 flag 亦可在 token 前止步——此处仅按词法区分，校验由
+            // 下方 seen 对照 flags_ 完成。
+            const bool next_is_value = is_long && (i + 1 < argc) && (argv[i + 1][0] != '-');
             if(next_is_value) {
                 result.flags()[name] = argv[i + 1];
                 seen.push_back({std::move(name), true});

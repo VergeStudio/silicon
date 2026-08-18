@@ -23,6 +23,7 @@ module;
 #include <cerrno>
 #include <expected>
 #include <system_error>
+#include <coroutine>
 
 module silicon.network;
 

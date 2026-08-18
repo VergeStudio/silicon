@@ -13,7 +13,7 @@ export module silicon.json;
 // basic_json references) become exported and reachable in consumers. A plain
 // GMF #include would keep them module-private and MSVC would fail with C2039
 // when a consumer instantiates basic_json (re-resolution of friend decls).
-export import <silicon/json_impl/json.hpp>;
+export import "silicon/json_impl/json.hpp";
 
 // Public type, re-exported from the forked implementation.
 export namespace silicon::json {
