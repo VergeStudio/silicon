@@ -37,6 +37,7 @@ module;
 #include <system_error>
 #include <utility>
 
+#include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
 export module silicon.network:facade;

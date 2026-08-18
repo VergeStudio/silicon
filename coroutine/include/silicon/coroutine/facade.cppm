@@ -14,6 +14,7 @@ module;
 #include <optional>
 #include <utility>
 
+#include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
 

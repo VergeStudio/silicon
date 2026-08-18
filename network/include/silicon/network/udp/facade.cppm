@@ -21,6 +21,7 @@ module;
 #include <memory>
 #include <span>
 
+#include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
 export module silicon.network:udp;

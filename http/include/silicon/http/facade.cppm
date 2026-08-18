@@ -9,13 +9,13 @@ module;
 #include <string_view>
 #include <system_error>
 
+#include <tuple>
+// proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
+#include <silicon/proxy/proxy_macros.h>
 export module silicon.http;
 
 export import silicon.http.error;
 
-// proxy 的 dispatch 宏走头文件通道，本模块定义门面须在全局模块片段显式
-// 包含，随后再 import silicon.proxy（宏不随 C++20 模块导出）。
-#include <silicon/proxy/proxy_macros.h>
 
 import silicon.proxy;
 
@@ -111,7 +111,7 @@ template <class T, class... Args>
 /// 便利封装：等价于对 url 发起一次 GET request
 inline http_response get(const http_client_view &client, const std::string &url) {
     http_request req;
-    req.url(url);
+    req.url() = url;
     return client->request(req);
 }
 

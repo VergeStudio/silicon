@@ -10,6 +10,7 @@ module;
 
 #include "silicon/logger/common.h"
 #include "silicon/logger/ilogger.h"
+#include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
 export module silicon.logger;

@@ -6,12 +6,12 @@ module;
 #include <string_view>
 #include <vector>
 
+#include <tuple>
+// proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
+#include <silicon/proxy/proxy_macros.h>
 export module silicon.fs;
 export import silicon.fs.error;
 
-// proxy 的 dispatch 宏走头文件通道，本模块定义门面须在全局模块片段显式
-// 包含，随后再 import silicon.proxy（宏不随 C++20 模块导出）。
-#include <silicon/proxy/proxy_macros.h>
 
 import silicon.proxy;
 
