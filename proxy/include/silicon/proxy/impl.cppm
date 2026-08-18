@@ -618,7 +618,10 @@ consteval bool is_facade_constraints_well_formed() {
                      { F::destructibility } -> static_prop<constraint_level>;
                  }) {
         if constexpr(is_consteval([] {
-                         return std::tuple{F::max_size, F::max_align, F::copyability, F::relocatability, F::destructibility};
+                         return std::tuple<std::size_t, std::size_t, constraint_level,
+                                           constraint_level, constraint_level>{
+                                 F::max_size, F::max_align, F::copyability,
+                                 F::relocatability, F::destructibility};
                      })) {
             return is_layout_well_formed(F::max_size, F::max_align) &&
                    is_cl_well_formed(F::copyability) &&

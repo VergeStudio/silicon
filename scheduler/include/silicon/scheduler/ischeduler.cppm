@@ -2,15 +2,16 @@ module;
 
 #include <coroutine>
 #include <cstddef>
+#include <silicon/proxy/proxy_macros.h>
+#include <tuple>
 
 export module silicon.scheduler:ischeduler;
 
 import silicon.scheduler.task;
 
-// proxy 门面：全局模块片段包含 dispatch 宏，随后 import silicon.proxy
-// （宏不随 C++20 模块导出）。
-#include <silicon/proxy/proxy_macros.h>
-
+// proxy 门面：dispatch 宏在全局模块片段内文本包含（宏不随 C++20 模块导出），
+// 随后 import silicon.proxy 提供类型擦除运行时。PRO4D_DEBUG 在调试构建内联
+// 展开 `::std::ignore`，依赖 <tuple>。
 import silicon.proxy;
 
 export namespace silicon::scheduler {
