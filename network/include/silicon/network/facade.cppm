@@ -1,4 +1,4 @@
-// Interface partition silicon.network:core
+// Interface partition silicon.network:facade
 //
 // Holds the platform-independent core public API of silicon::network:
 // connect_status, hostname, io_status, recv_status, send_status, ip_address,
@@ -39,7 +39,7 @@ module;
 
 #include <silicon/proxy/proxy_macros.h>
 
-export module silicon.network:core;
+export module silicon.network:facade;
 export import silicon.network.error;
 
 export import silicon.coroutine;

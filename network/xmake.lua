@@ -23,7 +23,7 @@ target("network", function()
     end
 
     -- silicon::network 现为本真 C++20 命名模块库：
-    --   * 接口分区 (.cppm)：network.cppm(主接口) + core/dns/tcp/udp/tls；
+    --   * 接口分区 (.cppm)：network.cppm(主接口) + facade/dns/tcp/udp/tls；
     --     :config 由 network.config.cppm.in 经 xmake 生成至 $(builddir)。
     --   * 实现单元 (src/**.cpp)：均改写为 `module silicon.network;`，通过隐式
     --     导入主接口获得模块作用域内的类声明，再提供非模板成员的外联定义。

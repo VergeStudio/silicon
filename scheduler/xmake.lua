@@ -17,7 +17,7 @@ target("scheduler", function()
         add_defines("SCHEDULER_SHARED_LIB", "SCHEDULER_EXPORT", {public = true})
     end
 
-    -- 分区：:ischeduler（调度器门面，type-erased）、:thread_pool（CPU 线程池，原 silicon.thread）、
+    -- 分区：:facade（调度器门面，type-erased）、:thread_pool（CPU 线程池，原 silicon.thread）、
     -- :io_scheduler（事件循环，原 silicon.coroutine:scheduler）、
     -- :run_loop（单线程同步执行上下文，参考 stdexec::run_loop）、
     -- :inline_scheduler（内联同步调度器，参考 stdexec::inline_scheduler）、

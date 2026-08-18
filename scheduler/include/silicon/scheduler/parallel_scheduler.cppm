@@ -7,7 +7,7 @@ module;
 export module silicon.scheduler:parallel_scheduler;
 
 import silicon.scheduler.task;
-import :ischeduler;
+import :facade;
 import :thread_pool;
 
 export namespace silicon::scheduler {

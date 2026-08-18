@@ -47,7 +47,7 @@ import :sync_wait;
 import :time;
 import silicon.scheduler.task;
 
-import :ischeduler;
+import :facade;
 import :thread_pool;
 
 // io_notifier / poll_info / timer_handle 已从 silicon.coroutine 迁入本模块，需显式

@@ -1,4 +1,4 @@
-/// @file platform.cppm
+/// @file facade.cppm
 /// @brief Platform detection — C++23 modules + constexpr.
 /// @usage
 ///   import silicon.platform;

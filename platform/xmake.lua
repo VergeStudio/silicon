@@ -24,7 +24,7 @@ target("platform", function()
     -- platform 门面基于 silicon.proxy 的 type-erasure（取消 i_platform 抽象基类）。
     add_deps("silicon::proxy")
 
-    add_files("../core/include/silicon/core/platform/platform.cppm", {public = true})
+    add_files("../core/include/silicon/core/platform/facade.cppm", {public = true})
 end)
 
 target("platform.test", function()

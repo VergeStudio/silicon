@@ -9,7 +9,7 @@ export namespace silicon::network {
 
 /// 网络模块专属错误码枚举。错误码经 make_error_code() 转为 std::error_code
 /// （专属 category `silicon.network`）；errno 类错误用 system_error() 助手
-/// （定义于 silicon.network:core 分区）。
+/// （定义于 silicon.network:facade 分区）。
 enum class network_error {
     kUdpNotBound = 1,
     kCancelled,

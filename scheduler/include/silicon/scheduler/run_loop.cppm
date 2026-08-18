@@ -7,7 +7,7 @@ module;
 export module silicon.scheduler:run_loop;
 
 import silicon.scheduler.task;
-import :ischeduler;
+import :facade;
 
 export namespace silicon::scheduler {
 

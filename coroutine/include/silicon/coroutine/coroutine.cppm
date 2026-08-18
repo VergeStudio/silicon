@@ -23,7 +23,7 @@ export import silicon.scheduler;
 // so no `using`-re-export shim is needed here.
 // ---------------------------------------------------------------------------
 export import :channel;
-export import :condition_variable;
+export import :facade;
 export import :event;
 export import :generator;
 export import :invoke;

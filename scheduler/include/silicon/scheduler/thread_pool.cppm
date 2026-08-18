@@ -14,7 +14,7 @@ export module silicon.scheduler:thread_pool;
 
 import silicon.scheduler.task;
 
-import :ischeduler;
+import :facade;
 
 export namespace silicon::scheduler {
 

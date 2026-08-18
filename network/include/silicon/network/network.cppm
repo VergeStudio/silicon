@@ -15,7 +15,7 @@ export module silicon.network;
 export import silicon.network.error;
 
 export import :config;
-export import :core;
+export import :facade;
 export import :dns;
 export import :tcp;
 export import :udp;

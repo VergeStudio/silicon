@@ -7,7 +7,7 @@ module;
 export module silicon.scheduler:inline_scheduler;
 
 import silicon.scheduler.task;
-import :ischeduler;
+import :facade;
 
 export namespace silicon::scheduler {
 

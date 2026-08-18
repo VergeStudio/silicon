@@ -32,7 +32,7 @@ export import :time;
 export import :poll_info;
 export import :io_notifier;
 export import :timer_handle;
-export import :ischeduler;
+export import :facade;
 export import :thread_pool;
 export import :io_scheduler;
 export import :run_loop;

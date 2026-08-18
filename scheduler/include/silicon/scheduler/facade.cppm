@@ -5,7 +5,7 @@ module;
 #include <silicon/proxy/proxy_macros.h>
 #include <tuple>
 
-export module silicon.scheduler:ischeduler;
+export module silicon.scheduler:facade;
 
 import silicon.scheduler.task;
 

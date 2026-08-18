@@ -28,7 +28,7 @@ module;
 #    pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
-export module silicon.coroutine:condition_variable;
+export module silicon.coroutine:facade;
 
 import silicon.scheduler;
 import silicon.scheduler.task;

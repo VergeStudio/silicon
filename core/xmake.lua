@@ -27,9 +27,9 @@ target("core", function()
     -- 平台差异（shared_library_unix.cpp / shared_library_windows.cpp）由文件内
     -- 互斥 #if 守卫选择（项目约定：不在 xmake.lua 里做 is_plat 条件 add_files）。
     add_files("include/silicon/core/**.cppm", {public = true})
-    -- platform.cppm / exception.cppm 已由独立 target 编译（避免与各自
+    -- facade.cppm / exception.cppm 已由独立 target 编译（避免与各自
     -- standalone target 重复定义同一模块），core 经 add_deps 复用其 BMI。
-    remove_files("include/silicon/core/platform/platform.cppm")
+    remove_files("include/silicon/core/platform/facade.cppm")
     remove_files("include/silicon/core/exception/exception.cppm")
 
     set_configdir("$(builddir)/silicon/config")
