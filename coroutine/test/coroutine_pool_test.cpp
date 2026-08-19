@@ -28,6 +28,35 @@ auto make_executor() -> std::shared_ptr<thread_pool> {
     return std::shared_ptr<thread_pool>{thread_pool::create().value()};
 }
 
+// MSVC workaround：在协程内（driver/test lambda 内）创建的 lambda 协程会得到
+// 损坏的帧捕获布局——捕获槽不被写入，任务体运行时读到未初始化/已释放内存
+// （0xDD）导致 use-after-free。改用具名协程函数，捕获经函数参数入帧即正常
+// （与 coroutine_pool::make_join_task / make_wrapper 同款约定）。
+auto make_counter_task(std::atomic<int> *counter) -> task<void> {
+    counter->fetch_add(1, std::memory_order::relaxed);
+    co_return;
+}
+
+auto make_concurrency_task(std::atomic<std::size_t> *running, std::atomic<std::size_t> *peak,
+                           std::shared_ptr<thread_pool> ex) -> task<void> {
+    auto cur = running->fetch_add(1, std::memory_order::acq_rel) + 1;
+    // 记录并发峰值（CAS 循环更新）。
+    auto p = peak->load(std::memory_order::relaxed);
+    while(cur > p && !peak->compare_exchange_weak(p, cur, std::memory_order::acq_rel)) {}
+    co_await ex->yield(); // 制造并发重叠窗口
+    running->fetch_sub(1, std::memory_order::acq_rel);
+}
+
+auto make_done_task(std::atomic<int> *done) -> task<void> {
+    done->fetch_add(1, std::memory_order::relaxed);
+    co_return;
+}
+
+auto make_rejected_task(std::atomic<int> *counter) -> task<void> {
+    counter->fetch_add(1000, std::memory_order::relaxed); // 不应执行
+    co_return;
+}
+
 } // namespace
 
 TEST_CASE("coroutine_pool: 基本分发并执行全部任务") {
@@ -39,10 +68,7 @@ TEST_CASE("coroutine_pool: 基本分发并执行全部任务") {
     std::atomic<int> counter{0};
     auto driver = [&]() -> task<void> {
         for(int i = 0; i < 20; ++i) {
-            pool.dispatch([&]() -> task<void> {
-                counter.fetch_add(1, std::memory_order::relaxed);
-                co_return;
-            }());
+            pool.dispatch(make_counter_task(&counter));
         }
         co_await pool.join();
     };
@@ -63,14 +89,7 @@ TEST_CASE("coroutine_pool: 并发上限 = pool_size") {
     std::atomic<std::size_t> peak{0};
     auto driver = [&]() -> task<void> {
         for(int i = 0; i < 200; ++i) {
-            pool.dispatch([&]() -> task<void> {
-                auto cur = running.fetch_add(1, std::memory_order::acq_rel) + 1;
-                // 记录并发峰值（CAS 循环更新）。
-                auto p = peak.load(std::memory_order::relaxed);
-                while(cur > p && !peak.compare_exchange_weak(p, cur, std::memory_order::acq_rel)) {}
-                co_await ex->yield(); // 制造并发重叠窗口
-                running.fetch_sub(1, std::memory_order::acq_rel);
-            }());
+            pool.dispatch(make_concurrency_task(&running, &peak, ex));
         }
         co_await pool.join();
     };
@@ -92,10 +111,7 @@ TEST_CASE("coroutine_pool: spawn_joinable 等待任务完成") {
         std::vector<task<void>> joins;
         joins.reserve(16);
         for(int i = 0; i < 16; ++i) {
-            auto jt = pool.spawn_joinable([&]() -> task<void> {
-                done.fetch_add(1, std::memory_order::relaxed);
-                co_return;
-            }());
+            auto jt = pool.spawn_joinable(make_done_task(&done));
             joins.push_back(std::move(jt));
         }
         // 等待全部 join 任务完成 => 全部用户任务已完成。
@@ -117,16 +133,11 @@ TEST_CASE("coroutine_pool: 析构时排空在途任务（不丢任务、不悬�
         coroutine_pool<thread_pool> &pool = **pool_result;
         auto driver = [&]() -> task<void> {
             for(int i = 0; i < 30; ++i) {
-                pool.dispatch([&]() -> task<void> {
-                    counter.fetch_add(1, std::memory_order::relaxed);
-                    co_return;
-                }());
+                pool.dispatch(make_counter_task(&counter));
             }
-            // 先 join 排空在途任务再离开作用域触发析构：析构自旋 + async_close
-            // 会等待 worker 与关闭协程退出（m_workers_active / m_close_done），
-            // 但 channel 在 sender 挂起时 close 与 worker 腾槽存在并发竞态
-            // （MSVC 下复现 SIGSEGV），故先 join 确保无挂起 sender。
-            co_await pool.join();
+            // 故意不显式 join：依赖析构自旋（empty + m_workers_active +
+            // m_close_done）与 async_close 排空，验证析构不丢任务、不悬挂、
+            // 无 channel close 与挂起 sender/worker 的 use-after-free 竞态。
             co_return;
         };
         sync_wait(driver());
@@ -146,18 +157,12 @@ TEST_CASE("coroutine_pool: shutdown 后拒绝新任务且仍排空已入队任�
     std::atomic<int> counter{0};
     auto driver = [&]() -> task<void> {
         for(int i = 0; i < 10; ++i) {
-            pool.dispatch([&]() -> task<void> {
-                counter.fetch_add(1, std::memory_order::relaxed);
-                co_return;
-            }());
+            pool.dispatch(make_counter_task(&counter));
         }
         co_await pool.join();
         // join 后全部完成；再 dispatch 应被拒绝（shutdown 已调用）。
         pool.shutdown();
-        bool rejected = !pool.dispatch([&]() -> task<void> {
-            counter.fetch_add(1000, std::memory_order::relaxed); // 不应执行
-            co_return;
-        }());
+        bool rejected = !pool.dispatch(make_rejected_task(&counter));
         CHECK(rejected);
     };
     sync_wait(driver());
