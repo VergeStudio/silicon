@@ -1,12 +1,10 @@
 module;
 
 #include <expected>
-#include <map>
-#include <set>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <system_error>
-#include <vector>
 
 #include <tuple>
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
@@ -50,8 +48,13 @@ template<class T, class... Args>
 }
 
 /// 默认 CLI 解析器（鸭子类型满足 parser_facade，零抽象基类耦合）。
+/// 行为类统一 pImpl：`struct impl;` 前向声明 + `std::unique_ptr<impl> impl_;`，
+/// impl 完整定义与方法体沉 .cpp（见 cli/src/parser/parser.cpp），析构在 .cpp `= default`。
 CLI_API class Parser {
   public:
+    Parser();
+    ~Parser();
+
     /// 声明合法子命令。Parse 会校验首个位置参数是否落在已知子命令集合内，
     /// 未登记任何子命令时该维度不做校验（宽松通过）。
     void AddSubcommand(std::string name);
@@ -63,8 +66,8 @@ CLI_API class Parser {
     std::expected<parse_result, std::error_code> Parse(int argc, const char *const *argv) const;
 
   private:
-    std::set<std::string> subcommands_;
-    std::map<std::string, bool> flags_; // name -> requires_value
+    struct impl;
+    std::unique_ptr<impl> impl_;
 };
 
 } // namespace silicon::cli

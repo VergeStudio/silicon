@@ -2,6 +2,7 @@ module;
 
 #include <expected>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <string_view>
@@ -15,12 +16,20 @@ import silicon.cli.error;
 
 namespace silicon::cli {
 
+struct Parser::impl {
+    std::set<std::string> subcommands;
+    std::map<std::string, bool> flags; // name -> requires_value
+};
+
+Parser::Parser() : impl_(std::make_unique<impl>()) {}
+Parser::~Parser() = default;
+
 void Parser::AddSubcommand(std::string name) {
-    subcommands_.insert(std::move(name));
+    impl_->subcommands.insert(std::move(name));
 }
 
 void Parser::AddFlag(std::string name, bool requires_value) {
-    flags_.emplace(std::move(name), requires_value);
+    impl_->flags.emplace(std::move(name), requires_value);
 }
 
 std::expected<parse_result, std::error_code> Parser::Parse(int argc, const char *const *argv) const {
@@ -72,14 +81,14 @@ std::expected<parse_result, std::error_code> Parser::Parse(int argc, const char 
     }
 
     // ── 校验：仅对声明过的维度生效，未声明则宽松通过 ──
-    if(!subcommands_.empty() && !result.command().empty()
-       && subcommands_.find(result.command()) == subcommands_.end()) {
+    if(!impl_->subcommands.empty() && !result.command().empty()
+       && impl_->subcommands.find(result.command()) == impl_->subcommands.end()) {
         return std::unexpected(make_error_code(cli_error::kUnknownSubcommand));
     }
-    if(!flags_.empty()) {
+    if(!impl_->flags.empty()) {
         for(const auto &f: seen) {
-            auto it = flags_.find(f.name);
-            if(it == flags_.end()) {
+            auto it = impl_->flags.find(f.name);
+            if(it == impl_->flags.end()) {
                 return std::unexpected(make_error_code(cli_error::kUnknownOption));
             }
             if(it->second && !f.has_value) {
