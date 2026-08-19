@@ -14,7 +14,11 @@ target("proxy", function()
     -- clang-cl 对标准 C++20 属性 [[no_unique_address]] 误报 unknown-attribute，
     -- 该属性在 MSFT proxy 库中被广泛使用；抑制此误报以免触发 -Werror 红线。
     -- 消费方实例化 proxy 模板时同样会命中该误报，故设为 public 向下传递。
-    add_cxflags("-Wno-unknown-attributes", {public = true})
+    -- 仅 clang 家族需要：MSVC 不识别该 flag，无条件添加会被 xmake
+    -- check.auto_ignore_flags 自动忽略并告警。
+    if is_config("toolchain", "clang") or is_config("toolchain", "clang-cl") then
+        add_cxflags("-Wno-unknown-attributes", {public = true})
+    end
 
     if is_config("kind", "shared") then
         add_defines("PROXY_SHARED_LIB", "PROXY_EXPORT", {public = true})
