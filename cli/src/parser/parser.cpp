@@ -3,6 +3,7 @@ module;
 #include <expected>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <string_view>
@@ -49,33 +50,67 @@ std::expected<parse_result, std::error_code> Parser::Parse(int argc, const char 
     };
     std::vector<flag_seen> seen;
 
+    bool positional_only = false; // 裸 '--' 之后全部为位置参数
     while(i < argc) {
         std::string_view arg(argv[i]);
-        const bool looks_like_flag = !arg.empty() && arg[0] == '-';
-        if(looks_like_flag) {
-            const bool is_long = arg.size() >= 2 && arg[1] == '-';
-            const size_t name_start = is_long ? 2 : 1;
-            std::string name(arg.substr(name_start));
-            if(name.empty()) {
-                // 裸 '-' 或 '--'：畸形 flag（非法 flag）
-                return std::unexpected(make_error_code(cli_error::kInvalidValue));
-            }
-            // 短 flag（-v）语义为布尔开关；长 flag（--name）默认携带值
-            // （除非后随 token 以 '-' 开头）。已登记的 requires_value=false
-            // 长 flag 亦可在 token 前止步——此处仅按词法区分，校验由
-            // 下方 seen 对照 flags_ 完成。
-            const bool next_is_value = is_long && (i + 1 < argc) && (argv[i + 1][0] != '-');
-            if(next_is_value) {
-                result.flags()[name] = argv[i + 1];
-                seen.push_back({std::move(name), true});
-                i += 2;
-            } else {
-                result.flags()[name] = "true";
-                seen.push_back({std::move(name), false});
-                ++i;
-            }
-        } else {
+        if(positional_only || arg.empty() || arg[0] != '-') {
             result.positional().emplace_back(argv[i]);
+            ++i;
+            continue;
+        }
+
+        const bool is_long = arg.size() >= 2 && arg[1] == '-';
+
+        // 裸 '--'：分隔符，后续全部为位置参数（GNU 惯例）。
+        if(is_long && arg.size() == 2) {
+            positional_only = true;
+            ++i;
+            continue;
+        }
+        // 裸 '-'：畸形 flag。
+        if(!is_long && arg.size() == 1) {
+            return std::unexpected(make_error_code(cli_error::kInvalidValue));
+        }
+
+        const size_t name_start = is_long ? 2 : 1;
+        std::string name(arg.substr(name_start));
+
+        // 显式值语法：--name=value（仅长 flag 支持等号，最高优先级）。
+        std::optional<std::string> inline_value;
+        if(is_long) {
+            if(auto eq = name.find('='); eq != std::string::npos) {
+                inline_value = name.substr(eq + 1);
+                name.erase(eq);
+            }
+        }
+        if(name.empty()) {
+            return std::unexpected(make_error_code(cli_error::kInvalidValue));
+        }
+
+        // 声明驱动：已登记的 flag 按 AddFlag 的 requires_value 决定是否消费值；
+        // 未登记（宽松维度）保留词法回退——长 flag 后随非 '-' token 则带值。
+        const auto it = impl_->flags.find(name);
+        bool takes_value;
+        if(it != impl_->flags.end()) {
+            takes_value = it->second;
+        } else {
+            takes_value = is_long && !inline_value.has_value() && (i + 1 < argc) && (argv[i + 1][0] != '-');
+        }
+
+        if(inline_value.has_value()) {
+            result.flags()[name] = std::move(*inline_value);
+            seen.push_back({std::move(name), true});
+            ++i;
+        } else if(takes_value) {
+            if(i + 1 >= argc) {
+                return std::unexpected(make_error_code(cli_error::kMissingArgument));
+            }
+            result.flags()[name] = argv[i + 1];
+            seen.push_back({std::move(name), true});
+            i += 2;
+        } else {
+            result.flags()[name] = "true";
+            seen.push_back({std::move(name), false});
             ++i;
         }
     }

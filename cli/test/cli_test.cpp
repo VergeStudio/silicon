@@ -56,10 +56,44 @@ TEST_CASE("en_malformed_flag") {
     CHECK_FALSE(r1.has_value());
     CHECK(r1.error() == make_error_code(cli_error::kInvalidValue));
 
-    const char *argv2[] = {"prog", "--"};
-    auto r2 = p.Parse(2, argv2);
-    CHECK_FALSE(r2.has_value());
-    CHECK(r2.error() == make_error_code(cli_error::kInvalidValue));
+    // 裸 '--' 为分隔符（GNU 惯例）：其后全部为位置参数。
+    const char *argv2[] = {"prog", "--", "--weird", "pos"};
+    auto r2 = p.Parse(4, argv2);
+    REQUIRE(r2.has_value());
+    CHECK(r2->positional().size() == 2);
+    CHECK(r2->positional()[0] == std::string("--weird"));
+    CHECK(r2->positional()[1] == std::string("pos"));
+}
+
+TEST_CASE("en_long_flag_equals_value") {
+    Parser p;
+    p.AddFlag("name");
+    p.AddFlag("verbose");
+    const char *argv[] = {"prog", "--name=dev.json", "--verbose=1"};
+    auto r = p.Parse(3, argv);
+    REQUIRE(r.has_value());
+    CHECK(r->flags().at("name") == std::string("dev.json"));
+    CHECK(r->flags().at("verbose") == std::string("1"));
+}
+
+TEST_CASE("en_registered_value_flag_consumes_negative") {
+    Parser p;
+    p.AddFlag("num", true);
+    const char *argv[] = {"prog", "--num", "-5"};
+    auto r = p.Parse(3, argv);
+    REQUIRE(r.has_value());
+    CHECK(r->flags().at("num") == std::string("-5"));
+}
+
+TEST_CASE("en_registered_bool_flag_not_consume_next") {
+    Parser p;
+    p.AddFlag("verbose"); // requires_value=false：声明驱动，不吞后随 token
+    const char *argv[] = {"prog", "--verbose", "dev.json"};
+    auto r = p.Parse(3, argv);
+    REQUIRE(r.has_value());
+    CHECK(r->flags().at("verbose") == std::string("true"));
+    CHECK(r->positional().size() == 1);
+    CHECK(r->positional()[0] == std::string("dev.json"));
 }
 
 TEST_CASE("en_unknown_flag") {
