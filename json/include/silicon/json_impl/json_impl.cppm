@@ -1,3 +1,21 @@
+module;
+
+// The JSON implementation is inlined directly into this global module fragment
+// as declarations (not solely via #include), so MSVC warns C5202 ("global module
+// fragment can only contain preprocessing directives"). Those declarations are
+// legitimate module-internal definitions reachable by importers through the
+// re-export block below; the warning is benign and intentionally suppressed.
+#pragma warning(disable : 5202)
+
+// ============================================================================
+// The complete silicon JSON implementation (forked nlohmann/json v3.11.3) is
+// compiled into this module's GLOBAL MODULE FRAGMENT (GMF). Unlike a header
+// unit (export import "json.hpp"), this makes silicon.json_impl a REAL named
+// module: the types are compiled exactly once into this module's BMI and
+// re-exported below. No shared header-unit cache entry is derived per consumer,
+// so the clean -j4 parallel-build C3474 write race is eliminated at the module
+// level. The former json.hpp umbrella header has been inlined here and removed.
+// ============================================================================
 //     __ _____ _____ _____
 //  __|  |   __|     |   | |  silicon JSON
 // |  |  |__   |  |  | | | |  version 3.11.3
@@ -15,8 +33,6 @@
  * file docs/README.md.                                                     *
 \****************************************************************************/
 
-#ifndef INCLUDE_SILICON_JSON_HPP_
-#define INCLUDE_SILICON_JSON_HPP_
 
 #include <algorithm>        // all_of, find, for_each
 #include <cstddef>          // nullptr_t, ptrdiff_t, size_t
@@ -99,24 +115,24 @@ silicon_BASIC_JSON_TPL_DECLARATION class basic_json // NOLINT(cppcoreguidelines-
     friend struct detail::external_constructor;
 
     template<typename>
-    friend class ::silicon::json_impl::json_pointer;
+    friend class json_pointer;
     // can be restored when json_pointer backwards compatibility is removed
-    // friend ::silicon::json_impl::json_pointer<StringType>;
+    // friend json_pointer<StringType>;
 
     template<typename BasicJsonType, typename InputType>
-    friend class ::silicon::json_impl::detail::parser;
-    friend ::silicon::json_impl::detail::serializer<basic_json>;
+    friend class detail::parser;
+    friend detail::serializer<basic_json>;
     template<typename BasicJsonType>
-    friend class ::silicon::json_impl::detail::iter_impl;
+    friend class detail::iter_impl;
     template<typename BasicJsonType, typename CharType>
-    friend class ::silicon::json_impl::detail::binary_writer;
+    friend class detail::binary_writer;
     template<typename BasicJsonType, typename InputType, typename SAX>
-    friend class ::silicon::json_impl::detail::binary_reader;
+    friend class detail::binary_reader;
     template<typename BasicJsonType>
-    friend class ::silicon::json_impl::detail::json_sax_dom_parser;
+    friend class detail::json_sax_dom_parser;
     template<typename BasicJsonType>
-    friend class ::silicon::json_impl::detail::json_sax_dom_callback_parser;
-    friend class ::silicon::json_impl::detail::exception;
+    friend class detail::json_sax_dom_callback_parser;
+    friend class detail::exception;
 
     /// workaround type for MSVC
     using basic_json_t = silicon_BASIC_JSON_TPL;
@@ -4568,4 +4584,31 @@ using silicon::json_impl::literals::json_literals::operator"" _json_pointer; //N
 
 #include <silicon/json_impl/detail/macro_unscope.hpp>
 
-#endif // INCLUDE_SILICON_JSON_HPP_
+export module silicon.json_impl;
+
+// Re-export the public API that was previously visible through the (now removed)
+// json.hpp umbrella header.
+export {
+    silicon::json_impl::basic_json;
+    silicon::json_impl::json;
+    silicon::json_impl::ordered_json;
+    silicon::json_impl::json_pointer;
+    silicon::json_impl::adl_serializer;
+    silicon::json_impl::ordered_map;
+    silicon::json_impl::byte_container_with_subtype;
+    // basic_json's friend declarations name these internal template classes.
+    // They are declared in this module's global module fragment (via the inlined
+    // json.hpp content) and are therefore NOT visible to importers; but importers
+    // that instantiate basic_json must be able to resolve the friend types.
+    // Re-export them from the module interface so the friend declarations resolve
+    // across module boundaries.
+    silicon::json_impl::detail::external_constructor;
+    silicon::json_impl::detail::parser;
+    silicon::json_impl::detail::serializer;
+    silicon::json_impl::detail::iter_impl;
+    silicon::json_impl::detail::binary_writer;
+    silicon::json_impl::detail::binary_reader;
+    silicon::json_impl::detail::json_sax_dom_parser;
+    silicon::json_impl::detail::json_sax_dom_callback_parser;
+    silicon::json_impl::detail::exception;
+}

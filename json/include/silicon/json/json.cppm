@@ -1,19 +1,16 @@
 module;
 
-// Standard headers needed by the convenience helpers below (string_view is
-// also used by json.hpp but header-unit import only re-exports what json.hpp
-// itself declares; std headers are not reachable through it).
-#include <string>
-#include <string_view>
-
 export module silicon.json;
 
-// Header-unit import: json.hpp is compiled once as a header unit, so all of
-// its external-linkage entities (incl. the friend class templates that
-// basic_json references) become exported and reachable in consumers. A plain
-// GMF #include would keep them module-private and MSVC would fail with C2039
-// when a consumer instantiates basic_json (re-resolution of friend decls).
-export import "silicon/json_impl/json.hpp";
+// Consume the C++20 standard library module so that std comparison operators
+// (e.g. unique_ptr != nullptr inside basic_json::create) are visible across
+// module boundaries when importers instantiate basic_json.
+import std;
+
+// silicon.json_impl 已把完整 JSON 实现内联进自身 global module fragment
+// （原 json.hpp 伞头已删除），作为真正的命名模块只产出一份 BMI；消费方只
+// import 该模块，故无共享 header-unit 缓存条目，消除 clean -j4 C3474 竞态。
+export import silicon.json_impl;
 
 // Public type, re-exported from the forked implementation.
 export namespace silicon::json {
