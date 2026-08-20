@@ -25,6 +25,8 @@ target("platform", function()
     add_deps("silicon::proxy")
 
     add_files("../core/include/silicon/core/platform/facade.cppm", {public = true})
+    -- 模块实现单元：三个具体平台类与 create_platform 工厂体（对齐 silicon.util / silicon.exception）
+    add_files("../core/src/platform/facade.cpp")
 end)
 
 target("platform.test", function()
