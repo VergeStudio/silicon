@@ -25,10 +25,11 @@ std::unique_ptr<IPlatform> create_platform();
 ```
 
 ## 实现选择（编译期）
-`platform.cppm` 在模块 purview 内按编译器预定义宏（`_WIN32` / `__linux__` / `__unix__` /
-`__APPLE__` 等）`#include` 对应的 `_win` / `_linux` / `_unix` 实现头文件，避免多模块
-BMI 暴露问题；`create_platform()` 用 `if constexpr (os == ...)` 返回所选具体实现。
-模块自包含，不依赖消费项目注入的 `SILICON_PLATFORM_*` 宏。
+`platform.cppm` 与全项目统一，OS 族探测消费构建系统注入的 `SILICON_PLATFORM_*` 宏
+（WINDOWS / UNIX / LINUX / APPLE / BSD），不再裸探测编译器预定义宏；`create_platform()`
+用 `if constexpr (os == ...)` 返回所选具体实现（windows / linux / unix 三态）。
+`SILICON_PLATFORM_*` 是全项目唯一的平台守卫来源——本模块不再自探测，与 network / scheduler /
+fs 等消费方保持一致。
 
 > 注：消费项目（如 siliconbuddy）在 DI 组合根中仍可基于 `SILICON_PLATFORM_*` 宏把
 > 具体实现绑定到 `silicon::platform::IPlatform`，宏由顶层 xmake.lua 按平台定义。
