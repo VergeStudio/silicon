@@ -34,7 +34,7 @@ struct unset_return_value {
 
 class sync_wait_event {
   public:
-    sync_wait_event(bool initially_set = false);
+    sync_wait_event(bool = false);
     sync_wait_event(const sync_wait_event &) = delete;
     sync_wait_event(sync_wait_event &&) = delete;
     sync_wait_event & operator=(const sync_wait_event &) = delete;

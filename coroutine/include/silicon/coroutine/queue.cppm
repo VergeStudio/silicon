@@ -68,7 +68,7 @@ class queue {
         explicit awaiter(queue<element_type> &q) noexcept;
 
         bool await_ready() noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
         [[nodiscard]] expected<element_type, queue_consume_result> await_resume() noexcept ;
 
         std::optional<element_type> m_element{std::nullopt};

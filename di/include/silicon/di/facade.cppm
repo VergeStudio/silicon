@@ -125,7 +125,7 @@ constexpr bool operator==(type_descriptor lhs, type_descriptor rhs) {
 
 template <typename T> constexpr std::string_view raw_type_name();
 template <typename T> constexpr type_descriptor describe_type();
-inline void append_type_name(std::string& name, type_descriptor descriptor);
+inline void append_type_name(std::string&, type_descriptor);
 
 
 
@@ -4803,7 +4803,7 @@ class context_path_state;
 
 class resolving_frame {
   public:
-    resolving_frame(context_path_state& context, type_descriptor type);
+    resolving_frame(context_path_state&, type_descriptor);
 
     resolving_frame(const resolving_frame&) = delete;
     resolving_frame& operator=(const resolving_frame&) = delete;
@@ -5052,7 +5052,7 @@ class context_path_state {
 
     const type_descriptor* parent_type() const;
 
-    void append_type_path(std::string& message) const;
+    void append_type_path(std::string&) const;
 
   protected:
     friend class resolving_frame;
@@ -8403,7 +8403,7 @@ struct static_type_map {
 #endif
             return {*node.value, true};
         }
-        assert(node.owner == this);
+        assert(node.owner ==);
         return {*node.value, false};
     }
 

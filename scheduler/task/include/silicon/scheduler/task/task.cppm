@@ -317,7 +317,7 @@ class promise_self_deleting {
     std::suspend_never final_suspend() noexcept ;
     void return_void() noexcept ;
     void unhandled_exception() ;
-    void user_final_suspend(std::function<void()> user_final_suspend) noexcept ;
+    void user_final_suspend(std::function<void()>) noexcept ;
 
   private:
     std::function<void()> m_user_final_suspend{nullptr};
@@ -357,7 +357,7 @@ class task_event {
     struct awaiter {
         awaiter(const task_event &e) noexcept;
         bool await_ready() const noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
         void await_resume() noexcept ;
 
         const task_event &m_event;
@@ -365,7 +365,7 @@ class task_event {
         awaiter *m_next{nullptr};
     };
 
-    explicit task_event(bool initially_set = false) noexcept;
+    explicit task_event(bool = false) noexcept;
     ~task_event() = default;
     task_event(const task_event &) = delete;
     task_event(task_event &&) = delete;

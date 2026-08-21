@@ -18,7 +18,7 @@ enum class event_status { kSuccess, kFailure, kTimeout };
 class EVENT_API event {
   public:
     event() = default;
-    explicit event(std::string name) noexcept;
+    explicit event(std::string) noexcept;
     virtual ~event() = default;
 
     event(const event &) = delete;
@@ -28,7 +28,7 @@ class EVENT_API event {
 
     [[nodiscard]] auto name() const noexcept -> const std::string &;
     [[nodiscard]] event_status status() const noexcept ;
-    void set_status(event_status s) noexcept;
+    void set_status(event_status) noexcept;
 
   private:
     // PIMPL：私有状态移入不透明 impl，稳定 ABI、隐藏实现。

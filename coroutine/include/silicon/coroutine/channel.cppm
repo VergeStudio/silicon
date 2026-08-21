@@ -63,10 +63,10 @@ class channel {
 
   public:
     struct send_operation {
-        send_operation(channel<element_type> &ch, element_type e) noexcept;
+        send_operation(channel<element_type> &ch, element_type) noexcept;
 
         bool await_ready() noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
         auto await_resume() noexcept -> channel_result::send;
 
         std::coroutine_handle<> m_awaiting_coroutine{nullptr};
@@ -84,7 +84,7 @@ class channel {
         explicit recv_operation(channel<element_type> &ch) noexcept;
 
         bool await_ready() noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
         auto await_resume() noexcept -> expected<element_type, channel_result::recv>;
 
         std::coroutine_handle<> m_awaiting_coroutine{nullptr};
@@ -103,7 +103,7 @@ class channel {
      *                 unbuffered rendezvous channel where send() suspends
      *                 until a receiver is waiting.
      */
-    explicit channel(size_t capacity);
+    explicit channel(size_t);
 
     ~channel();
 
@@ -210,7 +210,7 @@ class channel {
 
     struct impl {
       public:
-        explicit impl(size_t capacity);
+        explicit impl(size_t);
 
         void store(element_type &&element) ;
         std::optional<element_type> take() ;

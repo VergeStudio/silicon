@@ -21,7 +21,7 @@ export namespace silicon::scheduler::default_executor {
  * silicon::scheduler::default_executor::executor()
  * @param pool_options pool options
  */
-void set_executor_options(thread_pool::options pool_options);
+void set_executor_options(thread_pool::options);
 
 /**
  * Get default silicon::scheduler::thread_pool
@@ -34,7 +34,7 @@ std::unique_ptr<silicon::scheduler::thread_pool> & executor() ;
  * silicon::scheduler::default_executor::io_executor()
  * @param scheduler_options scheduler options
  */
-void set_io_executor_options(io_scheduler::options scheduler_options);
+void set_io_executor_options(io_scheduler::options);
 
 /**
  * Get default silicon::scheduler::io_scheduler

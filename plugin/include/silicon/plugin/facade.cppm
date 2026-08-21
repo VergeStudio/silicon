@@ -96,7 +96,7 @@ class plugin_registry {
 
   public:
     /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。
-    [[nodiscard]] result<void> register_plugin(plugin_proxy plugin) ;
+    [[nodiscard]] result<void> register_plugin(plugin_proxy) ;
 
     /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
     template<class T, class... Args>
@@ -105,7 +105,7 @@ class plugin_registry {
     }
 
     /// 查询；不存在返回 nullptr。返回句柄的所有权仍属注册表。
-    plugin_proxy *get_plugin(std::string_view name) const;
+    plugin_proxy *get_plugin(std::string_view) const;
 
     /// 移除并触发 on_unload；不存在返回 kNotFound。
     [[nodiscard]] auto remove_plugin(std::string_view name) -> result<void>;
@@ -127,7 +127,7 @@ class proxy_plugin_registry {
 
   public:
     /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。
-    [[nodiscard]] result<void> register_plugin(plugin_proxy plugin) ;
+    [[nodiscard]] result<void> register_plugin(plugin_proxy) ;
 
     /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
     template<class T, class... Args>
@@ -136,7 +136,7 @@ class proxy_plugin_registry {
     }
 
     /// 查询；不存在返回 nullptr。返回句柄的所有权仍属注册表。
-    plugin_proxy *get(std::string_view name) const;
+    plugin_proxy *get(std::string_view) const;
 
     /// 移除并触发 on_unload；不存在返回 kNotFound。
     [[nodiscard]] auto remove(std::string_view name) -> result<void>;

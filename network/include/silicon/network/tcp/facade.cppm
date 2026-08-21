@@ -249,10 +249,10 @@ class client final {
     std::unique_ptr<impl> impl_;
 
     /// The tcp::server creates already connected clients and provides a tcp socket pre-built.
-    client(silicon::scheduler::io_scheduler *scheduler, network::socket socket, const network::socket_address &endpoint);
+    client(silicon::scheduler::io_scheduler *scheduler, network::socket, const network::socket_address &endpoint);
 
     /// create() 专用：所有可失败的前置校验都已在工厂中完成。
-    client(silicon::scheduler::io_scheduler *scheduler, network::socket_address endpoint, network::socket sock);
+    client(silicon::scheduler::io_scheduler *scheduler, network::socket_address, network::socket);
 };
 
 /// @brief 类型擦除门面：TCP 服务端的可擦除接口。
@@ -355,7 +355,7 @@ class server final {
     std::unique_ptr<impl> impl_;
 
     /// create() 专用：所有可失败的前置校验都已在工厂中完成。
-    server(silicon::scheduler::io_scheduler *scheduler, options opts, network::socket accept_socket);
+    server(silicon::scheduler::io_scheduler *scheduler, options, network::socket);
 };
 
 } // namespace silicon::network::tcp

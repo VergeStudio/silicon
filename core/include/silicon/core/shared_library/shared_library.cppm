@@ -47,7 +47,7 @@ export class shared_library final {
     /// Returns an error_code on failure
     /// (silicon::library::library_error::kAlreadyLoaded / kLoadFailed, or a
     /// system errno via std::error_code{ec, std::generic_category()}).
-    [[nodiscard]] std::expected<void, std::error_code> load(const std::string &, int32_t flags = 0) ;
+    [[nodiscard]] std::expected<void, std::error_code> load(const std::string &, int32_t = 0) ;
 
     /// Unloads a shared library. Returns an error_code on failure.
     [[nodiscard]] std::expected<void, std::error_code> unload() ;

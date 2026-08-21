@@ -152,13 +152,13 @@ struct io_status {
     [[nodiscard]] std::string message() const ;
 };
 
-std::string_view to_string(io_status::kind kind) ;
-io_status make_io_status_from_native(int native_code) ;
+std::string_view to_string(io_status::kind) ;
+io_status make_io_status_from_native(int) ;
 auto make_io_status_from_poll_status(silicon::coroutine::poll_status status) -> io_status;
 
 // ── Platform-specific helpers (defined in io_status_linux.cpp / io_status_win.cpp) ──
-[[nodiscard]] std::string message_impl(int native_code);
-io_status make_io_status_from_native_impl(int native_code) ;
+[[nodiscard]] std::string message_impl(int);
+io_status make_io_status_from_native_impl(int) ;
 
 enum class recv_status : int64_t {
     kOk = 0,
@@ -548,7 +548,7 @@ class socket final {
 
     /// 映射为操作系统 socket 类型常量；枚举非法时返回
     /// network_error::kInvalidSocketType。
-    static result<int> type_to_os(type_t type) ;
+    static result<int> type_to_os(type_t) ;
 
     socket() = default;
     explicit socket(int fd): m_fd(fd) {}
@@ -577,14 +577,14 @@ class socket final {
     /**
      * @param block Sets the socket to the given blocking mode.
      */
-    bool blocking(blocking_t block) ;
+    bool blocking(blocking_t) ;
     bool blocking(int block) { return blocking(static_cast<blocking_t>(block)); }
 
     /**
      * @param how Shuts the socket down with the given operations.
      * @return Returns true if the sockets given operations were shutdown.
      */
-    bool shutdown(silicon::coroutine::poll_op how = silicon::coroutine::poll_op::read_write) ;
+    bool shutdown(silicon::coroutine::poll_op = silicon::coroutine::poll_op::read_write) ;
     bool shutdown(int how) { return shutdown(static_cast<silicon::coroutine::poll_op>(how)); }
 
     /**

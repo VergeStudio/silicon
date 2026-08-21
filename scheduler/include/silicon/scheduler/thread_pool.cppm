@@ -35,7 +35,7 @@ class thread_pool final {
 
       public:
         bool await_ready() noexcept { return false; }
-        void await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        void await_suspend(std::coroutine_handle<>) noexcept ;
         void await_resume() noexcept {}
 
       private:
@@ -79,7 +79,7 @@ class thread_pool final {
         co_return co_await task;
     }
 
-    bool resume(std::coroutine_handle<> handle) noexcept ;
+    bool resume(std::coroutine_handle<>) noexcept ;
 
     template<typename range_type>
         requires requires(const range_type &r) {

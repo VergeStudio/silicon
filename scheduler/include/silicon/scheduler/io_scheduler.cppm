@@ -358,7 +358,7 @@ class io_scheduler {
      * @param time The time point to resume execution of this task.  Given 'now' or a time point
      *             in the past this behaves identical to schedule().
      */
-    [[nodiscard]] silicon::scheduler::task<void> schedule_at(time_point time) ;
+    [[nodiscard]] silicon::scheduler::task<void> schedule_at(time_point) ;
 
     /**
      * Yields the current task to the end of the queue of waiting tasks.
@@ -380,7 +380,7 @@ class io_scheduler {
      * @param time The time point to resume execution of this task.  Given 'now' or a time point in the
      *             in the past this behaves identical to yield().
      */
-    [[nodiscard]] silicon::scheduler::task<void> yield_until(time_point time) ;
+    [[nodiscard]] silicon::scheduler::task<void> yield_until(time_point) ;
 
     /**
      * Polls the given file descriptor for the given operations.
@@ -401,7 +401,7 @@ class io_scheduler {
      * Resumes execution of a direct coroutine handle on this io scheduler.
      * @param handle The coroutine handle to resume execution.
      */
-    bool resume(std::coroutine_handle<> handle) ;
+    bool resume(std::coroutine_handle<>) ;
 
     template<silicon::coroutine::concepts::sized_range_of<std::coroutine_handle<>> range_type>
     std::size_t resume(const range_type &handles) noexcept {
@@ -503,20 +503,20 @@ class io_scheduler {
     static const constexpr std::chrono::milliseconds m_no_timeout{0};
     static const constexpr std::size_t m_max_events = 16;
 
-    silicon::scheduler::task<void> yield_for_internal(std::chrono::nanoseconds amount) ;
-    void process_events_manual(std::chrono::milliseconds timeout) ;
+    silicon::scheduler::task<void> yield_for_internal(std::chrono::nanoseconds) ;
+    void process_events_manual(std::chrono::milliseconds) ;
     void process_events_dedicated_thread() ;
-    void process_events_execute(std::chrono::milliseconds timeout) ;
-    static poll_status event_to_poll_status(uint32_t events) ;
+    void process_events_execute(std::chrono::milliseconds) ;
+    static poll_status event_to_poll_status(uint32_t) ;
 
     void process_scheduled_execute_inline() ;
 
-    void process_event_execute(silicon::scheduler::poll_info *pi, poll_status status) ;
+    void process_event_execute(silicon::scheduler::poll_info *pi, poll_status) ;
     void process_timeout_execute() ;
 
     auto add_timer_token(time_point tp, silicon::scheduler::poll_info &pi) -> timed_events::iterator;
-    void remove_timer_token(timed_events::iterator pos) ;
-    void update_timeout(time_point now) ;
+    void remove_timer_token(timed_events::iterator) ;
+    void update_timeout(time_point) ;
 
     silicon::scheduler::task<timeout_status> make_timeout_task(std::chrono::milliseconds timeout) {
         co_await schedule_after(timeout);

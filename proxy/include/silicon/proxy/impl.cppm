@@ -240,7 +240,7 @@ using proxy_accessor = add_qualifier_t<
         Q>;
 template<class F, qualifier_type Q>
 add_qualifier_t<proxy<F>, Q>
-as_proxy(add_qualifier_t<proxy_indirect_accessor<F>, Q> p);
+as_proxy(add_qualifier_t<proxy_indirect_accessor<F>, Q>);
 
 struct proxy_helper {
     template<class P, class F>

@@ -82,7 +82,7 @@ class result {
     dns::status m_status{dns::status::kComplete};
     std::vector<silicon::network::ip_address> m_ip_addresses{};
 
-    friend void ares_dns_callback(void *arg, int status, int timeouts, ares_addrinfo *addr_info) ;
+    friend void ares_dns_callback(void *arg, int, int, ares_addrinfo *addr_info) ;
 };
 
 template<silicon::coroutine::concepts::io_executor executor_type>

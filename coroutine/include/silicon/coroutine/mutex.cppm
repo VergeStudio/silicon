@@ -41,7 +41,7 @@ struct lock_operation_base {
     lock_operation_base & operator=(lock_operation_base &&) = delete;
 
     bool await_ready() const noexcept ;
-    bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+    bool await_suspend(std::coroutine_handle<>) noexcept ;
 
     std::coroutine_handle<> m_awaiting_coroutine;
     lock_operation_base *m_next{nullptr};

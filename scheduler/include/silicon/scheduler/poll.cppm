@@ -88,7 +88,7 @@ auto to_string(poll_status status) -> const std::string &;
 
 class poll_stop_token {
   public:
-    explicit poll_stop_token(fd_t receiver);
+    explicit poll_stop_token(fd_t);
 
     // poll_stop_token is logically a value (wraps a single fd), so keep it copyable
     // by cloning the underlying int rather than deleting copy (which would force a

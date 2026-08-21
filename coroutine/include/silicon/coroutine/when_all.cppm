@@ -24,7 +24,7 @@ export namespace silicon::coroutine {
 
 class when_all_latch {
   public:
-    when_all_latch(std::size_t count) noexcept;
+    when_all_latch(std::size_t) noexcept;
 
     when_all_latch(const when_all_latch &) = delete;
     when_all_latch(when_all_latch &&other);
@@ -36,7 +36,7 @@ class when_all_latch {
 
     bool is_ready() const noexcept ;
 
-    bool try_await(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+    bool try_await(std::coroutine_handle<>) noexcept ;
 
     void notify_awaitable_completed() noexcept ;
 
@@ -424,7 +424,7 @@ class when_all_task<void> {
 template<
         concepts::awaitable awaitable,
         typename return_type = typename concepts::awaitable_traits<awaitable &&>::awaiter_return_type>
-when_all_task<return_type> __ATTRIBUTE__(used) make_when_all_task(awaitable a) ;
+when_all_task<return_type> __ATTRIBUTE__(used) make_when_all_task(awaitable) ;
 
 template<concepts::awaitable awaitable, typename return_type>
 when_all_task<return_type> make_when_all_task(awaitable a) {

@@ -39,10 +39,10 @@ class CONFIG_API config_value {
     ~config_value() = default;
 
     config_value(std::nullptr_t);
-    config_value(bool v);
-    config_value(int64_t v);
-    config_value(double v);
-    config_value(std::string v);
+    config_value(bool);
+    config_value(int64_t);
+    config_value(double);
+    config_value(std::string);
 
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
     config_value(const config_value &o): impl_(std::make_shared<impl>(*o.impl_)) {}

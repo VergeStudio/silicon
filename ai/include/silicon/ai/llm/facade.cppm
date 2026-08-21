@@ -121,8 +121,8 @@ class tool_registry {
   public:
     tool_registry();
     ~tool_registry();
-    bool register_tool(tool_proxy tool);
-    tool_proxy get_tool(std::string_view name) const;
+    bool register_tool(tool_proxy);
+    tool_proxy get_tool(std::string_view) const;
     std::size_t tool_count() const;
 };
 
@@ -135,8 +135,8 @@ class provider_registry {
   public:
     provider_registry();
     ~provider_registry();
-    bool register_provider(std::string id, provider_proxy provider);
-    provider_proxy get_provider(std::string_view id) const;
+    bool register_provider(std::string, provider_proxy);
+    provider_proxy get_provider(std::string_view) const;
     std::vector<std::string> list_providers() const;
 };
 
@@ -149,7 +149,7 @@ class json_protocol_adapter {
             const model_request_options &opts,
             const std::vector<std::string> &tool_defs
     ) const;
-    result<chat_response> decode_response(std::string_view raw) const;
+    result<chat_response> decode_response(std::string_view) const;
 };
 
 /// 脚本化提供方：FIFO 返回预置响应，用于确定性 TDD。
@@ -162,7 +162,7 @@ class scripted_provider {
   public:
     scripted_provider();
     ~scripted_provider();
-    void enqueue(chat_response r);
+    void enqueue(chat_response);
     std::size_t remaining() const;
 
     result<chat_response> chat(const conversation &, const model_request_options &);
@@ -176,7 +176,7 @@ class http_provider {
     struct impl;
     std::unique_ptr<impl> impl_;
 
-    static std::string env_or(const char *name, std::string def);
+    static std::string env_or(const char *name, std::string);
 
     struct http_result {
 

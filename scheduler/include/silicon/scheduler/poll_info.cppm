@@ -58,8 +58,8 @@ struct poll_info {
     poll_info();
     ~poll_info();
 
-    poll_info(fd_t fd, silicon::coroutine::poll_op op);
-    poll_info(fd_t fd, silicon::coroutine::poll_op op, std::optional<poll_stop_token> cancel_trigger);
+    poll_info(fd_t, silicon::coroutine::poll_op);
+    poll_info(fd_t, silicon::coroutine::poll_op, std::optional<poll_stop_token>);
 
     poll_info(const poll_info &) = delete;
     poll_info(poll_info &&) = delete;
@@ -70,7 +70,7 @@ struct poll_info {
         explicit poll_awaiter(poll_info &pi) noexcept: m_pi(pi) {}
 
         bool await_ready() const noexcept { return false; }
-        void await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        void await_suspend(std::coroutine_handle<>) noexcept ;
         silicon::coroutine::poll_status await_resume() noexcept ;
 
         poll_info &m_pi;

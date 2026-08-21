@@ -63,10 +63,10 @@ class ring_buffer {
     ring_buffer<element, num_elements> & operator=(ring_buffer<element, num_elements> &&) noexcept = delete;
 
     struct produce_operation {
-        produce_operation(ring_buffer<element, num_elements> &rb, element e);
+        produce_operation(ring_buffer<element, num_elements> &rb, element);
 
         bool await_ready() noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
 
         /**
          * @return produce_result
@@ -94,7 +94,7 @@ class ring_buffer {
         explicit consume_operation(ring_buffer<element, num_elements> &rb);
 
         bool await_ready() noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
 
         /**
          * @return The consumed element or ring_buffer_stopped if the ring buffer has been shutdown.
@@ -123,7 +123,7 @@ class ring_buffer {
      * in the ring buffer becomes available.
      * @param e The element to produce.
      */
-    [[nodiscard]] silicon::scheduler::task<ring_buffer_result::produce> produce(element e) ;
+    [[nodiscard]] silicon::scheduler::task<ring_buffer_result::produce> produce(element) ;
 
     /**
      * Consumes an element from the ring buffer.  This operation will suspend until an element in

@@ -167,7 +167,7 @@ class peer final {
 
   private:
     /// create() 专用：所有可失败的前置校验都已在工厂中完成。
-    peer(silicon::scheduler::io_scheduler *scheduler, network::socket sock, bool bound);
+    peer(silicon::scheduler::io_scheduler *scheduler, network::socket, bool);
 
     /// PIMPL 实现体（完整类型定义于 peer.cpp）。
     struct impl;

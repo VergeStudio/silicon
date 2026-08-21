@@ -71,7 +71,7 @@ class io_notifier {
         16;
 #endif
 
-    void remove_fd(fd_t fd) ;
+    void remove_fd(fd_t) ;
 
   public:
     io_notifier();
@@ -83,13 +83,13 @@ class io_notifier {
 
     ~io_notifier();
 
-    bool watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) ;
+    bool watch_timer(const timer_handle &timer, std::chrono::nanoseconds) ;
 
-    bool watch(fd_t fd, poll_op op, void *data, bool keep = false, bool is_cancel_event = false) ;
+    bool watch(fd_t, poll_op, void *data, bool = false, bool = false) ;
 
     bool watch(poll_info &pi) ;
 
-    bool unwatch(fd_t fd, poll_op op) ;
+    bool unwatch(fd_t, poll_op) ;
 
     bool unwatch(poll_info &pi) ;
 

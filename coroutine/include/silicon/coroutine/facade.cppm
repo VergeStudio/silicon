@@ -119,14 +119,14 @@ class condition_variable {
         auto operator=(awaiter &&) -> awaiter & = delete;
 
         bool await_ready() const noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
         auto await_resume() noexcept {}
 
         silicon::scheduler::task<notify_status_t> do_on_notify() ;
     };
 
     struct awaiter_with_predicate: public awaiter_base {
-        awaiter_with_predicate(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, predicate_type p) noexcept;
+        awaiter_with_predicate(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, predicate_type) noexcept;
         ~awaiter_with_predicate() = default;
 
         awaiter_with_predicate(const awaiter_with_predicate &) = delete;
@@ -135,7 +135,7 @@ class condition_variable {
         awaiter_with_predicate & operator=(awaiter_with_predicate &&) = delete;
 
         bool await_ready() const noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
         auto await_resume() noexcept {}
 
         silicon::scheduler::task<notify_status_t> do_on_notify() ;
@@ -158,7 +158,7 @@ class condition_variable {
         awaiter_with_predicate_stop_token & operator=(awaiter_with_predicate_stop_token &&) = delete;
 
         bool await_ready() noexcept ;
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
         bool await_resume() noexcept { return m_predicate_result; }
 
         silicon::scheduler::task<notify_status_t> do_on_notify() ;

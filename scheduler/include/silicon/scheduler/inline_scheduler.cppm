@@ -45,7 +45,7 @@ class inline_scheduler final {
     // —— scheduler_facade ——
     bool spawn_detached(task<void> &&task) noexcept ;
     task<void> spawn_joinable(task<void> &&t) noexcept ;
-    bool resume(std::coroutine_handle<> handle) noexcept ;
+    bool resume(std::coroutine_handle<>) noexcept ;
     void shutdown() noexcept ;
     bool is_shutdown() const ;
     std::size_t size() const noexcept ;

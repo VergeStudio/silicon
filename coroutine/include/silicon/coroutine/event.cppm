@@ -57,7 +57,7 @@ class event {
          * to resume execution immediately.
          * @return False if the event is already set, otherwise true to suspend this coroutine.
          */
-        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_suspend(std::coroutine_handle<>) noexcept ;
 
         /**
          * Nothing to do on resume.
@@ -77,7 +77,7 @@ class event {
      * @param initially_set By default all events start as not set, but if needed this parameter can
      *                      set the event to already be triggered.
      */
-    explicit event(bool initially_set = false) noexcept;
+    explicit event(bool = false) noexcept;
     ~event();
 
     event(const event &) = delete;
@@ -96,7 +96,7 @@ class event {
      * @param policy The order in which the waiters should be resumed, defaults to LIFO since it
      *               is more efficient, FIFO requires reversing the order of the waiters first.
      */
-    void set(resume_order_policy policy = resume_order_policy::kLifo) noexcept ;
+    void set(resume_order_policy = resume_order_policy::kLifo) noexcept ;
 
     /**
      * Sets this event and resumes all awaiters onto the given executor.  This will distribute

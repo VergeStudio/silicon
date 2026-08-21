@@ -30,7 +30,7 @@ class latch {
      * @param count The number of tasks to wait to complete, if this is zero or negative then the
      *              latch starts 'completed' immediately and execution is resumed with no suspension.
      */
-    latch(std::int64_t count) noexcept;
+    latch(std::int64_t) noexcept;
     ~latch();
 
     latch(const latch &) = delete;
@@ -52,7 +52,7 @@ class latch {
      * If the latch counter goes to zero then the task awaiting the latch is resumed.
      * @param n The number of tasks to complete towards the latch, defaults to 1.
      */
-    void count_down(std::int64_t n = 1) noexcept ;
+    void count_down(std::int64_t = 1) noexcept ;
 
     /**
      * If the latch counter goes to zero then the task awaiting the latch is resumed on the given
@@ -79,7 +79,7 @@ class latch {
      * 非模板钩子：递减计数，返回是否刚好归零（需要触发内部 event）。
      * 供接口单元中的 `count_down(executor)` 模板重载使用。
      */
-    bool decrement(std::int64_t n) noexcept ;
+    bool decrement(std::int64_t) noexcept ;
     /// 非模板钩子：暴露内部 event 引用，供模板重载在 executor 上恢复等待者。
     event & internal_event() noexcept ;
 };

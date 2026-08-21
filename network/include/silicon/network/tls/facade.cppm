@@ -513,11 +513,11 @@ class client final {
 
     /// The tls::server creates already connected clients and provides a tcp socket pre-built.
     friend server;
-    client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context> tls_ctx, network::socket socket, const network::socket_address &endpoint);
+    client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context>, network::socket, const network::socket_address &endpoint);
 
     /// create() 专用：所有可失败的前置校验都已在工厂中完成（注意与上面 server 侧
     /// 构造的形参顺序不同：此处为 endpoint 在前、socket 在后，且不预置 connect 状态）。
-    client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context> tls_ctx, const network::socket_address &endpoint, network::socket sock);
+    client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context>, const network::socket_address &endpoint, network::socket);
 
     /// The scheduler that will drive this tcp client.
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
@@ -631,7 +631,7 @@ class server final {
 
   private:
     /// create() 专用：所有可失败的前置校验都已在工厂中完成。
-    server(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context> tls_ctx, options opts, network::socket accept_socket);
+    server(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context>, options, network::socket);
 
     /// The io scheduler for awaiting new connections.
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
