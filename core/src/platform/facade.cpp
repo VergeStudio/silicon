@@ -4,6 +4,11 @@ module;
 
 module silicon.platform;
 
+// 实现单元需显式导入主接口，方可访问其导出的 platform_proxy / os / os_id / make_platform
+import silicon.platform;
+
+namespace silicon::platform {
+
 class windows_platform {
   public:
     std::string os_name() const { return "windows"; }
@@ -35,3 +40,5 @@ platform_proxy create_platform() {
         return make_platform<unix_platform>();
     }
 }
+
+} // namespace silicon::platform
