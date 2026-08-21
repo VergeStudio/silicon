@@ -39,7 +39,7 @@ class acquire_operation {
   public:
     explicit acquire_operation(semaphore<max_value> &s): m_semaphore(s) {}
 
-    [[nodiscard]] auto await_ready() const noexcept -> bool {
+    [[nodiscard]] bool await_ready() const noexcept {
         // If the semaphore is shutdown or a resources can be acquired without suspending release the lock and resume execution.
         if(m_semaphore.m_p->m_shutdown.load(std::memory_order::acquire) || m_semaphore.try_acquire()) {
             m_semaphore.m_p->m_mutex.unlock();
@@ -49,7 +49,7 @@ class acquire_operation {
         return false;
     }
 
-    auto await_suspend(const std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+    bool await_suspend(const std::coroutine_handle<> awaiting_coroutine) noexcept {
         // Check again now that we've set up the coroutine frame, the state could have changed.
         if(await_ready()) {
             return false;
@@ -61,7 +61,7 @@ class acquire_operation {
         return true;
     }
 
-    [[nodiscard]] auto await_resume() const -> semaphore_acquire_result {
+    [[nodiscard]] semaphore_acquire_result await_resume() const {
         if(m_semaphore.m_p->m_shutdown.load(std::memory_order::acquire)) {
             return semaphore_acquire_result::kShutdown;
         }
@@ -86,14 +86,14 @@ class semaphore {
     semaphore(const semaphore &) = delete;
     semaphore(semaphore &&) = delete;
 
-    auto operator=(const semaphore &) noexcept -> semaphore & = delete;
-    auto operator=(semaphore &&) noexcept -> semaphore & = delete;
+    semaphore & operator=(const semaphore &) noexcept = delete;
+    semaphore & operator=(semaphore &&) noexcept = delete;
 
     /**
      * @brief Acquires a resource from the semaphore, if the semaphore has no resources available then
      * this will suspend and wait until a resource becomes available.
      */
-    [[nodiscard]] auto acquire() -> silicon::scheduler::task<semaphore_acquire_result> {
+    [[nodiscard]] silicon::scheduler::task<semaphore_acquire_result> acquire() {
         co_await m_p->m_mutex.lock();
         co_return co_await acquire_operation<max_value>{*this};
     }
@@ -102,7 +102,7 @@ class semaphore {
      * @brief Releases a resources back to the semaphore, if the semaphore is already at value() == max() this does nothing.
      * @return
      */
-    [[nodiscard]] auto release() -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> release() {
         co_await m_p->m_mutex.lock();
         // Do not resume or increment resources past the max_value.
         if(value() == max()) {
@@ -126,7 +126,7 @@ class semaphore {
      * @brief Attempts to acquire a resource if there are any resources available.
      * @return True if the acquire operation was able to acquire a resource.
      */
-    auto try_acquire() -> bool {
+    bool try_acquire() {
         auto expected = m_p->m_counter.load(std::memory_order::acquire);
         do {
             if(expected <= 0) {
@@ -140,18 +140,18 @@ class semaphore {
     /**
      * @return The maximum number of resources the semaphore can contain.
      */
-    [[nodiscard]] static constexpr auto max() noexcept -> std::ptrdiff_t { return max_value; }
+    [[nodiscard]] static constexpr std::ptrdiff_t max() noexcept { return max_value; }
 
     /**
      * @return The current number of resources available to acquire for this semaphore.
      */
-    [[nodiscard]] auto value() const noexcept -> std::ptrdiff_t { return m_p->m_counter.load(std::memory_order::acquire); }
+    [[nodiscard]] std::ptrdiff_t value() const noexcept { return m_p->m_counter.load(std::memory_order::acquire); }
 
     /**
      * Stops the semaphore and will notify all release/acquire waiters to wake up in a failed state.
      * Once this is set it cannot be un-done and all future operations on the semaphore will fail.
      */
-    [[nodiscard]] auto shutdown() noexcept -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> shutdown() noexcept {
         if(is_shutdown()) {
             co_return;
         }
@@ -172,7 +172,7 @@ class semaphore {
     /**
      * @return True if this semaphore has been shutdown.
      */
-    [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_shutdown.load(std::memory_order::acquire); }
+    [[nodiscard]] bool is_shutdown() const { return m_p->m_shutdown.load(std::memory_order::acquire); }
 
   private:
     friend class acquire_operation<max_value>;

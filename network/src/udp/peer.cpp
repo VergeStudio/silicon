@@ -130,11 +130,11 @@ auto peer::socket() noexcept -> network::socket & { return impl_->m_socket; }
 
 auto peer::socket() const noexcept -> const network::socket & { return impl_->m_socket; }
 
-auto peer::write_to_impl(
+silicon::scheduler::task<io_status> peer::write_to_impl(
         const socket_address &address,
         const std::span<const std::byte> buffer,
         std::chrono::milliseconds timeout
-) -> silicon::scheduler::task<io_status> {
+) {
     if(buffer.empty()) {
         co_return io_status{io_status::kind::kOk};
     }
@@ -160,8 +160,7 @@ auto peer::write_to_impl(
     co_return sendto(address, buffer);
 }
 
-auto peer::read_from_impl(std::span<std::byte> buffer, std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::byte>>> {
+silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::byte>>> peer::read_from_impl(std::span<std::byte> buffer, std::chrono::milliseconds timeout) {
     // The user must bind locally to be able to receive packets.
     if(!impl_->m_bound) {
         co_return {io_status{io_status::kind::kUdpNotBound}, network::socket_address::make_uninitialised(), {}};
@@ -193,8 +192,7 @@ auto peer::read_from_impl(std::span<std::byte> buffer, std::chrono::milliseconds
     co_return recvfrom(buffer);
 }
 
-auto peer::poll(silicon::coroutine::poll_op op, std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<silicon::coroutine::poll_status> {
+silicon::scheduler::task<silicon::coroutine::poll_status> peer::poll(silicon::coroutine::poll_op op, std::chrono::milliseconds timeout) {
     co_return co_await impl_->m_scheduler->poll(impl_->m_socket.native_handle(), op, timeout);
 }
 
@@ -221,7 +219,7 @@ auto peer::sendto(const network::socket_address &endpoint, const buffer_type &bu
 template<
         silicon::coroutine::concepts::mutable_buffer buffer_type,
         typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
-auto peer::recvfrom(buffer_type &&buffer) -> std::tuple<io_status, network::socket_address, std::span<element_type>> {
+std::tuple<io_status, network::socket_address, std::span<element_type>> peer::recvfrom(buffer_type &&buffer) {
     auto endpoint = network::socket_address::make_uninitialised();
     auto [sockaddr, socklen] = endpoint.native_mutable_data();
 

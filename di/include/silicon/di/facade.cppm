@@ -12349,9 +12349,8 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename T, bool CheckCache, typename IdType>
-    auto runtime_source_resolve(runtime_selection selection,
-                                runtime_context& context, IdType&& id)
-        -> request_interface_t<T> {
+    request_interface_t<T> runtime_source_resolve(runtime_selection selection,
+                                runtime_context& context, IdType&& id) {
         (void)id;
         if constexpr (is_none_v<std::decay_t<IdType>>) {
             return resolve<T, request_interface_t<T>>(*selection.binding,

@@ -46,22 +46,22 @@ class CONFIG_API config_value {
 
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
     config_value(const config_value &o): impl_(std::make_shared<impl>(*o.impl_)) {}
-    auto operator=(const config_value &o) -> config_value & {
+    config_value & operator=(const config_value &o) {
         if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
         return *this;
     }
     config_value(config_value &&) noexcept = default;
-    auto operator=(config_value &&) noexcept -> config_value & = default;
+    config_value & operator=(config_value &&) noexcept = default;
 
-    [[nodiscard]] auto IsNull() const noexcept -> bool;
-    [[nodiscard]] auto IsBool() const noexcept -> bool;
-    [[nodiscard]] auto IsInt() const noexcept -> bool;
-    [[nodiscard]] auto IsDouble() const noexcept -> bool;
-    [[nodiscard]] auto IsString() const noexcept -> bool;
+    [[nodiscard]] bool IsNull() const noexcept ;
+    [[nodiscard]] bool IsBool() const noexcept ;
+    [[nodiscard]] bool IsInt() const noexcept ;
+    [[nodiscard]] bool IsDouble() const noexcept ;
+    [[nodiscard]] bool IsString() const noexcept ;
 
-    [[nodiscard]] auto AsBool() const -> bool;
-    [[nodiscard]] auto AsInt() const -> int64_t;
-    [[nodiscard]] auto AsDouble() const -> double;
+    [[nodiscard]] bool AsBool() const ;
+    [[nodiscard]] int64_t AsInt() const ;
+    [[nodiscard]] double AsDouble() const ;
     [[nodiscard]] auto AsString() const -> const std::string &;
     [[nodiscard]] auto AsStringOpt() const noexcept -> const std::string *;
 };

@@ -27,10 +27,10 @@ class task;
 struct promise_base {
     friend struct final_awaitable;
     struct final_awaitable {
-        auto await_ready() const noexcept -> bool;
+        bool await_ready() const noexcept ;
 
         template<typename promise_type>
-        auto await_suspend(std::coroutine_handle<promise_type> coroutine) noexcept -> std::coroutine_handle<> {
+        std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> coroutine) noexcept {
             auto &promise = coroutine.promise();
             if(promise.m_continuation != nullptr) {
                 return promise.m_continuation;
@@ -39,7 +39,7 @@ struct promise_base {
             }
         }
 
-        auto await_resume() noexcept -> void;
+        void await_resume() noexcept ;
     };
 
     promise_base() noexcept = default;
@@ -53,7 +53,7 @@ struct promise_base {
     // Inline: this function is invoked from template instantiations in OTHER
     // modules (e.g. coroutine_pool's wrapper co_await). Defined in task.cpp it has
     // module linkage; MSVC mis-resolves the cross-module call at runtime (SIGSEGV).
-    auto continuation(std::coroutine_handle<> continuation) noexcept -> void { m_continuation = continuation; }
+    void continuation(std::coroutine_handle<> continuation) noexcept { m_continuation = continuation; }
 
   protected:
     std::coroutine_handle<> m_continuation{nullptr};
@@ -87,13 +87,13 @@ struct promise final: public promise_base {
     promise &operator=(promise &&other) = delete;
     ~promise() = default;
 
-    auto get_return_object() noexcept -> task_t;
+    task_t get_return_object() noexcept ;
 
     template<typename value_type>
         requires(return_type_is_reference and std::is_constructible_v<return_type, value_type &&>) or
                 (not return_type_is_reference and
                  std::is_constructible_v<stored_type, value_type &&>)
-    auto return_value(value_type &&value) -> void {
+    void return_value(value_type &&value) {
         if constexpr(return_type_is_reference) {
             return_type ref = static_cast<value_type &&>(value);
             m_storage.template emplace<stored_type>(std::addressof(ref));
@@ -112,11 +112,11 @@ struct promise final: public promise_base {
         }
     }
 
-    auto unhandled_exception() noexcept -> void {
+    void unhandled_exception() noexcept {
         m_storage.template emplace<std::exception_ptr>(std::current_exception());
     }
 
-    auto result() & -> decltype(auto) {
+    decltype(auto) result() & {
         if(std::holds_alternative<stored_type>(m_storage)) {
             if constexpr(return_type_is_reference) {
                 return static_cast<return_type>(*std::get<stored_type>(m_storage));
@@ -130,7 +130,7 @@ struct promise final: public promise_base {
         }
     }
 
-    auto result() const & -> decltype(auto) {
+    decltype(auto) result() const & {
         if(std::holds_alternative<stored_type>(m_storage)) {
             if constexpr(return_type_is_reference) {
                 return static_cast<std::add_const_t<return_type>>(*std::get<stored_type>(m_storage));
@@ -144,7 +144,7 @@ struct promise final: public promise_base {
         }
     }
 
-    auto result() && -> decltype(auto) {
+    decltype(auto) result() && {
         if(std::holds_alternative<stored_type>(m_storage)) {
             if constexpr(return_type_is_reference) {
                 return static_cast<return_type>(*std::get<stored_type>(m_storage));
@@ -176,13 +176,13 @@ struct promise<void>: public promise_base {
     promise &operator=(promise &&other) = delete;
     ~promise() = default;
 
-    auto get_return_object() noexcept -> task_t;
+    task_t get_return_object() noexcept ;
 
-    auto return_void() noexcept -> void {}
+    void return_void() noexcept {}
 
-    auto unhandled_exception() noexcept -> void { m_exception_ptr = std::current_exception(); }
+    void unhandled_exception() noexcept { m_exception_ptr = std::current_exception(); }
 
-    auto result() -> void {
+    void result() {
         if(m_exception_ptr) {
             std::rethrow_exception(m_exception_ptr);
         }
@@ -203,8 +203,8 @@ class [[nodiscard]] task {
 
     struct awaitable_base {
         awaitable_base(coroutine_handle coroutine) noexcept: m_coroutine(coroutine) {}
-        auto await_ready() const noexcept -> bool { return !m_coroutine || m_coroutine.done(); }
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> std::coroutine_handle<> {
+        bool await_ready() const noexcept { return !m_coroutine || m_coroutine.done(); }
+        std::coroutine_handle<> await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
             m_coroutine.promise().continuation(awaiting_coroutine);
             return m_coroutine;
         }
@@ -222,8 +222,8 @@ class [[nodiscard]] task {
         }
     }
 
-    auto operator=(const task &) -> task & = delete;
-    auto operator=(task &&other) noexcept -> task & {
+    task & operator=(const task &) = delete;
+    task & operator=(task &&other) noexcept {
         if(std::addressof(other) != this) {
             if(m_coroutine != nullptr) {
                 m_coroutine.destroy();
@@ -233,16 +233,16 @@ class [[nodiscard]] task {
         return *this;
     }
 
-    auto is_ready() const noexcept -> bool { return m_coroutine == nullptr || m_coroutine.done(); }
+    bool is_ready() const noexcept { return m_coroutine == nullptr || m_coroutine.done(); }
 
-    auto resume() -> bool {
+    bool resume() {
         if(!m_coroutine.done()) {
             m_coroutine.resume();
         }
         return !m_coroutine.done();
     }
 
-    auto destroy() -> bool {
+    bool destroy() {
         if(m_coroutine != nullptr) {
             m_coroutine.destroy();
             m_coroutine = nullptr;
@@ -253,22 +253,22 @@ class [[nodiscard]] task {
 
     auto operator co_await() const & noexcept {
         struct awaitable: public awaitable_base {
-            auto await_resume() -> decltype(auto) { return this->m_coroutine.promise().result(); }
+            decltype(auto) await_resume() { return this->m_coroutine.promise().result(); }
         };
         return awaitable{m_coroutine};
     }
 
     auto operator co_await() const && noexcept {
         struct awaitable: public awaitable_base {
-            auto await_resume() -> decltype(auto) { return std::move(this->m_coroutine.promise()).result(); }
+            decltype(auto) await_resume() { return std::move(this->m_coroutine.promise()).result(); }
         };
         return awaitable{m_coroutine};
     }
 
-    auto promise() & -> promise_type & { return m_coroutine.promise(); }
-    auto promise() const & -> const promise_type & { return m_coroutine.promise(); }
-    auto promise() && -> promise_type && { return std::move(m_coroutine.promise()); }
-    auto handle() -> coroutine_handle { return m_coroutine; }
+    promise_type & promise() & { return m_coroutine.promise(); }
+    const promise_type & promise() const & { return m_coroutine.promise(); }
+    promise_type && promise() && { return std::move(m_coroutine.promise()); }
+    coroutine_handle handle() { return m_coroutine; }
 
   private:
     coroutine_handle m_coroutine{nullptr};
@@ -309,15 +309,15 @@ class promise_self_deleting {
 
     promise_self_deleting(const promise_self_deleting &) = delete;
     promise_self_deleting(promise_self_deleting &&) noexcept;
-    auto operator=(const promise_self_deleting &) -> promise_self_deleting & = delete;
-    auto operator=(promise_self_deleting &&) noexcept -> promise_self_deleting &;
+    promise_self_deleting & operator=(const promise_self_deleting &) = delete;
+    promise_self_deleting & operator=(promise_self_deleting &&) noexcept ;
 
-    auto get_return_object() -> task_self_deleting;
-    auto initial_suspend() -> std::suspend_always;
-    auto final_suspend() noexcept -> std::suspend_never;
-    auto return_void() noexcept -> void;
-    auto unhandled_exception() -> void;
-    auto user_final_suspend(std::function<void()> user_final_suspend) noexcept -> void;
+    task_self_deleting get_return_object() ;
+    std::suspend_always initial_suspend() ;
+    std::suspend_never final_suspend() noexcept ;
+    void return_void() noexcept ;
+    void unhandled_exception() ;
+    void user_final_suspend(std::function<void()> user_final_suspend) noexcept ;
 
   private:
     std::function<void()> m_user_final_suspend{nullptr};
@@ -331,14 +331,14 @@ class task_self_deleting {
 
     task_self_deleting(const task_self_deleting &) = delete;
     task_self_deleting(task_self_deleting &&) noexcept;
-    auto operator=(const task_self_deleting &) -> task_self_deleting & = delete;
-    auto operator=(task_self_deleting &&) noexcept -> task_self_deleting &;
+    task_self_deleting & operator=(const task_self_deleting &) = delete;
+    task_self_deleting & operator=(task_self_deleting &&) noexcept ;
 
-    [[nodiscard]] auto promise() const -> const promise_self_deleting &;
-    [[nodiscard]] auto promise() -> promise_self_deleting &;
-    [[nodiscard]] auto handle() const -> std::coroutine_handle<promise_self_deleting>;
-    [[nodiscard]] auto handle() -> std::coroutine_handle<promise_self_deleting>;
-    auto resume() -> bool;
+    [[nodiscard]] const promise_self_deleting & promise() const ;
+    [[nodiscard]] promise_self_deleting & promise() ;
+    [[nodiscard]] std::coroutine_handle<promise_self_deleting> handle() const ;
+    [[nodiscard]] std::coroutine_handle<promise_self_deleting> handle() ;
+    bool resume() ;
 
   private:
     promise_self_deleting *m_promise{nullptr};
@@ -356,9 +356,9 @@ class task_event {
   public:
     struct awaiter {
         awaiter(const task_event &e) noexcept;
-        auto await_ready() const noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
-        auto await_resume() noexcept -> void;
+        bool await_ready() const noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        void await_resume() noexcept ;
 
         const task_event &m_event;
         std::coroutine_handle<> m_awaiting_coroutine{nullptr};
@@ -369,12 +369,12 @@ class task_event {
     ~task_event() = default;
     task_event(const task_event &) = delete;
     task_event(task_event &&) = delete;
-    auto operator=(const task_event &) -> task_event & = delete;
-    auto operator=(task_event &&) -> task_event & = delete;
+    task_event & operator=(const task_event &) = delete;
+    task_event & operator=(task_event &&) = delete;
 
-    auto is_set() const noexcept -> bool;
-    auto set() noexcept -> void;
-    auto reset() noexcept -> void;
+    bool is_set() const noexcept ;
+    void set() noexcept ;
+    void reset() noexcept ;
     auto operator co_await() const noexcept -> awaiter;
 
   private:
@@ -418,8 +418,8 @@ class task_group {
 
     task_group(const task_group &) = delete;
     task_group(task_group &&) = delete;
-    auto operator=(const task_group &) -> task_group & = delete;
-    auto operator=(task_group &&) -> task_group & = delete;
+    task_group & operator=(const task_group &) = delete;
+    task_group & operator=(task_group &&) = delete;
 
     ~task_group() {
         // Spin-wait with yield instead of sleep_for to minimize latency.
@@ -431,7 +431,7 @@ class task_group {
         }
     }
 
-    [[nodiscard]] auto start(silicon::scheduler::task<void> &&task) -> bool {
+    [[nodiscard]] bool start(silicon::scheduler::task<void> &&task) {
         m_on_empty_event.reset();
         m_size.fetch_add(1, std::memory_order::release);
         auto wrapper_task = make_task_self_deleting(std::move(task));
@@ -443,8 +443,8 @@ class task_group {
         return true;
     }
 
-    [[nodiscard]] auto size() const -> std::size_t { return m_size.load(std::memory_order::acquire); }
-    [[nodiscard]] auto empty() const -> bool { return size() == 0; }
+    [[nodiscard]] std::size_t size() const { return m_size.load(std::memory_order::acquire); }
+    [[nodiscard]] bool empty() const { return size() == 0; }
     auto operator co_await() const noexcept -> task_event::awaiter { return m_on_empty_event.operator co_await(); }
 
   private:
@@ -452,7 +452,7 @@ class task_group {
     std::atomic<uint64_t> m_size{};
     task_event m_on_empty_event{true};
 
-    auto count_down() -> void {
+    void count_down() {
         if(m_size.fetch_sub(1, std::memory_order::acq_rel) == 1) {
             m_on_empty_event.set();
         }

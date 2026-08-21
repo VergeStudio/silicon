@@ -65,8 +65,8 @@ class channel {
     struct send_operation {
         send_operation(channel<element_type> &ch, element_type e) noexcept;
 
-        auto await_ready() noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+        bool await_ready() noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
         auto await_resume() noexcept -> channel_result::send;
 
         std::coroutine_handle<> m_awaiting_coroutine{nullptr};
@@ -83,8 +83,8 @@ class channel {
     struct recv_operation {
         explicit recv_operation(channel<element_type> &ch) noexcept;
 
-        auto await_ready() noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+        bool await_ready() noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
         auto await_resume() noexcept -> expected<element_type, channel_result::recv>;
 
         std::coroutine_handle<> m_awaiting_coroutine{nullptr};
@@ -109,8 +109,8 @@ class channel {
 
     channel(const channel &) = delete;
     channel(channel &&) = delete;
-    auto operator=(const channel &) -> channel & = delete;
-    auto operator=(channel &&) -> channel & = delete;
+    channel & operator=(const channel &) = delete;
+    channel & operator=(channel &&) = delete;
 
     /**
      * @brief Sends an element into the channel, suspending until a slot is
@@ -119,7 +119,7 @@ class channel {
      * @return channel_result::send::kSent on success, or kClosed if the
      *         channel has been closed.
      */
-    auto send(const element_type &element) -> silicon::scheduler::task<channel_result::send>;
+    silicon::scheduler::task<channel_result::send> send(const element_type &element) ;
 
     /**
      * @brief Sends an element into the channel, suspending until a slot is
@@ -128,7 +128,7 @@ class channel {
      * @return channel_result::send::kSent on success, or kClosed if the
      *         channel has been closed.
      */
-    auto send(element_type &&element) -> silicon::scheduler::task<channel_result::send>;
+    silicon::scheduler::task<channel_result::send> send(element_type &&element) ;
 
     /**
      * @brief Non-blocking send. Does not suspend.
@@ -155,7 +155,7 @@ class channel {
      * @return The element, or channel_result::recv::kClosed if the channel is
      *         closed and no buffered elements remain.
      */
-    [[nodiscard]] auto recv() -> silicon::scheduler::task<expected<element_type, channel_result::recv>>;
+    [[nodiscard]] silicon::scheduler::task<expected<element_type, channel_result::recv>> recv() ;
 
     /**
      * @brief Non-blocking receive. Does not suspend.
@@ -172,52 +172,52 @@ class channel {
      *        and can still be received (drain semantics), then recv() reports
      *        kClosed. All suspended waiters are woken up with the closed result.
      */
-    auto close() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> close() ;
 
     /**
      * @return true if close() has been called.
      */
-    [[nodiscard]] auto closed() const -> bool;
+    [[nodiscard]] bool closed() const ;
 
     /**
      * @return The maximum number of buffered elements (0 = unbuffered).
      */
-    [[nodiscard]] auto capacity() const -> size_t;
+    [[nodiscard]] size_t capacity() const ;
 
     /**
      * @return The number of elements currently buffered.
      */
-    [[nodiscard]] auto size() const -> size_t;
+    [[nodiscard]] size_t size() const ;
 
     /**
      * @return true if the channel currently buffers zero elements.
      */
-    [[nodiscard]] auto empty() const -> bool;
+    [[nodiscard]] bool empty() const ;
 
     /**
      * @return true if the channel buffer has no free slot (always true for an
      *         unbuffered channel with capacity 0).
      */
-    [[nodiscard]] auto full() const -> bool;
+    [[nodiscard]] bool full() const ;
 
   private:
     friend send_operation;
     friend recv_operation;
 
     auto do_try_send(element_type element) -> channel_result::send;
-    auto try_resume_senders() -> silicon::scheduler::task<void>;
-    auto try_resume_receivers() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> try_resume_senders() ;
+    silicon::scheduler::task<void> try_resume_receivers() ;
 
     struct impl {
       public:
         explicit impl(size_t capacity);
 
-        auto store(element_type &&element) -> void;
-        auto take() -> std::optional<element_type>;
-        auto append_send_waiter(send_operation *op) -> void;
-        auto pop_send_waiter() -> send_operation *;
-        auto append_recv_waiter(recv_operation *op) -> void;
-        auto pop_recv_waiter() -> recv_operation *;
+        void store(element_type &&element) ;
+        std::optional<element_type> take() ;
+        void append_send_waiter(send_operation *op) ;
+        send_operation * pop_send_waiter() ;
+        void append_recv_waiter(recv_operation *op) ;
+        recv_operation * pop_recv_waiter() ;
 
         silicon::coroutine::mutex m_mutex{};
         size_t m_capacity{0};
@@ -253,7 +253,7 @@ channel<element_type>::send_operation::send_operation(channel<element_type> &ch,
       m_e(std::move(e)) {}
 
 template<typename element_type>
-auto channel<element_type>::send_operation::await_ready() noexcept -> bool {
+bool channel<element_type>::send_operation::await_ready() noexcept {
     auto &mutex = m_ch.m_p->m_mutex;
 
     // Sends are rejected once the channel has been closed.
@@ -283,7 +283,7 @@ auto channel<element_type>::send_operation::await_ready() noexcept -> bool {
 }
 
 template<typename element_type>
-auto channel<element_type>::send_operation::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+bool channel<element_type>::send_operation::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     m_ch.m_p->append_send_waiter(this);
     m_ch.m_p->m_mutex.unlock();
@@ -302,7 +302,7 @@ channel<element_type>::recv_operation::recv_operation(channel<element_type> &ch)
     : m_ch(ch) {}
 
 template<typename element_type>
-auto channel<element_type>::recv_operation::await_ready() noexcept -> bool {
+bool channel<element_type>::recv_operation::await_ready() noexcept {
     auto &mutex = m_ch.m_p->m_mutex;
 
     // Take a buffered element first.
@@ -332,7 +332,7 @@ auto channel<element_type>::recv_operation::await_ready() noexcept -> bool {
 }
 
 template<typename element_type>
-auto channel<element_type>::recv_operation::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+bool channel<element_type>::recv_operation::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     m_ch.m_p->append_recv_waiter(this);
     m_ch.m_p->m_mutex.unlock();
@@ -386,7 +386,7 @@ channel<element_type>::~channel() {
 }
 
 template<typename element_type>
-auto channel<element_type>::send(const element_type &element) -> silicon::scheduler::task<channel_result::send> {
+silicon::scheduler::task<channel_result::send> channel<element_type>::send(const element_type &element) {
     co_await m_p->m_mutex.lock();
     auto result = co_await send_operation{*this, element};
     co_await try_resume_receivers();
@@ -394,7 +394,7 @@ auto channel<element_type>::send(const element_type &element) -> silicon::schedu
 }
 
 template<typename element_type>
-auto channel<element_type>::send(element_type &&element) -> silicon::scheduler::task<channel_result::send> {
+silicon::scheduler::task<channel_result::send> channel<element_type>::send(element_type &&element) {
     co_await m_p->m_mutex.lock();
     auto result = co_await send_operation{*this, std::move(element)};
     co_await try_resume_receivers();
@@ -418,7 +418,7 @@ auto channel<element_type>::try_send(element_type &&element) -> channel_result::
 }
 
 template<typename element_type>
-auto channel<element_type>::recv() -> silicon::scheduler::task<expected<element_type, channel_result::recv>> {
+silicon::scheduler::task<expected<element_type, channel_result::recv>> channel<element_type>::recv() {
     co_await m_p->m_mutex.lock();
     auto result = co_await recv_operation{*this};
     co_await try_resume_senders();
@@ -452,7 +452,7 @@ auto channel<element_type>::try_recv() -> expected<element_type, channel_result:
 }
 
 template<typename element_type>
-auto channel<element_type>::close() -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> channel<element_type>::close() {
     auto expected_state = m_p->m_running_state.load(std::memory_order::acquire);
     if(expected_state == running_state_t::kStopped) {
         co_return;
@@ -487,7 +487,7 @@ auto channel<element_type>::close() -> silicon::scheduler::task<void> {
 }
 
 template<typename element_type>
-auto channel<element_type>::closed() const -> bool { return m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped; }
+bool channel<element_type>::closed() const { return m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped; }
 
 template<typename element_type>
 auto channel<element_type>::capacity() const -> size_t { return m_p->m_capacity; }
@@ -496,10 +496,10 @@ template<typename element_type>
 auto channel<element_type>::size() const -> size_t { return m_p->m_count.load(std::memory_order::acquire); }
 
 template<typename element_type>
-auto channel<element_type>::empty() const -> bool { return size() == 0; }
+bool channel<element_type>::empty() const { return size() == 0; }
 
 template<typename element_type>
-auto channel<element_type>::full() const -> bool { return size() >= m_p->m_capacity; }
+bool channel<element_type>::full() const { return size() >= m_p->m_capacity; }
 
 template<typename element_type>
 auto channel<element_type>::do_try_send(element_type element) -> channel_result::send {
@@ -526,7 +526,7 @@ auto channel<element_type>::do_try_send(element_type element) -> channel_result:
 }
 
 template<typename element_type>
-auto channel<element_type>::try_resume_senders() -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> channel<element_type>::try_resume_senders() {
     while(true) {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         if(m_p->m_count.load(std::memory_order::acquire) < m_p->m_capacity) {
@@ -543,7 +543,7 @@ auto channel<element_type>::try_resume_senders() -> silicon::scheduler::task<voi
 }
 
 template<typename element_type>
-auto channel<element_type>::try_resume_receivers() -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> channel<element_type>::try_resume_receivers() {
     while(true) {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         if(m_p->m_count.load(std::memory_order::acquire) > 0) {
@@ -569,14 +569,14 @@ channel<element_type>::impl::impl(size_t capacity)
       m_slots(capacity) {}
 
 template<typename element_type>
-auto channel<element_type>::impl::store(element_type &&element) -> void {
+void channel<element_type>::impl::store(element_type &&element) {
     m_slots[m_tail] = std::move(element);
     m_tail = (m_tail + 1) % m_capacity;
     m_count.fetch_add(1, std::memory_order::release);
 }
 
 template<typename element_type>
-auto channel<element_type>::impl::take() -> std::optional<element_type> {
+std::optional<element_type> channel<element_type>::impl::take() {
     auto element = std::move(m_slots[m_head]);
     m_slots[m_head].reset();
     m_head = (m_head + 1) % m_capacity;
@@ -585,7 +585,7 @@ auto channel<element_type>::impl::take() -> std::optional<element_type> {
 }
 
 template<typename element_type>
-auto channel<element_type>::impl::append_send_waiter(send_operation *op) -> void {
+void channel<element_type>::impl::append_send_waiter(send_operation *op) {
     op->m_next = nullptr;
     if(m_send_waiters_tail != nullptr) {
         m_send_waiters_tail->m_next = op;
@@ -609,7 +609,7 @@ auto channel<element_type>::impl::pop_send_waiter() -> send_operation * {
 }
 
 template<typename element_type>
-auto channel<element_type>::impl::append_recv_waiter(recv_operation *op) -> void {
+void channel<element_type>::impl::append_recv_waiter(recv_operation *op) {
     op->m_next = nullptr;
     if(m_recv_waiters_tail != nullptr) {
         m_recv_waiters_tail->m_next = op;

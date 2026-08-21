@@ -47,8 +47,8 @@ struct client::impl {
 
     impl(const impl &other);
     impl(impl &&other) noexcept;
-    auto operator=(const impl &other) noexcept -> impl &;
-    auto operator=(impl &&other) noexcept -> impl &;
+    impl & operator=(const impl &other) noexcept ;
+    impl & operator=(impl &&other) noexcept ;
     ~impl();
 };
 
@@ -110,7 +110,7 @@ client::impl::~impl() = default;
 template<
         silicon::coroutine::concepts::mutable_buffer buffer_type,
         typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
-auto client::recv(buffer_type &&buffer) -> std::pair<io_status, std::span<element_type>> {
+std::pair<io_status, std::span<element_type>> client::recv(buffer_type &&buffer) {
     auto bytes_recv = ::recv(impl_->m_socket.native_handle(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
     if(bytes_recv > 0) {
         // Ok, we've received some data.
@@ -132,7 +132,7 @@ auto client::recv(buffer_type &&buffer) -> std::pair<io_status, std::span<elemen
 template<
         silicon::coroutine::concepts::const_buffer buffer_type,
         typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
-auto client::send(const buffer_type &buffer) -> std::pair<io_status, std::span<element_type>> {
+std::pair<io_status, std::span<element_type>> client::send(const buffer_type &buffer) {
     auto bytes_sent = ::send(impl_->m_socket.native_handle(), reinterpret_cast<const char *>(buffer.data()), buffer.size(), 0);
     if(bytes_sent >= 0) {
         // Some or all of the bytes were written.
@@ -147,8 +147,7 @@ auto client::send(const buffer_type &buffer) -> std::pair<io_status, std::span<e
 }
 
 // ── private *_impl methods (defined in the impl unit; impl is complete here) ─
-auto client::read_some_impl(std::span<std::byte> buffer, const std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> {
+silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::read_some_impl(std::span<std::byte> buffer, const std::chrono::milliseconds timeout) {
     // Fast path
     if(impl_->m_is_read_ready) {
         auto [status, read] = recv(buffer);
@@ -171,8 +170,7 @@ auto client::read_some_impl(std::span<std::byte> buffer, const std::chrono::mill
     co_return recv(buffer);
 }
 
-auto client::read_exact_impl(std::span<std::byte> buffer, const std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> {
+silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::read_exact_impl(std::span<std::byte> buffer, const std::chrono::milliseconds timeout) {
     const auto start_time = std::chrono::steady_clock::now();
     std::span<std::byte> remaining = buffer;
 
@@ -203,8 +201,7 @@ auto client::read_exact_impl(std::span<std::byte> buffer, const std::chrono::mil
     co_return {io_status{io_status::kind::kOk}, buffer};
 }
 
-auto client::write_some_impl(std::span<const std::byte> buffer, const std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> {
+silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> client::write_some_impl(std::span<const std::byte> buffer, const std::chrono::milliseconds timeout) {
     // Fast path
     if(impl_->m_is_write_ready) {
         auto [status, unsent] = send(buffer);
@@ -228,8 +225,7 @@ auto client::write_some_impl(std::span<const std::byte> buffer, const std::chron
     co_return send(buffer);
 }
 
-auto client::write_all_impl(std::span<const std::byte> buffer, const std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> {
+silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> client::write_all_impl(std::span<const std::byte> buffer, const std::chrono::milliseconds timeout) {
     const auto start_time = std::chrono::steady_clock::now();
     std::span<const std::byte> remaining = buffer;
 
@@ -257,8 +253,7 @@ auto client::write_all_impl(std::span<const std::byte> buffer, const std::chrono
     co_return {io_status{io_status::kind::kOk}, {}};
 }
 
-auto client::poll(const silicon::coroutine::poll_op op, const std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<silicon::coroutine::poll_status> {
+silicon::scheduler::task<silicon::coroutine::poll_status> client::poll(const silicon::coroutine::poll_op op, const std::chrono::milliseconds timeout) {
     return impl_->m_scheduler->poll(impl_->m_socket.native_handle(), op, timeout);
 }
 
@@ -324,7 +319,7 @@ auto client::socket() const -> const network::socket & {
     return impl_->m_socket;
 }
 
-auto client::connect(std::chrono::milliseconds timeout) -> silicon::scheduler::task<connect_status> {
+silicon::scheduler::task<connect_status> client::connect(std::chrono::milliseconds timeout) {
     // Only allow the user to connect per tcp client once, if they need to re-connect they should
     // make a new tcp::client.
     if(impl_->m_connect_status.has_value()) {

@@ -26,7 +26,7 @@ sync_wait_event::sync_wait_event(bool initially_set): m_p(std::make_unique<impl>
 
 sync_wait_event::~sync_wait_event() = default;
 
-auto sync_wait_event::set() noexcept -> void {
+void sync_wait_event::set() noexcept {
     // issue-270 100~ task's on a thread_pool within sync_wait(when_all(tasks)) can cause a deadlock/hang if using
     // release/acquire or even seq_cst.
     {
@@ -36,11 +36,11 @@ auto sync_wait_event::set() noexcept -> void {
     }
 }
 
-auto sync_wait_event::reset() noexcept -> void {
+void sync_wait_event::reset() noexcept {
     m_p->m_set.exchange(false, std::memory_order::seq_cst);
 }
 
-auto sync_wait_event::wait() noexcept -> void {
+void sync_wait_event::wait() noexcept {
     std::unique_lock<std::mutex> lk{m_p->m_mutex};
     m_p->m_cv.wait(lk, [this] { return m_p->m_set.load(std::memory_order::seq_cst); });
 }

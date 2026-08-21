@@ -45,8 +45,7 @@ public:
      *        std::unique_ptr<task_container>。失败时返回
      *        std::unexpected(coroutine_error::kNullExecutor)。
      */
-    static auto create(std::shared_ptr<executor_type> e)
-            -> std::expected<std::unique_ptr<task_container<executor_type>>, std::error_code> {
+    static std::expected<std::unique_ptr<task_container<executor_type>>, std::error_code> create(std::shared_ptr<executor_type> e) {
         if (e == nullptr) {
             return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
         }
@@ -57,8 +56,8 @@ public:
 
     task_container(const task_container&)                    = delete;
     task_container(task_container&&)                         = delete;
-    auto operator=(const task_container&) -> task_container& = delete;
-    auto operator=(task_container&&) -> task_container&      = delete;
+    task_container& operator=(const task_container&) = delete;
+    task_container& operator=(task_container&&) = delete;
     ~task_container()
     {
         // This will hang the current thread.. but if tasks are not complete thats also pretty bad.
@@ -75,8 +74,7 @@ public:
      * @return True if the task was succesfully started into the task container. This can fail if the task
      *         is already completed or does not contain a valid coroutine anymore.
      */
-    auto start(silicon::scheduler::task<void>&& user_task) -> bool
-    {
+    bool start(silicon::scheduler::task<void>&& user_task) {
         m_p->m_size.fetch_add(1, std::memory_order::relaxed);
 
         auto task = silicon::scheduler::make_task_self_deleting(std::move(user_task));
@@ -88,12 +86,12 @@ public:
     /**
      * @return The number of active tasks in the container.
      */
-    auto size() const -> std::size_t { return m_p->m_size.load(std::memory_order::acquire); }
+    std::size_t size() const { return m_p->m_size.load(std::memory_order::acquire); }
 
     /**
      * @return True if there are no active tasks in the container.
      */
-    auto empty() const -> bool { return size() == 0; }
+    bool empty() const { return size() == 0; }
 
     /**
      * Will continue to garbage collect and yield until all tasks are complete.  This method can be
@@ -102,8 +100,7 @@ public:
      * This does not shut down the task container, but can be used when shutting down, or if your
      * logic requires all the tasks contained within to complete, it is similar to latch.
      */
-    auto yield_until_empty() -> silicon::scheduler::task<void>
-    {
+    silicon::scheduler::task<void> yield_until_empty() {
         while (!empty())
         {
             co_await m_p->m_executor->yield();

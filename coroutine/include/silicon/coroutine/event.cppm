@@ -49,7 +49,7 @@ class event {
         /**
          * @return True if the event is already set, otherwise false to suspend this coroutine.
          */
-        auto await_ready() const noexcept -> bool { return m_event.is_set(); }
+        bool await_ready() const noexcept { return m_event.is_set(); }
 
         /**
          * Adds this coroutine to the list of awaiters in a thread safe fashion.  If the event
@@ -57,7 +57,7 @@ class event {
          * to resume execution immediately.
          * @return False if the event is already set, otherwise true to suspend this coroutine.
          */
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
 
         /**
          * Nothing to do on resume.
@@ -82,13 +82,13 @@ class event {
 
     event(const event &) = delete;
     event(event &&) = delete;
-    auto operator=(const event &) -> event & = delete;
-    auto operator=(event &&) -> event & = delete;
+    event & operator=(const event &) = delete;
+    event & operator=(event &&) = delete;
 
     /**
      * @return True if this event is currently in the set state.
      */
-    auto is_set() const noexcept -> bool;
+    bool is_set() const noexcept ;
 
     /**
      * Sets this event and resumes all awaiters.  Note that all waiters will be resumed onto this
@@ -96,14 +96,14 @@ class event {
      * @param policy The order in which the waiters should be resumed, defaults to LIFO since it
      *               is more efficient, FIFO requires reversing the order of the waiters first.
      */
-    auto set(resume_order_policy policy = resume_order_policy::kLifo) noexcept -> void;
+    void set(resume_order_policy policy = resume_order_policy::kLifo) noexcept ;
 
     /**
      * Sets this event and resumes all awaiters onto the given executor.  This will distribute
      * the waiters across the executor's threads.
      */
     template<concepts::executor executor_type>
-    auto set(std::unique_ptr<executor_type> &e, resume_order_policy policy = resume_order_policy::kLifo) noexcept -> void {
+    void set(std::unique_ptr<executor_type> &e, resume_order_policy policy = resume_order_policy::kLifo) noexcept {
         void *old_value = exchange_set_state();
         if(old_value != this) {
             // If FIFO has been requested then reverse the order upon resuming.
@@ -130,7 +130,7 @@ class event {
      * Resets the event from set to not set so it can be re-used.  If the event is not currently
      * set then this function has no effect.
      */
-    auto reset() noexcept -> void;
+    void reset() noexcept ;
 
   private:
     /// For access to m_p.
@@ -150,7 +150,7 @@ class event {
      * 非模板钩子：把状态原子交换为 this 并返回旧值。
      * 供接口单元中的 `set(executor)` 模板重载使用，避免 impl 泄漏到接口单元。
      */
-    auto exchange_set_state() noexcept -> void *;
+    void * exchange_set_state() noexcept ;
 };
 
 } // namespace silicon::coroutine

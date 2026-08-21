@@ -26,7 +26,7 @@ void set_executor_options(thread_pool::options pool_options);
 /**
  * Get default silicon::scheduler::thread_pool
  */
-auto executor() -> std::unique_ptr<silicon::scheduler::thread_pool> &;
+std::unique_ptr<silicon::scheduler::thread_pool> & executor() ;
 
 #ifdef LIBCORO_FEATURE_NETWORKING
 /**
@@ -39,7 +39,7 @@ void set_io_executor_options(io_scheduler::options scheduler_options);
 /**
  * Get default silicon::scheduler::io_scheduler
  */
-auto io_executor() -> std::unique_ptr<silicon::scheduler::io_scheduler> &;
+std::unique_ptr<silicon::scheduler::io_scheduler> & io_executor() ;
 #endif
 
 /**
@@ -51,7 +51,7 @@ auto io_executor() -> std::unique_ptr<silicon::scheduler::io_scheduler> &;
  * one pool and one scheduler.
  */
 template<typename return_type>
-inline auto perfect() -> return_type & {
+inline return_type & perfect() {
 #ifdef LIBCORO_FEATURE_NETWORKING
     return io_executor();
 #else

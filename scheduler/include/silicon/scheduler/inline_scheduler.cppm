@@ -39,17 +39,17 @@ class inline_scheduler final {
 
     inline_scheduler(const inline_scheduler &) = delete;
     inline_scheduler(inline_scheduler &&) = delete;
-    auto operator=(const inline_scheduler &) -> inline_scheduler & = delete;
-    auto operator=(inline_scheduler &&) -> inline_scheduler & = delete;
+    inline_scheduler & operator=(const inline_scheduler &) = delete;
+    inline_scheduler & operator=(inline_scheduler &&) = delete;
 
     // —— scheduler_facade ——
-    auto spawn_detached(task<void> &&task) noexcept -> bool;
-    auto spawn_joinable(task<void> &&t) noexcept -> task<void>;
-    auto resume(std::coroutine_handle<> handle) noexcept -> bool;
-    auto shutdown() noexcept -> void;
-    auto is_shutdown() const -> bool;
-    auto size() const noexcept -> std::size_t;
-    auto empty() const noexcept -> bool { return size() == 0; }
+    bool spawn_detached(task<void> &&task) noexcept ;
+    task<void> spawn_joinable(task<void> &&t) noexcept ;
+    bool resume(std::coroutine_handle<> handle) noexcept ;
+    void shutdown() noexcept ;
+    bool is_shutdown() const ;
+    std::size_t size() const noexcept ;
+    bool empty() const noexcept { return size() == 0; }
 };
 
 } // namespace silicon::scheduler

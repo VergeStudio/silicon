@@ -19,16 +19,16 @@ class pipe_t {
     pipe_t(const pipe_t &other);
     pipe_t(pipe_t &&other) noexcept;
 
-    auto operator=(const pipe_t &other) -> pipe_t &;
-    auto operator=(pipe_t &&other) noexcept -> pipe_t &;
+    pipe_t & operator=(const pipe_t &other) ;
+    pipe_t & operator=(pipe_t &&other) noexcept ;
 
-    [[nodiscard]] auto write(const void *bytes, std::size_t n) -> long;
-    [[nodiscard]] auto read(void *buffer, std::size_t n) -> long;
+    [[nodiscard]] long write(const void *bytes, std::size_t n) ;
+    [[nodiscard]] long read(void *buffer, std::size_t n) ;
 
-    [[nodiscard]] auto read_fd() const -> const fd_t &;
-    [[nodiscard]] auto write_fd() const -> const fd_t &;
+    [[nodiscard]] const fd_t & read_fd() const ;
+    [[nodiscard]] const fd_t & write_fd() const ;
 
-    auto close() -> void;
+    void close() ;
 
   private:
     struct impl;

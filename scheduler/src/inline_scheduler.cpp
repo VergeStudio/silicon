@@ -34,7 +34,7 @@ inline_scheduler::~inline_scheduler() {
     shutdown();
 }
 
-auto inline_scheduler::spawn_detached(task<void> &&task) noexcept -> bool {
+bool inline_scheduler::spawn_detached(task<void> &&task) noexcept {
     auto &impl = *m_impl;
     if(impl.m_stop.load(std::memory_order::acquire)) {
         return false;
@@ -50,7 +50,7 @@ auto inline_scheduler::spawn_detached(task<void> &&task) noexcept -> bool {
     return resume(wrapper.handle());
 }
 
-auto inline_scheduler::resume(std::coroutine_handle<> handle) noexcept -> bool {
+bool inline_scheduler::resume(std::coroutine_handle<> handle) noexcept {
     if(handle == nullptr || handle.done()) {
         return false;
     }
@@ -70,15 +70,15 @@ auto inline_scheduler::spawn_joinable(task<void> &&t) noexcept -> task<void> {
     return make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 
-auto inline_scheduler::shutdown() noexcept -> void {
+void inline_scheduler::shutdown() noexcept {
     m_impl->m_stop.store(true, std::memory_order::release);
 }
 
-auto inline_scheduler::is_shutdown() const -> bool {
+bool inline_scheduler::is_shutdown() const {
     return m_impl->m_stop.load(std::memory_order::acquire);
 }
 
-auto inline_scheduler::size() const noexcept -> std::size_t {
+std::size_t inline_scheduler::size() const noexcept {
     return m_impl->m_size.load(std::memory_order::acquire);
 }
 

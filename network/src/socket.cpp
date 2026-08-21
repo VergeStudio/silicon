@@ -68,7 +68,7 @@ auto socket::operator=(socket &&other) noexcept -> socket & {
     return *this;
 }
 
-auto socket::blocking(blocking_t block) -> bool {
+bool socket::blocking(blocking_t block) {
     if(m_fd < 0) {
         return false;
     }
@@ -90,7 +90,7 @@ auto socket::blocking(blocking_t block) -> bool {
 #endif
 }
 
-auto socket::shutdown(silicon::coroutine::poll_op how) -> bool {
+bool socket::shutdown(silicon::coroutine::poll_op how) {
     if(m_fd != -1) {
         int h{0};
         switch(how) {
@@ -110,7 +110,7 @@ auto socket::shutdown(silicon::coroutine::poll_op how) -> bool {
     return false;
 }
 
-auto socket::close() -> void {
+void socket::close() {
     if(m_fd != -1) {
 #if defined(SILICON_PLATFORM_WINDOWS)
         ::closesocket(m_fd);
@@ -197,7 +197,7 @@ auto socket::accept(socket_address &client_endpoint) -> socket {
 #endif
 }
 
-auto socket::last_error() const -> int {
+int socket::last_error() const {
 #if defined(SILICON_PLATFORM_WINDOWS)
     return static_cast<int>(WSAGetLastError());
 #else
@@ -205,7 +205,7 @@ auto socket::last_error() const -> int {
 #endif
 }
 
-auto socket::connect(const socket_address &endpoint) -> int {
+int socket::connect(const socket_address &endpoint) {
     auto [addr, addrlen] = endpoint.data();
 
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -218,7 +218,7 @@ auto socket::connect(const socket_address &endpoint) -> int {
 #endif
 }
 
-auto socket::in_progress() const -> bool {
+bool socket::in_progress() const {
     // A non-blocking connect() that has not yet completed returns EINPROGRESS
     // on POSIX or WSAEWOULDBLOCK on Windows; either way the connection is
     // establishing asynchronously and the caller should poll for writability.

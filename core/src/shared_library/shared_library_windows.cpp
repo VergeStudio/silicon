@@ -26,7 +26,7 @@ import silicon.platform;
 // find_symbol（GetProcAddress）。守卫与 shared_library_unix.cpp 的 unix 系守卫互斥。
 namespace silicon::library {
 
-auto shared_library::load(const std::string &path, int32_t flags) -> std::expected<void, std::error_code> {
+std::expected<void, std::error_code> shared_library::load(const std::string &path, int32_t flags) {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     impl_->handle_ = LoadLibrary(path.c_str());
@@ -37,7 +37,7 @@ auto shared_library::load(const std::string &path, int32_t flags) -> std::expect
     return {};
 }
 
-auto shared_library::unload() -> std::expected<void, std::error_code> {
+std::expected<void, std::error_code> shared_library::unload() {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     if (impl_->handle_ != nullptr) {

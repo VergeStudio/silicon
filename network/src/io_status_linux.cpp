@@ -27,7 +27,7 @@ std::string message_impl(int native_code) {
     }
 }
 
-auto make_io_status_from_native_impl(int native_code) -> io_status {
+io_status make_io_status_from_native_impl(int native_code) {
     using kind = io_status::kind;
     kind type;
     switch(native_code) {

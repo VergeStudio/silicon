@@ -48,7 +48,7 @@ struct io_notifier::impl {
     fd_t m_fd{-1};
 };
 
-static auto event_to_poll_status(const event_t &event) -> poll_status {
+static poll_status event_to_poll_status(const event_t &event) {
     if((event.filter == EVFILT_READ || event.filter == EVFILT_WRITE || event.filter == EVFILT_TIMER) &&
        event.flags & EV_EOF) {
         return poll_status::closed;
@@ -75,7 +75,7 @@ io_notifier::io_notifier(): m_p(std::make_unique<impl>()) {
 
 io_notifier::~io_notifier() = default;
 
-auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
+bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) {
     // Prevent negative durations for the timeout as they will result in an error. 0 will fire in the next instance
     // possible.
     if(duration < 0ns) {
@@ -96,7 +96,7 @@ auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanosecond
     return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
-auto io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) -> bool {
+bool io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
     (void)is_cancel_event;
     auto event_data = event_t{};
     auto mode = EV_ADD | EV_CLEAR | EV_ENABLE;
@@ -108,7 +108,7 @@ auto io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_canc
     return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
-auto io_notifier::watch(poll_info &pi) -> bool {
+bool io_notifier::watch(poll_info &pi) {
     // For read-write event, we need to register both event types separately to the kqueue
     if(pi.m_p->m_op == poll_op::read_write) {
         if(!watch(pi.m_p->m_fd, poll_op::read, static_cast<void *>(&pi), false, false) ||
@@ -128,7 +128,7 @@ auto io_notifier::watch(poll_info &pi) -> bool {
     return true;
 }
 
-auto io_notifier::unwatch(fd_t fd, poll_op op) -> bool {
+bool io_notifier::unwatch(fd_t fd, poll_op op) {
     // For read-write event, we need to de-register both event types separately to the kqueue
     if(op == silicon::coroutine::poll_op::read_write) {
         auto event_data = event_t{};
@@ -147,19 +147,19 @@ auto io_notifier::unwatch(fd_t fd, poll_op op) -> bool {
     }
 }
 
-auto io_notifier::unwatch(poll_info &pi) -> bool {
+bool io_notifier::unwatch(poll_info &pi) {
     return unwatch(pi.m_p->m_fd, pi.m_p->m_op);
 }
 
-auto io_notifier::unwatch_timer(const timer_handle &timer) -> bool {
+bool io_notifier::unwatch_timer(const timer_handle &timer) {
     auto event_data = event_t{};
     EV_SET(&event_data, timer.get_fd(), EVFILT_TIMER, EV_DELETE, 0, 0, nullptr);
     return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
-auto io_notifier::next_events(
+void io_notifier::next_events(
         std::vector<std::pair<poll_info *, poll_status>> &ready_events, std::chrono::milliseconds timeout
-) -> void {
+) {
     auto ready_set = std::array<event_t, m_max_events>{};
     const auto timeout_as_secs = std::chrono::duration_cast<std::chrono::seconds>(timeout);
     auto timeout_spec = ::timespec{

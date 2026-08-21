@@ -59,14 +59,14 @@ class ring_buffer {
     ring_buffer(const ring_buffer<element, num_elements> &) = delete;
     ring_buffer(ring_buffer<element, num_elements> &&) = delete;
 
-    auto operator=(const ring_buffer<element, num_elements> &) noexcept -> ring_buffer<element, num_elements> & = delete;
-    auto operator=(ring_buffer<element, num_elements> &&) noexcept -> ring_buffer<element, num_elements> & = delete;
+    ring_buffer<element, num_elements> & operator=(const ring_buffer<element, num_elements> &) noexcept = delete;
+    ring_buffer<element, num_elements> & operator=(ring_buffer<element, num_elements> &&) noexcept = delete;
 
     struct produce_operation {
         produce_operation(ring_buffer<element, num_elements> &rb, element e);
 
-        auto await_ready() noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+        bool await_ready() noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
 
         /**
          * @return produce_result
@@ -93,8 +93,8 @@ class ring_buffer {
     struct consume_operation {
         explicit consume_operation(ring_buffer<element, num_elements> &rb);
 
-        auto await_ready() noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+        bool await_ready() noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
 
         /**
          * @return The consumed element or ring_buffer_stopped if the ring buffer has been shutdown.
@@ -123,60 +123,60 @@ class ring_buffer {
      * in the ring buffer becomes available.
      * @param e The element to produce.
      */
-    [[nodiscard]] auto produce(element e) -> silicon::scheduler::task<ring_buffer_result::produce>;
+    [[nodiscard]] silicon::scheduler::task<ring_buffer_result::produce> produce(element e) ;
 
     /**
      * Consumes an element from the ring buffer.  This operation will suspend until an element in
      * the ring buffer becomes available.
      */
-    [[nodiscard]] auto consume() -> silicon::scheduler::task<expected<element, ring_buffer_result::consume>>;
+    [[nodiscard]] silicon::scheduler::task<expected<element, ring_buffer_result::consume>> consume() ;
 
     /**
      * @return The maximum number of elements the ring buffer can hold.
      */
-    constexpr auto max_size() const noexcept -> size_t { return num_elements; }
+    constexpr size_t max_size() const noexcept { return num_elements; }
 
     /**
      * @return The current number of elements contained in the ring buffer.
      */
-    auto size() const -> size_t;
+    size_t size() const ;
 
     /**
      * @return True if the ring buffer contains zero elements.
      */
-    [[nodiscard]] auto empty() const -> bool;
+    [[nodiscard]] bool empty() const ;
 
     /**
      * @return True if the ring buffer has no more space.
      */
-    auto full() const -> bool;
+    bool full() const ;
 
     /**
      * @brief Wakes up all currently awaiting producers.  Their await_resume() function
      *        will return an expected produce result that producers have been notified.
      */
-    auto notify_producers() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> notify_producers() ;
 
     /**
      * @brief Wakes up all currently awaiting consumers.  Their await_resume() function
      *        will return an expected consume result that consumers have been notified.
      */
-    auto notify_consumers() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> notify_consumers() ;
 
     /**
      * @brief Wakes up all currently awaiting producers and consumers.  Their await_resume() function
      *        will return an expected consume result that the ring buffer has stopped.
      */
-    auto shutdown() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> shutdown() ;
 
     template<silicon::coroutine::concepts::executor executor_type>
-    [[nodiscard]] auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::scheduler::task<void>;
+    [[nodiscard]] silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &e) ;
 
     /**
      * Returns true if shutdown() or shutdown_drain() have been called on this silicon::coroutine::ring_buffer.
      * @return True if the silicon::coroutine::ring_buffer has been shutdown.
      */
-    [[nodiscard]] auto is_shutdown() const -> bool;
+    [[nodiscard]] bool is_shutdown() const ;
 
   private:
     friend produce_operation;
@@ -204,8 +204,8 @@ class ring_buffer {
 
     std::unique_ptr<impl> m_p;
 
-    auto try_resume_producers() -> silicon::scheduler::task<void>;
-    auto try_resume_consumers() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> try_resume_producers() ;
+    silicon::scheduler::task<void> try_resume_consumers() ;
 };
 
 } // namespace silicon::coroutine

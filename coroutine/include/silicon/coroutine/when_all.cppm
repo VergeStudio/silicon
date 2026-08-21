@@ -31,14 +31,14 @@ class when_all_latch {
 
     ~when_all_latch();
 
-    auto operator=(const when_all_latch &) -> when_all_latch & = delete;
-    auto operator=(when_all_latch &&other) -> when_all_latch &;
+    when_all_latch & operator=(const when_all_latch &) = delete;
+    when_all_latch & operator=(when_all_latch &&other) ;
 
-    auto is_ready() const noexcept -> bool;
+    bool is_ready() const noexcept ;
 
-    auto try_await(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+    bool try_await(std::coroutine_handle<> awaiting_coroutine) noexcept ;
 
-    auto notify_awaitable_completed() noexcept -> void;
+    void notify_awaitable_completed() noexcept ;
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
@@ -59,9 +59,9 @@ class when_all_ready_awaitable<std::tuple<>> {
     constexpr when_all_ready_awaitable() noexcept {}
     explicit constexpr when_all_ready_awaitable(std::tuple<>) noexcept {}
 
-    constexpr auto await_ready() const noexcept -> bool { return true; }
-    auto await_suspend(std::coroutine_handle<>) noexcept -> void {}
-    auto await_resume() const noexcept -> std::tuple<> { return {}; }
+    constexpr bool await_ready() const noexcept { return true; }
+    void await_suspend(std::coroutine_handle<>) noexcept {}
+    std::tuple<> await_resume() const noexcept { return {}; }
 };
 
 template<typename... task_types>
@@ -83,20 +83,20 @@ class when_all_ready_awaitable<std::tuple<task_types...>> {
     // PIMPL 语义下移动即转移实现指针，无需逐成员移动。
     when_all_ready_awaitable(when_all_ready_awaitable &&other) noexcept: m_p(std::move(other.m_p)) {}
 
-    auto operator=(const when_all_ready_awaitable &) -> when_all_ready_awaitable & = delete;
-    auto operator=(when_all_ready_awaitable &&) -> when_all_ready_awaitable & = delete;
+    when_all_ready_awaitable & operator=(const when_all_ready_awaitable &) = delete;
+    when_all_ready_awaitable & operator=(when_all_ready_awaitable &&) = delete;
 
     auto operator co_await() & noexcept {
         struct awaiter {
             explicit awaiter(when_all_ready_awaitable &awaitable) noexcept: m_awaitable(awaitable) {}
 
-            auto await_ready() const noexcept -> bool { return m_awaitable.is_ready(); }
+            bool await_ready() const noexcept { return m_awaitable.is_ready(); }
 
-            auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+            bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
                 return m_awaitable.try_await(awaiting_coroutine);
             }
 
-            auto await_resume() noexcept -> std::tuple<task_types...> & { return m_awaitable.m_p->m_tasks; }
+            std::tuple<task_types...> & await_resume() noexcept { return m_awaitable.m_p->m_tasks; }
 
           private:
             when_all_ready_awaitable &m_awaitable;
@@ -109,13 +109,13 @@ class when_all_ready_awaitable<std::tuple<task_types...>> {
         struct awaiter {
             explicit awaiter(when_all_ready_awaitable &awaitable) noexcept: m_awaitable(awaitable) {}
 
-            auto await_ready() const noexcept -> bool { return m_awaitable.is_ready(); }
+            bool await_ready() const noexcept { return m_awaitable.is_ready(); }
 
-            auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+            bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
                 return m_awaitable.try_await(awaiting_coroutine);
             }
 
-            auto await_resume() noexcept -> std::tuple<task_types...> && { return std::move(m_awaitable.m_p->m_tasks); }
+            std::tuple<task_types...> && await_resume() noexcept { return std::move(m_awaitable.m_p->m_tasks); }
 
           private:
             when_all_ready_awaitable &m_awaitable;
@@ -125,9 +125,9 @@ class when_all_ready_awaitable<std::tuple<task_types...>> {
     }
 
   private:
-    auto is_ready() const noexcept -> bool { return m_p->m_latch.is_ready(); }
+    bool is_ready() const noexcept { return m_p->m_latch.is_ready(); }
 
-    auto try_await(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+    bool try_await(std::coroutine_handle<> awaiting_coroutine) noexcept {
         std::apply([this](auto &&...tasks) { ((tasks.start(m_p->m_latch)), ...); }, m_p->m_tasks);
         return m_p->m_latch.try_await(awaiting_coroutine);
     }
@@ -150,20 +150,20 @@ class when_all_ready_awaitable {
     when_all_ready_awaitable(const when_all_ready_awaitable &) = delete;
     when_all_ready_awaitable(when_all_ready_awaitable &&other) noexcept: m_p(std::move(other.m_p)) {}
 
-    auto operator=(const when_all_ready_awaitable &) -> when_all_ready_awaitable & = delete;
-    auto operator=(when_all_ready_awaitable &&) -> when_all_ready_awaitable & = delete;
+    when_all_ready_awaitable & operator=(const when_all_ready_awaitable &) = delete;
+    when_all_ready_awaitable & operator=(when_all_ready_awaitable &&) = delete;
 
     auto operator co_await() & noexcept {
         struct awaiter {
             awaiter(when_all_ready_awaitable &awaitable): m_awaitable(awaitable) {}
 
-            auto await_ready() const noexcept -> bool { return m_awaitable.is_ready(); }
+            bool await_ready() const noexcept { return m_awaitable.is_ready(); }
 
-            auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+            bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
                 return m_awaitable.try_await(awaiting_coroutine);
             }
 
-            auto await_resume() noexcept -> task_container_type & { return m_awaitable.m_p->m_tasks; }
+            task_container_type & await_resume() noexcept { return m_awaitable.m_p->m_tasks; }
 
           private:
             when_all_ready_awaitable &m_awaitable;
@@ -176,13 +176,13 @@ class when_all_ready_awaitable {
         struct awaiter {
             awaiter(when_all_ready_awaitable &awaitable): m_awaitable(awaitable) {}
 
-            auto await_ready() const noexcept -> bool { return m_awaitable.is_ready(); }
+            bool await_ready() const noexcept { return m_awaitable.is_ready(); }
 
-            auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+            bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
                 return m_awaitable.try_await(awaiting_coroutine);
             }
 
-            auto await_resume() noexcept -> task_container_type && { return std::move(m_awaitable.m_p->m_tasks); }
+            task_container_type && await_resume() noexcept { return std::move(m_awaitable.m_p->m_tasks); }
 
           private:
             when_all_ready_awaitable &m_awaitable;
@@ -192,9 +192,9 @@ class when_all_ready_awaitable {
     }
 
   private:
-    auto is_ready() const noexcept -> bool { return m_p->m_latch.is_ready(); }
+    bool is_ready() const noexcept { return m_p->m_latch.is_ready(); }
 
-    auto try_await(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+    bool try_await(std::coroutine_handle<> awaiting_coroutine) noexcept {
         for(auto &task: m_p->m_tasks) {
             task.start(m_p->m_latch);
         }
@@ -219,12 +219,12 @@ class when_all_task_promise {
 
     auto get_return_object() noexcept { return coroutine_handle_type::from_promise(*this); }
 
-    auto initial_suspend() noexcept -> std::suspend_always { return {}; }
+    std::suspend_always initial_suspend() noexcept { return {}; }
 
     auto final_suspend() noexcept {
         struct completion_notifier {
-            auto await_ready() const noexcept -> bool { return false; }
-            auto await_suspend(coroutine_handle_type coroutine) const noexcept -> void {
+            bool await_ready() const noexcept { return false; }
+            void await_suspend(coroutine_handle_type coroutine) const noexcept {
                 coroutine.promise().m_p->m_latch->notify_awaitable_completed();
             }
             auto await_resume() const noexcept {}
@@ -240,33 +240,33 @@ class when_all_task_promise {
         return final_suspend();
     }
 
-    auto start(when_all_latch &latch) noexcept -> void {
+    void start(when_all_latch &latch) noexcept {
         m_p->m_latch = &latch;
         coroutine_handle_type::from_promise(*this).resume();
     }
 
-    auto result() & -> return_type & {
+    return_type & result() & {
         if(m_p->m_exception_ptr) {
             std::rethrow_exception(m_p->m_exception_ptr);
         }
         return *m_p->m_return_value;
     }
 
-    auto result() const & -> const return_type & {
+    const return_type & result() const & {
         if(m_p->m_exception_ptr) {
             std::rethrow_exception(m_p->m_exception_ptr);
         }
         return *m_p->m_return_value;
     }
 
-    auto result() && -> return_type && {
+    return_type && result() && {
         if(m_p->m_exception_ptr) {
             std::rethrow_exception(m_p->m_exception_ptr);
         }
         return std::move(*m_p->m_return_value);
     }
 
-    auto return_void() noexcept -> void {
+    void return_void() noexcept {
         // We should have either suspended at co_yield point or
         // an exception was thrown before running off the end of
         // the coroutine.
@@ -292,31 +292,31 @@ class when_all_task_promise<void> {
 
     auto get_return_object() noexcept { return coroutine_handle_type::from_promise(*this); }
 
-    auto initial_suspend() noexcept -> std::suspend_always { return {}; }
+    std::suspend_always initial_suspend() noexcept { return {}; }
 
     auto final_suspend() noexcept {
         struct completion_notifier {
-            auto await_ready() const noexcept -> bool { return false; }
-            auto await_suspend(coroutine_handle_type coroutine) const noexcept -> void {
+            bool await_ready() const noexcept { return false; }
+            void await_suspend(coroutine_handle_type coroutine) const noexcept {
                 coroutine.promise().m_p->m_latch->notify_awaitable_completed();
             }
-            auto await_resume() const noexcept -> void {}
+            void await_resume() const noexcept {}
         };
 
         return completion_notifier{};
     }
 
-    auto unhandled_exception() noexcept -> void { m_p->m_exception_ptr = std::current_exception(); }
+    void unhandled_exception() noexcept { m_p->m_exception_ptr = std::current_exception(); }
 
-    auto return_void() noexcept -> void {}
+    void return_void() noexcept {}
 
-    auto result() -> void {
+    void result() {
         if(m_p->m_exception_ptr) {
             std::rethrow_exception(m_p->m_exception_ptr);
         }
     }
 
-    auto start(when_all_latch &latch) -> void {
+    void start(when_all_latch &latch) {
         m_p->m_latch = &latch;
         coroutine_handle_type::from_promise(*this).resume();
     }
@@ -348,8 +348,8 @@ class when_all_task {
         m_p->m_coroutine = std::exchange(other.m_p->m_coroutine, coroutine_handle_type{});
     }
 
-    auto operator=(const when_all_task &) -> when_all_task & = delete;
-    auto operator=(when_all_task &&) -> when_all_task & = delete;
+    when_all_task & operator=(const when_all_task &) = delete;
+    when_all_task & operator=(when_all_task &&) = delete;
 
     ~when_all_task() {
         if(m_p->m_coroutine != nullptr) {
@@ -357,20 +357,20 @@ class when_all_task {
         }
     }
 
-    auto return_value() & -> return_type & {
+    return_type & return_value() & {
         return m_p->m_coroutine.promise().result();
     }
 
-    auto return_value() const & -> const return_type & {
+    const return_type & return_value() const & {
         return m_p->m_coroutine.promise().result();
     }
 
-    auto return_value() && -> return_type && {
+    return_type && return_value() && {
         return std::move(m_p->m_coroutine.promise()).result();
     }
 
   private:
-    auto start(when_all_latch &latch) noexcept -> void { m_p->m_coroutine.promise().start(latch); }
+    void start(when_all_latch &latch) noexcept { m_p->m_coroutine.promise().start(latch); }
 
     struct impl {
       public:
@@ -397,8 +397,8 @@ class when_all_task<void> {
         m_p->m_coroutine = std::exchange(other.m_p->m_coroutine, coroutine_handle_type{});
     }
 
-    auto operator=(const when_all_task &) -> when_all_task & = delete;
-    auto operator=(when_all_task &&) -> when_all_task & = delete;
+    when_all_task & operator=(const when_all_task &) = delete;
+    when_all_task & operator=(when_all_task &&) = delete;
 
     ~when_all_task() {
         if(m_p->m_coroutine != nullptr) {
@@ -406,13 +406,13 @@ class when_all_task<void> {
         }
     }
 
-    auto return_value() -> void_value {
+    void_value return_value() {
         m_p->m_coroutine.promise().result();
         return void_value{};
     }
 
   private:
-    auto start(when_all_latch &latch) noexcept -> void { m_p->m_coroutine.promise().start(latch); }
+    void start(when_all_latch &latch) noexcept { m_p->m_coroutine.promise().start(latch); }
 
     struct impl {
       public:
@@ -424,10 +424,10 @@ class when_all_task<void> {
 template<
         concepts::awaitable awaitable,
         typename return_type = typename concepts::awaitable_traits<awaitable &&>::awaiter_return_type>
-auto make_when_all_task(awaitable a) -> when_all_task<return_type> __ATTRIBUTE__(used);
+when_all_task<return_type> __ATTRIBUTE__(used) make_when_all_task(awaitable a) ;
 
 template<concepts::awaitable awaitable, typename return_type>
-auto make_when_all_task(awaitable a) -> when_all_task<return_type> {
+when_all_task<return_type> make_when_all_task(awaitable a) {
     if constexpr(std::is_void_v<return_type>) {
         co_await static_cast<awaitable &&>(a);
         co_return;

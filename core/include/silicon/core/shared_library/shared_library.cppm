@@ -47,10 +47,10 @@ export class shared_library final {
     /// Returns an error_code on failure
     /// (silicon::library::library_error::kAlreadyLoaded / kLoadFailed, or a
     /// system errno via std::error_code{ec, std::generic_category()}).
-    [[nodiscard]] auto load(const std::string &, int32_t flags = 0) -> std::expected<void, std::error_code>;
+    [[nodiscard]] std::expected<void, std::error_code> load(const std::string &, int32_t flags = 0) ;
 
     /// Unloads a shared library. Returns an error_code on failure.
-    [[nodiscard]] auto unload() -> std::expected<void, std::error_code>;
+    [[nodiscard]] std::expected<void, std::error_code> unload() ;
 
     /// Returns true iff a library has been loaded.
     [[nodiscard]] bool is_loaded() const;
@@ -63,7 +63,7 @@ export class shared_library final {
     /// the given name. For functions, this
     /// is the entry point of the function.
     /// Returns an error_code (kSymbolNotFound) if the symbol does not exist.
-    [[nodiscard]] auto get_symbol(const std::string &) -> std::expected<void *, std::error_code>;
+    [[nodiscard]] std::expected<void *, std::error_code> get_symbol(const std::string &) ;
 
     /// Returns the path of the library, as
     /// specified in a call to load() or the

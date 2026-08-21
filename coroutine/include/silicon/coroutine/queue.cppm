@@ -67,9 +67,9 @@ class queue {
     struct awaiter {
         explicit awaiter(queue<element_type> &q) noexcept;
 
-        auto await_ready() noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
-        [[nodiscard]] auto await_resume() noexcept -> expected<element_type, queue_consume_result>;
+        bool await_ready() noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        [[nodiscard]] expected<element_type, queue_consume_result> await_resume() noexcept ;
 
         std::optional<element_type> m_element{std::nullopt};
         queue &m_queue;
@@ -83,8 +83,8 @@ class queue {
     queue(const queue &) = delete;
     queue(queue &&other) = delete;
 
-    auto operator=(const queue &) -> queue & = delete;
-    auto operator=(queue &&other) -> queue & = delete;
+    queue & operator=(const queue &) = delete;
+    queue & operator=(queue &&other) = delete;
 
     /**
      * @brief Determines if the queue is empty.
@@ -92,14 +92,14 @@ class queue {
      * @return true If the queue is empty.
      * @return false If the queue is not empty.
      */
-    auto empty() const -> bool;
+    bool empty() const ;
 
     /**
      * @brief Gets the number of elements in the queue.
      *
      * @return std::size_t The number of elements in the queue.
      */
-    auto size() const -> std::size_t;
+    std::size_t size() const ;
 
     /**
      * @brief Pushes the element into the queue. If the queue is empty and there are waiters
@@ -109,7 +109,7 @@ class queue {
      * @param element The element being produced.
      * @return silicon::scheduler::task<queue_produce_result>
      */
-    auto push(const element_type &element) -> silicon::scheduler::task<queue_produce_result>;
+    silicon::scheduler::task<queue_produce_result> push(const element_type &element) ;
 
     /**
      * @brief Pushes the element into the queue. If the queue is empty and there are waiters
@@ -119,7 +119,7 @@ class queue {
      * @param element The element being produced.
      * @return silicon::scheduler::task<queue_produce_result>
      */
-    auto push(element_type &&element) -> silicon::scheduler::task<queue_produce_result>;
+    silicon::scheduler::task<queue_produce_result> push(element_type &&element) ;
 
     /**
      * @brief Emplaces an element into the queue. Has the same behavior as push if the queue
@@ -129,7 +129,7 @@ class queue {
      * @return silicon::scheduler::task<queue_produce_result>
      */
     template<typename... args_type>
-    auto emplace(args_type &&...args) -> silicon::scheduler::task<queue_produce_result>;
+    silicon::scheduler::task<queue_produce_result> emplace(args_type &&...args) ;
 
     /**
      * @brief Pops the head element of the queue if available, or waits for one to be available.
@@ -137,7 +137,7 @@ class queue {
      * @return awaiter A waiter task that upon co_await complete returns an element or the queue
      *                 status that it is shut down.
      */
-    [[nodiscard]] auto pop() -> silicon::scheduler::task<expected<element_type, queue_consume_result>>;
+    [[nodiscard]] silicon::scheduler::task<expected<element_type, queue_consume_result>> pop() ;
 
     /**
      * @brief Tries to pop the head element of the queue if available. This can fail if it cannot
@@ -150,14 +150,14 @@ class queue {
      *         queue_consume_result::empty if lock was acquired but the queue is empty.
      *         queue_consume_result::try_lock_failure if the queue is in use and the lock could not be acquired.
      */
-    [[nodiscard]] auto try_pop() -> expected<element_type, queue_consume_result>;
+    [[nodiscard]] expected<element_type, queue_consume_result> try_pop() ;
 
     /**
      * @brief Shuts down the queue immediately discarding any elements that haven't been processed.
      *
      * @return silicon::scheduler::task<void>
      */
-    auto shutdown() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> shutdown() ;
 
     /**
      * @brief Shuts down the queue but waits for it to be drained so all elements are processed.
@@ -169,13 +169,13 @@ class queue {
      * @return silicon::scheduler::task<void>
      */
     template<silicon::coroutine::concepts::executor executor_type>
-    auto shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &e) ;
 
     /**
      * Returns true if shutdown() or shutdown_drain() have been called on this silicon::coroutine::queue.
      * @return True if the silicon::coroutine::queue has been shutdown.
      */
-    [[nodiscard]] auto is_shutdown() const -> bool;
+    [[nodiscard]] bool is_shutdown() const ;
 
   private:
     friend awaiter;

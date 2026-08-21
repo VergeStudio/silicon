@@ -35,24 +35,24 @@ class latch {
 
     latch(const latch &) = delete;
     latch(latch &&) = delete;
-    auto operator=(const latch &) -> latch & = delete;
-    auto operator=(latch &&) -> latch & = delete;
+    latch & operator=(const latch &) = delete;
+    latch & operator=(latch &&) = delete;
 
     /**
      * @return True if the latch has been counted down to zero.
      */
-    auto is_ready() const noexcept -> bool;
+    bool is_ready() const noexcept ;
 
     /**
      * @return The number of tasks this latch is still waiting to complete.
      */
-    auto remaining() const noexcept -> std::size_t;
+    std::size_t remaining() const noexcept ;
 
     /**
      * If the latch counter goes to zero then the task awaiting the latch is resumed.
      * @param n The number of tasks to complete towards the latch, defaults to 1.
      */
-    auto count_down(std::int64_t n = 1) noexcept -> void;
+    void count_down(std::int64_t n = 1) noexcept ;
 
     /**
      * If the latch counter goes to zero then the task awaiting the latch is resumed on the given
@@ -61,7 +61,7 @@ class latch {
      * @param n The number of tasks to complete towards the latch, defaults to 1.
      */
     template<concepts::executor executor_type>
-    auto count_down(std::unique_ptr<executor_type> &executor, std::int64_t n = 1) noexcept -> void {
+    void count_down(std::unique_ptr<executor_type> &executor, std::int64_t n = 1) noexcept {
         if(decrement(n)) {
             internal_event().set(executor);
         }
@@ -79,9 +79,9 @@ class latch {
      * 非模板钩子：递减计数，返回是否刚好归零（需要触发内部 event）。
      * 供接口单元中的 `count_down(executor)` 模板重载使用。
      */
-    auto decrement(std::int64_t n) noexcept -> bool;
+    bool decrement(std::int64_t n) noexcept ;
     /// 非模板钩子：暴露内部 event 引用，供模板重载在 executor 上恢复等待者。
-    auto internal_event() noexcept -> event &;
+    event & internal_event() noexcept ;
 };
 
 } // namespace silicon::coroutine

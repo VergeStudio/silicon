@@ -53,7 +53,7 @@ struct io_notifier::impl {
  * captured event came from the file descriptor of the poll_info, in which case we want to decode the poll_status from
  * the event, or from a registered cancellation token, in which case we want to return a cancelled poll status.
  */
-static auto encode_udata(bool keep_registered, bool is_cancel_event, void *udata) -> uint64_t {
+static uint64_t encode_udata(bool keep_registered, bool is_cancel_event, void *udata) {
     // Pointers on 64 bit unix machines take up to 48 bit right now. So we have some bits left to encode the boolean to
     // indicate if this is a cancellation event descriptor at the highest bit.
     return (((uint64_t)keep_registered) << 63) | (((uint64_t)is_cancel_event) << 62) |
@@ -65,14 +65,14 @@ static auto encode_udata(bool keep_registered, bool is_cancel_event, void *udata
  *
  * For details see documentation of `silicon::scheduler::encode_udata(bool, bool, void*)` above.
  */
-static auto decode_udata(uint64_t encoded) -> std::tuple<bool, bool, void *> {
+static std::tuple<bool, bool, void *> decode_udata(uint64_t encoded) {
     bool keep_registered = (bool)(encoded >> 63);
     bool is_cancel_event = (bool)((encoded >> 62) & 0x1);
     void *udata = reinterpret_cast<void *>(encoded & 0xFFFFFFFFFFFFULL);
     return std::make_tuple(keep_registered, is_cancel_event, udata);
 }
 
-static auto event_to_poll_status(const event_t &event) -> poll_status {
+static poll_status event_to_poll_status(const event_t &event) {
     if(event.events & static_cast<uint32_t>(poll_op::read)) {
         return poll_status::read;
     }
@@ -92,7 +92,7 @@ io_notifier::io_notifier(): m_p(std::make_unique<impl>()) {
 
 io_notifier::~io_notifier() = default;
 
-auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
+bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) {
     auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration);
     duration -= seconds;
     auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
@@ -113,7 +113,7 @@ auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanosecond
     return ::timerfd_settime(timer.get_fd(), 0, &ts, nullptr) != -1;
 }
 
-auto io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) -> bool {
+bool io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
     auto event_data = event_t{};
     event_data.events = static_cast<uint32_t>(op) | EPOLLRDHUP;
     event_data.data.u64 = encode_udata(keep, is_cancel_event, data);
@@ -129,7 +129,7 @@ auto io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_canc
     return ::epoll_ctl(m_p->m_fd, EPOLL_CTL_ADD, fd, &event_data) != -1;
 }
 
-auto io_notifier::watch(poll_info &pi) -> bool {
+bool io_notifier::watch(poll_info &pi) {
     watch(pi.m_p->m_fd, pi.m_p->m_op, static_cast<void *>(&pi), false, false);
 
     if(pi.m_p->m_cancel_trigger.has_value()) {
@@ -139,15 +139,15 @@ auto io_notifier::watch(poll_info &pi) -> bool {
     return true;
 }
 
-auto io_notifier::unwatch(fd_t fd, poll_op) -> bool {
+bool io_notifier::unwatch(fd_t fd, poll_op) {
     return ::epoll_ctl(m_p->m_fd, EPOLL_CTL_DEL, fd, nullptr) != -1;
 }
 
-auto io_notifier::unwatch(poll_info &pi) -> bool {
+bool io_notifier::unwatch(poll_info &pi) {
     return unwatch(pi.m_p->m_fd, pi.m_p->m_op);
 }
 
-auto io_notifier::unwatch_timer(const timer_handle &timer) -> bool {
+bool io_notifier::unwatch_timer(const timer_handle &timer) {
     // Setting these values to zero disables the timer.
     itimerspec ts{};
     ts.it_value.tv_sec = 0;
@@ -155,9 +155,9 @@ auto io_notifier::unwatch_timer(const timer_handle &timer) -> bool {
     return ::timerfd_settime(timer.get_fd(), 0, &ts, nullptr) != -1;
 }
 
-auto io_notifier::next_events(
+void io_notifier::next_events(
         std::vector<std::pair<poll_info *, poll_status>> &ready_events, std::chrono::milliseconds timeout
-) -> void {
+) {
     auto ready_set = std::array<event_t, m_max_events>{};
     int num_ready = ::epoll_wait(m_p->m_fd, ready_set.data(), ready_set.size(), timeout.count());
     for(int i = 0; i < num_ready; ++i) {

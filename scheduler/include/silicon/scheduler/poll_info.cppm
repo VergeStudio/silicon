@@ -63,20 +63,20 @@ struct poll_info {
 
     poll_info(const poll_info &) = delete;
     poll_info(poll_info &&) = delete;
-    auto operator=(const poll_info &) -> poll_info & = delete;
-    auto operator=(poll_info &&) -> poll_info & = delete;
+    poll_info & operator=(const poll_info &) = delete;
+    poll_info & operator=(poll_info &&) = delete;
 
     struct poll_awaiter {
         explicit poll_awaiter(poll_info &pi) noexcept: m_pi(pi) {}
 
-        auto await_ready() const noexcept -> bool { return false; }
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> void;
-        auto await_resume() noexcept -> silicon::coroutine::poll_status;
+        bool await_ready() const noexcept { return false; }
+        void await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        silicon::coroutine::poll_status await_resume() noexcept ;
 
         poll_info &m_pi;
     };
 
-    auto operator co_await() noexcept -> poll_awaiter { return poll_awaiter{*this}; }
+    poll_awaiter operator co_await() noexcept { return poll_awaiter{*this}; }
 
     std::unique_ptr<impl> m_p;
 };

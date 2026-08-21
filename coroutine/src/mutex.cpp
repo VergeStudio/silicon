@@ -19,11 +19,11 @@ class mutex::impl {
 };
 
 
-auto lock_operation_base::await_ready() const noexcept -> bool {
+bool lock_operation_base::await_ready() const noexcept {
     return m_mutex.try_lock();
 }
 
-auto lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+bool lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     auto &state = m_mutex.m_p->m_state;
     void *current = state.load(std::memory_order::acquire);
@@ -84,7 +84,7 @@ scoped_lock::~scoped_lock() {
     unlock();
 }
 
-auto scoped_lock::unlock() -> void {
+void scoped_lock::unlock() {
     if(m_p != nullptr && m_p->m_mutex != nullptr) {
         std::atomic_thread_fence(std::memory_order::acq_rel);
         m_p->m_mutex->unlock();
@@ -98,11 +98,11 @@ mutex::mutex() noexcept: m_p(std::make_unique<impl>()) {
 
 mutex::~mutex() = default;
 
-auto mutex::unlocked_value() const noexcept -> const void * {
+const void * mutex::unlocked_value() const noexcept {
     return &m_p->m_state;
 }
 
-auto mutex::try_lock() -> bool {
+bool mutex::try_lock() {
     void *expected = const_cast<void *>(unlocked_value());
     return m_p->m_state.compare_exchange_strong(expected, nullptr, std::memory_order::acq_rel, std::memory_order::relaxed);
 }

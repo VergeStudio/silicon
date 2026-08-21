@@ -90,8 +90,8 @@ class condition_variable {
 
         awaiter_base(const awaiter_base &) = delete;
         awaiter_base(awaiter_base &&) = delete;
-        auto operator=(const awaiter_base &) -> awaiter_base & = delete;
-        auto operator=(awaiter_base &&) -> awaiter_base & = delete;
+        awaiter_base & operator=(const awaiter_base &) = delete;
+        awaiter_base & operator=(awaiter_base &&) = delete;
 
         /// @brief The next waiting awaiter.
         awaiter_base *m_next{nullptr};
@@ -104,7 +104,7 @@ class condition_variable {
 
         /// @brief 类型擦除 on_notify：经 strategy_ 分派到具体 awaiter 的 do_on_notify。
         notify_proxy strategy_{};
-        auto on_notify() -> silicon::scheduler::task<notify_status_t> {
+        silicon::scheduler::task<notify_status_t> on_notify() {
             return strategy_->on_notify();
         }
     };
@@ -118,11 +118,11 @@ class condition_variable {
         auto operator=(const awaiter &) -> awaiter & = delete;
         auto operator=(awaiter &&) -> awaiter & = delete;
 
-        auto await_ready() const noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+        bool await_ready() const noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
         auto await_resume() noexcept {}
 
-        auto do_on_notify() -> silicon::scheduler::task<notify_status_t>;
+        silicon::scheduler::task<notify_status_t> do_on_notify() ;
     };
 
     struct awaiter_with_predicate: public awaiter_base {
@@ -131,14 +131,14 @@ class condition_variable {
 
         awaiter_with_predicate(const awaiter_with_predicate &) = delete;
         awaiter_with_predicate(awaiter_with_predicate &&) = delete;
-        auto operator=(const awaiter_with_predicate &) -> awaiter_with_predicate & = delete;
-        auto operator=(awaiter_with_predicate &&) -> awaiter_with_predicate & = delete;
+        awaiter_with_predicate & operator=(const awaiter_with_predicate &) = delete;
+        awaiter_with_predicate & operator=(awaiter_with_predicate &&) = delete;
 
-        auto await_ready() const noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+        bool await_ready() const noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
         auto await_resume() noexcept {}
 
-        auto do_on_notify() -> silicon::scheduler::task<notify_status_t>;
+        silicon::scheduler::task<notify_status_t> do_on_notify() ;
 
         /// @brief The wait predicate to execute on notify.
         predicate_type m_predicate;
@@ -154,14 +154,14 @@ class condition_variable {
 
         awaiter_with_predicate_stop_token(const awaiter_with_predicate_stop_token &) = delete;
         awaiter_with_predicate_stop_token(awaiter_with_predicate_stop_token &&) = delete;
-        auto operator=(const awaiter_with_predicate_stop_token &) -> awaiter_with_predicate_stop_token & = delete;
-        auto operator=(awaiter_with_predicate_stop_token &&) -> awaiter_with_predicate_stop_token & = delete;
+        awaiter_with_predicate_stop_token & operator=(const awaiter_with_predicate_stop_token &) = delete;
+        awaiter_with_predicate_stop_token & operator=(awaiter_with_predicate_stop_token &&) = delete;
 
-        auto await_ready() noexcept -> bool;
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
-        auto await_resume() noexcept -> bool { return m_predicate_result; }
+        bool await_ready() noexcept ;
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        bool await_resume() noexcept { return m_predicate_result; }
 
-        auto do_on_notify() -> silicon::scheduler::task<notify_status_t>;
+        silicon::scheduler::task<notify_status_t> do_on_notify() ;
 
         /// @brief The wait predicate to execute on notify.
         predicate_type m_predicate;
@@ -187,8 +187,8 @@ class condition_variable {
 
         controller_data(const controller_data &) = delete;
         controller_data(controller_data &&) = delete;
-        auto operator=(const controller_data &) -> controller_data & = delete;
-        auto operator=(controller_data &&) -> controller_data & = delete;
+        controller_data & operator=(const controller_data &) = delete;
+        controller_data & operator=(controller_data &&) = delete;
 
         /// @brief Mutex for notify or timeout mutual exclusion.
         silicon::coroutine::mutex m_event_mutex{};
@@ -222,7 +222,7 @@ class condition_variable {
         awaiter_with_wait_hook(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, controller_data &data) noexcept;
         ~awaiter_with_wait_hook() = default;
 
-        auto do_on_notify() -> silicon::scheduler::task<notify_status_t>;
+        silicon::scheduler::task<notify_status_t> do_on_notify() ;
 
         controller_data &m_data;
     };
@@ -248,8 +248,8 @@ class condition_variable {
 
         awaiter_with_wait(const awaiter_with_wait &) = delete;
         awaiter_with_wait(awaiter_with_wait &&) = delete;
-        auto operator=(const awaiter_with_wait &) -> awaiter_with_wait & = delete;
-        auto operator=(awaiter_with_wait &&) -> awaiter_with_wait & = delete;
+        awaiter_with_wait & operator=(const awaiter_with_wait &) = delete;
+        awaiter_with_wait & operator=(awaiter_with_wait &&) = delete;
 
         /**
          * @brief Task to handle the no_timeout case, however it is resumed even after a timeout since it needs to exit
@@ -258,7 +258,7 @@ class condition_variable {
          * @param data The controller task's data.
          * @return silicon::scheduler::task<void>
          */
-        auto make_on_notify_callback_task(controller_data &data) -> silicon::scheduler::task<void> {
+        silicon::scheduler::task<void> make_on_notify_callback_task(controller_data &data) {
             co_await data.m_notify_callback;
 
             // If this is the condition and not a timeout resume from this task.
@@ -278,7 +278,7 @@ class condition_variable {
          * @param data The controller task data.
          * @return silicon::scheduler::task<void>
          */
-        auto make_timeout_task(controller_data &data) -> silicon::scheduler::task<void> {
+        silicon::scheduler::task<void> make_timeout_task(controller_data &data) {
             co_await m_executor->schedule_after(m_wait_for);
             auto lock = co_await data.m_event_mutex.scoped_lock();
             bool expected{false};
@@ -308,7 +308,7 @@ class condition_variable {
          *
          * @return silicon::scheduler::task_self_deleting This task is self deleting since it has an indeterminate lifetime.
          */
-        auto make_controller_task() -> silicon::scheduler::task_self_deleting {
+        silicon::scheduler::task_self_deleting make_controller_task() {
             controller_data data{m_status, m_predicate_result, std::move(m_predicate), std::move(m_stop_token)};
             // We enqueue the hook_task since we can make it live until the notify occurs and will properly resume the
             // actual coroutine only once.
@@ -320,7 +320,7 @@ class condition_variable {
             co_return;
         }
 
-        auto await_ready() noexcept -> bool {
+        bool await_ready() noexcept {
             // If there is no predicate then we are not ready.
             if(!m_predicate.has_value()) {
                 return false;
@@ -333,7 +333,7 @@ class condition_variable {
             return m_predicate_result;
         }
 
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+        bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
             m_awaiting_coroutine = awaiting_coroutine; // This is the real coroutine to resume.
 
             // Make the background controller which proxies between the notify task and the timeout task.
@@ -342,7 +342,7 @@ class condition_variable {
             return true;
         }
 
-        auto await_resume() noexcept -> return_type {
+        return_type await_resume() noexcept {
             if constexpr(std::is_same_v<return_type, bool>) {
                 return m_predicate_result;
             } else {
@@ -350,7 +350,7 @@ class condition_variable {
             }
         }
 
-        auto do_on_notify() -> silicon::scheduler::task<notify_status_t> { std::unreachable(); }
+        silicon::scheduler::task<notify_status_t> do_on_notify() { std::unreachable(); }
 
         /// @brief The io_executor used to wait for the timeout.
         std::unique_ptr<io_executor_type> &m_executor;
@@ -375,13 +375,13 @@ class condition_variable {
 
     condition_variable(const condition_variable &) = delete;
     condition_variable(condition_variable &&) = delete;
-    auto operator=(const condition_variable &) -> condition_variable & = delete;
-    auto operator=(condition_variable &&) -> condition_variable & = delete;
+    condition_variable & operator=(const condition_variable &) = delete;
+    condition_variable & operator=(condition_variable &&) = delete;
 
     /**
      * @brief Notifies a single waiter.
      */
-    auto notify_one() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> notify_one() ;
 
     /**
      * @brief Notifies a single waiter and resumes the waiter on the given executor.
@@ -390,14 +390,14 @@ class condition_variable {
      * @param executor The executor that the waiter will be resumed on.
      */
     template<silicon::coroutine::concepts::executor executor_type>
-    auto notify_one(std::unique_ptr<executor_type> &executor) -> void {
+    void notify_one(std::unique_ptr<executor_type> &executor) {
         executor->spawn_detached(notify_one());
     }
 
     /**
      * @brief Notifies all waiters.
      */
-    auto notify_all() -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> notify_all() ;
 
     /**
      * @brief Notifies all waiters and resumes them on the given executor. Note that each waiter must be notified
@@ -410,7 +410,7 @@ class condition_variable {
      * @return void
      */
     template<silicon::coroutine::concepts::executor executor_type>
-    auto notify_all(std::unique_ptr<executor_type> &executor) -> void {
+    void notify_all(std::unique_ptr<executor_type> &executor) {
         auto *waiter = pop_all_waiters();
 
         while(waiter != nullptr) {
@@ -569,11 +569,11 @@ class condition_variable {
      * through non-template members keeps impl defined only in condition_variable.cpp.
      */
     /// @brief Pops the entire waiter list, the caller owns the returned intrusive list.
-    auto pop_all_waiters() noexcept -> awaiter_base *;
+    awaiter_base * pop_all_waiters() noexcept ;
     /// @brief Pushes a waiter back onto the waiter list.
-    auto push_waiter(awaiter_base *waiter) noexcept -> void;
+    void push_waiter(awaiter_base *waiter) noexcept ;
 
-    auto make_notify_all_executor_individual_task(awaiter_base *waiter) -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> make_notify_all_executor_individual_task(awaiter_base *waiter) ;
 };
 
 

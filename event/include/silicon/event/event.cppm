@@ -23,11 +23,11 @@ class EVENT_API event {
 
     event(const event &) = delete;
     event(event &&) noexcept = default;
-    auto operator=(const event &) -> event & = delete;
-    auto operator=(event &&) noexcept -> event & = default;
+    event & operator=(const event &) = delete;
+    event & operator=(event &&) noexcept = default;
 
     [[nodiscard]] auto name() const noexcept -> const std::string &;
-    [[nodiscard]] auto status() const noexcept -> event_status;
+    [[nodiscard]] event_status status() const noexcept ;
     void set_status(event_status s) noexcept;
 
   private:

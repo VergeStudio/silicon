@@ -71,36 +71,35 @@ class io_notifier {
         16;
 #endif
 
-    auto remove_fd(fd_t fd) -> void;
+    void remove_fd(fd_t fd) ;
 
   public:
     io_notifier();
 
     io_notifier(const io_notifier &) = delete;
     io_notifier(io_notifier &&) = delete;
-    auto operator=(const io_notifier &) -> io_notifier & = delete;
-    auto operator=(io_notifier &&) -> io_notifier & = delete;
+    io_notifier & operator=(const io_notifier &) = delete;
+    io_notifier & operator=(io_notifier &&) = delete;
 
     ~io_notifier();
 
-    auto watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool;
+    bool watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) ;
 
-    auto watch(fd_t fd, poll_op op, void *data, bool keep = false, bool is_cancel_event = false) -> bool;
+    bool watch(fd_t fd, poll_op op, void *data, bool keep = false, bool is_cancel_event = false) ;
 
-    auto watch(poll_info &pi) -> bool;
+    bool watch(poll_info &pi) ;
 
-    auto unwatch(fd_t fd, poll_op op) -> bool;
+    bool unwatch(fd_t fd, poll_op op) ;
 
-    auto unwatch(poll_info &pi) -> bool;
+    bool unwatch(poll_info &pi) ;
 
-    auto unwatch_timer(const timer_handle &timer) -> bool;
+    bool unwatch_timer(const timer_handle &timer) ;
 
-    auto next_events(std::vector<std::pair<poll_info *, poll_status>> &ready_events,
-                     std::chrono::milliseconds timeout) -> void;
+    void next_events(std::vector<std::pair<poll_info *, poll_status>> &ready_events,
+                     std::chrono::milliseconds timeout) ;
 
-    auto native_handle() const ->
-#if defined(SILICON_PLATFORM_WINDOWS)
-        HANDLE;
+    #if defined(SILICON_PLATFORM_WINDOWS)
+        HANDLE native_handle() const ;
 #else
         fd_t;
 #endif

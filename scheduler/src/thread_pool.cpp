@@ -25,8 +25,7 @@ module silicon.scheduler;
 namespace silicon::scheduler {
 
 
-static auto
-make_spawned_joinable_wait_task(std::unique_ptr<silicon::scheduler::task_group<silicon::scheduler::thread_pool>> group_ptr) -> silicon::scheduler::task<void> {
+static silicon::scheduler::task<void> make_spawned_joinable_wait_task(std::unique_ptr<silicon::scheduler::task_group<silicon::scheduler::thread_pool>> group_ptr) {
     co_await *group_ptr;
     co_return;
 }
@@ -54,10 +53,10 @@ struct thread_pool::impl {
     std::atomic<std::size_t> m_size{0};
     std::atomic<bool> m_shutdown_requested{false};
 
-    auto executor(std::size_t idx) -> void;
-    auto schedule_impl(std::coroutine_handle<void> handle) noexcept -> void;
+    void executor(std::size_t idx) ;
+    void schedule_impl(std::coroutine_handle<void> handle) noexcept ;
 
-    static auto pop_front(ThreadState &state) noexcept -> std::coroutine_handle<void> {
+    static std::coroutine_handle<void> pop_front(ThreadState &state) noexcept {
         std::scoped_lock lk{state.mutex};
         if(state.queue.empty()) return nullptr;
         auto h = state.queue.front();
@@ -65,7 +64,7 @@ struct thread_pool::impl {
         return h;
     }
 
-    static auto steal_back(ThreadState &state) noexcept -> std::coroutine_handle<void> {
+    static std::coroutine_handle<void> steal_back(ThreadState &state) noexcept {
         std::scoped_lock lk{state.mutex};
         if(state.queue.empty()) return nullptr;
         auto h = state.queue.back();
@@ -73,7 +72,7 @@ struct thread_pool::impl {
         return h;
     }
 
-    auto all_queues_empty() const noexcept -> bool {
+    bool all_queues_empty() const noexcept {
         if(m_size.load(std::memory_order::acquire) == 0) return true;
         for(auto &state: m_states) {
             std::scoped_lock lk{state.mutex};
@@ -82,14 +81,14 @@ struct thread_pool::impl {
         return true;
     }
 
-    static auto steal_start(std::size_t my_idx, std::size_t count) -> std::size_t {
+    static std::size_t steal_start(std::size_t my_idx, std::size_t count) {
         return my_idx + 1;
     }
 };
 
 thread_pool::schedule_operation::schedule_operation(thread_pool &tp) noexcept: m_thread_pool(tp) {}
 
-auto thread_pool::schedule_operation::await_suspend(std::coroutine_handle<void> awaiting_coroutine) noexcept -> void {
+void thread_pool::schedule_operation::await_suspend(std::coroutine_handle<void> awaiting_coroutine) noexcept {
     m_thread_pool.m_impl->schedule_impl(awaiting_coroutine);
 }
 
@@ -100,7 +99,7 @@ thread_pool::thread_pool(options &&opts, private_constructor): m_impl(std::make_
     m_impl->m_states.resize(n);
 }
 
-auto thread_pool::create(options opts) -> std::expected<std::unique_ptr<thread_pool>, std::error_code> {
+std::expected<std::unique_ptr<thread_pool>, std::error_code> thread_pool::create(options opts) {
     auto tp = std::make_unique<thread_pool>(std::move(opts), private_constructor{});
     auto &impl = *tp->m_impl;
     try {
@@ -128,19 +127,19 @@ auto thread_pool::schedule() -> schedule_operation {
     }
 }
 
-auto thread_pool::spawn_detached(silicon::scheduler::task<void> &&task) noexcept -> bool {
+bool thread_pool::spawn_detached(silicon::scheduler::task<void> &&task) noexcept {
     m_impl->m_size.fetch_add(1, std::memory_order::release);
     auto wrapper_task = silicon::scheduler::make_task_self_deleting(std::move(task));
     wrapper_task.promise().user_final_suspend([impl = m_impl.get()]() -> void { impl->m_size.fetch_sub(1, std::memory_order::release); });
     return resume(wrapper_task.handle());
 }
 
-auto thread_pool::spawn_joinable(silicon::scheduler::task<void> &&task) noexcept -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> thread_pool::spawn_joinable(silicon::scheduler::task<void> &&task) noexcept {
     auto group_ptr = std::make_unique<silicon::scheduler::task_group<silicon::scheduler::thread_pool>>(this, std::move(task));
     return make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 
-auto thread_pool::resume(std::coroutine_handle<void> handle) noexcept -> bool {
+bool thread_pool::resume(std::coroutine_handle<void> handle) noexcept {
     if(handle == nullptr || handle.done()) return false;
     m_impl->m_size.fetch_add(1, std::memory_order::release);
     if(m_impl->m_shutdown_requested.load(std::memory_order::acquire)) {
@@ -151,7 +150,7 @@ auto thread_pool::resume(std::coroutine_handle<void> handle) noexcept -> bool {
     return true;
 }
 
-auto thread_pool::shutdown() noexcept -> void {
+void thread_pool::shutdown() noexcept {
     auto &impl = *m_impl;
     if(impl.m_shutdown_requested.exchange(true, std::memory_order::acq_rel) == false) {
         {
@@ -164,15 +163,15 @@ auto thread_pool::shutdown() noexcept -> void {
     }
 }
 
-auto thread_pool::is_shutdown() const -> bool {
+bool thread_pool::is_shutdown() const {
     return m_impl->m_shutdown_requested.load(std::memory_order::acquire);
 }
 
-auto thread_pool::size() const noexcept -> std::size_t {
+std::size_t thread_pool::size() const noexcept {
     return m_impl->m_size.load(std::memory_order::acquire);
 }
 
-auto thread_pool::queue_size() const noexcept -> std::size_t {
+std::size_t thread_pool::queue_size() const noexcept {
     std::size_t total = 0;
     for(auto &state: m_impl->m_states) {
         std::scoped_lock lk{state.mutex};
@@ -181,7 +180,7 @@ auto thread_pool::queue_size() const noexcept -> std::size_t {
     return total;
 }
 
-auto thread_pool::impl::executor(std::size_t idx) -> void {
+void thread_pool::impl::executor(std::size_t idx) {
     if(m_opts.on_thread_start_functor != nullptr) {
         m_opts.on_thread_start_functor(idx);
     }
@@ -236,7 +235,7 @@ auto thread_pool::impl::executor(std::size_t idx) -> void {
     }
 }
 
-auto thread_pool::impl::schedule_impl(std::coroutine_handle<void> handle) noexcept -> void {
+void thread_pool::impl::schedule_impl(std::coroutine_handle<void> handle) noexcept {
     if(handle == nullptr || handle.done()) return;
 
     auto idx = m_submit_idx.fetch_add(1, std::memory_order::relaxed) % m_states.size();
@@ -248,7 +247,7 @@ auto thread_pool::impl::schedule_impl(std::coroutine_handle<void> handle) noexce
     m_wait_cv.notify_one();
 }
 
-auto thread_pool::resume_range_impl(std::vector<std::coroutine_handle<void>> &handles) noexcept -> std::size_t {
+std::size_t thread_pool::resume_range_impl(std::vector<std::coroutine_handle<void>> &handles) noexcept {
     auto &impl = *m_impl;
     impl.m_size.fetch_add(handles.size(), std::memory_order::release);
 

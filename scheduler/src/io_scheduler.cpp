@@ -47,8 +47,7 @@ using namespace silicon::coroutine;
 namespace silicon::scheduler {
 
 
-static auto
-make_spawned_joinable_wait_task(std::unique_ptr<silicon::scheduler::task_group<silicon::scheduler::io_scheduler>> group_ptr) -> silicon::scheduler::task<void> {
+static silicon::scheduler::task<void> make_spawned_joinable_wait_task(std::unique_ptr<silicon::scheduler::task_group<silicon::scheduler::io_scheduler>> group_ptr) {
     co_await *group_ptr;
     co_return;
 }
@@ -72,7 +71,7 @@ io_scheduler::io_scheduler(options &&opts, private_constructor)
     }
 }
 
-auto io_scheduler::create(options opts) -> std::expected<std::unique_ptr<io_scheduler>, std::error_code> {
+std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::create(options opts) {
     try {
         auto s = std::make_unique<io_scheduler>(std::move(opts), private_constructor{});
 
@@ -102,28 +101,28 @@ io_scheduler::~io_scheduler() {
     m_p->m_schedule_pipe.close();
 }
 
-auto io_scheduler::process_events(std::chrono::milliseconds timeout) -> std::size_t {
+std::size_t io_scheduler::process_events(std::chrono::milliseconds timeout) {
     process_events_manual(timeout);
     return size();
 }
 
-auto io_scheduler::spawn_detached(silicon::scheduler::task<void> &&task) -> bool {
+bool io_scheduler::spawn_detached(silicon::scheduler::task<void> &&task) {
     m_p->m_size.fetch_add(1, std::memory_order::release);
     auto wrapper_task = silicon::scheduler::make_task_self_deleting(std::move(task));
     wrapper_task.promise().user_final_suspend([this]() -> void { m_p->m_size.fetch_sub(1, std::memory_order::release); });
     return resume(wrapper_task.handle());
 }
 
-auto io_scheduler::spawn_joinable(silicon::scheduler::task<void> &&task) -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> io_scheduler::spawn_joinable(silicon::scheduler::task<void> &&task) {
     auto group_ptr = std::make_unique<silicon::scheduler::task_group<silicon::scheduler::io_scheduler>>(this, std::move(task));
     return make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 
-auto io_scheduler::schedule_at(time_point time) -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> io_scheduler::schedule_at(time_point time) {
     return yield_until(time);
 }
 
-auto io_scheduler::yield_until(time_point time) -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> io_scheduler::yield_until(time_point time) {
     auto now = clock::now();
 
     // If the requested time is in the past (or now!) bail out!
@@ -141,12 +140,12 @@ auto io_scheduler::yield_until(time_point time) -> silicon::scheduler::task<void
     co_return;
 }
 
-auto io_scheduler::poll(
+silicon::scheduler::task<poll_status> io_scheduler::poll(
         fd_t fd,
         silicon::coroutine::poll_op op,
         std::chrono::milliseconds timeout,
         std::optional<poll_stop_token> cancel_trigger
-) -> silicon::scheduler::task<poll_status> {
+) {
     // Because the size will drop when this coroutine suspends every poll needs to undo the subtraction
     // on the number of active tasks in the scheduler.  When this task is resumed by the event loop.
     m_p->m_size.fetch_add(1, std::memory_order::release);
@@ -174,7 +173,7 @@ auto io_scheduler::poll(
     co_return result;
 }
 
-auto io_scheduler::resume(std::coroutine_handle<> handle) -> bool {
+bool io_scheduler::resume(std::coroutine_handle<> handle) {
     if(handle == nullptr || handle.done()) {
         return false;
     }
@@ -193,7 +192,7 @@ auto io_scheduler::resume(std::coroutine_handle<> handle) -> bool {
     }
 }
 
-auto io_scheduler::shutdown() noexcept -> void {
+void io_scheduler::shutdown() noexcept {
     // Only allow shutdown to occur once.
     if(m_p->m_shutdown_requested.exchange(true, std::memory_order::acq_rel) == false) {
         // Signal the event loop to stop asap.
@@ -214,7 +213,7 @@ auto io_scheduler::shutdown() noexcept -> void {
     }
 }
 
-auto io_scheduler::yield_for_internal(std::chrono::nanoseconds amount) -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> io_scheduler::yield_for_internal(std::chrono::nanoseconds amount) {
     if(amount <= 0ms) {
         co_await schedule();
     } else {
@@ -234,7 +233,7 @@ auto io_scheduler::yield_for_internal(std::chrono::nanoseconds amount) -> silico
     co_return;
 }
 
-auto io_scheduler::process_events_manual(std::chrono::milliseconds timeout) -> void {
+void io_scheduler::process_events_manual(std::chrono::milliseconds timeout) {
     bool expected{false};
     if(m_p->m_io_processing.compare_exchange_strong(expected, true, std::memory_order::release, std::memory_order::relaxed)) {
         process_events_execute(timeout);
@@ -242,7 +241,7 @@ auto io_scheduler::process_events_manual(std::chrono::milliseconds timeout) -> v
     }
 }
 
-auto io_scheduler::process_events_dedicated_thread() -> void {
+void io_scheduler::process_events_dedicated_thread() {
     if(m_p->m_opts.on_io_thread_start_functor != nullptr) {
         m_p->m_opts.on_io_thread_start_functor();
     }
@@ -259,7 +258,7 @@ auto io_scheduler::process_events_dedicated_thread() -> void {
     }
 }
 
-auto io_scheduler::process_events_execute(std::chrono::milliseconds timeout) -> void {
+void io_scheduler::process_events_execute(std::chrono::milliseconds timeout) {
     // Clear the recent events without decreasing the allocated capacity to reduce allocations
     m_p->m_recent_events.clear();
     m_p->m_io_notifier.next_events(m_p->m_recent_events, timeout);
@@ -304,7 +303,7 @@ auto io_scheduler::process_events_execute(std::chrono::milliseconds timeout) -> 
     }
 }
 
-auto io_scheduler::process_scheduled_execute_inline() -> void {
+void io_scheduler::process_scheduled_execute_inline() {
     // Clear the notification by reading until the pipe is cleared, this is done before
     // resetting the flag that writes to the pipe need to happen.
     while(true) {
@@ -354,7 +353,7 @@ auto io_scheduler::process_scheduled_execute_inline() -> void {
     }
 }
 
-auto io_scheduler::process_event_execute(silicon::scheduler::poll_info *pi, poll_status status) -> void {
+void io_scheduler::process_event_execute(silicon::scheduler::poll_info *pi, poll_status status) {
     if(!pi->m_p->m_processed) {
         std::atomic_thread_fence(std::memory_order::acquire);
         // Its possible the event and the timeout occurred in the same epoll, make sure only one
@@ -381,7 +380,7 @@ auto io_scheduler::process_event_execute(silicon::scheduler::poll_info *pi, poll
     }
 }
 
-auto io_scheduler::process_timeout_execute() -> void {
+void io_scheduler::process_timeout_execute() {
     std::vector<silicon::scheduler::poll_info *> poll_infos{};
     auto now = clock::now();
 
@@ -437,7 +436,7 @@ auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::poll_info 
     return pos;
 }
 
-auto io_scheduler::remove_timer_token(timed_events::iterator pos) -> void {
+void io_scheduler::remove_timer_token(timed_events::iterator pos) {
     {
         std::scoped_lock lk{m_p->m_timed_events_mutex};
         auto is_first = (m_p->m_timed_events.begin() == pos);
@@ -453,7 +452,7 @@ auto io_scheduler::remove_timer_token(timed_events::iterator pos) -> void {
     }
 }
 
-auto io_scheduler::update_timeout(time_point now) -> void {
+void io_scheduler::update_timeout(time_point now) {
     if(!m_p->m_timed_events.empty()) {
         auto &[tp, pi] = *m_p->m_timed_events.begin();
 

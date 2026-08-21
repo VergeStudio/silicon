@@ -82,7 +82,7 @@ class result {
     dns::status m_status{dns::status::kComplete};
     std::vector<silicon::network::ip_address> m_ip_addresses{};
 
-    friend auto ares_dns_callback(void *arg, int status, int timeouts, ares_addrinfo *addr_info) -> void;
+    friend void ares_dns_callback(void *arg, int status, int timeouts, ares_addrinfo *addr_info) ;
 };
 
 template<silicon::coroutine::concepts::io_executor executor_type>
@@ -101,8 +101,7 @@ class resolver {
      *         network_error::kNullExecutor，c-ares 初始化失败时返回
      *         network_error::kDnsInitFailed。
      */
-    static auto create(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout)
-            -> std::expected<std::unique_ptr<resolver>, std::error_code> {
+    static std::expected<std::unique_ptr<resolver>, std::error_code> create(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout) {
         if(executor == nullptr) {
             return std::unexpected(make_error_code(network_error::kNullExecutor));
         }
@@ -135,8 +134,8 @@ class resolver {
 
     resolver(const resolver &) = delete;
     resolver(resolver &&) = delete;
-    auto operator=(const resolver &) noexcept -> resolver & = delete;
-    auto operator=(resolver &&) noexcept -> resolver & = delete;
+    resolver & operator=(const resolver &) noexcept = delete;
+    resolver & operator=(resolver &&) noexcept = delete;
 
     ~resolver() {
         if(m_ares_channel != nullptr) {
@@ -156,7 +155,7 @@ class resolver {
     /**
      * @param hn The hostname to resolve its ip addresses.
      */
-    auto host_by_name(const network::hostname &hn) -> silicon::scheduler::task<std::unique_ptr<result<executor_type>>> {
+    silicon::scheduler::task<std::unique_ptr<result<executor_type>>> host_by_name(const network::hostname &hn) {
         silicon::coroutine::event resume_event{};
         auto result_ptr = std::make_unique<result<executor_type>>(m_executor, resume_event, 1);
 
@@ -197,7 +196,7 @@ class resolver {
     /// are not setup when socket state is changed.
     std::unordered_map<silicon::coroutine::fd_t, silicon::coroutine::poll_op> m_active_sockets{};
 
-    auto make_poll_task(silicon::coroutine::fd_t fd) -> silicon::scheduler::task<void> {
+    silicon::scheduler::task<void> make_poll_task(silicon::coroutine::fd_t fd) {
         // The loop ensures non-blocking polling until the socket is closed by c-ares.
         while(m_active_sockets.contains(fd)) {
             auto ops = m_active_sockets[fd];
@@ -230,7 +229,7 @@ class resolver {
         co_return;
     }
 
-    static auto ares_socket_state_callback(void *data, ares_socket_t socket_fd, int readable, int writable) -> void {
+    static void ares_socket_state_callback(void *data, ares_socket_t socket_fd, int readable, int writable) {
         resolver *self = static_cast<resolver *>(data);
         uint64_t ops{0};
 
@@ -253,7 +252,7 @@ class resolver {
         }
     }
 
-    static auto ares_dns_callback(void *arg, int status, int /*timeouts*/, ares_addrinfo *addr_info) -> void {
+    static void ares_dns_callback(void *arg, int status, int /*timeouts*/, ares_addrinfo *addr_info) {
         auto &result = *static_cast<silicon::network::dns::result<executor_type> *>(arg);
         --result.m_pending_dns_requests;
 

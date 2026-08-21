@@ -11,7 +11,7 @@ import :concepts.awaitable;
 export namespace silicon::coroutine {
 
 template<concepts::awaiter_forward_list_entry awaiter_type>
-auto awaiter_list_push(std::atomic<awaiter_type *> &list, awaiter_type *to_enqueue) -> void {
+void awaiter_list_push(std::atomic<awaiter_type *> &list, awaiter_type *to_enqueue) {
     awaiter_type *current = list.load(std::memory_order::acquire);
     do {
         to_enqueue->m_next = current;
@@ -51,7 +51,7 @@ auto awaiter_list_pop_all(std::atomic<awaiter_type *> &list) -> awaiter_type * {
 }
 
 template<concepts::awaiter_forward_list_entry awaiter_type>
-auto awaiter_list_reverse(awaiter_type *curr) -> awaiter_type * {
+awaiter_type * awaiter_list_reverse(awaiter_type *curr) {
     if(curr == nullptr || curr->m_next == nullptr) {
         return curr;
     }

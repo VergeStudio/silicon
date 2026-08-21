@@ -35,11 +35,11 @@ struct lock_operation_base {
 
     lock_operation_base(const lock_operation_base &) = delete;
     lock_operation_base(lock_operation_base &&) = delete;
-    auto operator=(const lock_operation_base &) -> lock_operation_base & = delete;
-    auto operator=(lock_operation_base &&) -> lock_operation_base & = delete;
+    lock_operation_base & operator=(const lock_operation_base &) = delete;
+    lock_operation_base & operator=(lock_operation_base &&) = delete;
 
-    auto await_ready() const noexcept -> bool;
-    auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool;
+    bool await_ready() const noexcept ;
+    bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
 
     std::coroutine_handle<> m_awaiting_coroutine;
     lock_operation_base *m_next{nullptr};
@@ -57,10 +57,10 @@ struct lock_operation: public lock_operation_base {
 
     lock_operation(const lock_operation &) = delete;
     lock_operation(lock_operation &&) = delete;
-    auto operator=(const lock_operation &) -> lock_operation & = delete;
-    auto operator=(lock_operation &&) -> lock_operation & = delete;
+    lock_operation & operator=(const lock_operation &) = delete;
+    lock_operation & operator=(lock_operation &&) = delete;
 
-    auto await_resume() noexcept -> return_type {
+    return_type await_resume() noexcept {
         if constexpr(std::is_same_v<scoped_lock, return_type>) {
             return scoped_lock{this->m_mutex};
         } else {
@@ -93,13 +93,13 @@ class scoped_lock {
 
     scoped_lock(const scoped_lock &) = delete;
     scoped_lock(scoped_lock &&other) noexcept;
-    auto operator=(const scoped_lock &) -> scoped_lock & = delete;
-    auto operator=(scoped_lock &&other) noexcept -> scoped_lock &;
+    scoped_lock & operator=(const scoped_lock &) = delete;
+    scoped_lock & operator=(scoped_lock &&other) noexcept ;
 
     /**
      * Unlocks the scoped lock prior to it going out of scope.
      */
-    auto unlock() -> void;
+    void unlock() ;
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
@@ -125,35 +125,35 @@ class mutex {
 
     mutex(const mutex &) = delete;
     mutex(mutex &&) = delete;
-    auto operator=(const mutex &) -> mutex & = delete;
-    auto operator=(mutex &&) -> mutex & = delete;
+    mutex & operator=(const mutex &) = delete;
+    mutex & operator=(mutex &&) = delete;
 
     /**
      * @brief To acquire the mutex's lock co_await this function. Upon acquiring the lock it returns a silicon::coroutine::scoped_lock
      *        which will hold the mutex until the silicon::coroutine::scoped_lock destructs.
      * @return A co_await'able operation to acquire the mutex.
      */
-    [[nodiscard]] auto scoped_lock() -> lock_operation<scoped_lock> { return lock_operation<silicon::coroutine::scoped_lock>{*this}; }
+    [[nodiscard]] lock_operation<scoped_lock> scoped_lock() { return lock_operation<silicon::coroutine::scoped_lock>{*this}; }
 
     /**
      * @brief Locks the mutex.
      *
      * @return lock_operation<void>
      */
-    [[nodiscard]] auto lock() -> lock_operation<void> { return lock_operation<void>{*this}; }
+    [[nodiscard]] lock_operation<void> lock() { return lock_operation<void>{*this}; }
 
     /**
      * Attempts to lock the mutex.
      * @return True if the mutex lock was acquired, otherwise false.
      */
-    [[nodiscard]] auto try_lock() -> bool;
+    [[nodiscard]] bool try_lock() ;
 
     /**
      * Releases the mutex's lock.
      * @return coroutine::result<void>；重复解锁（逻辑错误）时返回
      *         std::unexpected(coroutine_error::kAlreadyUnlocked)。
      */
-    auto unlock() -> result<void>;
+    result<void> unlock() ;
 
   private:
     friend struct lock_operation_base;
@@ -168,7 +168,7 @@ class mutex {
     /// Inactive value, this cannot be nullptr since we want nullptr to signify that the mutex
     /// is locked but there are zero waiters, this makes it easy to CAS new waiters into the
     /// m_state linked list.
-    auto unlocked_value() const noexcept -> const void *;
+    const void * unlocked_value() const noexcept ;
 };
 
 } // namespace silicon::coroutine

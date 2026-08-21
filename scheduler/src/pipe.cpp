@@ -114,8 +114,7 @@ auto pipe_t::operator=(pipe_t&& other) noexcept -> pipe_t&
     return *this;
 }
 
-auto pipe_t::write(const void* bytes, std::size_t n) -> long
-{
+long pipe_t::write(const void* bytes, std::size_t n) {
 #if defined(SILICON_PLATFORM_WINDOWS)
     return _write(write_fd(), bytes, n);
 #else
@@ -123,8 +122,7 @@ auto pipe_t::write(const void* bytes, std::size_t n) -> long
 #endif
 }
 
-auto pipe_t::read(void* buffer, std::size_t n) -> long
-{
+long pipe_t::read(void* buffer, std::size_t n) {
 #if defined(SILICON_PLATFORM_WINDOWS)
     return _read(read_fd(), buffer, n);
 #else
@@ -142,8 +140,7 @@ auto pipe_t::write_fd() const -> const fd_t&
     return m_p->m_fds[1];
 }
 
-auto pipe_t::close() -> void
-{
+void pipe_t::close() {
     if (m_p->m_fds[0] != -1)
     {
 #if defined(SILICON_PLATFORM_WINDOWS)

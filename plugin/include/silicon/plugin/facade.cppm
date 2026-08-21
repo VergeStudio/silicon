@@ -94,11 +94,11 @@ class plugin_registry {
 
   public:
     /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。
-    [[nodiscard]] auto register_plugin(plugin_proxy plugin) -> result<void>;
+    [[nodiscard]] result<void> register_plugin(plugin_proxy plugin) ;
 
     /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
     template<class T, class... Args>
-    [[nodiscard]] auto emplace(Args &&...args) -> result<void> {
+    [[nodiscard]] result<void> emplace(Args &&...args) {
         return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
     }
 
@@ -125,11 +125,11 @@ class proxy_plugin_registry {
 
   public:
     /// 注册已擦除的插件；句柄为空返回 kNullPlugin，名称重复返回 kDuplicate。
-    [[nodiscard]] auto register_plugin(plugin_proxy plugin) -> result<void>;
+    [[nodiscard]] result<void> register_plugin(plugin_proxy plugin) ;
 
     /// 就地构造并注册；等价于 register_plugin(make_plugin<T>(args...))。
     template<class T, class... Args>
-    [[nodiscard]] auto emplace(Args &&...args) -> result<void> {
+    [[nodiscard]] result<void> emplace(Args &&...args) {
         return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
     }
 

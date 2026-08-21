@@ -120,7 +120,7 @@ auto client::operator=(client &&other) noexcept -> client & {
     return *this;
 }
 
-auto client::connect(std::chrono::milliseconds timeout) -> silicon::scheduler::task<connection_status> {
+silicon::scheduler::task<connection_status> client::connect(std::chrono::milliseconds timeout) {
     // Only allow the user to connect per tcp client once, if they need to re-connect they should
     // make a new tls::client.
     if(m_connect_status.has_value()) {
@@ -166,7 +166,7 @@ auto client::connect(std::chrono::milliseconds timeout) -> silicon::scheduler::t
     co_return return_value(connection_status::kError);
 }
 
-auto client::handshake(std::chrono::milliseconds timeout) -> silicon::scheduler::task<connection_status> {
+silicon::scheduler::task<connection_status> client::handshake(std::chrono::milliseconds timeout) {
     m_tls_info.m_tls_ptr = tls_unique_ptr{SSL_new(m_tls_ctx->native_handle())};
     if(m_tls_info.m_tls_ptr == nullptr) {
         co_return connection_status::kResourceAllocationFailed;
@@ -221,7 +221,7 @@ auto client::handshake(std::chrono::milliseconds timeout) -> silicon::scheduler:
     co_return connection_status::kConnected;
 }
 
-auto client::tls_shutdown_and_free(std::chrono::milliseconds timeout) -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> client::tls_shutdown_and_free(std::chrono::milliseconds timeout) {
     auto *tls_ptr = m_tls_info.m_tls_ptr.get();
 
     while(true) {

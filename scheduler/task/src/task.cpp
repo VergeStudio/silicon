@@ -16,11 +16,11 @@ namespace silicon::scheduler {
 
 
 
-auto promise_base::final_awaitable::await_ready() const noexcept -> bool {
+bool promise_base::final_awaitable::await_ready() const noexcept {
     return false;
 }
 
-auto promise_base::final_awaitable::await_resume() noexcept -> void {}
+void promise_base::final_awaitable::await_resume() noexcept {}
 
 [[nodiscard]] auto task_self_deleting::promise() const -> const promise_self_deleting & {
     return *m_promise;
@@ -34,10 +34,10 @@ auto promise_base::final_awaitable::await_resume() noexcept -> void {}
 
 task_event::awaiter::awaiter(const task_event &e) noexcept: m_event(e) {}
 
-auto task_event::awaiter::await_ready() const noexcept -> bool {
+bool task_event::awaiter::await_ready() const noexcept {
     return m_event.is_set();
 }
 
-auto task_event::awaiter::await_resume() noexcept -> void {}
+void task_event::awaiter::await_resume() noexcept {}
 
 } // namespace silicon::scheduler

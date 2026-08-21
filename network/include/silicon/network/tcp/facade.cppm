@@ -100,8 +100,8 @@ class client final {
 
     client(const client &other);
     client(client &&other) noexcept;
-    auto operator=(const client &other) noexcept -> client &;
-    auto operator=(client &&other) noexcept -> client &;
+    client & operator=(const client &other) noexcept ;
+    client & operator=(client &&other) noexcept ;
     ~client();
 
     /**
@@ -234,12 +234,12 @@ class client final {
     template<
             silicon::coroutine::concepts::mutable_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
-    auto recv(buffer_type &&buffer) -> std::pair<io_status, std::span<element_type>>;
+    std::pair<io_status, std::span<element_type>> recv(buffer_type &&buffer) ;
 
     template<
             silicon::coroutine::concepts::const_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
-    auto send(const buffer_type &buffer) -> std::pair<io_status, std::span<element_type>>;
+    std::pair<io_status, std::span<element_type>> send(const buffer_type &buffer) ;
 
     /// The tcp::server creates already connected clients and provides a tcp socket pre-built.
     friend server;
@@ -309,8 +309,8 @@ class server final {
 
     server(const server &) = delete;
     server(server &&other);
-    auto operator=(const server &) -> server & = delete;
-    auto operator=(server &&other) -> server &;
+    server & operator=(const server &) = delete;
+    server & operator=(server &&other) ;
     ~server();
 
     /**
@@ -346,7 +346,7 @@ class server final {
      * Accepts an incoming tcp client connection.
      * @return The newly connected tcp client connection.
      */
-    auto accept_now() -> silicon::coroutine::expected<silicon::network::tcp::client, io_status>;
+    silicon::coroutine::expected<silicon::network::tcp::client, io_status> accept_now() ;
 
     friend client;
 

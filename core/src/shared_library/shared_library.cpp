@@ -27,7 +27,7 @@ const std::string &shared_library::get_path() const {
     return impl_->path_;
 }
 
-auto shared_library::get_symbol(const std::string &symbol_name) -> std::expected<void *, std::error_code> {
+std::expected<void *, std::error_code> shared_library::get_symbol(const std::string &symbol_name) {
     void *result = find_symbol(symbol_name);
     if(result != nullptr) {
         return result;

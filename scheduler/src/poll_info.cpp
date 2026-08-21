@@ -45,11 +45,11 @@ poll_info::poll_info(fd_t fd, silicon::coroutine::poll_op op, std::optional<poll
     m_p->m_cancel_trigger = std::move(cancel_trigger);
 }
 
-auto poll_info::poll_awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> void {
+void poll_info::poll_awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_pi.m_p->m_awaiting_coroutine = awaiting_coroutine;
     std::atomic_thread_fence(std::memory_order::release);
 }
 
-auto poll_info::poll_awaiter::await_resume() noexcept -> silicon::coroutine::poll_status { return m_pi.m_p->m_poll_status; }
+silicon::coroutine::poll_status poll_info::poll_awaiter::await_resume() noexcept { return m_pi.m_p->m_poll_status; }
 
 } // namespace silicon::scheduler

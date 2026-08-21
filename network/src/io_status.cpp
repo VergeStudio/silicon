@@ -25,12 +25,12 @@ std::string silicon::network::io_status::message() const {
 }
 
 // ── make_io_status_from_native (platform dispatch) ────────────────────
-auto silicon::network::make_io_status_from_native(int native_code) -> silicon::network::io_status {
+silicon::network::io_status silicon::network::make_io_status_from_native(int native_code) {
     return make_io_status_from_native_impl(native_code);
 }
 
 // ── make_io_status_from_poll_status (shared — no platform deps) ───────
-auto silicon::network::make_io_status_from_poll_status(silicon::coroutine::poll_status status) -> silicon::network::io_status {
+silicon::network::io_status silicon::network::make_io_status_from_poll_status(silicon::coroutine::poll_status status) {
     switch(status) {
         case silicon::coroutine::poll_status::read:
         case silicon::coroutine::poll_status::write:
@@ -49,7 +49,7 @@ auto silicon::network::make_io_status_from_poll_status(silicon::coroutine::poll_
 }
 
 // ── to_string (shared) ────────────────────────────────────────────
-auto silicon::network::to_string(silicon::network::io_status::kind k) -> std::string_view {
+std::string_view silicon::network::to_string(silicon::network::io_status::kind k) {
     using kind = io_status::kind;
     switch(k) {
         case kind::kOk:

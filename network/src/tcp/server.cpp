@@ -26,7 +26,7 @@ struct server::impl {
 
     impl(silicon::scheduler::io_scheduler *scheduler, options opts, network::socket accept_socket);
     impl(impl &&other) noexcept;
-    auto operator=(impl &&other) noexcept -> impl &;
+    impl & operator=(impl &&other) noexcept ;
     ~impl();
 };
 
@@ -102,8 +102,7 @@ auto server::shutdown() {
     impl_->m_accept_socket.shutdown(silicon::coroutine::poll_op::read_write);
 }
 
-auto server::accept(std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<silicon::coroutine::expected<network::tcp::client, io_status>> {
+silicon::scheduler::task<silicon::coroutine::expected<network::tcp::client, io_status>> server::accept(std::chrono::milliseconds timeout) {
     // Fast path
     if(impl_->m_is_read_ready) {
         auto client = accept_now();
@@ -126,8 +125,7 @@ auto server::accept(std::chrono::milliseconds timeout)
     co_return accept_now();
 }
 
-auto server::poll(std::chrono::milliseconds timeout)
-        -> silicon::scheduler::task<coroutine::poll_status> {
+silicon::scheduler::task<coroutine::poll_status> server::poll(std::chrono::milliseconds timeout) {
     return impl_->m_scheduler->poll(
             impl_->m_accept_socket.native_handle(),
             silicon::coroutine::poll_op::read,
@@ -136,7 +134,7 @@ auto server::poll(std::chrono::milliseconds timeout)
     );
 }
 
-auto server::accept_now() -> silicon::coroutine::expected<silicon::network::tcp::client, io_status> {
+silicon::coroutine::expected<silicon::network::tcp::client, io_status> server::accept_now() {
     auto client_endpoint = socket_address::make_uninitialised();
 
     network::socket accepted = impl_->m_accept_socket.accept(client_endpoint);

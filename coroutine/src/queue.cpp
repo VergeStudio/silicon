@@ -23,7 +23,7 @@ queue<element_type>::awaiter::awaiter(queue<element_type> &q) noexcept
     : m_queue(q) {}
 
 template<typename element_type>
-auto queue<element_type>::awaiter::await_ready() noexcept -> bool {
+bool queue<element_type>::awaiter::await_ready() noexcept {
     // This awaiter is ready when it has actually acquired an element or it is shutting down.
     if(m_queue.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_queue.m_p->m_mutex.unlock();
@@ -48,7 +48,7 @@ auto queue<element_type>::awaiter::await_ready() noexcept -> bool {
 }
 
 template<typename element_type>
-auto queue<element_type>::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+bool queue<element_type>::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     // No element is ready, put ourselves on the waiter list and suspend.
     this->m_next = m_queue.m_p->m_waiters;
     m_queue.m_p->m_waiters = this;
@@ -100,16 +100,16 @@ queue<element_type>::~queue() {
 }
 
 template<typename element_type>
-auto queue<element_type>::empty() const -> bool { return size() == 0; }
+bool queue<element_type>::empty() const { return size() == 0; }
 
 template<typename element_type>
-auto queue<element_type>::size() const -> std::size_t {
+std::size_t queue<element_type>::size() const {
     std::atomic_thread_fence(std::memory_order::acquire);
     return m_p->m_elements.size();
 }
 
 template<typename element_type>
-auto queue<element_type>::push(const element_type &element) -> silicon::scheduler::task<queue_produce_result> {
+silicon::scheduler::task<queue_produce_result> queue<element_type>::push(const element_type &element) {
     // The general idea is to see if anyone is waiting, and if so directly transfer the element
     // to that waiter. If there is nobody waiting then move the element into the queue.
     auto lock = co_await m_p->m_mutex.scoped_lock();
@@ -134,7 +134,7 @@ auto queue<element_type>::push(const element_type &element) -> silicon::schedule
 }
 
 template<typename element_type>
-auto queue<element_type>::push(element_type &&element) -> silicon::scheduler::task<queue_produce_result> {
+silicon::scheduler::task<queue_produce_result> queue<element_type>::push(element_type &&element) {
     auto lock = co_await m_p->m_mutex.scoped_lock();
 
     if(m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
@@ -157,7 +157,7 @@ auto queue<element_type>::push(element_type &&element) -> silicon::scheduler::ta
 
 template<typename element_type>
 template<typename... args_type>
-auto queue<element_type>::emplace(args_type &&...args) -> silicon::scheduler::task<queue_produce_result> {
+silicon::scheduler::task<queue_produce_result> queue<element_type>::emplace(args_type &&...args) {
     auto lock = co_await m_p->m_mutex.scoped_lock();
 
     if(m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
@@ -178,7 +178,7 @@ auto queue<element_type>::emplace(args_type &&...args) -> silicon::scheduler::ta
 }
 
 template<typename element_type>
-auto queue<element_type>::pop() -> silicon::scheduler::task<expected<element_type, queue_consume_result>> {
+silicon::scheduler::task<expected<element_type, queue_consume_result>> queue<element_type>::pop() {
     co_await m_p->m_mutex.lock();
     co_return co_await awaiter{*this};
 }
@@ -214,7 +214,7 @@ auto queue<element_type>::try_pop() -> expected<element_type, queue_consume_resu
 }
 
 template<typename element_type>
-auto queue<element_type>::shutdown() -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> queue<element_type>::shutdown() {
     auto expected = m_p->m_running_state.load(std::memory_order::acquire);
     if(expected == running_state_t::kStopped) {
         co_return;
@@ -240,7 +240,7 @@ auto queue<element_type>::shutdown() -> silicon::scheduler::task<void> {
 
 template<typename element_type>
 template<silicon::coroutine::concepts::executor executor_type>
-auto queue<element_type>::shutdown_drain(std::unique_ptr<executor_type> &e) -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> queue<element_type>::shutdown_drain(std::unique_ptr<executor_type> &e) {
     auto lk = co_await m_p->m_mutex.scoped_lock();
     auto expected = running_state_t::kRunning;
     if(!m_p->m_running_state.compare_exchange_strong(
@@ -258,6 +258,6 @@ auto queue<element_type>::shutdown_drain(std::unique_ptr<executor_type> &e) -> s
 }
 
 template<typename element_type>
-auto queue<element_type>::is_shutdown() const -> bool { return m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning; }
+bool queue<element_type>::is_shutdown() const { return m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning; }
 
 } // namespace silicon::coroutine

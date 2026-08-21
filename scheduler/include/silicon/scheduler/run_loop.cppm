@@ -42,28 +42,28 @@ class run_loop final {
 
     run_loop(const run_loop &) = delete;
     run_loop(run_loop &&) = delete;
-    auto operator=(const run_loop &) -> run_loop & = delete;
-    auto operator=(run_loop &&) -> run_loop & = delete;
+    run_loop & operator=(const run_loop &) = delete;
+    run_loop & operator=(run_loop &&) = delete;
 
     /// @brief 在当前线程上运行事件循环，直到 finish() 被调用。
     ///
     /// 每次从队列取出一个协程句柄并 resume()；队列为空且未请求停止时阻塞等待
     /// （通过条件变量）。finish() 被调用后，run() 会排空当前队列再返回。
-    auto run() noexcept -> void;
+    void run() noexcept ;
 
     /// @brief 请求停止循环。唤醒阻塞中的 run()，使其在排空当前队列后返回。
     ///
     /// 幂等：多次调用只有第一次生效。通常从另一个线程调用（见类注释）。
-    auto finish() noexcept -> void;
+    void finish() noexcept ;
 
     // —— scheduler_facade ——
-    auto spawn_detached(task<void> &&task) noexcept -> bool;
-    auto spawn_joinable(task<void> &&t) noexcept -> task<void>;
-    auto resume(std::coroutine_handle<> handle) noexcept -> bool;
-    auto shutdown() noexcept -> void;
-    auto is_shutdown() const -> bool;
-    auto size() const noexcept -> std::size_t;
-    auto empty() const noexcept -> bool { return size() == 0; }
+    bool spawn_detached(task<void> &&task) noexcept ;
+    task<void> spawn_joinable(task<void> &&t) noexcept ;
+    bool resume(std::coroutine_handle<> handle) noexcept ;
+    void shutdown() noexcept ;
+    bool is_shutdown() const ;
+    std::size_t size() const noexcept ;
+    bool empty() const noexcept { return size() == 0; }
 };
 
 } // namespace silicon::scheduler

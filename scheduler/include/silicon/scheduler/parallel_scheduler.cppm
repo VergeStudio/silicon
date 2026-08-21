@@ -35,26 +35,26 @@ class parallel_scheduler final {
 
     parallel_scheduler(const parallel_scheduler &) = delete;
     parallel_scheduler(parallel_scheduler &&) = delete;
-    auto operator=(const parallel_scheduler &) -> parallel_scheduler & = delete;
-    auto operator=(parallel_scheduler &&) -> parallel_scheduler & = delete;
+    parallel_scheduler & operator=(const parallel_scheduler &) = delete;
+    parallel_scheduler & operator=(parallel_scheduler &&) = delete;
 
     /// @brief 底层线程池的线程数（parallel_scheduler 独有）。
-    [[nodiscard]] auto thread_count() const noexcept -> std::size_t;
+    [[nodiscard]] std::size_t thread_count() const noexcept ;
 
     // —— scheduler_facade ——
-    auto spawn_detached(task<void> &&task) noexcept -> bool;
-    auto spawn_joinable(task<void> &&t) noexcept -> task<void>;
-    auto resume(std::coroutine_handle<> handle) noexcept -> bool;
-    auto shutdown() noexcept -> void;
-    auto is_shutdown() const -> bool;
-    auto size() const noexcept -> std::size_t;
-    auto empty() const noexcept -> bool { return size() == 0; }
+    bool spawn_detached(task<void> &&task) noexcept ;
+    task<void> spawn_joinable(task<void> &&t) noexcept ;
+    bool resume(std::coroutine_handle<> handle) noexcept ;
+    void shutdown() noexcept ;
+    bool is_shutdown() const ;
+    std::size_t size() const noexcept ;
+    bool empty() const noexcept { return size() == 0; }
 
     /// @brief 取得进程唯一的系统并行调度器（对应 stdexec::get_parallel_scheduler()）。
     ///
     /// 首次调用时懒惰构造，线程数为硬件并发数；其生命周期贯穿整个进程，析构时
     /// 会 join 掉底层线程池的所有工作线程。
-    static auto get_parallel_scheduler() -> parallel_scheduler &;
+    static parallel_scheduler & get_parallel_scheduler() ;
 };
 
 } // namespace silicon::scheduler

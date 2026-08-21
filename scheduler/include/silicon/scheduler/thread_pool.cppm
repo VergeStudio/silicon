@@ -34,9 +34,9 @@ class thread_pool final {
         explicit schedule_operation(thread_pool &tp) noexcept;
 
       public:
-        auto await_ready() noexcept -> bool { return false; }
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> void;
-        auto await_resume() noexcept -> void {}
+        bool await_ready() noexcept { return false; }
+        void await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept ;
+        void await_resume() noexcept {}
 
       private:
         thread_pool &m_thread_pool;
@@ -60,28 +60,26 @@ class thread_pool final {
 
     thread_pool(const thread_pool &) = delete;
     thread_pool(thread_pool &&) = delete;
-    auto operator=(const thread_pool &) -> thread_pool & = delete;
-    auto operator=(thread_pool &&) -> thread_pool & = delete;
+    thread_pool & operator=(const thread_pool &) = delete;
+    thread_pool & operator=(thread_pool &&) = delete;
 
     ~thread_pool();
 
     /// @brief 线程池中的线程数（thread_pool 独有）。
-    [[nodiscard]] auto thread_count() const noexcept -> std::size_t;
+    [[nodiscard]] std::size_t thread_count() const noexcept ;
 
-    [[nodiscard]] auto schedule() -> schedule_operation;
+    [[nodiscard]] schedule_operation schedule() ;
 
-    auto spawn_detached(silicon::scheduler::task<void> &&task) noexcept -> bool;
-    auto spawn_joinable(silicon::scheduler::task<void> &&task) noexcept
-            -> silicon::scheduler::task<void>;
+    bool spawn_detached(silicon::scheduler::task<void> &&task) noexcept ;
+    silicon::scheduler::task<void> spawn_joinable(silicon::scheduler::task<void> &&task) noexcept ;
 
     template<typename return_type>
-    [[nodiscard]] auto schedule(silicon::scheduler::task<return_type> task)
-            -> silicon::scheduler::task<return_type> {
+    [[nodiscard]] silicon::scheduler::task<return_type> schedule(silicon::scheduler::task<return_type> task) {
         co_await schedule();
         co_return co_await task;
     }
 
-    auto resume(std::coroutine_handle<> handle) noexcept -> bool;
+    bool resume(std::coroutine_handle<> handle) noexcept ;
 
     template<typename range_type>
         requires requires(const range_type &r) {
@@ -89,28 +87,28 @@ class thread_pool final {
             std::begin(r);
             std::end(r);
         }
-    auto resume(const range_type &handles) noexcept -> std::size_t {
+    std::size_t resume(const range_type &handles) noexcept {
         std::vector<std::coroutine_handle<>> vec(std::begin(handles), std::end(handles));
         return resume_range_impl(vec);
     }
 
-    [[nodiscard]] auto yield() -> schedule_operation { return schedule(); }
-    auto shutdown() noexcept -> void;
+    [[nodiscard]] schedule_operation yield() { return schedule(); }
+    void shutdown() noexcept ;
 
-    [[nodiscard]] auto is_shutdown() const -> bool;
-    auto size() const noexcept -> std::size_t;
-    auto empty() const noexcept -> bool { return size() == 0; }
+    [[nodiscard]] bool is_shutdown() const ;
+    std::size_t size() const noexcept ;
+    bool empty() const noexcept { return size() == 0; }
 
     /// @brief 队列中等待的任务数（thread_pool 独有）。
-    auto queue_size() const noexcept -> std::size_t;
+    std::size_t queue_size() const noexcept ;
     /// @brief 任务队列是否为空（thread_pool 独有）。
-    [[nodiscard]] auto queue_empty() const noexcept -> bool { return queue_size() == 0; }
+    [[nodiscard]] bool queue_empty() const noexcept { return queue_size() == 0; }
 
   private:
     struct impl;
     std::unique_ptr<impl> m_impl;
 
-    auto resume_range_impl(std::vector<std::coroutine_handle<>> &handles) noexcept -> std::size_t;
+    std::size_t resume_range_impl(std::vector<std::coroutine_handle<>> &handles) noexcept ;
 };
 
 } // namespace silicon::scheduler

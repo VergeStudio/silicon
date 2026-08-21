@@ -59,8 +59,7 @@ class coroutine_pool {
      * @param executor 底层执行器（任务经其线程池运行 worker）。不可为 nullptr。
      * @param pool_size worker 协程数（并发上限）。须 > 0。
      */
-    static auto create(std::shared_ptr<Executor> executor, std::size_t pool_size)
-            -> std::expected<std::unique_ptr<coroutine_pool<Executor>>, std::error_code> {
+    static std::expected<std::unique_ptr<coroutine_pool<Executor>>, std::error_code> create(std::shared_ptr<Executor> executor, std::size_t pool_size) {
         if(executor == nullptr) {
             return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
         }
@@ -74,8 +73,8 @@ class coroutine_pool {
 
     coroutine_pool(const coroutine_pool&)                    = delete;
     coroutine_pool(coroutine_pool&&)                         = delete;
-    auto operator=(const coroutine_pool&) -> coroutine_pool& = delete;
-    auto operator=(coroutine_pool&&) -> coroutine_pool&      = delete;
+    coroutine_pool& operator=(const coroutine_pool&) = delete;
+    coroutine_pool& operator=(coroutine_pool&&) = delete;
 
     ~coroutine_pool() {
         shutdown();
@@ -91,7 +90,7 @@ class coroutine_pool {
     /**
      * @brief 便捷提交：等价于 spawn_detached。返回是否成功入队。
      */
-    auto dispatch(silicon::scheduler::task<void>&& work) -> bool {
+    bool dispatch(silicon::scheduler::task<void>&& work) {
         return spawn_detached(std::move(work));
     }
 
@@ -99,7 +98,7 @@ class coroutine_pool {
      * @brief concepts::executor 要求：提交任务到工作队列，由 worker 取出运行。
      * @return 是否成功入队（已 shutdown 或底层执行器拒绝时返回 false）。
      */
-    auto spawn_detached(silicon::scheduler::task<void>&& work) -> bool {
+    bool spawn_detached(silicon::scheduler::task<void>&& work) {
         if(m_p->m_stopped.load(std::memory_order::acquire)) {
             return false;
         }
@@ -120,8 +119,7 @@ class coroutine_pool {
      * @brief concepts::executor 要求：提交任务，返回可 co_await 的 join 任务。
      * @return 一个在用户任务完成后置位的协程；入队失败时立即可完成（不悬挂）。
      */
-    auto spawn_joinable(silicon::scheduler::task<void>&& work)
-            -> silicon::scheduler::task<void> {
+    silicon::scheduler::task<void> spawn_joinable(silicon::scheduler::task<void>&& work) {
         auto e = std::make_shared<silicon::coroutine::event>();
         if(!spawn_detached(make_wrapper(this, e, std::move(work)))) {
             e->set(); // 入队失败则立即放行 join，避免悬挂。
@@ -136,15 +134,14 @@ class coroutine_pool {
 
     /// Waits until the event is set. Named coroutine (not a lambda) to dodge
     /// the MSVC lambda-capture-in-exported-template bug.
-    static auto make_join_task(std::shared_ptr<silicon::coroutine::event> e)
-            -> silicon::scheduler::task<void> {
+    static silicon::scheduler::task<void> make_join_task(std::shared_ptr<silicon::coroutine::event> e) {
         co_await *e;
     }
     /// Runs the user task, then signals the event. Named coroutine (same MSVC
     /// workaround as make_join_task: lambda captures in exported templates get
     /// corrupt frames).
-    static auto make_wrapper(coroutine_pool *self, std::shared_ptr<silicon::coroutine::event> e,
-                             silicon::scheduler::task<void> w) -> silicon::scheduler::task<void> {
+    static silicon::scheduler::task<void> make_wrapper(coroutine_pool *self, std::shared_ptr<silicon::coroutine::event> e,
+                             silicon::scheduler::task<void> w) {
         try {
             co_await std::move(w);
         } catch(...) {
@@ -156,19 +153,19 @@ class coroutine_pool {
     /**
      * @return 当前在途（排队 + 运行）任务数。
      */
-    [[nodiscard]] auto size() const -> std::size_t {
+    [[nodiscard]] std::size_t size() const {
         return m_p->m_inflight.load(std::memory_order::acquire);
     }
 
     /**
      * @return 是否无在途任务。
      */
-    [[nodiscard]] auto empty() const -> bool { return size() == 0; }
+    [[nodiscard]] bool empty() const { return size() == 0; }
 
     /**
      * @brief co_await 直到所有在途任务完成。worker 继续常驻，可继续 dispatch。
      */
-    auto join() -> silicon::scheduler::task<void> {
+    silicon::scheduler::task<void> join() {
         while(!empty()) {
             co_await m_p->m_executor->yield();
         }
@@ -180,7 +177,7 @@ class coroutine_pool {
      * 关闭通过 async_close 协程异步完成：它先等待所有待发 sender 真正入队，
      * 再关闭通道（drain 语义），从而避免在 dispatch 后立即析构时丢失任务。
      */
-    auto shutdown() -> void {
+    void shutdown() {
         if(m_p->m_stopped.exchange(true, std::memory_order::acq_rel)) {
             return;
         }
@@ -192,22 +189,22 @@ class coroutine_pool {
     /// @brief concepts::executor 要求：让出委托给底层执行器。
     auto yield() { return m_p->m_executor->yield(); }
     /// @brief concepts::executor 要求：恢复句柄委托给底层执行器。
-    auto resume(std::coroutine_handle<> handle) -> bool { return m_p->m_executor->resume(handle); }
+    bool resume(std::coroutine_handle<> handle) { return m_p->m_executor->resume(handle); }
 
     /**
      * @brief 最后捕获的未处理异常（worker 内任务抛错时记录，不重抛以免击垮 worker）。
      */
-    [[nodiscard]] auto last_error() const -> std::exception_ptr { return m_p->m_last_error; }
+    [[nodiscard]] std::exception_ptr last_error() const { return m_p->m_last_error; }
 
   private:
-    auto capture_error() -> void {
+    void capture_error() {
         if(!m_p->m_last_error) {
             m_p->m_last_error = std::current_exception();
         }
     }
 
     // 常驻 worker：循环取任务 -> 复用本协程帧运行 -> 循环；通道关闭且排空后退出。
-    auto worker() -> silicon::scheduler::task<void> {
+    silicon::scheduler::task<void> worker() {
         while(true) {
             auto got = co_await m_p->m_channel.recv();
             if(!got.has_value()) {
@@ -227,7 +224,7 @@ class coroutine_pool {
     }
 
     // 生产者协程：把任务送入通道（通道满时挂起，由消费者腾槽后唤醒）。
-    auto sender(silicon::scheduler::task<void> work) -> silicon::scheduler::task<void> {
+    silicon::scheduler::task<void> sender(silicon::scheduler::task<void> work) {
         auto result = co_await m_p->m_channel.send(std::move(work));
         if(result == channel_result::send::kClosed) {
             // 通道已关闭，任务未被接收入队，回退在途计数（worker 不会处理它）。
@@ -239,7 +236,7 @@ class coroutine_pool {
 
     // 异步关闭：先等待所有待发 sender 真正入队（期间通道保持开启，不丢任务），
     // 再关闭通道（drain 语义），worker 排空后退出。
-    auto async_close() -> silicon::scheduler::task<void> {
+    silicon::scheduler::task<void> async_close() {
         while(m_p->m_pending_sends.load(std::memory_order::acquire) > 0) {
             co_await m_p->m_executor->yield();
         }

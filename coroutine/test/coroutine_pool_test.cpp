@@ -24,7 +24,7 @@ namespace {
 
 // 在 TEST_CASE 作用域内持有底层执行器（shared_ptr），确保其在 pool 析构后仍存活，
 // 以便 worker / sender / async_close 协程能跑完，避免 use-after-free。
-auto make_executor() -> std::shared_ptr<thread_pool> {
+std::shared_ptr<thread_pool> make_executor() {
     return std::shared_ptr<thread_pool>{thread_pool::create().value()};
 }
 

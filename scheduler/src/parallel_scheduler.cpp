@@ -32,11 +32,11 @@ parallel_scheduler::~parallel_scheduler() {
     shutdown();
 }
 
-auto parallel_scheduler::thread_count() const noexcept -> std::size_t {
+std::size_t parallel_scheduler::thread_count() const noexcept {
     return m_impl->m_pool->thread_count();
 }
 
-auto parallel_scheduler::spawn_detached(task<void> &&task) noexcept -> bool {
+bool parallel_scheduler::spawn_detached(task<void> &&task) noexcept {
     return m_impl->m_pool->spawn_detached(std::move(task));
 }
 
@@ -44,19 +44,19 @@ auto parallel_scheduler::spawn_joinable(task<void> &&t) noexcept -> task<void> {
     return m_impl->m_pool->spawn_joinable(std::move(t));
 }
 
-auto parallel_scheduler::resume(std::coroutine_handle<> handle) noexcept -> bool {
+bool parallel_scheduler::resume(std::coroutine_handle<> handle) noexcept {
     return m_impl->m_pool->resume(handle);
 }
 
-auto parallel_scheduler::shutdown() noexcept -> void {
+void parallel_scheduler::shutdown() noexcept {
     m_impl->m_pool->shutdown();
 }
 
-auto parallel_scheduler::is_shutdown() const -> bool {
+bool parallel_scheduler::is_shutdown() const {
     return m_impl->m_pool->is_shutdown();
 }
 
-auto parallel_scheduler::size() const noexcept -> std::size_t {
+std::size_t parallel_scheduler::size() const noexcept {
     return m_impl->m_pool->size();
 }
 

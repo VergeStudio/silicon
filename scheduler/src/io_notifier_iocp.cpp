@@ -98,18 +98,18 @@ io_notifier::io_notifier()
 
 io_notifier::~io_notifier() = default;
 
-auto io_notifier::remove_fd(fd_t fd) -> void {
+void io_notifier::remove_fd(fd_t fd) {
     std::lock_guard lock(m_p->m_mutex);
     m_p->m_watched_fds.erase(fd);
 }
 
-auto io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) -> bool {
+bool io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
     std::lock_guard lock(m_p->m_mutex);
     m_p->m_watched_fds[fd] = {op, data, keep, is_cancel_event};
     return true;
 }
 
-auto io_notifier::watch(poll_info &pi) -> bool {
+bool io_notifier::watch(poll_info &pi) {
     watch(pi.m_p->m_fd, pi.m_p->m_op, static_cast<void *>(&pi), false, false);
 
     if (pi.m_p->m_cancel_trigger.has_value()) {
@@ -120,12 +120,12 @@ auto io_notifier::watch(poll_info &pi) -> bool {
     return true;
 }
 
-auto io_notifier::unwatch(fd_t fd, poll_op) -> bool {
+bool io_notifier::unwatch(fd_t fd, poll_op) {
     remove_fd(fd);
     return true;
 }
 
-auto io_notifier::unwatch(poll_info &pi) -> bool {
+bool io_notifier::unwatch(poll_info &pi) {
     remove_fd(pi.m_p->m_fd);
     if (pi.m_p->m_cancel_trigger.has_value()) {
         remove_fd(pi.m_p->m_cancel_trigger.value().native_handle());
@@ -133,7 +133,7 @@ auto io_notifier::unwatch(poll_info &pi) -> bool {
     return true;
 }
 
-auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) -> bool {
+bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) {
     // Store the IOCP handle in m_fd so the timer callback can reach it.
     // NOTE: this is a simplified approach — in production the io_notifier would
     // track timer keys directly.
@@ -163,15 +163,15 @@ auto io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanosecond
     return true;
 }
 
-auto io_notifier::unwatch_timer(const timer_handle &) -> bool {
+bool io_notifier::unwatch_timer(const timer_handle &) {
     // In this implementation, timers fire once and self-clean.
     return true;
 }
 
-auto io_notifier::next_events(
+void io_notifier::next_events(
         std::vector<std::pair<poll_info *, poll_status>> &ready_events,
         std::chrono::milliseconds timeout
-) -> void {
+) {
     // Phase 1: Drain any IOCP completions (timer expirations, etc.)
     DWORD bytes_transferred;
     ULONG_PTR completion_key;

@@ -26,22 +26,22 @@ auto promise_self_deleting::get_return_object() -> task_self_deleting {
     return task_self_deleting{*this};
 }
 
-auto promise_self_deleting::initial_suspend() -> std::suspend_always {
+std::suspend_always promise_self_deleting::initial_suspend() {
     return std::suspend_always{};
 }
 
-auto promise_self_deleting::final_suspend() noexcept -> std::suspend_never {
+std::suspend_never promise_self_deleting::final_suspend() noexcept {
     if(m_user_final_suspend != nullptr) {
         m_user_final_suspend();
     }
     return std::suspend_never{};
 }
 
-auto promise_self_deleting::return_void() noexcept -> void {}
+void promise_self_deleting::return_void() noexcept {}
 
-auto promise_self_deleting::unhandled_exception() -> void {}
+void promise_self_deleting::unhandled_exception() {}
 
-auto promise_self_deleting::user_final_suspend(std::function<void()> user_final_suspend) noexcept -> void {
+void promise_self_deleting::user_final_suspend(std::function<void()> user_final_suspend) noexcept {
     m_user_final_suspend = std::move(user_final_suspend);
 }
 
@@ -55,11 +55,11 @@ auto task_self_deleting::operator=(task_self_deleting &&other) noexcept -> task_
     return *this;
 }
 
-auto task_self_deleting::handle() const -> std::coroutine_handle<promise_self_deleting> {
+std::coroutine_handle<promise_self_deleting> task_self_deleting::handle() const {
     return std::coroutine_handle<promise_self_deleting>::from_promise(*m_promise);
 }
 
-auto task_self_deleting::handle() -> std::coroutine_handle<promise_self_deleting> {
+std::coroutine_handle<promise_self_deleting> task_self_deleting::handle() {
     return std::coroutine_handle<promise_self_deleting>::from_promise(*m_promise);
 }
 

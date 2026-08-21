@@ -23,17 +23,17 @@ latch::latch(std::int64_t count) noexcept: m_p(std::make_unique<impl>(count)) {}
 
 latch::~latch() = default;
 
-auto latch::is_ready() const noexcept -> bool { return m_p->m_event.is_set(); }
+bool latch::is_ready() const noexcept { return m_p->m_event.is_set(); }
 
-auto latch::remaining() const noexcept -> std::size_t {
+std::size_t latch::remaining() const noexcept {
     return static_cast<std::size_t>(m_p->m_count.load(std::memory_order::acquire));
 }
 
-auto latch::count_down(std::int64_t n) noexcept -> void {
+void latch::count_down(std::int64_t n) noexcept {
     if(decrement(n)) { m_p->m_event.set(); }
 }
 
-auto latch::decrement(std::int64_t n) noexcept -> bool {
+bool latch::decrement(std::int64_t n) noexcept {
     return m_p->m_count.fetch_sub(n, std::memory_order::acq_rel) <= n;
 }
 

@@ -90,8 +90,8 @@ class peer final {
 
     peer(const peer &) noexcept;
     peer(peer &&) noexcept;
-    auto operator=(const peer &) noexcept -> peer &;
-    auto operator=(peer &&) noexcept -> peer &;
+    peer & operator=(const peer &) noexcept ;
+    peer & operator=(peer &&) noexcept ;
     ~peer();
 
     /**
@@ -163,7 +163,7 @@ class peer final {
     template<
             silicon::coroutine::concepts::mutable_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
-    auto recvfrom(buffer_type &&buffer) -> std::tuple<io_status, network::socket_address, std::span<element_type>>;
+    std::tuple<io_status, network::socket_address, std::span<element_type>> recvfrom(buffer_type &&buffer) ;
 
   private:
     /// create() 专用：所有可失败的前置校验都已在工厂中完成。

@@ -67,7 +67,7 @@ auto timer_handle::get_fd() const -> fd_t {
     return m_p->m_fd;
 }
 
-auto timer_handle::get_inner() const -> const void * {
+const void * timer_handle::get_inner() const {
     return m_p->m_timer_handle_ptr;
 }
 

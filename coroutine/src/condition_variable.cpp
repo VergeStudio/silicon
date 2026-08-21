@@ -23,12 +23,11 @@ auto condition_variable::pop_all_waiters() noexcept -> awaiter_base * {
     return awaiter_list_pop_all(m_p->m_awaiters);
 }
 
-auto condition_variable::push_waiter(awaiter_base *waiter) noexcept -> void {
+void condition_variable::push_waiter(awaiter_base *waiter) noexcept {
     awaiter_list_push(m_p->m_awaiters, waiter);
 }
 
-auto condition_variable::make_notify_all_executor_individual_task(awaiter_base *waiter)
-        -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> condition_variable::make_notify_all_executor_individual_task(awaiter_base *waiter) {
     switch(co_await waiter->on_notify()) {
         case notify_status_t::kNotReady:
             // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
@@ -57,18 +56,18 @@ condition_variable::awaiter::awaiter(
     strategy_ = make_notify<notify_strategy<awaiter>>(this);
 }
 
-auto condition_variable::awaiter::await_ready() const noexcept -> bool {
+bool condition_variable::awaiter::await_ready() const noexcept {
     return false;
 }
 
-auto condition_variable::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+bool condition_variable::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
     m_lock.owned_mutex()->unlock();
     return true;
 }
 
-auto condition_variable::awaiter::do_on_notify() -> silicon::scheduler::task<condition_variable::notify_status_t> {
+silicon::scheduler::task<condition_variable::notify_status_t> condition_variable::awaiter::do_on_notify() {
     // Re-lock, the waiter is now responsible for unlocking.
     co_await m_lock.owned_mutex()->lock();
     m_awaiting_coroutine.resume();
@@ -85,18 +84,18 @@ condition_variable::awaiter_with_predicate::awaiter_with_predicate(
     strategy_ = make_notify<notify_strategy<awaiter_with_predicate>>(this);
 }
 
-auto condition_variable::awaiter_with_predicate::await_ready() const noexcept -> bool {
+bool condition_variable::awaiter_with_predicate::await_ready() const noexcept {
     return m_predicate();
 }
 
-auto condition_variable::awaiter_with_predicate::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+bool condition_variable::awaiter_with_predicate::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
     m_lock.owned_mutex()->unlock();
     return true;
 }
 
-auto condition_variable::awaiter_with_predicate::do_on_notify() -> silicon::scheduler::task<condition_variable::notify_status_t> {
+silicon::scheduler::task<condition_variable::notify_status_t> condition_variable::awaiter_with_predicate::do_on_notify() {
     co_await m_lock.owned_mutex()->lock();
     if(m_predicate()) {
         m_awaiting_coroutine.resume();
@@ -121,19 +120,19 @@ condition_variable::awaiter_with_predicate_stop_token::awaiter_with_predicate_st
     strategy_ = make_notify<notify_strategy<awaiter_with_predicate_stop_token>>(this);
 }
 
-auto condition_variable::awaiter_with_predicate_stop_token::await_ready() noexcept -> bool {
+bool condition_variable::awaiter_with_predicate_stop_token::await_ready() noexcept {
     m_predicate_result = m_predicate();
     return m_predicate_result;
 }
 
-auto condition_variable::awaiter_with_predicate_stop_token::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+bool condition_variable::awaiter_with_predicate_stop_token::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
     m_lock.owned_mutex()->unlock();
     return true;
 }
 
-auto condition_variable::awaiter_with_predicate_stop_token::do_on_notify() -> silicon::scheduler::task<condition_variable::notify_status_t> {
+silicon::scheduler::task<condition_variable::notify_status_t> condition_variable::awaiter_with_predicate_stop_token::do_on_notify() {
     co_await m_lock.owned_mutex()->lock();
     m_predicate_result = m_predicate();
 
@@ -173,7 +172,7 @@ condition_variable::awaiter_with_wait_hook::awaiter_with_wait_hook(
     strategy_ = make_notify<notify_strategy<awaiter_with_wait_hook>>(this);
 }
 
-auto condition_variable::awaiter_with_wait_hook::do_on_notify() -> silicon::scheduler::task<condition_variable::notify_status_t> {
+silicon::scheduler::task<condition_variable::notify_status_t> condition_variable::awaiter_with_wait_hook::do_on_notify() {
     auto event_lock = co_await m_data.m_event_mutex.scoped_lock();
 
     // See if this awaiter is a real notify or if it has timed out already.
@@ -213,7 +212,7 @@ auto condition_variable::awaiter_with_wait_hook::do_on_notify() -> silicon::sche
 
 #endif
 
-auto condition_variable::notify_one() -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> condition_variable::notify_one() {
     // The loop is here in case there are *dead* awaiter_hook_tasks that need to be skipped.
     while(true) {
         auto *waiter = awaiter_list_pop(m_p->m_awaiters);
@@ -236,7 +235,7 @@ auto condition_variable::notify_one() -> silicon::scheduler::task<void> {
     }
 }
 
-auto condition_variable::notify_all() -> silicon::scheduler::task<void> {
+silicon::scheduler::task<void> condition_variable::notify_all() {
     auto *waiter = awaiter_list_pop_all(m_p->m_awaiters);
 
     while(waiter != nullptr) {

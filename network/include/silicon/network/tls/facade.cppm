@@ -161,9 +161,9 @@ class context {
 
     /// 独占持有 SSL_CTX*，只可移动不可拷贝（拷贝会导致重复 SSL_CTX_free）。
     context(const context &) = delete;
-    auto operator=(const context &) -> context & = delete;
+    context & operator=(const context &) = delete;
     context(context &&other) noexcept: m_ssl_ctx(std::exchange(other.m_ssl_ctx, nullptr)) {}
-    auto operator=(context &&other) noexcept -> context & {
+    context & operator=(context &&other) noexcept {
         if(std::addressof(other) != this) {
             if(m_ssl_ctx != nullptr) { SSL_CTX_free(m_ssl_ctx); }
             m_ssl_ctx = std::exchange(other.m_ssl_ctx, nullptr);
@@ -181,8 +181,8 @@ class context {
     /// The following classes use the underlying SSL_CTX* object for performing SSL functions.
     friend client;
 
-    auto native_handle() -> SSL_CTX * { return m_ssl_ctx; }
-    auto native_handle() const -> const SSL_CTX * { return m_ssl_ctx; }
+    SSL_CTX * native_handle() { return m_ssl_ctx; }
+    const SSL_CTX * native_handle() const { return m_ssl_ctx; }
 };
 
 /// @brief 类型擦除门面：TLS 客户端的可擦除接口。
@@ -240,8 +240,8 @@ class client final {
 
     client(const client &) = delete;
     client(client &&other) noexcept;
-    auto operator=(const client &) noexcept -> client & = delete;
-    auto operator=(client &&other) noexcept -> client &;
+    client & operator=(const client &) noexcept = delete;
+    client & operator=(client &&other) noexcept ;
     ~client();
 
     /**
@@ -270,8 +270,7 @@ class client final {
     template<
             silicon::coroutine::concepts::mutable_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
-    auto recv(buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt)
-            -> silicon::scheduler::task<std::pair<recv_status, std::span<element_type>>> {
+    silicon::scheduler::task<std::pair<recv_status, std::span<element_type>>> recv(buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt) {
         if(buffer.empty()) {
             co_return {recv_status::kBufferIsEmpty, std::span<element_type>{}};
         }
@@ -349,8 +348,7 @@ class client final {
     template<
             silicon::coroutine::concepts::const_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
-    auto send(const buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt)
-            -> silicon::scheduler::task<std::pair<send_status, std::span<element_type>>> {
+    silicon::scheduler::task<std::pair<send_status, std::span<element_type>>> send(const buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt) {
         // Make sure there is data to send.
         if(buffer.empty()) {
             co_return {send_status::kBufferIsEmpty, std::span<element_type>{buffer.data(), buffer.size()}};
@@ -430,12 +428,12 @@ class client final {
      * until it completes.
      * @return Task.
      */
-    auto shutdown() -> silicon::scheduler::task<void> {
+    silicon::scheduler::task<void> shutdown() {
         co_await shutdown(std::chrono::seconds{30});
     }
 
     template<typename rep, typename period>
-    auto shutdown(std::chrono::duration<rep, period> timeout) -> silicon::scheduler::task<void> {
+    silicon::scheduler::task<void> shutdown(std::chrono::duration<rep, period> timeout) {
         // Only allow the client to be shutdown once.
         if(m_shutdown.exchange(true, std::memory_order::acq_rel) != false) {
             co_return;
@@ -468,7 +466,7 @@ class client final {
     }
 
     struct tls_deleter {
-        auto operator()(SSL *ssl) const -> void { SSL_free(ssl); }
+        void operator()(SSL *ssl) const { SSL_free(ssl); }
     };
 
     using tls_unique_ptr = std::unique_ptr<SSL, tls_deleter>;
@@ -491,9 +489,9 @@ class client final {
               m_tls_connection_status(std::move(other.m_tls_connection_status)) {
         }
 
-        auto operator=(const tls_info &) noexcept -> tls_info & = delete;
+        tls_info & operator=(const tls_info &) noexcept = delete;
 
-        auto operator=(tls_info &&other) noexcept -> tls_info & {
+        tls_info & operator=(tls_info &&other) noexcept {
             if(std::addressof(other) != this) {
                 m_tls_connection_type = std::exchange(other.m_tls_connection_type, tls_connection_type::connect);
                 m_tls_ptr = std::move(other.m_tls_ptr);
@@ -596,8 +594,8 @@ class server final {
 
     server(const server &) = delete;
     server(server &&other);
-    auto operator=(const server &) -> server & = delete;
-    auto operator=(server &&other) -> server &;
+    server & operator=(const server &) = delete;
+    server & operator=(server &&other) ;
     ~server() = default;
 
     /**

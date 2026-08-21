@@ -123,7 +123,7 @@ auto poll_stop_source::get_token() const -> poll_stop_token {
     return poll_stop_token(m_p->m_pipe.read_fd());
 }
 
-auto poll_stop_source::signal_stop() -> void {
+void poll_stop_source::signal_stop() {
     const int value{1};
 #if defined(SILICON_PLATFORM_WINDOWS)
     int written = ::_write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));

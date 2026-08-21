@@ -152,8 +152,8 @@ class io_scheduler {
 
     io_scheduler(const io_scheduler &) = delete;
     io_scheduler(io_scheduler &&) = delete;
-    auto operator=(const io_scheduler &) -> io_scheduler & = delete;
-    auto operator=(io_scheduler &&) -> io_scheduler & = delete;
+    io_scheduler & operator=(const io_scheduler &) = delete;
+    io_scheduler & operator=(io_scheduler &&) = delete;
 
     ~io_scheduler();
 
@@ -177,13 +177,13 @@ class io_scheduler {
         /**
          * Operations always pause so the executing thread can be switched.
          */
-        auto await_ready() noexcept -> bool { return false; }
+        bool await_ready() noexcept { return false; }
 
         /**
          * Suspending always returns to the caller (using void return of await_suspend()) and
          * stores the coroutine internally for the executing thread to resume from.
          */
-        auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> void {
+        void await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
             if(m_scheduler.m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
                 m_scheduler.m_p->m_size.fetch_add(1, std::memory_order::release);
                 m_awaiting_coroutine = awaiting_coroutine;
@@ -211,7 +211,7 @@ class io_scheduler {
         /**
          * no-op as this is the function called first by the thread pool's executing thread.
          */
-        auto await_resume() noexcept -> void {}
+        void await_resume() noexcept {}
 
         std::coroutine_handle<> m_awaiting_coroutine;
         schedule_operation *m_next{nullptr};
@@ -225,7 +225,7 @@ class io_scheduler {
     /**
      * Schedules the current task onto this scheduler for execution.
      */
-    auto schedule() -> schedule_operation { return schedule_operation{*this}; }
+    schedule_operation schedule() { return schedule_operation{*this}; }
 
     /**
      * Spawns a task into the scheduler and moves ownership of the task to the scheduler.
@@ -236,7 +236,7 @@ class io_scheduler {
      * @return True if the task was succesfully spawned onto the scheduler. This can fail if the task
      *         is already completed or does not contain a valid coroutine anymore.
      */
-    auto spawn_detached(silicon::scheduler::task<void> &&task) -> bool;
+    bool spawn_detached(silicon::scheduler::task<void> &&task) ;
 
     /**
      * Spawns the given task to be run on this scheduler, the task returned must be joined in the future.
@@ -247,7 +247,7 @@ class io_scheduler {
      * @param task The task to spawn onto the scheduler.
      * @return A task that can be co_await'ed (joined) in the future to know when the spawned task is complete.
      */
-    auto spawn_joinable(silicon::scheduler::task<void> &&task) -> silicon::scheduler::task<void>;
+    silicon::scheduler::task<void> spawn_joinable(silicon::scheduler::task<void> &&task) ;
 
     /**
      * Schedules a task on the scheduler and returns another task that must be awaited on for completion.
@@ -257,7 +257,7 @@ class io_scheduler {
      * @return The task to await for the input task to complete.
      */
     template<typename return_type>
-    [[nodiscard]] auto schedule(silicon::scheduler::task<return_type> task) -> silicon::scheduler::task<return_type> {
+    [[nodiscard]] silicon::scheduler::task<return_type> schedule(silicon::scheduler::task<return_type> task) {
         co_await schedule();
         co_return co_await task;
     }
@@ -274,8 +274,7 @@ class io_scheduler {
      * @return The task to await for the input task to complete.
      */
     template<typename return_type, typename rep, typename period>
-    [[nodiscard]] auto schedule(silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout)
-            -> silicon::scheduler::task<silicon::coroutine::expected<return_type, timeout_status>> {
+    [[nodiscard]] silicon::scheduler::task<silicon::coroutine::expected<return_type, timeout_status>> schedule(silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
         using namespace std::chrono_literals;
 
         // If negative or 0 timeout, just schedule the task as normal.
@@ -314,9 +313,7 @@ class io_scheduler {
      * @return The task to await for the input task to complete.
      */
     template<typename return_type, typename rep, typename period>
-    [[nodiscard]] auto
-    schedule(std::stop_source stop_source, silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout)
-            -> silicon::scheduler::task<silicon::coroutine::expected<return_type, timeout_status>> {
+    [[nodiscard]] silicon::scheduler::task<silicon::coroutine::expected<return_type, timeout_status>> schedule(std::stop_source stop_source, silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
         using namespace std::chrono_literals;
 
         // If negative or 0 timeout, just schedule the task as normal.
@@ -349,7 +346,7 @@ class io_scheduler {
      *               Given zero or negative amount of time this behaves identical to schedule().
      */
     template<class rep_type, class period_type>
-    [[nodiscard]] auto schedule_after(std::chrono::duration<rep_type, period_type> amount) -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> schedule_after(std::chrono::duration<rep_type, period_type> amount) {
         return yield_for_internal(std::chrono::duration_cast<std::chrono::nanoseconds>(amount));
     }
 
@@ -358,12 +355,12 @@ class io_scheduler {
      * @param time The time point to resume execution of this task.  Given 'now' or a time point
      *             in the past this behaves identical to schedule().
      */
-    [[nodiscard]] auto schedule_at(time_point time) -> silicon::scheduler::task<void>;
+    [[nodiscard]] silicon::scheduler::task<void> schedule_at(time_point time) ;
 
     /**
      * Yields the current task to the end of the queue of waiting tasks.
      */
-    [[nodiscard]] auto yield() -> schedule_operation { return schedule_operation{*this}; };
+    [[nodiscard]] schedule_operation yield() { return schedule_operation{*this}; };
 
     /**
      * Yields the current task for the given amount of time.
@@ -371,7 +368,7 @@ class io_scheduler {
      *               Given zero or negative amount of time this behaves identical to yield().
      */
     template<class rep_type, class period_type>
-    [[nodiscard]] auto yield_for(std::chrono::duration<rep_type, period_type> amount) -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> yield_for(std::chrono::duration<rep_type, period_type> amount) {
         return yield_for_internal(std::chrono::duration_cast<std::chrono::nanoseconds>(amount));
     }
 
@@ -380,7 +377,7 @@ class io_scheduler {
      * @param time The time point to resume execution of this task.  Given 'now' or a time point in the
      *             in the past this behaves identical to yield().
      */
-    [[nodiscard]] auto yield_until(time_point time) -> silicon::scheduler::task<void>;
+    [[nodiscard]] silicon::scheduler::task<void> yield_until(time_point time) ;
 
     /**
      * Polls the given file descriptor for the given operations.
@@ -401,10 +398,10 @@ class io_scheduler {
      * Resumes execution of a direct coroutine handle on this io scheduler.
      * @param handle The coroutine handle to resume execution.
      */
-    auto resume(std::coroutine_handle<> handle) -> bool;
+    bool resume(std::coroutine_handle<> handle) ;
 
     template<silicon::coroutine::concepts::sized_range_of<std::coroutine_handle<>> range_type>
-    auto resume(const range_type &handles) noexcept -> std::size_t {
+    std::size_t resume(const range_type &handles) noexcept {
         auto size = std::size(handles);
         std::size_t invalid_handles{0};
         for(const auto &handle: handles) {
@@ -419,7 +416,7 @@ class io_scheduler {
     /**
      * @return The number of tasks waiting in the task queue + the executing tasks.
      */
-    auto size() const noexcept -> std::size_t {
+    std::size_t size() const noexcept {
         if(m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
             return m_p->m_size.load(std::memory_order::acquire);
         } else {
@@ -430,17 +427,17 @@ class io_scheduler {
     /**
      * @return True if the task queue is empty and zero tasks are currently executing.
      */
-    auto empty() const noexcept -> bool { return size() == 0; }
+    bool empty() const noexcept { return size() == 0; }
 
     /**
      * Starts the shutdown of the io scheduler.  All currently executing and pending tasks will complete
      * prior to shutting down.  This call is blocking and will not return until all tasks complete.
      */
-    auto shutdown() noexcept -> void;
+    void shutdown() noexcept ;
 
-    [[nodiscard]] auto is_shutdown() const -> bool { return m_p->m_shutdown_requested.load(std::memory_order::acquire); }
+    [[nodiscard]] bool is_shutdown() const { return m_p->m_shutdown_requested.load(std::memory_order::acquire); }
 
-    auto io_notifier() -> silicon::scheduler::io_notifier & { return m_p->m_io_notifier; }
+    silicon::scheduler::io_notifier & io_notifier() { return m_p->m_io_notifier; }
 
   private:
     struct impl {
@@ -503,22 +500,22 @@ class io_scheduler {
     static const constexpr std::chrono::milliseconds m_no_timeout{0};
     static const constexpr std::size_t m_max_events = 16;
 
-    auto yield_for_internal(std::chrono::nanoseconds amount) -> silicon::scheduler::task<void>;
-    auto process_events_manual(std::chrono::milliseconds timeout) -> void;
-    auto process_events_dedicated_thread() -> void;
-    auto process_events_execute(std::chrono::milliseconds timeout) -> void;
-    static auto event_to_poll_status(uint32_t events) -> poll_status;
+    silicon::scheduler::task<void> yield_for_internal(std::chrono::nanoseconds amount) ;
+    void process_events_manual(std::chrono::milliseconds timeout) ;
+    void process_events_dedicated_thread() ;
+    void process_events_execute(std::chrono::milliseconds timeout) ;
+    static poll_status event_to_poll_status(uint32_t events) ;
 
-    auto process_scheduled_execute_inline() -> void;
+    void process_scheduled_execute_inline() ;
 
-    auto process_event_execute(silicon::scheduler::poll_info *pi, poll_status status) -> void;
-    auto process_timeout_execute() -> void;
+    void process_event_execute(silicon::scheduler::poll_info *pi, poll_status status) ;
+    void process_timeout_execute() ;
 
     auto add_timer_token(time_point tp, silicon::scheduler::poll_info &pi) -> timed_events::iterator;
-    auto remove_timer_token(timed_events::iterator pos) -> void;
-    auto update_timeout(time_point now) -> void;
+    void remove_timer_token(timed_events::iterator pos) ;
+    void update_timeout(time_point now) ;
 
-    auto make_timeout_task(std::chrono::milliseconds timeout) -> silicon::scheduler::task<timeout_status> {
+    silicon::scheduler::task<timeout_status> make_timeout_task(std::chrono::milliseconds timeout) {
         co_await schedule_after(timeout);
         co_return timeout_status::kTimeout;
     }

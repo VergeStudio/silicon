@@ -39,16 +39,16 @@ auto when_all_latch::operator=(when_all_latch &&other) -> when_all_latch & {
     return *this;
 }
 
-auto when_all_latch::is_ready() const noexcept -> bool {
+bool when_all_latch::is_ready() const noexcept {
     return m_p->m_awaiting_coroutine != nullptr && m_p->m_awaiting_coroutine.done();
 }
 
-auto when_all_latch::try_await(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+bool when_all_latch::try_await(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_p->m_awaiting_coroutine = awaiting_coroutine;
     return m_p->m_count.fetch_sub(1, std::memory_order::acq_rel) > 1;
 }
 
-auto when_all_latch::notify_awaitable_completed() noexcept -> void {
+void when_all_latch::notify_awaitable_completed() noexcept {
     if(m_p->m_count.fetch_sub(1, std::memory_order::acq_rel) == 1) {
         m_p->m_awaiting_coroutine.resume();
     }

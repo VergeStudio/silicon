@@ -97,17 +97,17 @@ class hostname {
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
     hostname(const hostname &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     hostname(hostname &&) noexcept = default;
-    auto operator=(const hostname &o) -> hostname & {
+    hostname & operator=(const hostname &o) {
         if(this != &o) { m_p = std::make_shared<impl>(*o.m_p); }
         return *this;
     }
-    auto operator=(hostname &&) noexcept -> hostname & = default;
+    hostname & operator=(hostname &&) noexcept = default;
     ~hostname() = default;
 
     auto data() const -> const std::string & { return m_p->m_hostname; }
 
     auto operator<=>(const hostname &other) const { return m_p->m_hostname <=> other.m_p->m_hostname; }
-    auto operator==(const hostname &other) const -> bool { return m_p->m_hostname == other.m_p->m_hostname; }
+    bool operator==(const hostname &other) const { return m_p->m_hostname == other.m_p->m_hostname; }
 
   private:
 };
@@ -135,29 +135,29 @@ struct io_status {
     kind type{};
     [[maybe_unused]] int native_code{};
 
-    [[nodiscard]] auto is_ok() const -> bool { return type == kind::kOk; }
-    [[nodiscard]] auto is_timeout() const -> bool { return type == kind::kTimeout; }
-    [[nodiscard]] auto is_closed() const -> bool { return type == kind::kClosed; }
-    [[nodiscard]] auto would_block() const -> bool { return type == kind::kWouldBlockOrTryAgain; }
-    [[nodiscard]] auto try_again() const -> bool { return type == kind::kWouldBlockOrTryAgain; }
+    [[nodiscard]] bool is_ok() const { return type == kind::kOk; }
+    [[nodiscard]] bool is_timeout() const { return type == kind::kTimeout; }
+    [[nodiscard]] bool is_closed() const { return type == kind::kClosed; }
+    [[nodiscard]] bool would_block() const { return type == kind::kWouldBlockOrTryAgain; }
+    [[nodiscard]] bool try_again() const { return type == kind::kWouldBlockOrTryAgain; }
 
-    [[nodiscard]] auto is_native() const -> bool { return type == kind::kNative; }
+    [[nodiscard]] bool is_native() const { return type == kind::kNative; }
 
     explicit operator bool() const { return is_ok(); }
 
     /**
      * Returns a human-readable description of the error.
      */
-    [[nodiscard]] auto message() const -> std::string;
+    [[nodiscard]] std::string message() const ;
 };
 
-auto to_string(io_status::kind kind) -> std::string_view;
-auto make_io_status_from_native(int native_code) -> io_status;
+std::string_view to_string(io_status::kind kind) ;
+io_status make_io_status_from_native(int native_code) ;
 auto make_io_status_from_poll_status(silicon::coroutine::poll_status status) -> io_status;
 
 // ── Platform-specific helpers (defined in io_status_linux.cpp / io_status_win.cpp) ──
 [[nodiscard]] std::string message_impl(int native_code);
-auto make_io_status_from_native_impl(int native_code) -> io_status;
+io_status make_io_status_from_native_impl(int native_code) ;
 
 enum class recv_status : int64_t {
     kOk = 0,
@@ -239,15 +239,15 @@ class ip_address {
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
     ip_address(const ip_address &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     ip_address(ip_address &&) noexcept = default;
-    auto operator=(const ip_address &o) -> ip_address & {
+    ip_address & operator=(const ip_address &o) {
         if(this != &o) { m_p = std::make_shared<impl>(*o.m_p); }
         return *this;
     }
-    auto operator=(ip_address &&) noexcept -> ip_address & = default;
+    ip_address & operator=(ip_address &&) noexcept = default;
     ~ip_address() = default;
 
-    auto domain() const -> domain_t { return m_p->m_domain; }
-    auto data() const -> std::span<const uint8_t> {
+    domain_t domain() const { return m_p->m_domain; }
+    std::span<const uint8_t> data() const {
         if(m_p->m_domain == domain_t::kIpv4) {
             return std::span<const uint8_t>{m_p->m_data.data(), ipv4_len};
         } else {
@@ -292,7 +292,7 @@ class ip_address {
         if(auto c = m_p->m_domain <=> other.m_p->m_domain; c != 0) return c;
         return m_p->m_data <=> other.m_p->m_data;
     }
-    auto operator==(const ip_address &other) const -> bool {
+    bool operator==(const ip_address &other) const {
         return m_p->m_domain == other.m_p->m_domain && m_p->m_data == other.m_p->m_data;
     }
 
@@ -407,11 +407,11 @@ class socket_address {
     // 值类型语义：拷贝做深拷贝，不与源对象共享实现
     socket_address(const socket_address &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     socket_address(socket_address &&) noexcept = default;
-    auto operator=(const socket_address &o) -> socket_address & {
+    socket_address & operator=(const socket_address &o) {
         if(this != &o) { m_p = std::make_shared<impl>(*o.m_p); }
         return *this;
     }
-    auto operator=(socket_address &&) noexcept -> socket_address & = default;
+    socket_address & operator=(socket_address &&) noexcept = default;
     ~socket_address() = default;
 
     /**
@@ -419,12 +419,12 @@ class socket_address {
      * Suitable for systemcalls like connect(), bind() or sendto().
      * @return A pair containing the const sockaddr pointer and its length.
      */
-    [[nodiscard]] auto data() const & -> std::pair<const sockaddr *, socklen_t> {
+    [[nodiscard]] std::pair<const sockaddr *, socklen_t> data() const & {
         return {reinterpret_cast<const sockaddr *>(&m_p->m_storage), m_p->m_len};
     }
 
     /// Prevent usage on temporary objects to avoid dangling pointers.
-    auto data() const && -> std::pair<const sockaddr *, socklen_t> = delete;
+    std::pair<const sockaddr *, socklen_t> data() const && = delete;
 
     /**
      * @brief Provides access to the storage for modification.
@@ -432,7 +432,7 @@ class socket_address {
      * @return A pair containing the sockaddr pointer and a pointer to its length.
      * @see make_unitialised()
      */
-    [[nodiscard]] auto native_mutable_data() & -> std::pair<sockaddr *, socklen_t *> {
+    [[nodiscard]] std::pair<sockaddr *, socklen_t *> native_mutable_data() & {
         return {reinterpret_cast<sockaddr *>(&m_p->m_storage), &m_p->m_len};
     }
 
@@ -440,7 +440,7 @@ class socket_address {
      * @brief Extracts the ip_address from the endpoint.
      * @return ip_address；地址族不受支持时返回 network_error::kInvalidDomain。
      */
-    [[nodiscard]] auto ip() const -> result<ip_address> {
+    [[nodiscard]] result<ip_address> ip() const {
         if(m_p->m_storage.ss_family == AF_INET) {
             auto *sin = reinterpret_cast<const sockaddr_in *>(&m_p->m_storage);
             return ip_address::from_binary(
@@ -460,7 +460,7 @@ class socket_address {
      * @brief Extracts the address family from the endpoint.
      * @return domain_t；地址族不受支持时返回 network_error::kInvalidDomain。
      */
-    [[nodiscard]] auto domain() const -> result<domain_t> {
+    [[nodiscard]] result<domain_t> domain() const {
         if(m_p->m_storage.ss_family == AF_INET) {
             return domain_t::kIpv4;
         }
@@ -485,7 +485,7 @@ class socket_address {
     }
 
     /// 相等比较。任一端地址族非法时视为不相等（运算符无法返回 expected）。
-    auto operator==(const socket_address &other) const -> bool {
+    bool operator==(const socket_address &other) const {
         if(m_p->m_len != other.m_p->m_len) { return false; }
         auto d = domain(), od = other.domain();
         if(!d || !od || *d != *od) { return false; }
@@ -498,7 +498,7 @@ class socket_address {
     /**
      * @brief Creates an empty endpoint for late initialisation.
      */
-    static auto make_uninitialised() -> socket_address { return socket_address{}; }
+    static socket_address make_uninitialised() { return socket_address{}; }
 
     /// 转为 "ip:port" 文本。地址族非法或 ip 转换失败时返回对应错误码。
     auto to_string() const -> result<std::string> {
@@ -517,7 +517,7 @@ class socket_address {
 };
 
 /// 流输出。地址族非法时输出错误描述而非抛异常。
-inline auto operator<<(std::ostream &os, const socket_address &ep) -> std::ostream & {
+inline std::ostream & operator<<(std::ostream &os, const socket_address &ep) {
     auto text = ep.to_string();
     return os << (text ? *text : std::string{"<invalid socket_address: "} + text.error().message() + ">");
 }
@@ -547,7 +547,7 @@ class socket final {
 
     /// 映射为操作系统 socket 类型常量；枚举非法时返回
     /// network_error::kInvalidSocketType。
-    static auto type_to_os(type_t type) -> result<int>;
+    static result<int> type_to_os(type_t type) ;
 
     socket() = default;
     explicit socket(int fd): m_fd(fd) {}
@@ -559,8 +559,8 @@ class socket final {
     socket(const socket &other): m_fd(dup(other.m_fd)) {}
 #    endif
     socket(socket &&other) noexcept: m_fd(std::exchange(other.m_fd, -1)) {}
-    auto operator=(const socket &other) noexcept -> socket &;
-    auto operator=(socket &&other) noexcept -> socket &;
+    socket & operator=(const socket &other) noexcept ;
+    socket & operator=(socket &&other) noexcept ;
 
     ~socket() { close(); }
 
@@ -569,45 +569,45 @@ class socket final {
      * not imply if the socket is still usable.
      * @return True if the socket file descriptor is > 0.
      */
-    [[nodiscard]] auto is_ok() const -> bool { return m_fd != -1; }
+    [[nodiscard]] bool is_ok() const { return m_fd != -1; }
 
     explicit operator bool() const { return is_ok(); }
 
     /**
      * @param block Sets the socket to the given blocking mode.
      */
-    auto blocking(blocking_t block) -> bool;
-    auto blocking(int block) -> bool { return blocking(static_cast<blocking_t>(block)); }
+    bool blocking(blocking_t block) ;
+    bool blocking(int block) { return blocking(static_cast<blocking_t>(block)); }
 
     /**
      * @param how Shuts the socket down with the given operations.
      * @return Returns true if the sockets given operations were shutdown.
      */
-    auto shutdown(silicon::coroutine::poll_op how = silicon::coroutine::poll_op::read_write) -> bool;
-    auto shutdown(int how) -> bool { return shutdown(static_cast<silicon::coroutine::poll_op>(how)); }
+    bool shutdown(silicon::coroutine::poll_op how = silicon::coroutine::poll_op::read_write) ;
+    bool shutdown(int how) { return shutdown(static_cast<silicon::coroutine::poll_op>(how)); }
 
     /**
      * Closes the socket and sets this socket to an invalid state.
      */
-    auto close() -> void;
+    void close() ;
 
     /**
      * @return The native handle (file descriptor) for this socket.
      */
-    auto native_handle() const -> int { return m_fd; }
+    int native_handle() const { return m_fd; }
 
     /**
      * Accepts a pending incoming connection on a listening (accept) socket.
      * @param client_endpoint Receives the address of the connected peer.
      * @return The newly accepted socket. Check is_ok() to detect failure.
      */
-    auto accept(socket_address &client_endpoint) -> socket;
+    socket accept(socket_address &client_endpoint) ;
 
     /**
      * @return The last platform-specific socket error code for this socket
      *         (errno on POSIX, WSAGetLastError() on Windows).
      */
-    auto last_error() const -> int;
+    int last_error() const ;
 
     /**
      * Initiates a connection on this socket to the given endpoint. On a non-blocking socket
@@ -616,13 +616,13 @@ class socket final {
      * @param endpoint The remote address to connect to.
      * @return 0 if the connection completed immediately, non-zero otherwise (check in_progress()).
      */
-    auto connect(const socket_address &endpoint) -> int;
+    int connect(const socket_address &endpoint) ;
 
     /**
      * @return True if the most recent connect() is still being established asynchronously
      *         (EINPROGRESS on POSIX, WSAEWOULDBLOCK on Windows).
      */
-    auto in_progress() const -> bool;
+    bool in_progress() const ;
 
   private:
     int m_fd{-1};

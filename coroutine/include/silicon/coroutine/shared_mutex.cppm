@@ -27,10 +27,10 @@ struct shared_lock_operation {
 
     shared_lock_operation(const shared_lock_operation &) = delete;
     shared_lock_operation(shared_lock_operation &&) = delete;
-    auto operator=(const shared_lock_operation &) -> shared_lock_operation & = delete;
-    auto operator=(shared_lock_operation &&) -> shared_lock_operation & = delete;
+    shared_lock_operation & operator=(const shared_lock_operation &) = delete;
+    shared_lock_operation & operator=(shared_lock_operation &&) = delete;
 
-    auto await_ready() const noexcept -> bool {
+    bool await_ready() const noexcept {
         // If either mode can be acquired, unlock the internal mutex and resume.
 
         if(m_exclusive) {
@@ -46,7 +46,7 @@ struct shared_lock_operation {
         return false;
     }
 
-    auto await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept -> bool {
+    bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
         // For sure the lock is currently held in a manner that it cannot be acquired, suspend ourself
         // at the end of the waiter list.
 
@@ -71,7 +71,7 @@ struct shared_lock_operation {
         return true;
     }
 
-    auto await_resume() noexcept -> void {}
+    void await_resume() noexcept {}
 
   protected:
     friend class silicon::coroutine::shared_mutex<executor_type>;
@@ -103,8 +103,7 @@ class shared_mutex {
      *        成功后返回 std::unique_ptr<shared_mutex>。失败时返回
      *        std::unexpected(coroutine_error::kNullExecutor)。
      */
-    static auto create(std::unique_ptr<executor_type> &e)
-            -> std::expected<std::unique_ptr<shared_mutex<executor_type>>, std::error_code> {
+    static std::expected<std::unique_ptr<shared_mutex<executor_type>>, std::error_code> create(std::unique_ptr<executor_type> &e) {
         if(e == nullptr) {
             return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
         }
@@ -117,8 +116,8 @@ class shared_mutex {
 
     shared_mutex(const shared_mutex &) = delete;
     shared_mutex(shared_mutex &&) = delete;
-    auto operator=(const shared_mutex &) -> shared_mutex & = delete;
-    auto operator=(shared_mutex &&) -> shared_mutex & = delete;
+    shared_mutex & operator=(const shared_mutex &) = delete;
+    shared_mutex & operator=(shared_mutex &&) = delete;
 
     /**
      * Acquires the lock in a shared state, executes the scoped task, and then unlocks the shared lock.
@@ -126,7 +125,7 @@ class shared_mutex {
      * object due to destructors not being able to be co_await'ed.
      * @param scoped_task The user's scoped task to execute after acquiring the shared lock.
      */
-    [[nodiscard]] auto scoped_lock_shared(silicon::scheduler::task<void> scoped_task) -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> scoped_lock_shared(silicon::scheduler::task<void> scoped_task) {
         co_await m_p->m_mutex.lock();
         co_await shared_lock_operation<executor_type>{*this, false};
         co_await scoped_task;
@@ -140,7 +139,7 @@ class shared_mutex {
      * object due to destructors not being able to be co_await'ed.
      * @param scoped_task The user's scoped task to execute after acquiring the exclusive lock.
      */
-    [[nodiscard]] auto scoped_lock(silicon::scheduler::task<void> scoped_task) -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> scoped_lock(silicon::scheduler::task<void> scoped_task) {
         co_await m_p->m_mutex.lock();
         co_await shared_lock_operation<executor_type>{*this, true};
         co_await scoped_task;
@@ -152,7 +151,7 @@ class shared_mutex {
      * Acquires the lock in a shared state. The shared_mutex must be unlock_shared() to release.
      * @return task
      */
-    [[nodiscard]] auto lock_shared() -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> lock_shared() {
         co_await m_p->m_mutex.lock();
         co_await shared_lock_operation<executor_type>{*this, false};
         co_return;
@@ -162,7 +161,7 @@ class shared_mutex {
      * Acquires the lock in an exclusive state. The shared_mutex must be unlock()'ed to release.
      * @return task
      */
-    [[nodiscard]] auto lock() -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> lock() {
         co_await m_p->m_mutex.lock();
         co_await shared_lock_operation<executor_type>{*this, true};
         co_return;
@@ -171,7 +170,7 @@ class shared_mutex {
     /**
      * @return True if the lock could immediately be acquired in a shared state.
      */
-    [[nodiscard]] auto try_lock_shared() -> bool {
+    [[nodiscard]] bool try_lock_shared() {
         // To acquire the shared lock the state must be one of two states:
         //   1) unlocked
         //   2) shared locked with zero exclusive waiters
@@ -188,7 +187,7 @@ class shared_mutex {
     /**
      * @return True if the lock could immediately be acquired in an exclusive state.
      */
-    [[nodiscard]] auto try_lock() -> bool {
+    [[nodiscard]] bool try_lock() {
         // To acquire the exclusive lock the state must be unlocked.
         if(m_p->m_mutex.try_lock()) {
             silicon::coroutine::scoped_lock lk{m_p->m_mutex};
@@ -205,7 +204,7 @@ class shared_mutex {
      * If the shared user count drops to zero and this lock has an exclusive waiter then the exclusive
      * waiter acquires the lock.
      */
-    [[nodiscard]] auto unlock_shared() -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> unlock_shared() {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         auto users = m_p->m_shared_users.fetch_sub(1, std::memory_order::acq_rel);
 
@@ -228,7 +227,7 @@ class shared_mutex {
      * shared waiters acquire the lock in a shared state in parallel and are resumed on the original
      * executor this shared mutex was created with.
      */
-    [[nodiscard]] auto unlock() -> silicon::scheduler::task<void> {
+    [[nodiscard]] silicon::scheduler::task<void> unlock() {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         auto *head_waiter = m_p->m_head_waiter.load(std::memory_order::acquire);
         if(head_waiter != nullptr) {
@@ -245,7 +244,7 @@ class shared_mutex {
      *
      * @return executor_type&
      */
-    [[nodiscard]] auto executor() -> executor_type & {
+    [[nodiscard]] executor_type & executor() {
         return *m_p->m_executor;
     }
 
@@ -281,7 +280,7 @@ class shared_mutex {
 
     std::unique_ptr<impl> m_p;
 
-    auto try_lock_shared_locked() -> bool {
+    bool try_lock_shared_locked() {
         if(m_p->m_state == state::unlocked) {
             // If the shared mutex is unlocked put it into shared mode and add ourself as using the lock.
             m_p->m_state = state::locked_shared;
@@ -302,7 +301,7 @@ class shared_mutex {
         return false;
     }
 
-    auto try_lock_locked() -> bool {
+    bool try_lock_locked() {
         if(m_p->m_state == state::unlocked) {
             m_p->m_state = state::locked_exclusive;
             return true;
@@ -310,7 +309,7 @@ class shared_mutex {
         return false;
     }
 
-    auto wake_waiters(silicon::coroutine::scoped_lock &lk, shared_lock_operation<executor_type> *head_waiter) -> void {
+    void wake_waiters(silicon::coroutine::scoped_lock &lk, shared_lock_operation<executor_type> *head_waiter) {
         // First determine what the next lock state will be based on the first waiter.
         if(head_waiter->m_exclusive) {
             // If its exclusive then only this waiter can be woken up.

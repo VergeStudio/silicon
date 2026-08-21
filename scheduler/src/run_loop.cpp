@@ -41,7 +41,7 @@ run_loop::~run_loop() {
     finish();
 }
 
-auto run_loop::run() noexcept -> void {
+void run_loop::run() noexcept {
     auto &impl = *m_impl;
     for(;;) {
         std::coroutine_handle<> handle;
@@ -62,7 +62,7 @@ auto run_loop::run() noexcept -> void {
     }
 }
 
-auto run_loop::finish() noexcept -> void {
+void run_loop::finish() noexcept {
     auto &impl = *m_impl;
     if(impl.m_stop.exchange(true, std::memory_order::acq_rel) == false) {
         std::unique_lock lk{impl.m_mutex};
@@ -70,7 +70,7 @@ auto run_loop::finish() noexcept -> void {
     }
 }
 
-auto run_loop::resume(std::coroutine_handle<> handle) noexcept -> bool {
+bool run_loop::resume(std::coroutine_handle<> handle) noexcept {
     if(handle == nullptr || handle.done()) {
         return false;
     }
@@ -87,7 +87,7 @@ auto run_loop::resume(std::coroutine_handle<> handle) noexcept -> bool {
     return true;
 }
 
-auto run_loop::spawn_detached(task<void> &&task) noexcept -> bool {
+bool run_loop::spawn_detached(task<void> &&task) noexcept {
     auto &impl = *m_impl;
     // 与 thread_pool::spawn_detached 相同的计数/所有权语义：
     //   spawn 计数 +1，由自删除任务完成时经 user_final_suspend 计数 -1；
@@ -105,15 +105,15 @@ auto run_loop::spawn_joinable(task<void> &&t) noexcept -> task<void> {
     return make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 
-auto run_loop::shutdown() noexcept -> void {
+void run_loop::shutdown() noexcept {
     finish();
 }
 
-auto run_loop::is_shutdown() const -> bool {
+bool run_loop::is_shutdown() const {
     return m_impl->m_stop.load(std::memory_order::acquire);
 }
 
-auto run_loop::size() const noexcept -> std::size_t {
+std::size_t run_loop::size() const noexcept {
     return m_impl->m_size.load(std::memory_order::acquire);
 }
 

@@ -43,7 +43,7 @@ class generator_promise {
 
     generator_promise() = default;
 
-    auto get_return_object() noexcept -> generator<T>;
+    generator<T> get_return_object() noexcept ;
 
     constexpr auto initial_suspend() const noexcept { return std::suspend_always{}; }
 
@@ -62,11 +62,11 @@ class generator_promise {
 
     [[noreturn]] void unhandled_exception() { throw; }
 
-    auto return_void() noexcept -> void {}
+    void return_void() noexcept {}
 
-    auto value() const noexcept -> reference_type { return static_cast<reference_type>(*m_value); }
+    reference_type value() const noexcept { return static_cast<reference_type>(*m_value); }
 
-    auto rethrow_if_exception() -> void {
+    void rethrow_if_exception() {
         if (m_exception) {
             std::rethrow_exception(m_exception);
         }
@@ -93,10 +93,10 @@ class generator_iterator {
     generator_iterator() noexcept = default;
     explicit generator_iterator(coroutine_handle coroutine) noexcept : m_coroutine(coroutine) {}
 
-    friend auto operator==(const generator_iterator &it, generator_sentinel) noexcept -> bool {
+    friend bool operator==(const generator_iterator &it, generator_sentinel) noexcept {
         return it.m_coroutine == nullptr || it.m_coroutine.done();
     }
-    friend auto operator==(generator_sentinel s, const generator_iterator &it) noexcept -> bool { return it == s; }
+    friend bool operator==(generator_sentinel s, const generator_iterator &it) noexcept { return it == s; }
 
     generator_iterator &operator++() {
         m_coroutine.resume();
@@ -129,7 +129,7 @@ class generator : public std::ranges::view_base {
     generator(generator &&other) noexcept : m_coroutine(std::exchange(other.m_coroutine, nullptr)) {}
 
     auto operator=(const generator &) = delete;
-    auto operator=(generator &&other) noexcept -> generator & {
+    generator & operator=(generator &&other) noexcept {
         if (std::addressof(other) != this) {
             if (m_coroutine) {
                 m_coroutine.destroy();
@@ -145,7 +145,7 @@ class generator : public std::ranges::view_base {
         }
     }
 
-    auto begin() -> iterator {
+    iterator begin() {
         if (m_coroutine != nullptr) {
             m_coroutine.resume();
             if (m_coroutine.done()) {
@@ -155,7 +155,7 @@ class generator : public std::ranges::view_base {
         return iterator{m_coroutine};
     }
 
-    auto end() noexcept -> sentinel { return sentinel{}; }
+    sentinel end() noexcept { return sentinel{}; }
 
   private:
     friend class generator_promise<T>;

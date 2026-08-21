@@ -37,13 +37,13 @@ class sync_wait_event {
     sync_wait_event(bool initially_set = false);
     sync_wait_event(const sync_wait_event &) = delete;
     sync_wait_event(sync_wait_event &&) = delete;
-    auto operator=(const sync_wait_event &) -> sync_wait_event & = delete;
-    auto operator=(sync_wait_event &&) -> sync_wait_event & = delete;
+    sync_wait_event & operator=(const sync_wait_event &) = delete;
+    sync_wait_event & operator=(sync_wait_event &&) = delete;
     ~sync_wait_event();
 
-    auto set() noexcept -> void;
-    auto reset() noexcept -> void;
-    auto wait() noexcept -> void;
+    void set() noexcept ;
+    void reset() noexcept ;
+    void wait() noexcept ;
 
   private:
     struct impl;
@@ -54,7 +54,7 @@ class sync_wait_task_promise_base {
   public:
     sync_wait_task_promise_base() noexcept = default;
 
-    auto initial_suspend() noexcept -> std::suspend_always { return {}; }
+    std::suspend_always initial_suspend() noexcept { return {}; }
 
   protected:
     virtual ~sync_wait_task_promise_base() = default;
@@ -75,8 +75,8 @@ class sync_wait_task_promise: public sync_wait_task_promise_base {
     sync_wait_task_promise() noexcept = default;
     sync_wait_task_promise(const sync_wait_task_promise &) = delete;
     sync_wait_task_promise(sync_wait_task_promise &&) = delete;
-    auto operator=(const sync_wait_task_promise &) -> sync_wait_task_promise & = delete;
-    auto operator=(sync_wait_task_promise &&) -> sync_wait_task_promise & = delete;
+    sync_wait_task_promise & operator=(const sync_wait_task_promise &) = delete;
+    sync_wait_task_promise & operator=(sync_wait_task_promise &&) = delete;
     ~sync_wait_task_promise() override = default;
 
     auto start(sync_wait_event &event) {
@@ -89,7 +89,7 @@ class sync_wait_task_promise: public sync_wait_task_promise_base {
     template<typename value_type>
         requires(return_type_is_reference and std::is_constructible_v<return_type, value_type &&>) or
                 (not return_type_is_reference and std::is_constructible_v<stored_type, value_type &&>)
-    auto return_value(value_type &&value) -> void {
+    void return_value(value_type &&value) {
         if constexpr(return_type_is_reference) {
             return_type ref = static_cast<value_type &&>(value);
             m_p->m_storage.template emplace<stored_type>(std::addressof(ref));
@@ -108,7 +108,7 @@ class sync_wait_task_promise: public sync_wait_task_promise_base {
         }
     }
 
-    auto unhandled_exception() noexcept -> void {
+    void unhandled_exception() noexcept {
         m_p->m_storage.template emplace<std::exception_ptr>(std::current_exception());
     }
 
@@ -122,7 +122,7 @@ class sync_wait_task_promise: public sync_wait_task_promise_base {
         return completion_notifier{};
     }
 
-    auto result() & -> decltype(auto) {
+    decltype(auto) result() & {
         if(std::holds_alternative<stored_type>(m_p->m_storage)) {
             if constexpr(return_type_is_reference) {
                 return static_cast<return_type>(*std::get<stored_type>(m_p->m_storage));
@@ -136,7 +136,7 @@ class sync_wait_task_promise: public sync_wait_task_promise_base {
         }
     }
 
-    auto result() const & -> decltype(auto) {
+    decltype(auto) result() const & {
         if(std::holds_alternative<stored_type>(m_p->m_storage)) {
             if constexpr(return_type_is_reference) {
                 return static_cast<std::add_const_t<return_type>>(*std::get<stored_type>(m_p->m_storage));
@@ -150,7 +150,7 @@ class sync_wait_task_promise: public sync_wait_task_promise_base {
         }
     }
 
-    auto result() && -> decltype(auto) {
+    decltype(auto) result() && {
         if(std::holds_alternative<stored_type>(m_p->m_storage)) {
             if constexpr(return_type_is_reference) {
                 return static_cast<return_type>(*std::get<stored_type>(m_p->m_storage));
@@ -200,11 +200,11 @@ class sync_wait_task_promise<void>: public sync_wait_task_promise_base {
         return completion_notifier{};
     }
 
-    auto unhandled_exception() -> void { m_p->m_exception = std::current_exception(); }
+    void unhandled_exception() { m_p->m_exception = std::current_exception(); }
 
-    auto return_void() noexcept -> void {}
+    void return_void() noexcept {}
 
-    auto result() -> void {
+    void result() {
         if(m_p->m_exception) {
             std::rethrow_exception(m_p->m_exception);
         }
@@ -229,8 +229,8 @@ class sync_wait_task {
 
     sync_wait_task(const sync_wait_task &) = delete;
     sync_wait_task(sync_wait_task &&other) noexcept: m_p(std::make_unique<impl>()) { m_p->m_coroutine = std::exchange(other.m_p->m_coroutine, coroutine_type{}); }
-    auto operator=(const sync_wait_task &) -> sync_wait_task & = delete;
-    auto operator=(sync_wait_task &&other) -> sync_wait_task & {
+    sync_wait_task & operator=(const sync_wait_task &) = delete;
+    sync_wait_task & operator=(sync_wait_task &&other) {
         if(std::addressof(other) != this) {
             m_p->m_coroutine = std::exchange(other.m_p->m_coroutine, coroutine_type{});
         }
@@ -244,9 +244,9 @@ class sync_wait_task {
         }
     }
 
-    auto promise() & -> promise_type & { return m_p->m_coroutine.promise(); }
-    auto promise() const & -> const promise_type & { return m_p->m_coroutine.promise(); }
-    auto promise() && -> promise_type && { return std::move(m_p->m_coroutine.promise()); }
+    promise_type & promise() & { return m_p->m_coroutine.promise(); }
+    const promise_type & promise() const & { return m_p->m_coroutine.promise(); }
+    promise_type && promise() && { return std::move(m_p->m_coroutine.promise()); }
 
   private:
     struct impl {
@@ -259,10 +259,10 @@ class sync_wait_task {
 template<
         concepts::awaitable awaitable_type,
         typename return_type = concepts::awaitable_traits<awaitable_type>::awaiter_return_type>
-auto make_sync_wait_task(awaitable_type &&a) -> sync_wait_task<return_type> __ATTRIBUTE__(used);
+sync_wait_task<return_type> __ATTRIBUTE__(used) make_sync_wait_task(awaitable_type &&a) ;
 
 template<concepts::awaitable awaitable_type, typename return_type>
-auto make_sync_wait_task(awaitable_type &&a) -> sync_wait_task<return_type> {
+sync_wait_task<return_type> make_sync_wait_task(awaitable_type &&a) {
     if constexpr(std::is_void_v<return_type>) {
         co_await std::forward<awaitable_type>(a);
         co_return;
@@ -276,7 +276,7 @@ auto make_sync_wait_task(awaitable_type &&a) -> sync_wait_task<return_type> {
 template<
         concepts::awaitable awaitable_type,
         typename return_type = typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>
-auto sync_wait(awaitable_type &&a) -> return_type {
+return_type sync_wait(awaitable_type &&a) {
     sync_wait_event e{};
     auto task = make_sync_wait_task(std::forward<awaitable_type>(a));
     task.promise().start(e);

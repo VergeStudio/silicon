@@ -59,11 +59,11 @@ enum class poll_op : uint64_t {
 };
 #endif
 
-inline auto poll_op_readable(poll_op op) -> bool {
+inline bool poll_op_readable(poll_op op) {
     return (static_cast<uint64_t>(op) & static_cast<uint64_t>(poll_op::read));
 }
 
-inline auto poll_op_writeable(poll_op op) -> bool {
+inline bool poll_op_writeable(poll_op op) {
     return (static_cast<uint64_t>(op) & static_cast<uint64_t>(poll_op::write));
 }
 
@@ -97,9 +97,9 @@ class poll_stop_token {
 
     ~poll_stop_token();
 
-    auto operator=(const poll_stop_token &other) -> poll_stop_token &;
+    poll_stop_token & operator=(const poll_stop_token &other) ;
 
-    [[nodiscard]] auto native_handle() const -> fd_t;
+    [[nodiscard]] fd_t native_handle() const ;
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
@@ -116,12 +116,12 @@ class poll_stop_source {
 
     ~poll_stop_source();
 
-    auto operator=(const poll_stop_source &) -> poll_stop_source & = delete;
-    auto operator=(poll_stop_source &&other) -> poll_stop_source &;
+    poll_stop_source & operator=(const poll_stop_source &) = delete;
+    poll_stop_source & operator=(poll_stop_source &&other) ;
 
-    [[nodiscard]] auto get_token() const -> poll_stop_token;
+    [[nodiscard]] poll_stop_token get_token() const ;
 
-    auto signal_stop() -> void;
+    void signal_stop() ;
 
   private:
     /// Implementation state, fully hidden in the implementation unit.
