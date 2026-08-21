@@ -11,6 +11,7 @@ target("fs", function()
     -- 错误码体系（result = std::expected<T, std::error_code>）
     add_deps("silicon::core")
     add_deps("silicon::proxy")
+    add_deps("silicon::error")
     add_files("include/silicon/fs/**.cppm", {public = true})
     add_files("src/**.cpp")
 end)

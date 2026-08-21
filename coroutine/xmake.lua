@@ -18,6 +18,7 @@ target("coroutine", function()
     -- （coroutine -> scheduler -> task），primary interface 对其整体 re-export。
     -- 错误码体系由各模块自维护：silicon.coroutine 内置 coroutine_error / channel_error。
     add_deps("core", "task", "scheduler", "proxy", {configs = {shared = true}})
+    add_deps("silicon::error")
 
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/coroutine/**.hpp")

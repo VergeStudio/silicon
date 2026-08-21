@@ -61,11 +61,14 @@ import :timer_handle;
 // 的同名实体优先，不会与 silicon::scheduler::task 冲突；且它不参与模块导出。
 using namespace silicon::coroutine;
 
+import silicon.error;
+
 export namespace silicon::scheduler {
 
 /// 统一错误返回类型：scheduler 模块所有可失败 API 均返回 scheduler::result<T>。
+/// 转发至 silicon.error 的集中别名。
 template<typename T>
-using result = std::expected<T, std::error_code>;
+using result = silicon::error::result<T>;
 
 
 enum class timeout_status {

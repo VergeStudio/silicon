@@ -21,12 +21,14 @@ export module silicon.plugin;
 export import silicon.plugin.error;
 
 import silicon.proxy;
+import silicon.error;
 
 export namespace silicon::plugin {
 
 /// 统一错误返回类型：plugin 模块所有可失败 API 返回 plugin::result<T>。
+/// 转发至 silicon.error 的集中别名。
 template<typename T>
-using result = std::expected<T, std::error_code>;
+using result = silicon::error::result<T>;
 
 
 /// 插件生命周期

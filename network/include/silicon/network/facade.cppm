@@ -45,14 +45,15 @@ export import silicon.network.error;
 
 export import silicon.coroutine;
 import silicon.proxy;
+import silicon.error;
 
 export namespace silicon::network {
 
-/// 统一错误返回类型：std::expected<T, std::error_code> 的别名。
+/// 统一错误返回类型：转发至 silicon.error 的集中别名。
 /// 错误码来源：silicon::network::network_error 枚举（make_error_code）或
 /// silicon::network::system_error(errno)（POSIX errno / WSA 语义）。
 template<typename T>
-using result = std::expected<T, std::error_code>;
+using result = silicon::error::result<T>;
 
 
 /// 从 POSIX errno 值构造 std::error_code（generic_category）。

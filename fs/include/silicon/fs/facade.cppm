@@ -15,14 +15,15 @@ export import silicon.fs.error;
 
 
 import silicon.proxy;
+import silicon.error;
 
 export namespace silicon::fs {
 
-/// 统一错误返回类型：std::expected<T, std::error_code> 的别名。
+/// 统一错误返回类型：转发至 silicon.error 的集中别名。
 /// 错误码来源：fs_error 枚举（make_error_code）或
 /// 系统 errno 经 std::error_code{ec, std::generic_category()} 表达。
 template<typename T>
-using result = std::expected<T, std::error_code>;
+using result = silicon::error::result<T>;
 
 // ── 类型擦除门面（silicon.proxy）─────
 //

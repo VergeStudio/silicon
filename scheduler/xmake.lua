@@ -35,6 +35,7 @@ target("scheduler", function()
 
     -- scheduler_facade 走 silicon.proxy 类型擦除，需依赖 proxy 模块。
     add_deps("silicon::proxy")
+    add_deps("silicon::error")
 
     -- 错误码体系由各模块自维护：silicon.scheduler 内置 scheduler_error。
 

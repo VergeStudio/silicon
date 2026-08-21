@@ -11,11 +11,14 @@ module;
 
 export module silicon.ai.llm.types;
 
+import silicon.error;
+
 export namespace silicon::ai::llm {
 
 /// 统一错误返回类型：llm 模块可失败 API 返回 result<T>。
+/// 转发至 silicon.error 的集中别名。
 template<typename T>
-using result = std::expected<T, std::error_code>;
+using result = silicon::error::result<T>;
 
 // ── 值类型 ──────────────────────────────────────────────────────
 

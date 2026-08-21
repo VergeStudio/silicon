@@ -8,6 +8,7 @@ target("ai", function()
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
     add_deps("silicon::json", "silicon::http", "silicon::di", "silicon::core", "silicon::proxy")
+    add_deps("silicon::error")
     add_includedirs("include", {public = true})
     add_files("include/silicon/ai/**.cppm", {public = true})
     add_files("src/**.cpp")

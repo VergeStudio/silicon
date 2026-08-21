@@ -16,12 +16,14 @@ module;
 export module silicon.coroutine:mutex;
 export import silicon.coroutine.error;
 import silicon.scheduler.task;
+import silicon.error;
 
 export namespace silicon::coroutine {
 
 /// 统一错误返回类型：coroutine 模块所有可失败 API 返回 coroutine::result<T>。
+/// 转发至 silicon.error 的集中别名。
 template<typename T>
-using result = std::expected<T, std::error_code>;
+using result = silicon::error::result<T>;
 
 class mutex;
 class scoped_lock;

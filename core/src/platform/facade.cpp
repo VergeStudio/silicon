@@ -9,6 +9,76 @@ import silicon.platform;
 
 namespace silicon::platform {
 
+// ── 内部 constexpr 辅助函数（由接口 facade.cppm 内化迁移而来）──────────
+// 不再对外导出，仅本模块实现单元可见；importer 改用导出的 os / arch 直接分支。
+
+constexpr bool IsUnixFamily(os_id o) {
+    return o == os_id::kFreeBsd || o == os_id::kAix ||
+           o == os_id::kHpux || o == os_id::kTru64 ||
+           o == os_id::kNacl || o == os_id::kLinuxOs ||
+           o == os_id::kMacOsX || o == os_id::kNetBsd ||
+           o == os_id::kOpenBsd || o == os_id::kIrix ||
+           o == os_id::kSolaris || o == os_id::kQnxOs ||
+           o == os_id::kCygwin || o == os_id::kNacl ||
+           o == os_id::kAndroid || o == os_id::kGnuHurd ||
+           o == os_id::kUnknownUnix;
+}
+
+constexpr bool IsBsdFamily(os_id o) {
+    return o == os_id::kFreeBsd || o == os_id::kNetBsd ||
+           o == os_id::kOpenBsd || o == os_id::kMacOsX;
+}
+
+constexpr bool IsWindowsFamily(os_id o) {
+    return o == os_id::kWindowsNt;
+}
+
+constexpr auto NativeNewline() {
+    if constexpr(os == os_id::kWindowsNt)
+        return "\r\n";
+    else
+        return "\n";
+}
+
+constexpr auto path_separator() {
+    if constexpr(os == os_id::kWindowsNt)
+        return "\\";
+    else
+        return "/";
+}
+
+constexpr char PathSeparatorChar() {
+    if constexpr(os == os_id::kWindowsNt)
+        return ';';
+    else
+        return ':';
+}
+
+constexpr auto shared_lib_prefix() {
+    if constexpr(os == os_id::kWindowsNt)
+        return "";
+    else
+        return "lib";
+}
+
+constexpr auto shared_lib_suffix() {
+    if constexpr(os == os_id::kWindowsNt)
+        return ".dll";
+    else if constexpr(os == os_id::kMacOsX)
+        return ".dylib";
+    else if constexpr(os == os_id::kHpux)
+        return ".sl";
+    else
+        return ".so";
+}
+
+constexpr auto executable_suffix() {
+    if constexpr(os == os_id::kWindowsNt)
+        return ".exe";
+    else
+        return "";
+}
+
 class windows_platform {
   public:
     std::string os_name() const { return "windows"; }

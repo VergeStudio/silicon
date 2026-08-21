@@ -10,6 +10,7 @@ target("plugin", function()
     -- silicon.proxy：插件是跨 DLL/ABI 边界，采用类型擦除替代虚表继承。
     -- proxy 的 dispatch 宏走头文件通道，故同时需要其 public includedirs。
     add_deps("silicon::proxy")
+    add_deps("silicon::error")
 
     add_files("include/silicon/plugin/**.cppm", {public = true})
     add_files("src/**.cpp")

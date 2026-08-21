@@ -6,11 +6,14 @@ module;
 
 export module silicon.config.error;
 
+import silicon.error;
+
 export namespace silicon::config {
 
 /// 统一错误返回类型：config 模块可失败 API 返回 config::result<T>。
+/// 转发至 silicon.error 的集中别名。
 template<typename T>
-using result = std::expected<T, std::error_code>;
+using result = silicon::error::result<T>;
 
 /// config 模块专属错误码枚举（加载 / 解析失败）。
 enum class config_error {
