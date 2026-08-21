@@ -83,20 +83,20 @@ class io_notifier {
 
     ~io_notifier();
 
-    bool watch_timer(const timer_handle &timer, std::chrono::nanoseconds) ;
+    bool watch_timer(const timer_handle &, std::chrono::nanoseconds) ;
 
-    bool watch(fd_t, poll_op, void *data, bool = false, bool = false) ;
+    bool watch(fd_t, poll_op, void *, bool = false, bool = false) ;
 
-    bool watch(poll_info &pi) ;
+    bool watch(poll_info &) ;
 
     bool unwatch(fd_t, poll_op) ;
 
-    bool unwatch(poll_info &pi) ;
+    bool unwatch(poll_info &) ;
 
-    bool unwatch_timer(const timer_handle &timer) ;
+    bool unwatch_timer(const timer_handle &) ;
 
-    void next_events(std::vector<std::pair<poll_info *, poll_status>> &ready_events,
-                     std::chrono::milliseconds timeout) ;
+    void next_events(std::vector<std::pair<poll_info *, poll_status>> &,
+                     std::chrono::milliseconds) ;
 
     #if defined(SILICON_PLATFORM_WINDOWS)
         HANDLE native_handle() const ;

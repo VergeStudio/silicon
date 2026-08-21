@@ -65,7 +65,7 @@ class queue {
 
   public:
     struct awaiter {
-        explicit awaiter(queue<element_type> &q) noexcept;
+        explicit awaiter(queue<element_type> &) noexcept;
 
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
@@ -109,7 +109,7 @@ class queue {
      * @param element The element being produced.
      * @return silicon::scheduler::task<queue_produce_result>
      */
-    silicon::scheduler::task<queue_produce_result> push(const element_type &element) ;
+    silicon::scheduler::task<queue_produce_result> push(const element_type &) ;
 
     /**
      * @brief Pushes the element into the queue. If the queue is empty and there are waiters
@@ -129,7 +129,7 @@ class queue {
      * @return silicon::scheduler::task<queue_produce_result>
      */
     template<typename... args_type>
-    silicon::scheduler::task<queue_produce_result> emplace(args_type &&...args) ;
+    silicon::scheduler::task<queue_produce_result> emplace(args_type &&...) ;
 
     /**
      * @brief Pops the head element of the queue if available, or waits for one to be available.
@@ -169,7 +169,7 @@ class queue {
      * @return silicon::scheduler::task<void>
      */
     template<silicon::coroutine::concepts::executor executor_type>
-    silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &e) ;
+    silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &) ;
 
     /**
      * Returns true if shutdown() or shutdown_drain() have been called on this silicon::coroutine::queue.

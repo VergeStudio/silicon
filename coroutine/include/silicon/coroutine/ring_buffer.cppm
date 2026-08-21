@@ -91,7 +91,7 @@ class ring_buffer {
     };
 
     struct consume_operation {
-        explicit consume_operation(ring_buffer<element, num_elements> &rb);
+        explicit consume_operation(ring_buffer<element, num_elements> &);
 
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
@@ -170,7 +170,7 @@ class ring_buffer {
     silicon::scheduler::task<void> shutdown() ;
 
     template<silicon::coroutine::concepts::executor executor_type>
-    [[nodiscard]] silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &e) ;
+    [[nodiscard]] silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &) ;
 
     /**
      * Returns true if shutdown() or shutdown_drain() have been called on this silicon::coroutine::ring_buffer.

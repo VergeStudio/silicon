@@ -73,8 +73,8 @@ class peer final {
      *         套接字创建失败时返回相应错误码。
      */
     static auto create(
-            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
-            network::domain_t domain = network::domain_t::kIpv4
+            std::unique_ptr<silicon::scheduler::io_scheduler> &,
+            network::domain_t = network::domain_t::kIpv4
     ) -> network::result<peer>;
 
     /**
@@ -84,8 +84,8 @@ class peer final {
      *         network_error::kNullScheduler，bind 失败时返回 kBindFailed。
      */
     static auto create(
-            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
-            const network::socket_address &endpoint
+            std::unique_ptr<silicon::scheduler::io_scheduler> &,
+            const network::socket_address &
     ) -> network::result<peer>;
 
     peer(const peer &) noexcept;
@@ -133,15 +133,15 @@ class peer final {
 
   private:
     auto write_to_impl(
-            const socket_address &address,
+            const socket_address &,
             const std::span<const std::byte> buffer,
-            std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
+            std::chrono::milliseconds = std::chrono::milliseconds{0}
     ) -> silicon::scheduler::task<io_status>;
 
-    auto read_from_impl(std::span<std::byte> buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+    auto read_from_impl(std::span<std::byte> buffer, std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::byte>>>;
 
-    auto poll(silicon::coroutine::poll_op op, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+    auto poll(silicon::coroutine::poll_op, std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<silicon::coroutine::poll_status>;
 
     /**
@@ -151,7 +151,7 @@ class peer final {
      *         un-sent will correspond to bytes at the end of the given buffer.
      */
     template<silicon::coroutine::concepts::const_buffer buffer_type>
-    auto sendto(const network::socket_address &endpoint, const buffer_type &buffer) -> io_status;
+    auto sendto(const network::socket_address &, const buffer_type &) -> io_status;
 
     /**
      * @param buffer The buffer to receive data into.

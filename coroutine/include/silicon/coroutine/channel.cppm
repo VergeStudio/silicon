@@ -81,7 +81,7 @@ class channel {
     };
 
     struct recv_operation {
-        explicit recv_operation(channel<element_type> &ch) noexcept;
+        explicit recv_operation(channel<element_type> &) noexcept;
 
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
@@ -119,7 +119,7 @@ class channel {
      * @return channel_result::send::kSent on success, or kClosed if the
      *         channel has been closed.
      */
-    silicon::scheduler::task<channel_result::send> send(const element_type &element) ;
+    silicon::scheduler::task<channel_result::send> send(const element_type &) ;
 
     /**
      * @brief Sends an element into the channel, suspending until a slot is
@@ -137,7 +137,7 @@ class channel {
      *         has no free slot (mutex contention is treated as kFull, like
      *         tokio::sync::mpsc), and kClosed if the channel is closed.
      */
-    auto try_send(const element_type &element) -> channel_result::send;
+    auto try_send(const element_type &) -> channel_result::send;
 
     /**
      * @brief Non-blocking send. Does not suspend.
@@ -204,7 +204,7 @@ class channel {
     friend send_operation;
     friend recv_operation;
 
-    auto do_try_send(element_type element) -> channel_result::send;
+    auto do_try_send(element_type) -> channel_result::send;
     silicon::scheduler::task<void> try_resume_senders() ;
     silicon::scheduler::task<void> try_resume_receivers() ;
 
@@ -214,9 +214,9 @@ class channel {
 
         void store(element_type &&element) ;
         std::optional<element_type> take() ;
-        void append_send_waiter(send_operation *op) ;
+        void append_send_waiter(send_operation *) ;
         send_operation * pop_send_waiter() ;
-        void append_recv_waiter(recv_operation *op) ;
+        void append_recv_waiter(recv_operation *) ;
         recv_operation * pop_recv_waiter() ;
 
         silicon::coroutine::mutex m_mutex{};

@@ -67,7 +67,7 @@ inline bool poll_op_writeable(poll_op op) {
     return (static_cast<uint64_t>(op) & static_cast<uint64_t>(poll_op::write));
 }
 
-auto to_string(poll_op op) -> const std::string &;
+auto to_string(poll_op) -> const std::string &;
 
 enum class poll_status {
     /// The poll operation was was successful with a read-event.
@@ -84,7 +84,7 @@ enum class poll_status {
     cancelled,
 };
 
-auto to_string(poll_status status) -> const std::string &;
+auto to_string(poll_status) -> const std::string &;
 
 class poll_stop_token {
   public:

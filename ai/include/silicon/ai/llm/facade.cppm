@@ -145,9 +145,9 @@ class provider_registry {
 class json_protocol_adapter {
   public:
     std::string encode_request(
-            const conversation &conv,
-            const model_request_options &opts,
-            const std::vector<std::string> &tool_defs
+            const conversation &,
+            const model_request_options &,
+            const std::vector<std::string> &
     ) const;
     result<chat_response> decode_response(std::string_view) const;
 };
@@ -165,7 +165,7 @@ class scripted_provider {
     void enqueue(chat_response);
     std::size_t remaining() const;
 
-    result<chat_response> chat(const conversation &, const model_request_options &);
+    result<chat_response> chat(const &, const &);
 };
 
 /// OpenAI 兼容 HTTP provider：通过本地 curl 调用 {base_url}/chat/completions。
@@ -176,7 +176,7 @@ class http_provider {
     struct impl;
     std::unique_ptr<impl> impl_;
 
-    static std::string env_or(const char *name, std::string);
+    static std::string env_or(const char *, std::string);
 
     struct http_result {
 
@@ -198,14 +198,14 @@ class http_provider {
     };
 
     // 用临时文件承载请求体，避开 JSON 中的引号转义问题；跨平台用 -H 传头。
-    http_result post_json(const std::string &url, const std::string &body) const;
+    http_result post_json(const std::string &, const std::string &) const;
 
   public:
     http_provider();
     ~http_provider();
     bool configured() const;
     std::string_view model_name() const;
-    result<chat_response> chat(const conversation &conv, const model_request_options &opts);
+    result<chat_response> chat(const conversation &, const model_request_options &);
 };
 
 } // namespace silicon::ai::llm

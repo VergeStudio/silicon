@@ -431,7 +431,7 @@ class condition_variable {
      * @param lock A lock that must be locked by the caller.
      * @return awaiter
      */
-    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &lock) -> awaiter;
+    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &) -> awaiter;
 
     /**
      * @brief Waits until notified but only wakes up if the predicate passes.
@@ -440,7 +440,7 @@ class condition_variable {
      * @param predicate The predicate to check whether the waiting can be completed.
      * @return awaiter_with_predicate
      */
-    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &lock, predicate_type predicate) -> awaiter_with_predicate;
+    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &, predicate_type) -> awaiter_with_predicate;
 
 #ifndef EMSCRIPTEN
     /**
@@ -451,7 +451,7 @@ class condition_variable {
      * @param predicate The predicate to check whether the waiting can be completed.
      * @return awaiter_with_predicate_stop_token The final predicate call result.
      */
-    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &lock, std::stop_token stop_token, predicate_type predicate)
+    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &, std::stop_token, predicate_type)
             -> awaiter_with_predicate_stop_token;
 #endif
 
@@ -571,9 +571,9 @@ class condition_variable {
     /// @brief Pops the entire waiter list, the caller owns the returned intrusive list.
     awaiter_base * pop_all_waiters() noexcept ;
     /// @brief Pushes a waiter back onto the waiter list.
-    void push_waiter(awaiter_base *waiter) noexcept ;
+    void push_waiter(awaiter_base *) noexcept ;
 
-    silicon::scheduler::task<void> make_notify_all_executor_individual_task(awaiter_base *waiter) ;
+    silicon::scheduler::task<void> make_notify_all_executor_individual_task(awaiter_base *) ;
 };
 
 

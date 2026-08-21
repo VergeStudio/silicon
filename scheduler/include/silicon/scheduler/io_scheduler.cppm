@@ -140,7 +140,7 @@ class io_scheduler {
      * @return scheduler::result<std::unique_ptr<io_scheduler>>
      */
     static auto create(
-            options opts = options{
+            options = options{
                     .thread_strategy = thread_strategy_t::spawn,
                     .on_io_thread_start_functor = nullptr,
                     .on_io_thread_stop_functor = nullptr,
@@ -170,7 +170,7 @@ class io_scheduler {
      *                indefinitely until an event happens.
      * @return The number of tasks currently executing or waiting to execute.
      */
-    auto process_events(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> std::size_t;
+    auto process_events(std::chrono::milliseconds = std::chrono::milliseconds{0}) -> std::size_t;
 
     class schedule_operation {
         friend class io_scheduler;
@@ -391,9 +391,9 @@ class io_scheduler {
      * @return The result of the poll operation.
      */
     [[nodiscard]] auto poll(
-            fd_t fd,
-            silicon::coroutine::poll_op op,
-            std::chrono::milliseconds timeout = std::chrono::milliseconds{0},
+            fd_t,
+            silicon::coroutine::poll_op,
+            std::chrono::milliseconds = std::chrono::milliseconds{0},
             std::optional<poll_stop_token> cancel_trigger = std::nullopt
     ) -> silicon::scheduler::task<poll_status>;
 
@@ -511,10 +511,10 @@ class io_scheduler {
 
     void process_scheduled_execute_inline() ;
 
-    void process_event_execute(silicon::scheduler::poll_info *pi, poll_status) ;
+    void process_event_execute(silicon::scheduler::poll_info *, poll_status) ;
     void process_timeout_execute() ;
 
-    auto add_timer_token(time_point tp, silicon::scheduler::poll_info &pi) -> timed_events::iterator;
+    auto add_timer_token(time_point, silicon::scheduler::poll_info &) -> timed_events::iterator;
     void remove_timer_token(timed_events::iterator) ;
     void update_timeout(time_point) ;
 

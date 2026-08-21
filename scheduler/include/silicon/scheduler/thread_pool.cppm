@@ -31,7 +31,7 @@ class thread_pool final {
   public:
     class schedule_operation {
         friend class thread_pool;
-        explicit schedule_operation(thread_pool &tp) noexcept;
+        explicit schedule_operation(thread_pool &) noexcept;
 
       public:
         bool await_ready() noexcept { return false; }
@@ -51,7 +51,7 @@ class thread_pool final {
     explicit thread_pool(options &&opts, private_constructor);
 
     static auto create(
-            options opts = options{
+            options = options{
                     .thread_count = std::thread::hardware_concurrency(),
                     .on_thread_start_functor = nullptr,
                     .on_thread_stop_functor = nullptr
@@ -108,7 +108,7 @@ class thread_pool final {
     struct impl;
     std::unique_ptr<impl> m_impl;
 
-    std::size_t resume_range_impl(std::vector<std::coroutine_handle<>> &handles) noexcept ;
+    std::size_t resume_range_impl(std::vector<std::coroutine_handle<>> &) noexcept ;
 };
 
 } // namespace silicon::scheduler

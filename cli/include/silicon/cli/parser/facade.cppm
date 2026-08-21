@@ -63,7 +63,7 @@ CLI_API class Parser {
     void AddFlag(std::string, bool = false);
 
     /// 解析 argv；成功返回 parse_result，失败返回 cli_error 对应的 error_code。
-    std::expected<parse_result, std::error_code> Parse(int, const char *const *argv) const;
+    std::expected<parse_result, std::error_code> Parse(int, const char *const *) const;
 
   private:
     struct impl;

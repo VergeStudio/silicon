@@ -326,7 +326,7 @@ class promise_self_deleting {
 class task_self_deleting {
   public:
     using promise_type = promise_self_deleting;
-    explicit task_self_deleting(promise_self_deleting &promise);
+    explicit task_self_deleting(promise_self_deleting &);
     ~task_self_deleting() = default;
 
     task_self_deleting(const task_self_deleting &) = delete;

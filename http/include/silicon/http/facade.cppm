@@ -118,7 +118,7 @@ inline http_response get(const http_client_view &client, const std::string &url)
 /// 基于 shell curl 的实现（沙箱内网络受限时可用本地模拟）
 class curl_http_client {
   public:
-    http_response request(const http_request &req) const;
+    http_response request(const http_request &) const;
 };
 
 /// 打桩实现（返回预设响应，用于 TDD）
@@ -132,8 +132,8 @@ class fake_http_client {
     std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 
   public:
-    explicit fake_http_client(http_response response = {200, "{}"});
-    http_response request(const http_request &) const;
+    explicit fake_http_client(http_response = {200, "{}"});
+    http_response request(const &) const;
     std::size_t call_count() const;
 };
 

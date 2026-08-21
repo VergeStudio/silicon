@@ -95,7 +95,7 @@ class client final {
      * @return 就绪的 client；scheduler 为空时返回 network_error::kNullScheduler，
      *         endpoint 地址族非法或套接字创建失败时返回相应错误码。
      */
-    static auto create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
+    static auto create(std::unique_ptr<silicon::scheduler::io_scheduler> &, network::socket_address)
             -> network::result<client>;
 
     client(const client &other);
@@ -118,7 +118,7 @@ class client final {
      * @param timeout How long to wait for the connection to establish? Timeout of zero is indefinite.
      * @return The result status of trying to connect.
      */
-    auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+    auto connect(std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<network::connect_status>;
 
     /**
@@ -206,29 +206,29 @@ class client final {
   private:
     auto read_some_impl(
             std::span<std::byte> buffer,
-            const std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
+            const std::chrono::milliseconds = std::chrono::milliseconds{0}
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>>;
 
     auto read_exact_impl(
             std::span<std::byte> buffer,
-            const std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
+            const std::chrono::milliseconds = std::chrono::milliseconds{0}
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>>;
 
     auto write_some_impl(
             std::span<const std::byte> buffer,
-            const std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
+            const std::chrono::milliseconds = std::chrono::milliseconds{0}
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>>;
 
     auto write_all_impl(
             std::span<const std::byte> buffer,
-            const std::chrono::milliseconds timeout = std::chrono::milliseconds{0}
+            const std::chrono::milliseconds = std::chrono::milliseconds{0}
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>>;
 
-    auto poll(const silicon::coroutine::poll_op op, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+    auto poll(const silicon::coroutine::poll_op, const std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<silicon::coroutine::poll_status>;
 
     template<
@@ -239,7 +239,7 @@ class client final {
     template<
             silicon::coroutine::concepts::const_buffer buffer_type,
             typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
-    std::pair<io_status, std::span<element_type>> send(const buffer_type &buffer) ;
+    std::pair<io_status, std::span<element_type>> send(const buffer_type &) ;
 
     /// The tcp::server creates already connected clients and provides a tcp socket pre-built.
     friend server;
@@ -300,9 +300,9 @@ class server final {
      *         bind/listen 失败时返回 kBindFailed / kListenFailed 等错误码。
      */
     static auto create(
-            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
-            const network::socket_address &endpoint,
-            options opts = options{
+            std::unique_ptr<silicon::scheduler::io_scheduler> &,
+            const network::socket_address &,
+            options = options{
                     .backlog = 128,
             }
     ) -> network::result<server>;
@@ -319,7 +319,7 @@ class server final {
      * @param timeout How long to wait for a new connection before timing out, zero waits indefinitely.
      * @return The newly connected tcp client connection on success or an io_status describing the failure.
      */
-    auto accept(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+    auto accept(std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<silicon::coroutine::expected<network::tcp::client, io_status>>;
 
     /**
@@ -339,7 +339,7 @@ class server final {
      * @return The result of the poll, 'event' means the poll was successful and there is at least 1
      *         connection ready to be accepted.
      */
-    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+    auto poll(std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<coroutine::poll_status>;
 
     /**

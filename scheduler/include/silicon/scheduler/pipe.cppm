@@ -22,8 +22,8 @@ class pipe_t {
     pipe_t & operator=(const pipe_t &other) ;
     pipe_t & operator=(pipe_t &&other) noexcept ;
 
-    [[nodiscard]] long write(const void *bytes, std::size_t) ;
-    [[nodiscard]] long read(void *buffer, std::size_t) ;
+    [[nodiscard]] long write(const void *, std::size_t) ;
+    [[nodiscard]] long read(void *, std::size_t) ;
 
     [[nodiscard]] const fd_t & read_fd() const ;
     [[nodiscard]] const fd_t & write_fd() const ;

@@ -82,7 +82,7 @@ enum class connection_status {
     kError
 };
 
-auto to_string(connection_status status) -> const std::string &;
+auto to_string(connection_status) -> const std::string &;
 
 enum class recv_status : int64_t {
     kOk = SSL_ERROR_NONE,
@@ -103,7 +103,7 @@ enum class recv_status : int64_t {
 
 };
 
-auto to_string(recv_status status) -> const std::string &;
+auto to_string(recv_status) -> const std::string &;
 
 enum class send_status : int64_t {
     kOk = SSL_ERROR_NONE,
@@ -125,7 +125,7 @@ enum class send_status : int64_t {
 
 };
 
-auto to_string(send_status status) -> const std::string &;
+auto to_string(send_status) -> const std::string &;
 
 class context {
   public:
@@ -139,7 +139,7 @@ class context {
      * @param verify_peer Should the peer be verified? Defaults to true.
      * @return 就绪的 context；分配失败时返回 network_error::kTlsContextInitFailed。
      */
-    static auto create(verify_peer_t verify_peer = verify_peer_t::kYes) -> network::result<context>;
+    static auto create(verify_peer_t = verify_peer_t::kYes) -> network::result<context>;
 
     /**
      * Creates a context with the given certificate and the given private key.
@@ -152,11 +152,11 @@ class context {
      *         kTlsCertificateLoadFailed / kTlsPrivateKeyLoadFailed / kTlsKeyMismatch。
      */
     static auto create(
-            std::filesystem::path certificate,
-            tls_file_type certificate_type,
-            std::filesystem::path private_key,
-            tls_file_type private_key_type,
-            verify_peer_t verify_peer = verify_peer_t::kYes
+            std::filesystem::path,
+            tls_file_type,
+            std::filesystem::path,
+            tls_file_type,
+            verify_peer_t = verify_peer_t::kYes
     ) -> network::result<context>;
 
     /// 独占持有 SSL_CTX*，只可移动不可拷贝（拷贝会导致重复 SSL_CTX_free）。
@@ -233,9 +233,9 @@ class client final {
      *         network_error::kNullScheduler / kNullTlsContext。
      */
     static auto create(
-            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
+            std::unique_ptr<silicon::scheduler::io_scheduler> &,
             std::shared_ptr<context> tls_ctx,
-            const network::socket_address &endpoint
+            const network::socket_address &
     ) -> network::result<client>;
 
     client(const client &) = delete;
@@ -258,7 +258,7 @@ class client final {
      * @param timeout How long to wait for the connection to establish? Timeout of zero is indefinite.
      * @return The result status of trying to connect.
      */
-    auto connect(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status>;
+    auto connect(std::chrono::milliseconds = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status>;
 
     /**
      * Receives incoming data into the given buffer. This function will automatically poll for readability.
@@ -450,7 +450,7 @@ class client final {
      * @param timeout How long to allow for the tls handshake to successfully complete?
      * @return The result of the tls handshake.
      */
-    auto handshake(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status>;
+    auto handshake(std::chrono::milliseconds = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status>;
 
     /**
      * Polls for the given operation on this client's socket.  This should be done prior to
@@ -534,7 +534,7 @@ class client final {
     /// Flag to signal if this tls client has already been shutdown or not.
     std::atomic<bool> m_shutdown{false};
 
-    auto tls_shutdown_and_free(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<void>;
+    auto tls_shutdown_and_free(std::chrono::milliseconds = std::chrono::milliseconds{0}) -> silicon::scheduler::task<void>;
 };
 
 /// @brief 类型擦除门面：TLS 服务端的可擦除接口。
@@ -584,10 +584,10 @@ class server final {
      *         bind/listen 失败时返回 kBindFailed / kListenFailed。
      */
     static auto create(
-            std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
+            std::unique_ptr<silicon::scheduler::io_scheduler> &,
             std::shared_ptr<context> tls_ctx,
-            const network::socket_address &endpoint,
-            options opts = options{
+            const network::socket_address &,
+            options = options{
                     .backlog = 128,
             }
     ) -> network::result<server>;
@@ -614,7 +614,7 @@ class server final {
      * @param timeout The timeout to complete the TLS handshake.
      * @return The newly connected tcp client connection.
      */
-    auto accept(std::chrono::milliseconds timeout = std::chrono::seconds{30}) -> silicon::scheduler::task<silicon::network::tls::client>;
+    auto accept(std::chrono::milliseconds = std::chrono::seconds{30}) -> silicon::scheduler::task<silicon::network::tls::client>;
 
     /**
      * @return The tcp accept socket this server is using.

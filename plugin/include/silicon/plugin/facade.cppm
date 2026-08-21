@@ -108,7 +108,7 @@ class plugin_registry {
     plugin_proxy *get_plugin(std::string_view) const;
 
     /// 移除并触发 on_unload；不存在返回 kNotFound。
-    [[nodiscard]] auto remove_plugin(std::string_view name) -> result<void>;
+    [[nodiscard]] auto remove_plugin(std::string_view) -> result<void>;
 
     std::vector<std::string> list_plugins() const;
 
@@ -139,7 +139,7 @@ class proxy_plugin_registry {
     plugin_proxy *get(std::string_view) const;
 
     /// 移除并触发 on_unload；不存在返回 kNotFound。
-    [[nodiscard]] auto remove(std::string_view name) -> result<void>;
+    [[nodiscard]] auto remove(std::string_view) -> result<void>;
 
     std::vector<std::string> list() const;
 

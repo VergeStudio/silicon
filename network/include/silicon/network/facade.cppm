@@ -83,7 +83,7 @@ enum class connect_status {
  * @return 字符串视图（指向静态存储）；枚举值非法时返回
  *         network_error::kInvalidConnectStatus。
  */
-auto to_string(const connect_status &status) -> result<std::string_view>;
+auto to_string(const connect_status &) -> result<std::string_view>;
 
 class hostname {
     struct impl {
@@ -154,7 +154,7 @@ struct io_status {
 
 std::string_view to_string(io_status::kind) ;
 io_status make_io_status_from_native(int) ;
-auto make_io_status_from_poll_status(silicon::coroutine::poll_status status) -> io_status;
+auto make_io_status_from_poll_status(silicon::coroutine::poll_status) -> io_status;
 
 // ── Platform-specific helpers (defined in io_status_linux.cpp / io_status_win.cpp) ──
 [[nodiscard]] std::string message_impl(int);
@@ -180,7 +180,7 @@ enum class recv_status : int64_t {
     kConnectionResetByPeer = ECONNRESET,
 };
 
-auto to_string(recv_status status) -> const std::string &;
+auto to_string(recv_status) -> const std::string &;
 
 enum class send_status : int64_t {
     kOk = 0,
@@ -211,7 +211,7 @@ enum class domain_t : int {
 
 /// @return 字符串视图（指向静态存储）；枚举值非法时返回
 ///         network_error::kInvalidDomain。
-auto to_string(domain_t domain) -> result<std::string_view>;
+auto to_string(domain_t) -> result<std::string_view>;
 
 class ip_address {
   public:
@@ -602,7 +602,7 @@ class socket final {
      * @param client_endpoint Receives the address of the connected peer.
      * @return The newly accepted socket. Check is_ok() to detect failure.
      */
-    socket accept(socket_address &client_endpoint) ;
+    socket accept(socket_address &) ;
 
     /**
      * @return The last platform-specific socket error code for this socket
@@ -617,7 +617,7 @@ class socket final {
      * @param endpoint The remote address to connect to.
      * @return 0 if the connection completed immediately, non-zero otherwise (check in_progress()).
      */
-    int connect(const socket_address &endpoint) ;
+    int connect(const socket_address &) ;
 
     /**
      * @return True if the most recent connect() is still being established asynchronously
@@ -635,7 +635,7 @@ class socket final {
  * @param opts See socket::options for more details.
  * TODO: docs
  */
-auto make_socket(const socket::options &opts, domain_t) -> result<socket>;
+auto make_socket(const socket::options &, domain_t) -> result<socket>;
 
 /**
  * Creates a socket that can accept connections or packets with the given socket options, address,
@@ -648,7 +648,7 @@ auto make_socket(const socket::options &opts, domain_t) -> result<socket>;
  *                for udp types.
  * TODO: docs
  */
-auto make_accept_socket(const socket::options &opts, const network::socket_address &endpoint,
-                        int32_t backlog) -> result<socket>;
+auto make_accept_socket(const socket::options &, const network::socket_address &,
+                        int32_t) -> result<socket>;
 
 } // namespace silicon::network

@@ -144,7 +144,7 @@ class event {
     /**
      * Reverses the set of waiters from LIFO->FIFO and returns the new head.
      */
-    auto reverse(awaiter *head) -> awaiter *;
+    auto reverse(awaiter *) -> awaiter *;
 
     /**
      * 非模板钩子：把状态原子交换为 this 并返回旧值。

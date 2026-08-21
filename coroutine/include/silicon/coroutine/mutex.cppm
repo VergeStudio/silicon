@@ -86,7 +86,7 @@ class scoped_lock {
         kAdopt
     };
 
-    explicit scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy = lock_strategy::kAdopt);
+    explicit scoped_lock(class silicon::coroutine::mutex &, lock_strategy = lock_strategy::kAdopt);
 
     /**
      * Unlocks the mutex upon this shared lock destructing.
