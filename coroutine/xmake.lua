@@ -38,7 +38,7 @@ end)
 
 target("coroutine.test", function()
     set_kind("binary")
-    add_deps("silicon::coroutine", "silicon::test")
+    add_deps("silicon::coroutine", "silicon::test", "silicon::error")
     add_files("test/**.cpp")
     add_tests()
 end)

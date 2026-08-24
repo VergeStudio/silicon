@@ -179,7 +179,7 @@ namespace {
 // fallback（name="silicon.ai"），此用例将失败 —— 故它端到端验证 DI。
 TEST_CASE("DI: 模块统一引用组合根注入的 category 实例") {
     di_probe_category probe;
-    inject_llm_category(probe);
+    inject_llm_error_category(probe);
 
     scripted_provider p;
     auto r = p.chat({}, {}); // 队列耗尽 → 返回 llm_error

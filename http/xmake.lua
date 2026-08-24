@@ -4,6 +4,7 @@ target("http", function()
 
     -- http_client 门面走 silicon.proxy 类型擦除，需依赖 proxy 模块。
     add_deps("silicon::proxy")
+    add_deps("silicon::error")
 
     -- Windows DLL：C++20 模块附着实体不隐式 inline，MSVC 目标无自动导出，
     -- 统一用 .def 全量导出，保证消费方可跨 DLL 链接模块符号。

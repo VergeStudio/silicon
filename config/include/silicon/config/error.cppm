@@ -1,12 +1,21 @@
 module;
 
 #include <expected>
+#include <exception>
+#include <memory>
 #include <string>
 #include <system_error>
 
 export module silicon.config.error;
 
 import silicon.error;
+
+// ---- 模块内部：DI 句柄（不导出）----
+namespace silicon::config {
+
+inline std::unique_ptr<const std::error_category, silicon::error::category_deleter> config_error_category_instance;
+
+} // namespace silicon::config
 
 export namespace silicon::config {
 
@@ -23,21 +32,31 @@ enum class config_error {
     kUnknown,
 };
 
-/// 返回 config_error 专属 error_category（name() = "silicon.config"）。
-[[nodiscard]] inline const std::error_category &config_category() noexcept {
-    static const class : public std::error_category {
-        const char *name() const noexcept override { return "silicon.config"; }
-        std::string message(int ev) const override {
-            switch(static_cast<config_error>(ev)) {
-                case config_error::kLoadFailed: return "config load failed";
-                case config_error::kParseFailed: return "config parse failed";
-                case config_error::kInvalidValue: return "invalid config value";
-                case config_error::kUnknown: return "unknown config error";
-            }
-            return "unknown config error";
+// 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
+class config_category_impl final : public std::error_category {
+    const char *name() const noexcept override { return "silicon.config"; }
+    std::string message(int ev) const override {
+        switch(static_cast<config_error>(ev)) {
+            case config_error::kLoadFailed: return "config load failed";
+            case config_error::kParseFailed: return "config parse failed";
+            case config_error::kInvalidValue: return "invalid config value";
+            case config_error::kUnknown: return "unknown config error";
         }
-    } cat;
-    return cat;
+        return "unknown config error";
+    }
+};
+
+/// 组合根注入全局唯一 category 实例（须在任何 make_error_code 调用之前完成）。
+inline void inject_config_error_category(const std::error_category &cat) noexcept {
+    config_error_category_instance.reset(&cat);
+}
+
+/// 返回 config_error 专属 error_category。DI 是唯一来源，未注入即终止。
+[[nodiscard]] inline const std::error_category &config_category() noexcept {
+    if (!config_error_category_instance) {
+        std::terminate();
+    }
+    return *config_error_category_instance;
 }
 
 /// 将 config_error 转为 std::error_code。

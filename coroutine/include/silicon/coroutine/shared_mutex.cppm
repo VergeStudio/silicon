@@ -13,6 +13,7 @@ export module silicon.coroutine:shared_mutex;
 import silicon.scheduler;
 import :mutex;
 import silicon.scheduler.task;
+import silicon.coroutine.error;
 export namespace silicon::coroutine {
 template<concepts::executor executor_type>
 class shared_mutex;

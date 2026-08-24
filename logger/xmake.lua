@@ -21,6 +21,7 @@ target("logger", function()
 
     add_deps("silicon::core", {configs = {shared = true}})
     add_deps("silicon::proxy", {configs = {shared = true}})
+    add_deps("silicon::error")
 
     add_includedirs("include", {public = true})
     add_headerfiles("include/silicon/logger/**.h")

@@ -1,9 +1,20 @@
 module;
 
+#include <exception>
+#include <memory>
 #include <string>
 #include <system_error>
 
 export module silicon.network.error;
+
+import silicon.error;
+
+// ---- 模块内部：DI 句柄（不导出）----
+namespace silicon::network {
+
+inline std::unique_ptr<const std::error_category, silicon::error::category_deleter> network_error_category_instance;
+
+} // namespace silicon::network
 
 export namespace silicon::network {
 
@@ -39,39 +50,49 @@ enum class network_error {
     kUnknown,
 };
 
-/// 返回 network_error 专属 error_category（name() = "silicon.network"）。
-[[nodiscard]] inline const std::error_category &network_category() noexcept {
-    static const class : public std::error_category {
-        const char *name() const noexcept override { return "silicon.network"; }
-        std::string message(int ev) const override {
-            switch(static_cast<network_error>(ev)) {
-                case network_error::kUdpNotBound: return "udp socket is not bound";
-                case network_error::kCancelled: return "operation cancelled";
-                case network_error::kPollingError: return "polling error";
-                case network_error::kTimeout: return "operation timed out";
-                case network_error::kInvalidIpAddress: return "invalid ip address";
-                case network_error::kNullScheduler: return "scheduler must not be null";
-                case network_error::kNullExecutor: return "executor must not be null";
-                case network_error::kNullTlsContext: return "tls context must not be null";
-                case network_error::kSocketCreateFailed: return "failed to create socket";
-                case network_error::kSetNonblockingFailed: return "failed to set socket non-blocking";
-                case network_error::kSetSockOptFailed: return "failed to set socket option";
-                case network_error::kBindFailed: return "failed to bind socket";
-                case network_error::kListenFailed: return "failed to listen on socket";
-                case network_error::kInvalidSocketType: return "unknown socket type";
-                case network_error::kInvalidDomain: return "invalid address domain";
-                case network_error::kInvalidConnectStatus: return "invalid connect status value";
-                case network_error::kTlsContextInitFailed: return "failed to initialize tls context";
-                case network_error::kTlsCertificateLoadFailed: return "failed to load tls certificate";
-                case network_error::kTlsPrivateKeyLoadFailed: return "failed to load tls private key";
-                case network_error::kTlsKeyMismatch: return "tls certificate and private key do not match";
-                case network_error::kDnsInitFailed: return "failed to initialize dns resolver";
-                case network_error::kUnknown: return "unknown network error";
-            }
-            return "unknown network error";
+// 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
+class network_category_impl final : public std::error_category {
+    const char *name() const noexcept override { return "silicon.network"; }
+    std::string message(int ev) const override {
+        switch(static_cast<network_error>(ev)) {
+            case network_error::kUdpNotBound: return "udp socket is not bound";
+            case network_error::kCancelled: return "operation cancelled";
+            case network_error::kPollingError: return "polling error";
+            case network_error::kTimeout: return "operation timed out";
+            case network_error::kInvalidIpAddress: return "invalid ip address";
+            case network_error::kNullScheduler: return "scheduler must not be null";
+            case network_error::kNullExecutor: return "executor must not be null";
+            case network_error::kNullTlsContext: return "tls context must not be null";
+            case network_error::kSocketCreateFailed: return "failed to create socket";
+            case network_error::kSetNonblockingFailed: return "failed to set socket non-blocking";
+            case network_error::kSetSockOptFailed: return "failed to set socket option";
+            case network_error::kBindFailed: return "failed to bind socket";
+            case network_error::kListenFailed: return "failed to listen on socket";
+            case network_error::kInvalidSocketType: return "unknown socket type";
+            case network_error::kInvalidDomain: return "invalid address domain";
+            case network_error::kInvalidConnectStatus: return "invalid connect status value";
+            case network_error::kTlsContextInitFailed: return "failed to initialize tls context";
+            case network_error::kTlsCertificateLoadFailed: return "failed to load tls certificate";
+            case network_error::kTlsPrivateKeyLoadFailed: return "failed to load tls private key";
+            case network_error::kTlsKeyMismatch: return "tls certificate and private key do not match";
+            case network_error::kDnsInitFailed: return "failed to initialize dns resolver";
+            case network_error::kUnknown: return "unknown network error";
         }
-    } cat;
-    return cat;
+        return "unknown network error";
+    }
+};
+
+/// 组合根注入全局唯一 category 实例（须在任何 make_error_code 调用之前完成）。
+inline void inject_network_error_category(const std::error_category &cat) noexcept {
+    network_error_category_instance.reset(&cat);
+}
+
+/// 返回 network_error 专属 error_category。DI 是唯一来源，未注入即终止。
+[[nodiscard]] inline const std::error_category &network_category() noexcept {
+    if (!network_error_category_instance) {
+        std::terminate();
+    }
+    return *network_error_category_instance;
 }
 
 /// 将 network_error 转为 std::error_code。

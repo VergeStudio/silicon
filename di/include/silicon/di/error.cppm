@@ -1,9 +1,20 @@
 module;
 
+#include <exception>
+#include <memory>
 #include <string>
 #include <system_error>
 
 export module silicon.di.error;
+
+import silicon.error;
+
+// ---- 模块内部：DI 句柄（不导出）----
+namespace silicon::di {
+
+inline std::unique_ptr<const std::error_category, silicon::error::category_deleter> di_error_category_instance;
+
+} // namespace silicon::di
 
 export namespace silicon::di {
 
@@ -25,31 +36,41 @@ enum class di_error {
     kUnknown,
 };
 
-/// 返回 di_error 专属 error_category（name() = "silicon.di"）。
-[[nodiscard]] inline const std::error_category &di_category() noexcept {
-    static const class : public std::error_category {
-        const char *name() const noexcept override { return "silicon.di"; }
-        std::string message(int ev) const override {
-            switch(static_cast<di_error>(ev)) {
-                case di_error::kDuplicateBinding: return "duplicate binding";
-                case di_error::kUnresolvedDependency: return "unresolved dependency";
-                case di_error::kCircularDependency: return "circular dependency detected";
-                case di_error::kInvalidType: return "invalid type";
-                case di_error::kAlreadyInitialized: return "already initialized";
-                case di_error::kTypeNotFound: return "requested type not found in container";
-                case di_error::kTypeAmbiguous: return "requested type resolves ambiguously";
-                case di_error::kTypeNotConvertible: return "registered type is not convertible to requested type";
-                case di_error::kTypeRecursion: return "recursive type resolution detected";
-                case di_error::kTypeAlreadyRegistered: return "type already registered";
-                case di_error::kTypeIndexAlreadyRegistered: return "type index already registered";
-                case di_error::kCollectionTypeNotFound: return "collection element type not found";
-                case di_error::kIndexOutOfRange: return "type index out of range";
-                case di_error::kUnknown: return "unknown di error";
-            }
-            return "unknown di error";
+// 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
+class di_category_impl final : public std::error_category {
+    const char *name() const noexcept override { return "silicon.di"; }
+    std::string message(int ev) const override {
+        switch(static_cast<di_error>(ev)) {
+            case di_error::kDuplicateBinding: return "duplicate binding";
+            case di_error::kUnresolvedDependency: return "unresolved dependency";
+            case di_error::kCircularDependency: return "circular dependency detected";
+            case di_error::kInvalidType: return "invalid type";
+            case di_error::kAlreadyInitialized: return "already initialized";
+            case di_error::kTypeNotFound: return "requested type not found in container";
+            case di_error::kTypeAmbiguous: return "requested type resolves ambiguously";
+            case di_error::kTypeNotConvertible: return "registered type is not convertible to requested type";
+            case di_error::kTypeRecursion: return "recursive type resolution detected";
+            case di_error::kTypeAlreadyRegistered: return "type already registered";
+            case di_error::kTypeIndexAlreadyRegistered: return "type index already registered";
+            case di_error::kCollectionTypeNotFound: return "collection element type not found";
+            case di_error::kIndexOutOfRange: return "type index out of range";
+            case di_error::kUnknown: return "unknown di error";
         }
-    } cat;
-    return cat;
+        return "unknown di error";
+    }
+};
+
+/// 组合根注入全局唯一 category 实例（须在任何 make_error_code 调用之前完成）。
+inline void inject_di_error_category(const std::error_category &cat) noexcept {
+    di_error_category_instance.reset(&cat);
+}
+
+/// 返回 di_error 专属 error_category。DI 是唯一来源，未注入即终止。
+[[nodiscard]] inline const std::error_category &di_category() noexcept {
+    if (!di_error_category_instance) {
+        std::terminate();
+    }
+    return *di_error_category_instance;
 }
 
 /// 将 di_error 转为 std::error_code。

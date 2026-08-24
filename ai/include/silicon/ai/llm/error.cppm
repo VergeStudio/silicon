@@ -15,7 +15,7 @@ namespace silicon::ai::llm {
 
 // 用 silicon.error 提供的 no-op 删除器承载「模块独占 category 句柄」语义而不实际 delete
 // （std::error_category 析构为保护、进程期常驻；真实生命周期由组合根持有）。
-inline std::unique_ptr<const std::error_category, silicon::error::category_deleter> llm_category_instance;
+inline std::unique_ptr<const std::error_category, silicon::error::category_deleter> llm_error_category_instance;
 
 } // namespace silicon::ai::llm
 
@@ -56,24 +56,24 @@ class llm_category_impl final: public std::error_category {
 
 /// 组合根注入全局唯一 category 实例（必须在任何 make_error_code 调用之前完成）。
 /// 注入后模块独占该句柄；std::error_category 设计上进程期常驻，故不释放。
-inline void inject_llm_category(const std::error_category &cat) noexcept {
-    llm_category_instance.reset(&cat);
+inline void inject_llm_error_category(const std::error_category &cat) noexcept {
+    llm_error_category_instance.reset(&cat);
 }
 
 /// 返回 llm_error 专属 error_category。
 /// DI 是唯一来源：组合根必须先注入；未注入即使用属组合根接线错误，直接终止。
 /// 不提供模块内 fallback 单例——否则会破坏 std::error_category「全局唯一地址」契约，
 /// 并在跨 DLL / 多二进制场景下重现重复单例问题。
-[[nodiscard]] inline const std::error_category &llm_category() noexcept {
-    if (!llm_category_instance) {
+[[nodiscard]] inline const std::error_category &llm_error_category() noexcept {
+    if (!llm_error_category_instance) {
         std::terminate();
     }
-    return *llm_category_instance;
+    return *llm_error_category_instance;
 }
 
 /// llm_error 枚举 → std::error_code（专属 category）。
 [[nodiscard]] inline std::error_code make_error_code(llm_error e) noexcept {
-    return {static_cast<int>(e), llm_category()};
+    return {static_cast<int>(e), llm_error_category()};
 }
 
 } // namespace silicon::ai::llm

@@ -23,6 +23,7 @@ export module silicon.coroutine:task_container;
 
 import silicon.scheduler;
 import silicon.scheduler.task;
+import silicon.coroutine.error;
 import :mutex;
 export namespace silicon::coroutine {
 

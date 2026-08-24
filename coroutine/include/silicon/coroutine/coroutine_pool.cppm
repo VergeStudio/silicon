@@ -17,6 +17,7 @@ export module silicon.coroutine:coroutine_pool;
 
 import silicon.scheduler;
 import silicon.scheduler.task;
+import silicon.coroutine.error;
 import :channel;
 import :event;
 import :mutex;

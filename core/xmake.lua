@@ -20,6 +20,7 @@ target("core", function()
     -- core → platform → proxy → core 的循环依赖（与 util 抽离同机制）。
     add_deps("silicon::platform")
     add_deps("silicon::exception")
+    add_deps("silicon::error")
 
     add_includedirs("include", {public = true})
 
