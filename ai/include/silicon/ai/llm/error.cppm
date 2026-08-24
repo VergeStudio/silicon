@@ -1,7 +1,7 @@
 module;
 
+#include <atomic>
 #include <exception>
-#include <memory>
 #include <string>
 #include <system_error>
 
@@ -13,9 +13,10 @@ import silicon.error;
 // 置于 export namespace 之外，使其具模块链接而非外部链接（消费方不可直触）。
 namespace silicon::ai::llm {
 
-// 用 silicon.error 提供的 no-op 删除器承载「模块独占 category 句柄」语义而不实际 delete
-// （std::error_category 析构为保护、进程期常驻；真实生命周期由组合根持有）。
-inline std::unique_ptr<const std::error_category, silicon::error::category_deleter> llm_error_category_instance;
+// 句柄用 std::atomic 承载裸指针：组合根可能在动态初始化期或运行期并发注入，
+// 模块读取路径可能并发， atomic 的 release/acquire 保证注入 happens-before 读取。
+// std::error_category 进程期常驻、析构为保护，真实生命周期由组合根持有，模块侧不释放。
+std::atomic<const std::error_category *> llm_error_category_instance{nullptr};
 
 } // namespace silicon::ai::llm
 
@@ -57,7 +58,7 @@ class llm_category_impl final: public std::error_category {
 /// 组合根注入全局唯一 category 实例（必须在任何 make_error_code 调用之前完成）。
 /// 注入后模块独占该句柄；std::error_category 设计上进程期常驻，故不释放。
 inline void inject_llm_error_category(const std::error_category &cat) noexcept {
-    llm_error_category_instance.reset(&cat);
+    llm_error_category_instance.store(&cat, std::memory_order_release);
 }
 
 /// 返回 llm_error 专属 error_category。
@@ -65,10 +66,11 @@ inline void inject_llm_error_category(const std::error_category &cat) noexcept {
 /// 不提供模块内 fallback 单例——否则会破坏 std::error_category「全局唯一地址」契约，
 /// 并在跨 DLL / 多二进制场景下重现重复单例问题。
 [[nodiscard]] inline const std::error_category &llm_error_category() noexcept {
-    if (!llm_error_category_instance) {
+    const std::error_category *cat = llm_error_category_instance.load(std::memory_order_acquire);
+    if (cat == nullptr) {
         std::terminate();
     }
-    return *llm_error_category_instance;
+    return *cat;
 }
 
 /// llm_error 枚举 → std::error_code（专属 category）。
