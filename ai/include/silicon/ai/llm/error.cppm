@@ -1,5 +1,6 @@
 module;
 
+#include <exception>
 #include <string>
 #include <system_error>
 
@@ -55,14 +56,15 @@ inline void inject_llm_category(const std::error_category &cat) noexcept {
     llm_category_instance = &cat;
 }
 
-/// 返回 llm_error 专属 error_category（优先注入实例，否则退化为模块内 Meyers 单例）。
-/// 退化路径仅当「从未注入」时生效；一旦注入发生在首次使用之前，则全程序单一实例。
+/// 返回 llm_error 专属 error_category。
+/// DI 是唯一来源：组合根必须在首次使用前经 inject_llm_category 注入唯一实例。
+/// 不提供模块内 fallback 单例——否则会破坏 std::error_category「全局唯一地址」契约，
+/// 并在跨 DLL / 多二进制场景下重现重复单例问题。未注入即使用属组合根接线错误，直接终止。
 [[nodiscard]] inline const std::error_category &llm_category() noexcept {
-    if (llm_category_instance != nullptr) {
-        return *llm_category_instance;
+    if (llm_category_instance == nullptr) {
+        std::terminate();
     }
-    static const llm_category_impl fallback;
-    return fallback;
+    return *llm_category_instance;
 }
 
 /// llm_error 枚举 → std::error_code（专属 category）。
