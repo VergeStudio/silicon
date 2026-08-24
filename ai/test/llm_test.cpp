@@ -165,3 +165,24 @@ TEST_CASE("json_protocol_adapter::decode_response 非法 JSON 返回 llm_error")
     CHECK_FALSE(r);
     CHECK(r.error().message() == "invalid llm response");
 }
+
+// ── DI 验证：组合根注入的对象被模块统一引用 ─────────────────────
+namespace {
+    struct di_probe_category : std::error_category {
+        const char *name() const noexcept override { return "di-probe"; }
+        std::string message(int) const override { return "probe"; }
+    };
+}
+
+// 本用例位于文件末尾：注入的 probe 仅在函数作用域内有效，其后不再有
+// 其他用例依赖 category 实体，避免悬垂引用。若模块未走注入路径而使用
+// fallback（name="silicon.ai"），此用例将失败 —— 故它端到端验证 DI。
+TEST_CASE("DI: 模块统一引用组合根注入的 category 实例") {
+    di_probe_category probe;
+    inject_llm_category(probe);
+
+    scripted_provider p;
+    auto r = p.chat({}, {}); // 队列耗尽 → 返回 llm_error
+    REQUIRE_FALSE(r);
+    CHECK(std::string(r.error().category().name()) == "di-probe");
+}
