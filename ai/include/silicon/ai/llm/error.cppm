@@ -21,7 +21,7 @@ enum class llm_error {
 // local static (name()/message() virtual dispatch crashes with SIGSEGV).
 // 该实现类由组合根（composition root）实例化并经 inject_llm_category 注入，
 // 模块自身不再持有单例；下层统一经 llm_category() 取到同一实例，跨模块/跨 DLL 安全。
-export class llm_category_impl final: public std::error_category {
+class llm_category_impl final: public std::error_category {
     const char *name() const noexcept override { return "silicon.ai"; }
     std::string message(int ev) const override {
         switch(static_cast<llm_error>(ev)) {
@@ -44,12 +44,14 @@ export class llm_category_impl final: public std::error_category {
 // 组合根在程序启动期构造唯一 llm_category_impl 实例并注入；下层所有代码
 // 经 llm_category() 取到同一地址，满足 std::error_category「全局唯一地址」契约，
 // 跨模块 / 跨 DLL 安全（进程统一虚拟地址空间，同一指针处处相同）。
-// 以 export inline 全局承载：导出 inline 变量具外部链接、程序内单一定义，
-// 可被导出 inline 的 inject/llm_category 在导入方安全引用（避 module-linkage 链接失败）。
-export inline const std::error_category *llm_category_instance = nullptr;
+// llm_category_instance 是模块内部实现细节：模块链接、模块内单一定义，不导出。
+// 消费方只经 inject_llm_category() 写入、经 llm_category() 读取，不可直接触碰；
+// 句柄唯一性由「承载本 TU 的模块以 shared 方式进程内只加载一次」保证，与变量
+// 是否 export（外部链接可见性）无关。
+inline const std::error_category *llm_category_instance = nullptr;
 
 /// 组合根注入全局唯一 category 实例（必须在任何 make_error_code 调用之前完成）。
-export inline void inject_llm_category(const std::error_category &cat) noexcept {
+inline void inject_llm_category(const std::error_category &cat) noexcept {
     llm_category_instance = &cat;
 }
 
