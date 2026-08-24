@@ -30,14 +30,10 @@ class llm_category_impl final: public std::error_category {
 };
 
 /// 返回 llm_error 专属 error_category（name() == "silicon.ai"）。
+/// 必须留在实现单元：其函数体 static llm_category_impl 实例需要类的完整定义。
 [[nodiscard]] const std::error_category &llm_category() noexcept {
     static const llm_category_impl cat;
     return cat;
-}
-
-/// llm_error 枚举 → std::error_code（专属 category）。
-[[nodiscard]] std::error_code make_error_code(llm_error e) noexcept {
-    return {static_cast<int>(e), llm_category()};
 }
 
 } // namespace silicon::ai::llm
