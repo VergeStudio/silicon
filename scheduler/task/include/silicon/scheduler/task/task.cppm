@@ -344,7 +344,7 @@ class task_self_deleting {
     promise_self_deleting *m_promise{nullptr};
 };
 
-auto make_task_self_deleting(silicon::scheduler::task<void> user_task) -> task_self_deleting;
+auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_self_deleting;
 
 
 
@@ -355,7 +355,7 @@ auto make_task_self_deleting(silicon::scheduler::task<void> user_task) -> task_s
 class task_event {
   public:
     struct awaiter {
-        awaiter(const task_event &e) noexcept;
+        awaiter(const task_event &) noexcept;
         bool await_ready() const noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
         void await_resume() noexcept ;

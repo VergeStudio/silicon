@@ -134,11 +134,11 @@ class peer final {
   private:
     auto write_to_impl(
             const socket_address &,
-            const std::span<const std::byte> buffer,
+            const std::span<const std::byte>,
             std::chrono::milliseconds = std::chrono::milliseconds{0}
     ) -> silicon::scheduler::task<io_status>;
 
-    auto read_from_impl(std::span<std::byte> buffer, std::chrono::milliseconds = std::chrono::milliseconds{0})
+    auto read_from_impl(std::span<std::byte>, std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::byte>>>;
 
     auto poll(silicon::coroutine::poll_op, std::chrono::milliseconds = std::chrono::milliseconds{0})

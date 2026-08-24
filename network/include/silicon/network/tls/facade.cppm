@@ -234,7 +234,7 @@ class client final {
      */
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
-            std::shared_ptr<context> tls_ctx,
+            std::shared_ptr<context>,
             const network::socket_address &
     ) -> network::result<client>;
 
@@ -585,7 +585,7 @@ class server final {
      */
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
-            std::shared_ptr<context> tls_ctx,
+            std::shared_ptr<context>,
             const network::socket_address &,
             options = options{
                     .backlog = 128,

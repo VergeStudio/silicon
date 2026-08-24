@@ -63,7 +63,7 @@ class channel {
 
   public:
     struct send_operation {
-        send_operation(channel<element_type> &ch, element_type) noexcept;
+        send_operation(channel<element_type> &, element_type) noexcept;
 
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;

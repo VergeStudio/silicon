@@ -17,8 +17,8 @@ module silicon.xdg;
 namespace silicon::xdg {
 
 // ── 平台辅助前向声明（定义在各平台实现单元，守卫互斥） ──────────────
-std::string env_or(const char *name, const std::string &def);
-std::string join(const std::string &base, const std::string &name);
+std::string env_or(const char *, const std::string &);
+std::string join(const std::string &, const std::string &);
 std::string home();
 
 std::string config_home_default();

@@ -53,8 +53,8 @@ struct thread_pool::impl {
     std::atomic<std::size_t> m_size{0};
     std::atomic<bool> m_shutdown_requested{false};
 
-    void executor(std::size_t idx) ;
-    void schedule_impl(std::coroutine_handle<void> handle) noexcept ;
+    void executor(std::size_t) ;
+    void schedule_impl(std::coroutine_handle<void>) noexcept ;
 
     static std::coroutine_handle<void> pop_front(ThreadState &state) noexcept {
         std::scoped_lock lk{state.mutex};
@@ -81,7 +81,7 @@ struct thread_pool::impl {
         return true;
     }
 
-    static std::size_t steal_start(std::size_t my_idx, std::size_t count) {
+    static std::size_t steal_start(std::size_t my_idx, std::size_t) {
         return my_idx + 1;
     }
 };

@@ -394,7 +394,7 @@ class io_scheduler {
             fd_t,
             silicon::coroutine::poll_op,
             std::chrono::milliseconds = std::chrono::milliseconds{0},
-            std::optional<poll_stop_token> cancel_trigger = std::nullopt
+            std::optional<poll_stop_token> = std::nullopt
     ) -> silicon::scheduler::task<poll_status>;
 
     /**

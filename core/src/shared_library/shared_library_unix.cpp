@@ -23,7 +23,7 @@ import silicon.platform;
 // 守卫与 shared_library_windows.cpp 的 SILICON_PLATFORM_WINDOWS 守卫互斥，恰好一个文件定义同组符号。
 namespace silicon::library {
 
-std::expected<void, std::error_code> shared_library::load(const std::string &path, int32_t flags) {
+std::expected<void, std::error_code> shared_library::load(const std::string &path, int32_t) {
     std::scoped_lock<std::mutex> const lock(impl_->mutex_);
 
     if (impl_->handle_ != nullptr) {

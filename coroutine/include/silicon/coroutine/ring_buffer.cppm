@@ -63,7 +63,7 @@ class ring_buffer {
     ring_buffer<element, num_elements> & operator=(ring_buffer<element, num_elements> &&) noexcept = delete;
 
     struct produce_operation {
-        produce_operation(ring_buffer<element, num_elements> &rb, element);
+        produce_operation(ring_buffer<element, num_elements> &, element);
 
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;

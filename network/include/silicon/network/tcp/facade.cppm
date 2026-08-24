@@ -205,25 +205,25 @@ class client final {
 
   private:
     auto read_some_impl(
-            std::span<std::byte> buffer,
+            std::span<std::byte>,
             const std::chrono::milliseconds = std::chrono::milliseconds{0}
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>>;
 
     auto read_exact_impl(
-            std::span<std::byte> buffer,
+            std::span<std::byte>,
             const std::chrono::milliseconds = std::chrono::milliseconds{0}
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>>;
 
     auto write_some_impl(
-            std::span<const std::byte> buffer,
+            std::span<const std::byte>,
             const std::chrono::milliseconds = std::chrono::milliseconds{0}
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>>;
 
     auto write_all_impl(
-            std::span<const std::byte> buffer,
+            std::span<const std::byte>,
             const std::chrono::milliseconds = std::chrono::milliseconds{0}
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>>;

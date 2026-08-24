@@ -85,7 +85,7 @@ class condition_variable {
     };
 
     struct awaiter_base {
-        awaiter_base(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l);
+        awaiter_base(silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &);
         ~awaiter_base() = default;
 
         awaiter_base(const awaiter_base &) = delete;
@@ -110,7 +110,7 @@ class condition_variable {
     };
 
     struct awaiter: public awaiter_base {
-        awaiter(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l) noexcept;
+        awaiter(silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &) noexcept;
         ~awaiter() = default;
 
         awaiter(const awaiter &) = delete;
@@ -126,7 +126,7 @@ class condition_variable {
     };
 
     struct awaiter_with_predicate: public awaiter_base {
-        awaiter_with_predicate(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, predicate_type) noexcept;
+        awaiter_with_predicate(silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &, predicate_type) noexcept;
         ~awaiter_with_predicate() = default;
 
         awaiter_with_predicate(const awaiter_with_predicate &) = delete;
@@ -148,7 +148,7 @@ class condition_variable {
 
     struct awaiter_with_predicate_stop_token: public awaiter_base {
         awaiter_with_predicate_stop_token(
-                silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, predicate_type p, std::stop_token stop_token
+                silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &, predicate_type, std::stop_token
         ) noexcept;
         ~awaiter_with_predicate_stop_token() = default;
 
@@ -178,10 +178,10 @@ class condition_variable {
     /// @brief This structure encapsulates the data from the controller task.
     struct controller_data {
         controller_data(
-                std::optional<std::cv_status> &status,
-                bool &predicate_result,
-                std::optional<predicate_type> predicate,
-                std::optional<const std::stop_token> stop_token
+                std::optional<std::cv_status> &,
+                bool &,
+                std::optional<predicate_type>,
+                std::optional<const std::stop_token>
         ) noexcept;
         ~controller_data() = default;
 
@@ -219,7 +219,7 @@ class condition_variable {
      * notify_[one|all] call.
      */
     struct awaiter_with_wait_hook: public awaiter_base {
-        awaiter_with_wait_hook(silicon::coroutine::condition_variable &cv, silicon::coroutine::scoped_lock &l, controller_data &data) noexcept;
+        awaiter_with_wait_hook(silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &, controller_data &) noexcept;
         ~awaiter_with_wait_hook() = default;
 
         silicon::scheduler::task<notify_status_t> do_on_notify() ;
