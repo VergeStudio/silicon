@@ -1,7 +1,7 @@
 module;
 
+#include <atomic>
 #include <exception>
-#include <memory>
 #include <string>
 #include <system_error>
 
@@ -12,7 +12,7 @@ import silicon.error;
 // ---- 模块内部：DI 句柄（不导出）----
 namespace silicon::event {
 
-inline std::unique_ptr<const std::error_category, silicon::error::category_deleter> event_error_category_instance;
+std::atomic<const std::error_category *> event_error_category_instance{nullptr};
 
 } // namespace silicon::event
 
@@ -36,15 +36,16 @@ class event_category_impl final : public std::error_category {
 
 /// 组合根注入全局唯一 category 实例（须在任何 make_error_code 调用之前完成）。
 inline void inject_event_error_category(const std::error_category &cat) noexcept {
-    event_error_category_instance.reset(&cat);
+    event_error_category_instance.store(&cat, std::memory_order_release);
 }
 
 /// 返回 event_error 专属 error_category。DI 是唯一来源，未注入即终止。
 [[nodiscard]] inline const std::error_category &event_category() noexcept {
-    if (!event_error_category_instance) {
+    const std::error_category *cat = event_error_category_instance.load(std::memory_order_acquire);
+    if (cat == nullptr) {
         std::terminate();
     }
-    return *event_error_category_instance;
+    return *cat;
 }
 
 /// 将 event_error 转为 std::error_code。
