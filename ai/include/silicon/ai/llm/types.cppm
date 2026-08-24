@@ -31,8 +31,8 @@ struct message {
     message();
     /// 便利构造：保留原聚合初始化 `message{"user", "hi"}` 的调用形态
     message(std::string, std::string, std::string = {});
-    message(const message &o);
-    message &operator=(const message &o);
+    message(const message &);
+    message &operator=(const message &);
     message(message &&) noexcept;
     message &operator=(message &&) noexcept;
 
@@ -54,8 +54,8 @@ struct model_request_options {
 
   public:
     model_request_options();
-    model_request_options(const model_request_options &o);
-    model_request_options &operator=(const model_request_options &o);
+    model_request_options(const model_request_options &);
+    model_request_options &operator=(const model_request_options &);
     model_request_options(model_request_options &&) noexcept;
     model_request_options &operator=(model_request_options &&) noexcept;
 
@@ -77,8 +77,8 @@ struct chat_response {
 
   public:
     chat_response();
-    chat_response(const chat_response &o);
-    chat_response &operator=(const chat_response &o);
+    chat_response(const chat_response &);
+    chat_response &operator=(const chat_response &);
     chat_response(chat_response &&) noexcept;
     chat_response &operator=(chat_response &&) noexcept;
 
@@ -102,8 +102,8 @@ struct tool_call {
     tool_call();
     /// 便利构造：保留原聚合初始化 `tool_call{"1", "echo", "{}"}` 的调用形态
     tool_call(std::string, std::string, std::string = {});
-    tool_call(const tool_call &o);
-    tool_call &operator=(const tool_call &o);
+    tool_call(const tool_call &);
+    tool_call &operator=(const tool_call &);
     tool_call(tool_call &&) noexcept;
     tool_call &operator=(tool_call &&) noexcept;
 
@@ -123,8 +123,8 @@ struct tool_output {
 
   public:
     tool_output();
-    tool_output(const tool_output &o);
-    tool_output &operator=(const tool_output &o);
+    tool_output(const tool_output &);
+    tool_output &operator=(const tool_output &);
     tool_output(tool_output &&) noexcept;
     tool_output &operator=(tool_output &&) noexcept;
 
