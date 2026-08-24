@@ -30,7 +30,7 @@ struct message {
   public:
     message();
     /// 便利构造：保留原聚合初始化 `message{"user", "hi"}` 的调用形态
-    message(std::string r, std::string c, std::string tcid = {});
+    message(std::string, std::string, std::string = {});
     message(const message &o);
     message &operator=(const message &o);
     message(message &&) noexcept;
@@ -101,7 +101,7 @@ struct tool_call {
   public:
     tool_call();
     /// 便利构造：保留原聚合初始化 `tool_call{"1", "echo", "{}"}` 的调用形态
-    tool_call(std::string i, std::string n, std::string args = {});
+    tool_call(std::string, std::string, std::string = {});
     tool_call(const tool_call &o);
     tool_call &operator=(const tool_call &o);
     tool_call(tool_call &&) noexcept;

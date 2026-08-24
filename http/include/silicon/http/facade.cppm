@@ -133,7 +133,7 @@ class fake_http_client {
 
   public:
     explicit fake_http_client(http_response = {200, "{}"});
-    http_response request(const &) const;
+    http_response request(const http_request &) const;
     std::size_t call_count() const;
 };
 

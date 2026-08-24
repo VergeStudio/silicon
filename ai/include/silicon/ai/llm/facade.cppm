@@ -13,8 +13,9 @@ module;
 
 // proxy 的 dispatch 宏走头文件通道，本模块定义门面须在全局模块片段显式
 // 包含，随后再 import silicon.proxy（宏不随 C++20 模块导出）。
-#include <tuple>
 #include <silicon/proxy/proxy_macros.h>
+
+#include <tuple>
 
 export module silicon.ai.llm;
 
@@ -53,7 +54,7 @@ struct tool_facade
       ::add_convention<MemToolName, std::string_view() const>        //
       ::add_convention<MemToolDescription, std::string_view() const> //
       ::add_convention<MemToolExecute, tool_output(tool_call)>       //
-      ::support_copy<silicon::proxy::constraint_level::kNontrivial>     //
+      ::support_copy<silicon::proxy::constraint_level::kNontrivial>  //
       ::build {};
 
 /// 提供方门面：满足 `result<chat_response> chat(conversation const&,
@@ -61,7 +62,7 @@ struct tool_facade
 struct provider_facade
     : silicon::proxy::facade_builder                                                                                //
       ::add_convention<MemProviderChat, result<chat_response>(const conversation &, const model_request_options &)> //
-      ::support_copy<silicon::proxy::constraint_level::kNontrivial>                                                    //
+      ::support_copy<silicon::proxy::constraint_level::kNontrivial>                                                 //
       ::build {};
 
 /// 协议适配器门面：满足 encode_request / decode_response 两个成员。
@@ -165,7 +166,7 @@ class scripted_provider {
     void enqueue(chat_response);
     std::size_t remaining() const;
 
-    result<chat_response> chat(const &, const &);
+    result<chat_response> chat(const conversation &, const model_request_options &);
 };
 
 /// OpenAI 兼容 HTTP provider：通过本地 curl 调用 {base_url}/chat/completions。
