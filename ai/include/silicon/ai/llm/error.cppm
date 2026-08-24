@@ -7,17 +7,15 @@ module;
 
 export module silicon.ai.llm.error;
 
+import silicon.error;
+
 // ---- 模块内部：DI 句柄（不导出） ----
 // 置于 export namespace 之外，使其具模块链接而非外部链接（消费方不可直触）。
 namespace silicon::ai::llm {
 
-// std::error_category 析构为保护，category 对象进程期常驻、永不释放；
-// 用 no-op 删除器的 unique_ptr 表达「模块独占该 category 句柄」语义而不实际 delete。
-struct category_deleter {
-    void operator()(const std::error_category*) const noexcept {}
-};
-
-inline std::unique_ptr<const std::error_category, category_deleter> llm_category_instance;
+// 用 silicon.error 提供的 no-op 删除器承载「模块独占 category 句柄」语义而不实际 delete
+// （std::error_category 析构为保护、进程期常驻；真实生命周期由组合根持有）。
+inline std::unique_ptr<const std::error_category, silicon::error::category_deleter> llm_category_instance;
 
 } // namespace silicon::ai::llm
 
@@ -38,7 +36,7 @@ enum class llm_error {
 // 该实现类由组合根（composition root）实例化并经 inject_llm_category 注入，
 // 模块自身不再持有单例；下层统一经 llm_category() 取到同一实例，跨模块/跨 DLL 安全。
 class llm_category_impl final: public std::error_category {
-    const char *name() const noexcept override { return "silicon.ai"; }
+    const char *name() const noexcept override { return "silicon.ai.llm"; }
     std::string message(int ev) const override {
         switch(static_cast<llm_error>(ev)) {
             case llm_error::kProviderUnavailable:

@@ -22,7 +22,7 @@ target("ai.test", function()
     set_kind("binary")
     -- json is moduleonly: its header-unit BMI only travels through a direct
     -- dependency, bypassing the non-moduleonly ai target (MSVC C7612).
-    add_deps("silicon::ai", "silicon::json", "silicon::test")
+    add_deps("silicon::ai", "silicon::json", "silicon::test", "silicon::error")
     add_files("test/**.cpp")
     add_tests()
 end)
