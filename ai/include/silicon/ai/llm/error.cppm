@@ -5,9 +5,6 @@ module;
 
 export module silicon.ai.llm.error;
 
-// category 实现类前向声明：不导出，完整定义见 error.cpp（实现单元）。
-class llm_category_impl;
-
 export namespace silicon::ai::llm {
 
 /// LLM 语义错误枚举（专属 category：silicon.ai）。
@@ -19,14 +16,35 @@ enum class llm_error {
     kUnknown,
 };
 
+// Named class instead of an anonymous-class local static: MSVC module builds
+// mishandle the vtable of an anonymous derived class inside an inline function
+// local static (name()/message() virtual dispatch crashes with SIGSEGV).
+class llm_category_impl final: public std::error_category {
+    const char *name() const noexcept override { return "silicon.ai"; }
+    std::string message(int ev) const override {
+        switch(static_cast<llm_error>(ev)) {
+            case llm_error::kProviderUnavailable:
+                return "llm provider unavailable";
+            case llm_error::kInvalidResponse:
+                return "invalid llm response";
+            case llm_error::kToolNotFound:
+                return "tool not found";
+            case llm_error::kTimeout:
+                return "llm request timed out";
+            case llm_error::kUnknown:
+                return "unknown llm error";
+        }
+        return "unknown llm error";
+    }
+};
+
 /// 返回 llm_error 专属 error_category（name() == "silicon.ai"）。
-/// 声明留在接口单元；定义必须放在实现单元 error.cpp —— 其函数体
-/// `static llm_category_impl cat;` 需要 llm_category_impl 的完整定义。
-[[nodiscard]] const std::error_category &llm_category() noexcept;
+[[nodiscard]] inline const std::error_category &llm_category() noexcept {
+    static const llm_category_impl cat;
+    return cat;
+}
 
 /// llm_error 枚举 → std::error_code（专属 category）。
-/// 内联于接口单元：仅依赖 llm_category() 的声明，便于 ADL 与
-/// std::error_code 的隐式转换（无需 import std 之外的额外可见性）。
 [[nodiscard]] inline std::error_code make_error_code(llm_error e) noexcept {
     return {static_cast<int>(e), llm_category()};
 }
