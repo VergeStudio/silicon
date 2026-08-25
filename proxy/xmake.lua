@@ -1,5 +1,5 @@
 target("proxy", function()
-    set_kind("$(kind)")
+    set_kind("static")
 
     -- Windows DLL：C++20 模块附着实体不隐式 inline，MSVC 目标无自动导出，
     -- 统一用 .def 全量导出，保证消费方可跨 DLL 链接模块符号。

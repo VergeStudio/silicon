@@ -1,5 +1,5 @@
 target("di", function()
-    set_kind("$(kind)")
+    set_kind("static")
 
     add_includedirs("include", {public = true})
 
