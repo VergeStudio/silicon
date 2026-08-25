@@ -1,6 +1,6 @@
 target("event", function()
     set_kind("$(kind)")
-    add_deps("silicon::error")
+    add_deps("core")
 
     if is_plat("windows") and is_config("kind", "shared") then
         add_rules("utils.symbols.export_all", {export_classes = true})

@@ -4,7 +4,7 @@ target("config", function()
     -- include/silicon/config/json/loader.cppm 依赖 silicon.json 模块 BMI（全限定名，跨命名空间可解析）。
     -- 错误码体系由 silicon.config.error 子模块自维护（config::result 别名亦定义于此）。
     add_deps("silicon::json", "silicon::fs", {configs = {shared = true}})
-    add_deps("silicon::error")
+    add_deps("core")
 
     if is_plat("windows") and is_config("kind", "shared") then
         add_rules("utils.symbols.export_all", {export_classes = true})

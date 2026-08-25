@@ -1,7 +1,6 @@
 target("cli", function()
     set_kind("$(kind)")
-    add_deps("silicon::proxy")
-    add_deps("silicon::error")
+    add_deps("core")
 
     -- Windows DLL：C++20 模块附着实体不隐式 inline，MSVC 目标无自动导出，
     -- 统一用 .def 全量导出，保证消费方可跨 DLL 链接模块符号。
@@ -20,7 +19,7 @@ end)
 
 target("cli.test", function()
     set_kind("binary")
-    add_deps("silicon::cli", "silicon::test", "silicon::error")
+    add_deps("silicon::cli", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
 end)

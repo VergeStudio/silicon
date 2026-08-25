@@ -7,6 +7,7 @@ target("xdg", function()
     if is_plat("windows") and is_config("kind", "shared") then
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
+    add_deps("core")
     add_includedirs("include", {public = true})
     add_files("include/silicon/xdg/**.cppm", {public = true})
     -- 两平台实现单元均收集编译；平台选择由各文件内 #if 守卫完成

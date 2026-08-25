@@ -7,8 +7,7 @@ target("ai", function()
     if is_plat("windows") and is_config("kind", "shared") then
         add_rules("utils.symbols.export_all", {export_classes = true})
     end
-    add_deps("silicon::json", "silicon::http", "silicon::di", "silicon::core", "silicon::proxy")
-    add_deps("silicon::error")
+    add_deps("silicon::json", "silicon::http", "silicon::di", "silicon::core")
     add_includedirs("include", {public = true})
     add_files("include/silicon/ai/**.cppm", {public = true})
     add_files("src/**.cpp")
@@ -22,7 +21,7 @@ target("ai.test", function()
     set_kind("binary")
     -- json is moduleonly: its header-unit BMI only travels through a direct
     -- dependency, bypassing the non-moduleonly ai target (MSVC C7612).
-    add_deps("silicon::ai", "silicon::json", "silicon::test", "silicon::error")
+    add_deps("silicon::ai", "silicon::json", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
 end)

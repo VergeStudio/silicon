@@ -33,9 +33,8 @@ target("scheduler", function()
     -- 注意：不得再依赖 silicon::coroutine —— coroutine 现在反向依赖本 target。
     add_deps("silicon::task", {configs = {shared = true}})
 
-    -- scheduler_facade 走 silicon.proxy 类型擦除，需依赖 proxy 模块。
-    add_deps("silicon::proxy")
-    add_deps("silicon::error")
+    -- scheduler_facade 走 silicon.proxy 类型擦除（proxy 已并入 core），依赖 core 即可。
+    add_deps("core")
 
     -- 错误码体系由各模块自维护：silicon.scheduler 内置 scheduler_error。
 
