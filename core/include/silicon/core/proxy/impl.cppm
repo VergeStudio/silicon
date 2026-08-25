@@ -20,7 +20,7 @@ module;
 #include <utility>
 #include <version>
 
-#include "silicon/proxy/proxy_macros.h"
+#include "silicon/core/proxy/proxy_macros.h"
 
 // Build-environment compensation: this vendored proxy impl unit references
 // PROD_UNREACHABLE()/PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE. proxy_macros.h already

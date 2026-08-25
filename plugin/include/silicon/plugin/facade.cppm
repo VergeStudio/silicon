@@ -15,7 +15,7 @@ module;
 
 // proxy 的 dispatch 宏定义在头文件里：宏不随 C++20 模块导出，
 // 消费方必须在全局模块片段显式包含，随后再 `import silicon.proxy`。
-#include <silicon/proxy/proxy_macros.h>
+#include <silicon/core/proxy/proxy_macros.h>
 
 export module silicon.plugin;
 export import silicon.plugin.error;

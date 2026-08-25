@@ -29,7 +29,7 @@ module;
 #include <utility>
 
 #include <tuple>
-#include <silicon/proxy/proxy_macros.h>
+#include <silicon/core/proxy/proxy_macros.h>
 
 export module silicon.network:tls;
 

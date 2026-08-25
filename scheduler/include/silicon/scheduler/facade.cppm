@@ -2,7 +2,7 @@ module;
 
 #include <coroutine>
 #include <cstddef>
-#include <silicon/proxy/proxy_macros.h>
+#include <silicon/core/proxy/proxy_macros.h>
 #include <tuple>
 
 export module silicon.scheduler:facade;

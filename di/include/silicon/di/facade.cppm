@@ -30,7 +30,7 @@ module;
 #include <expected>
 #include <system_error>
 #include <iostream>
-#include <silicon/proxy/proxy_macros.h>
+#include <silicon/core/proxy/proxy_macros.h>
 
 export module silicon.di:facade;
 export import silicon.di.error;

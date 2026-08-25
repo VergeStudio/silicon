@@ -11,8 +11,6 @@ target("core", function()
 
     if is_kind("shared") then
         add_defines("CORE_SHARED_LIB", "CORE_EXPORT", {public = true})
-        -- proxy 模块随 core 合并，复用其 PROXY_* 导出宏（与 platform/exception 一致）。
-        add_defines("PROXY_SHARED_LIB", "PROXY_EXPORT", {public = true})
     end
 
     -- 基础层（core）不依赖任何其他 silicon 模块：platform / exception / error /
@@ -29,12 +27,6 @@ target("core", function()
     -- 核心模块接口：含 platform / exception / util（均在 core/include/silicon/core
     -- 下，不再被 remove_files 排除）。
     add_files("include/silicon/core/**.cppm", {public = true})
-    -- 合并进来的 error 模块（原独立 target，module 名仍为 silicon.error）。
-    add_files("include/silicon/error/error.cppm", {public = true})
-    -- 合并进来的 proxy 模块（原独立 target，module 名仍为 silicon.proxy）。
-    -- proxy 库依赖的全局片段头文件，消费方定义 facade 时必须 #include。
-    add_files("include/silicon/proxy/**.cppm", {public = true})
-    add_headerfiles("include/silicon/proxy/common.h", "include/silicon/proxy/proxy_macros.h")
 
     -- clang 对 MSFT proxy 广泛使用的 [[no_unique_address]] 误报 unknown-attribute，
     -- 沿用原 proxy target 的处理（消费方实例化 proxy 模板同样命中，故 public 向下传递）。
