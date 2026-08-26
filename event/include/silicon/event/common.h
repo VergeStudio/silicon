@@ -1,11 +1,21 @@
-#pragma once
+#ifndef SILICON_EVENT_COMMON_H
+#define SILICON_EVENT_COMMON_H
 
-#if defined(SILICON_PLATFORM_WINDOWS) && defined(EVENT_SHARED_LIB)
-#if defined(EVENT_EXPORT)
-#define EVENT_API __declspec(dllexport)
+// 单 DLL 伞宏：silicon.dll 构建时 SILICON_EXPORT 由编译进本 DLL 的目标统一定义
+// （dllexport）；消费方（siliconbuddy / 测试）不定义该宏 → dllimport。
+// 各子模块保留自有的 *API 宏命名（此处 EVENT_API），但统一以 SILICON_EXPORT 为唯一闸门。
+#if defined(SILICON_PLATFORM_WINDOWS)
+#    if defined(SILICON_EXPORT)
+#        define EVENT_API __declspec(dllexport)
+#    else
+#        define EVENT_API __declspec(dllimport)
+#    endif
 #else
-#define EVENT_API __declspec(dllimport)
+#    if defined(SILICON_EXPORT)
+#        define EVENT_API __attribute__((visibility("default")))
+#    else
+#        define EVENT_API
+#    endif
 #endif
-#else
-#define EVENT_API
-#endif
+
+#endif // SILICON_EVENT_COMMON_H

@@ -8,6 +8,8 @@ module;
 #include <tuple>
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/core/proxy/proxy_macros.h>
+// 单 DLL 伞宏（TIME_API）：同全局模块片段文本包含，不随模块导出
+#include <silicon/time/common.h>
 export module silicon.time;
 
 
@@ -40,7 +42,7 @@ template <class T>
 }
 
 /// 默认系统时钟（包装 std::chrono::system_clock）
-class system_clock {
+class TIME_API system_clock {
   public:
     std::chrono::system_clock::time_point now() const;
     std::int64_t now_ms() const;
@@ -61,7 +63,7 @@ template <class T, class... Args>
 }
 
 /// 默认日期实现（基于 clock 门面，返回 UTC 日期 YYYY-MM-DD）
-class date_source {
+class TIME_API date_source {
     struct impl {
       public:
         clock_view clock_;

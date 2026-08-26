@@ -1,28 +1,19 @@
 #ifndef SILICON_CORE_COMMON_H
 #define SILICON_CORE_COMMON_H
 
-// 平台判定统一使用 SILICON_PLATFORM_*（由根 xmake.lua 在构建顶层统一定义，
-// 见该文件注释）。本头不再直接依赖编译器预定义宏。
-// Windows: SILICON_PLATFORM_WINDOWS  |  Unix 族: SILICON_PLATFORM_UNIX
-// 细分: APPLE / LINUX / BSD
-
+// 单 DLL 伞宏：silicon.dll 构建时 SILICON_EXPORT 由编译进本 DLL 的目标统一定义
+// （dllexport）；消费方（siliconbuddy / 测试）不定义该宏 → dllimport。
+// 各子模块保留自有的 *API 宏命名（此处 CORE_API），但统一以 SILICON_EXPORT 为唯一闸门。
+// 单 DLL 迁移后 core 恒编译进聚合 DLL，故不再使用旧 CORE_SHARED_LIB/CORE_EXPORT 双宏。
 #if defined(SILICON_PLATFORM_WINDOWS)
-#    if defined(CORE_SHARED_LIB)
-#        if defined(CORE_EXPORT)
-#            define CORE_API __declspec(dllexport)
-#        else
-#            define CORE_API __declspec(dllimport)
-#        endif
+#    if defined(SILICON_EXPORT)
+#        define CORE_API __declspec(dllexport)
 #    else
-#        define CORE_API
+#        define CORE_API __declspec(dllimport)
 #    endif
 #else
-#    if defined(CORE_SHARED_LIB)
-#        if defined(CORE_EXPORT)
-#            define CORE_API __attribute__((visibility("default")))
-#        else
-#            define CORE_API
-#        endif
+#    if defined(SILICON_EXPORT)
+#        define CORE_API __attribute__((visibility("default")))
 #    else
 #        define CORE_API
 #    endif

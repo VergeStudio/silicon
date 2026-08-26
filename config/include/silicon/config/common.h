@@ -1,28 +1,18 @@
 #ifndef SILICON_CONFIG_COMMON_H
 #define SILICON_CONFIG_COMMON_H
 
-// Platform detection via SILICON_PLATFORM_* macros (single source: xmake.lua root;
-// see core/include/silicon/core/common.h). Do NOT use raw predefined OS macros.
-// Windows: SILICON_PLATFORM_WINDOWS
-// Unix-like: SILICON_PLATFORM_UNIX / LINUX / APPLE / BSD
-
+// 单 DLL 伞宏：silicon.dll 构建时 SILICON_EXPORT 由编译进本 DLL 的目标统一定义
+// （dllexport）；消费方（siliconbuddy / 测试）不定义该宏 → dllimport。
+// 各子模块保留自有的 *API 宏命名（此处 CONFIG_API），但统一以 SILICON_EXPORT 为唯一闸门。
 #if defined(SILICON_PLATFORM_WINDOWS)
-#    if defined(CONFIG_SHARED_LIB)
-#        if defined(CONFIG_EXPORT)
-#            define CONFIG_API __declspec(dllexport)
-#        else
-#            define CONFIG_API __declspec(dllimport)
-#        endif
+#    if defined(SILICON_EXPORT)
+#        define CONFIG_API __declspec(dllexport)
 #    else
-#        define CONFIG_API
+#        define CONFIG_API __declspec(dllimport)
 #    endif
 #else
-#    if defined(CONFIG_SHARED_LIB)
-#        if defined(CONFIG_EXPORT)
-#            define CONFIG_API __attribute__((visibility("default")))
-#        else
-#            define CONFIG_API
-#        endif
+#    if defined(SILICON_EXPORT)
+#        define CONFIG_API __attribute__((visibility("default")))
 #    else
 #        define CONFIG_API
 #    endif

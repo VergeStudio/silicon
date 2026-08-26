@@ -9,9 +9,11 @@ target("core", function()
         add_defines("WIN")
     end
 
-    if is_kind("shared") then
-        add_defines("CORE_SHARED_LIB", "CORE_EXPORT", {public = true})
-    end
+    -- 单 DLL 伞宏：core 恒编译进聚合 silicon.dll，SILICON_EXPORT 由本 target 定义，
+    -- 使 CORE_API（common.h 已重指向 SILICON_EXPORT）据此 dllexport
+    -- （core.config.cppm 的 GetVersion* 等据此导出，否则退化为 dllimport 触发 C2491）。
+    -- 旧 per-module 双宏 CORE_SHARED_LIB/CORE_EXPORT 已弃用。
+    add_defines("SILICON_EXPORT")
 
     -- 基础层（core）不依赖任何其他 silicon 模块：platform / exception / error /
     -- proxy / util 现已统一在 core 内编译，对外保持原 module 名不变
