@@ -36,10 +36,7 @@ target("core", function()
 
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("core.config.cppm.in")
-    -- proxy 模块配置分区（版本信息），随 core 一并生成。
-    add_configfiles("proxy.config.cppm.in")
     add_files("$(builddir)/silicon/config/core.*.cppm", {public = true})
-    add_files("$(builddir)/silicon/config/proxy.*.cppm", {public = true})
 
 
 end)
