@@ -32,14 +32,14 @@ target("core", function()
     add_includedirs("include", {public = true})
     -- 各并入模块（已物理移入 core/ 子目录）的 include 根：其 .cpp/.cppm 内的
     -- #include <silicon/X/...> 解析。
-    add_includedirs("$(projectdir)/core/config/include")
-    add_includedirs("$(projectdir)/core/di/include")
-    add_includedirs("$(projectdir)/core/event/include")
-    add_includedirs("$(projectdir)/core/time/include")
-    add_includedirs("$(projectdir)/core/logger/include")
-    add_includedirs("$(projectdir)/core/fs/include")
-    add_includedirs("$(projectdir)/core/xdg/include")
-    add_includedirs("$(projectdir)/core/json/include")
+    add_includedirs("$(scriptdir)/config/include")
+    add_includedirs("$(scriptdir)/di/include")
+    add_includedirs("$(scriptdir)/event/include")
+    add_includedirs("$(scriptdir)/time/include")
+    add_includedirs("$(scriptdir)/logger/include")
+    add_includedirs("$(scriptdir)/fs/include")
+    add_includedirs("$(scriptdir)/xdg/include")
+    add_includedirs("$(scriptdir)/json/include")
 
     -- core 自有源文件
     add_files("src/**.cpp")
@@ -53,29 +53,29 @@ target("core", function()
     -- 仅把文件加入本 target 编译，从而零 import 改动、零分区重命名。各模块 .cppm
     -- 为 public（消费方据此 import）。
     -- config
-    add_files("$(projectdir)/core/config/include/silicon/config/**.cppm", {public = true})
-    add_files("$(projectdir)/core/config/src/**.cpp")
+    add_files("$(scriptdir)/config/include/silicon/config/**.cppm", {public = true})
+    add_files("$(scriptdir)/config/src/**.cpp")
     -- di（纯模板，无 .cpp）
-    add_files("$(projectdir)/core/di/include/silicon/di/**.cppm", {public = true})
+    add_files("$(scriptdir)/di/include/silicon/di/**.cppm", {public = true})
     -- event
-    add_files("$(projectdir)/core/event/include/silicon/event/**.cppm", {public = true})
-    add_files("$(projectdir)/core/event/src/**.cpp")
+    add_files("$(scriptdir)/event/include/silicon/event/**.cppm", {public = true})
+    add_files("$(scriptdir)/event/src/**.cpp")
     -- time
-    add_files("$(projectdir)/core/time/include/silicon/time/**.cppm", {public = true})
-    add_files("$(projectdir)/core/time/src/**.cpp")
+    add_files("$(scriptdir)/time/include/silicon/time/**.cppm", {public = true})
+    add_files("$(scriptdir)/time/src/**.cpp")
     -- logger
-    add_files("$(projectdir)/core/logger/include/silicon/logger/**.cppm", {public = true})
-    add_files("$(projectdir)/core/logger/src/**.cpp")
-    add_headerfiles("$(projectdir)/core/logger/include/silicon/logger/**.h")
+    add_files("$(scriptdir)/logger/include/silicon/logger/**.cppm", {public = true})
+    add_files("$(scriptdir)/logger/src/**.cpp")
+    add_headerfiles("$(scriptdir)/logger/include/silicon/logger/**.h")
     -- fs
-    add_files("$(projectdir)/core/fs/include/silicon/fs/**.cppm", {public = true})
-    add_files("$(projectdir)/core/fs/src/**.cpp")
+    add_files("$(scriptdir)/fs/include/silicon/fs/**.cppm", {public = true})
+    add_files("$(scriptdir)/fs/src/**.cpp")
     -- xdg（两平台实现单元均收集编译，平台选择由各文件内 #if 守卫完成）
-    add_files("$(projectdir)/core/xdg/include/silicon/xdg/**.cppm", {public = true})
-    add_files("$(projectdir)/core/xdg/src/**.cpp")
+    add_files("$(scriptdir)/xdg/include/silicon/xdg/**.cppm", {public = true})
+    add_files("$(scriptdir)/xdg/src/**.cpp")
     -- json（纯模块库：json 模块 + json_impl 模块，含全量内联实现）
-    add_files("$(projectdir)/core/json/include/silicon/json/**.cppm", {public = true})
-    add_files("$(projectdir)/core/json/include/silicon/json_impl/json_impl.cppm", {public = true})
+    add_files("$(scriptdir)/json/include/silicon/json/**.cppm", {public = true})
+    add_files("$(scriptdir)/json/include/silicon/json_impl/json_impl.cppm", {public = true})
 
     -- clang 对 MSFT proxy 广泛使用的 [[no_unique_address]] 误报 unknown-attribute，
     -- 沿用原 proxy target 的处理（消费方实例化 proxy 模板同样命中，故 public 向下传递）。
