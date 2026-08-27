@@ -37,8 +37,12 @@ module;
 #endif
 
 #if !defined(PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE)
-#    if defined(_MSC_VER)
+#    if defined(__clang__)
 #        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE msvc::no_unique_address
+#    elif defined(_MSC_VER)
+#        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE msvc::no_unique_address
+#    elif defined(__GNUC__)
+#        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE no_unique_address
 #    else
 #        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE no_unique_address
 #    endif
