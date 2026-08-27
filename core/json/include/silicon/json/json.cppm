@@ -13,8 +13,11 @@ import std;
 export import silicon.json_impl;
 
 // Public type, re-exported from the forked implementation.
+// 注意：clang 下 export import 仅暴露 json_impl 在模块作用域重导出的 json，
+// 不暴露 silicon::json_impl 命名空间路径；故此处用模块作用域的 json（即
+// json_impl 重导出名）作别名源，MSVC/clang 均可编译。
 export namespace silicon::json {
-using json = silicon::json_impl::json;
+using json = json;
 }
 // Also export at module scope for convenience
 export using silicon::json::json;
