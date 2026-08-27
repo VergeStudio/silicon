@@ -4589,13 +4589,13 @@ export module silicon.json_impl;
 // Re-export the public API that was previously visible through the (now removed)
 // json.hpp umbrella header.
 export {
-    silicon::json_impl::basic_json;
-    silicon::json_impl::json;
-    silicon::json_impl::ordered_json;
-    silicon::json_impl::json_pointer;
-    silicon::json_impl::adl_serializer;
-    silicon::json_impl::ordered_map;
-    silicon::json_impl::byte_container_with_subtype;
+    using silicon::json_impl::basic_json;
+    using silicon::json_impl::json;
+    using silicon::json_impl::ordered_json;
+    using silicon::json_impl::json_pointer;
+    using silicon::json_impl::adl_serializer;
+    using silicon::json_impl::ordered_map;
+    using silicon::json_impl::byte_container_with_subtype;
     // basic_json's friend declarations name these internal template classes.
     // They are declared in this module's global module fragment (via the inlined
     // json.hpp content) and are therefore NOT visible to importers; but importers
