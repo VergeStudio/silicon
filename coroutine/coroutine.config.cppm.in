@@ -9,13 +9,13 @@ export module silicon.coroutine:config;
 import std;
 
 namespace silicon::coroutine {
-export COROUTINE_API const std::string GetVersion() { return "${VERSION}"; }
-export COROUTINE_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
-export COROUTINE_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
-export COROUTINE_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
-export COROUTINE_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
-export COROUTINE_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
-export COROUTINE_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+export inline COROUTINE_API const std::string GetVersion() { return "${VERSION}"; }
+export inline COROUTINE_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export inline COROUTINE_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export inline COROUTINE_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export inline COROUTINE_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export inline COROUTINE_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export inline COROUTINE_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
 } // namespace silicon::coroutine
 
 // module silicon.coroutine.config;

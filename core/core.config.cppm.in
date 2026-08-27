@@ -9,13 +9,13 @@ export module silicon.core:config;
 import std;
 
 namespace silicon::core {
-export CORE_API const std::string GetVersion() { return "${VERSION}"; }
-export CORE_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
-export CORE_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
-export CORE_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
-export CORE_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
-export CORE_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
-export CORE_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+export inline CORE_API const std::string GetVersion() { return "${VERSION}"; }
+export inline CORE_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export inline CORE_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export inline CORE_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export inline CORE_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export inline CORE_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export inline CORE_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
 } // namespace silicon::core
 
 // module silicon.core.config;

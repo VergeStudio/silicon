@@ -13,11 +13,11 @@ export module silicon.scheduler.task:config;
 // 否则会与 silicon.scheduler:config 中同签名的 GetVersion* 构成重定义
 // （silicon.scheduler 对本模块整体 re-export）。故独立为 task_version。
 namespace silicon::scheduler::task_version {
-export TASK_API const std::string GetVersion() { return "${VERSION}"; }
-export TASK_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
-export TASK_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
-export TASK_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
-export TASK_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
-export TASK_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
-export TASK_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+export inline TASK_API const std::string GetVersion() { return "${VERSION}"; }
+export inline TASK_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export inline TASK_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export inline TASK_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export inline TASK_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export inline TASK_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export inline TASK_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
 } // namespace silicon::scheduler::task_version

@@ -8,11 +8,11 @@ module;
 export module silicon.event:config;
 
 namespace silicon::event {
-export EVENT_API const std::string GetVersion() { return "${VERSION}"; }
-export EVENT_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
-export EVENT_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
-export EVENT_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
-export EVENT_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
-export EVENT_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
-export EVENT_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+export inline EVENT_API const std::string GetVersion() { return "${VERSION}"; }
+export inline EVENT_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
+export inline EVENT_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
+export inline EVENT_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
+export inline EVENT_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
+export inline EVENT_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
+export inline EVENT_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
 } // namespace silicon::event
