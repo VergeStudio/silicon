@@ -1,5 +1,10 @@
 module;
 
+// MSVC C++20 模块：<ctime> 等标准头在全局模块片段被包含后，其 using 声明
+// （如 std::mktime）被模块重导出时触发 C5304（声明具有内部链接），并被
+// 视作错误（C2220）。该警告系工具链已知误报，禁用整个模块重导出警告族。
+#pragma warning(disable : 5301 5302 5303 5304 5305)
+
 #include <ctime>
 
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE
