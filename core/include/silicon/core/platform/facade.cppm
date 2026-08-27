@@ -13,6 +13,10 @@ module;
 #include <tuple>
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/core/proxy/proxy_macros.h>
+// CORE_API（dllexport/dlimport 闸门）：create_platform 为模块接口声明、实现单元
+// 定义的自由函数，须显式标注方能被导出到 core.dll 导入库（MSVC 不会自动导出模块
+// 链接的自由函数）。
+#include <silicon/core/common.h>
 export module silicon.platform;
 
 
@@ -144,6 +148,6 @@ template<class T>
 
 // 编译期选中当前平台实现（互斥，仅一个分支参与重载决议），返回拥有句柄。
 // 定义见实现单元 core/src/platform/facade.cpp。
-[[nodiscard]] platform_proxy create_platform();
+[[nodiscard]] CORE_API platform_proxy create_platform();
 
 } // namespace silicon::platform

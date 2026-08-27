@@ -14,34 +14,35 @@ module;
 
 #include <string>
 #include <vector>
+#include <silicon/xdg/common.h>
 
 export module silicon.xdg;
 
 export namespace silicon::xdg {
 
 /// 当前用户主目录（POSIX: $HOME / getpwuid；Windows: %USERPROFILE%）。
-std::string home_dir();
+XDG_API std::string home_dir();
 
 /// XDG_DATA_HOME：用户级数据目录。
-std::string data_home();
+XDG_API std::string data_home();
 
 /// XDG_CONFIG_HOME：用户级配置目录。
-std::string config_home();
+XDG_API std::string config_home();
 
 /// XDG_CACHE_HOME：用户级缓存目录。
-std::string cache_home();
+XDG_API std::string cache_home();
 
 /// XDG_STATE_HOME：用户级状态目录。
-std::string state_home();
+XDG_API std::string state_home();
 
 /// XDG_RUNTIME_DIR：用户级运行时目录（无默认值则返回空串）。
-std::string runtime_dir();
+XDG_API std::string runtime_dir();
 
 /// XDG_DATA_DIRS：系统级数据目录集合（有序）。
-std::vector<std::string> data_dirs();
+XDG_API std::vector<std::string> data_dirs();
 
 /// XDG_CONFIG_DIRS：系统级配置目录集合（有序）。
-std::vector<std::string> config_dirs();
+XDG_API std::vector<std::string> config_dirs();
 
 } // namespace silicon::xdg
 

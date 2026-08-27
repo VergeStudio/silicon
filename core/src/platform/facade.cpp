@@ -1,6 +1,8 @@
 module;
 
 #include <string>
+// CORE_API 宏：create_platform 定义处须可见，否则 CORE_API 展开为空。
+#include <silicon/core/common.h>
 
 module silicon.platform;
 
@@ -101,7 +103,7 @@ class unix_platform {
 };
 
 // 编译期选中当前平台实现（互斥，仅一个分支参与重载决议），返回拥有句柄。
-platform_proxy create_platform() {
+CORE_API platform_proxy create_platform() {
     if constexpr(os == os_id::kWindowsNt) {
         return make_platform<windows_platform>();
     } else if constexpr(os == os_id::kLinuxOs) {

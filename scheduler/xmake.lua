@@ -31,5 +31,10 @@ target("scheduler.impl", function()
 
     add_defines("SILICON_EXPORT")
 
+    -- Windows IOCP 通知器（io_notifier_iocp.cpp）引用 WSAPoll，须链接 ws2_32。
+    if is_plat("windows") then
+        add_syslinks("ws2_32")
+    end
+
     add_files("src/**.cpp")
 end)

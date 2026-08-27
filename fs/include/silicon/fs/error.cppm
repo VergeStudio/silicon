@@ -5,14 +5,20 @@ module;
 #include <string>
 #include <system_error>
 
+// FS_API 宏（dllexport/dlimport 闸门）：fs_category_impl 的 vtable 须跨 DLL 导出，
+// 否则消费方（测试/应用）内联 make_error_code / fs_category 时无法解析其虚函数槽。
+#include <silicon/fs/common.h>
+
 export module silicon.fs.error;
 
 import silicon.error;
 
-// ---- 模块内部：DI 句柄（不导出）----
-namespace silicon::fs {
+// ---- 跨 DLL 共享的 DI 句柄：须显式 dllexport（FS_API），否则被内联进消费方的
+// inject_fs_error_category / fs_category / make_error_code 无法解析其实例地址（LNK2001）。
+// 模块链接的 export 变量在直接编译进 DLL 时不会自动导出到导入库，须 *API 强标。----
+export namespace silicon::fs {
 
-std::atomic<const std::error_category *> fs_error_category_instance{nullptr};
+FS_API std::atomic<const std::error_category *> fs_error_category_instance{nullptr};
 
 } // namespace silicon::fs
 
@@ -31,7 +37,8 @@ enum class fs_error {
 };
 
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
-class fs_category_impl final : public std::error_category {
+// FS_API 强制导出其 vtable（name/message 虚函数槽），否则跨 DLL 消费方解析失败。
+class FS_API fs_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.fs"; }
     std::string message(int ev) const override {
         switch(static_cast<fs_error>(ev)) {

@@ -13,6 +13,9 @@ module;
 #include <system_error>
 #include <vector>
 
+// FS_API 宏（dllexport/dlimport 闸门）：create_file_system 定义处须可见，否则 FS_API 展开为空。
+#include <silicon/fs/common.h>
+
 module silicon.fs;
 import silicon.fs.error;
 import silicon.proxy;
@@ -128,7 +131,7 @@ class posix_file_system: public file_system_base<posix_file_system> {
 
 #endif
 
-file_system_proxy create_file_system() {
+FS_API file_system_proxy create_file_system() {
 #if defined(SILICON_PLATFORM_WINDOWS)
     return make_file_system<win32_file_system>();
 #else

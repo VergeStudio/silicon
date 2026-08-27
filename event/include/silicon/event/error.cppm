@@ -4,19 +4,17 @@ module;
 #include <exception>
 #include <string>
 #include <system_error>
+#include <silicon/event/common.h>
 
 export module silicon.event.error;
 
 import silicon.error;
 
-// ---- 模块内部：DI 句柄（不导出）----
-namespace silicon::event {
-
-std::atomic<const std::error_category *> event_error_category_instance{nullptr};
-
-} // namespace silicon::event
-
 export namespace silicon::event {
+
+// 错误类别实例（组合根注入）：跨 DLL 消费方经导出的内联函数 event_category() /
+// make_error_code() 引用，须以 EVENT_API 显式导出，否则 LNK2001。
+EVENT_API std::atomic<const std::error_category *> event_error_category_instance{nullptr};
 
 /// event 模块专属错误码枚举。
 enum class event_error {
@@ -24,7 +22,8 @@ enum class event_error {
 };
 
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
-class event_category_impl final : public std::error_category {
+// vtable 须以 EVENT_API 显式导出，否则跨 DLL 消费方出现 LNK2001。
+class EVENT_API event_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.event"; }
     std::string message(int ev) const override {
         switch(static_cast<event_error>(ev)) {

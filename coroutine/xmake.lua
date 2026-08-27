@@ -9,7 +9,7 @@ target("coroutine", function()
     -- 错误码体系由各模块自维护：silicon.coroutine 内置 coroutine_error / channel_error。
     add_deps("core", "silicon::task", "silicon::scheduler")
 
-    -- coroutine 恒编译进单 silicon.dll，moduleonly 目标须定义 SILICON_EXPORT，
+    -- coroutine 为独立 moduleonly+static 目标，不编译进 DLL；本目标须定义 SILICON_EXPORT，
     -- 否则 :config 生成分区里的 COROUTINE_API 版本函数退化为 dllimport 触发 C2491。
     add_defines("SILICON_EXPORT")
 
@@ -36,7 +36,12 @@ end)
 
 target("coroutine.test", function()
     set_kind("binary")
-    add_deps("silicon::coroutine", "silicon", "silicon::test")
+    -- coroutine 接口单向依赖 scheduler/task，且 coroutine 实体（sync_wait_event /
+    -- pipe_t）实际编译于 scheduler 模块；测试须显式链接其实现静态库以解析符号。
+    add_deps("silicon::coroutine", "silicon::coroutine.impl",
+             "silicon::scheduler", "silicon::scheduler.impl",
+             "silicon::task", "silicon::task.impl",
+             "core", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
 end)

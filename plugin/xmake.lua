@@ -6,7 +6,8 @@ target("plugin", function()
     -- proxy 的 dispatch 宏走头文件通道，故同时需要其 public includedirs（经 core 传递）。
     add_deps("core")
 
-    -- 单 DLL 伞宏：本模块编译进 silicon.dll 时，实体经 PLUGIN_API（SILICON_EXPORT）dllexport。
+    -- 单 DLL 伞宏闸门：本模块为独立 moduleonly+static，定义 SILICON_EXPORT 使
+    -- PLUGIN_API 实体 dllexport，由消费方静态链接。
     add_defines("SILICON_EXPORT")
 
     add_files("include/silicon/plugin/**.cppm", {public = true})
@@ -24,7 +25,7 @@ end)
 
 target("plugin.test", function()
     set_kind("binary")
-    add_deps("silicon::plugin", "silicon", "silicon::test")
+    add_deps("silicon::plugin", "silicon::plugin.impl", "core", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
 end)

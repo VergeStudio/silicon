@@ -20,7 +20,7 @@ export import silicon.config.config_value;
 export namespace silicon::config {
 /// 基于 JSON 文件的配置加载器（平坦 key=value 映射）。
 /// 满足 silicon.fs 的 file_system_facade（鸭子类型），从给定文件系统句柄读取。
-CONFIG_API class JsonFileConfig {
+class CONFIG_API JsonFileConfig {
   public:
     JsonFileConfig();
     ~JsonFileConfig();

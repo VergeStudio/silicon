@@ -2,9 +2,10 @@ target("ai", function()
     -- 接口模块（moduleonly）：纯抽象接口（proxy 门面 + 工厂签名 + 类声明），不含实现。
     set_kind("moduleonly")
 
-    add_deps("silicon::json", "silicon::http", "silicon::di", "core")
+    add_deps("silicon::http", "core")
 
-    -- 单 DLL 伞宏：本模块编译进 silicon.dll 时，实体经 AI_API（SILICON_EXPORT）dllexport。
+    -- 单 DLL 伞宏闸门：本模块实体经 *_API（SILICON_EXPORT）dllexport，
+    -- 由消费方（测试/应用）静态链接 core.dll 与 ai.impl.lib。
     add_defines("SILICON_EXPORT")
 
     add_includedirs("include", {public = true})
@@ -29,8 +30,9 @@ end)
 
 target("ai.test", function()
     set_kind("binary")
-    -- json is moduleonly: 其 BMI 经直接依赖传递（MSVC C7612 规避）。
-    add_deps("silicon::ai", "silicon::json", "silicon", "silicon::test")
+    -- silicon.json 已并入 core，其模块 IFC 经 core 的 public 依赖传递（无需直接 add_deps）。
+    -- ai.impl 为独立 static lib（不再并入任何 DLL），测试须直接链接以解析 ai 实体符号。
+    add_deps("silicon::ai", "silicon::ai.impl", "core", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
 end)
