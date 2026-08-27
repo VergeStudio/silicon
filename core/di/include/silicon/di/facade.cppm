@@ -2779,8 +2779,14 @@ template <typename T, typename... Args> struct constructor<T(Args...)> {
 export namespace silicon::di {
 
 template <typename StorageTag, typename Type, typename U> struct conversions;
-template <typename StorageTag, typename Type, typename StoredType,
-          typename Factory, typename Conversions>
+// Primary (forward) declaration carries default arguments so that the
+// sentinel type `storage<void>` is a well-formed (incomplete) type-id. This is
+// required for clang: MSVC accepts `storage<void>` from defaults supplied on a
+// later definition, but clang requires the defaults on the first declaration.
+// `storage<void>` is only ever used inside std::is_same_v sentinels, so an
+// incomplete type is sufficient.
+template <typename StorageTag, typename Type = void, typename StoredType = void,
+          typename Factory = void, typename Conversions = void>
 class storage;
 
 template <typename StorageTag, typename Type, typename StoredType,
