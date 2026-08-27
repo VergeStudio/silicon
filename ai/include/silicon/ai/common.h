@@ -11,7 +11,7 @@
 #        if defined(AI_EXPORT)
 #            define AI_API __declspec(dllexport)
 #        else
-#            define AI_API __declspec(dllimport)
+#            define AI_API
 #        endif
 #    else
 #        define AI_API

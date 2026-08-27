@@ -8,7 +8,7 @@
 #    if defined(SILICON_EXPORT)
 #        define CLI_API __declspec(dllexport)
 #    else
-#        define CLI_API __declspec(dllimport)
+#        define CLI_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

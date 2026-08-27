@@ -17,7 +17,7 @@
 #    if defined(SILICON_EXPORT)
 #        define SCHEDULER_API __declspec(dllexport)
 #    else
-#        define SCHEDULER_API __declspec(dllimport)
+#        define SCHEDULER_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

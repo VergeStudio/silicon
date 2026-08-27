@@ -8,7 +8,7 @@
 #    if defined(SILICON_EXPORT)
 #        define EVENT_API __declspec(dllexport)
 #    else
-#        define EVENT_API __declspec(dllimport)
+#        define EVENT_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

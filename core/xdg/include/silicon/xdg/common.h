@@ -11,7 +11,7 @@
 #    if defined(SILICON_EXPORT)
 #        define XDG_API __declspec(dllexport)
 #    else
-#        define XDG_API __declspec(dllimport)
+#        define XDG_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

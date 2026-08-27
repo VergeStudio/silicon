@@ -8,7 +8,7 @@
 #    if defined(SILICON_EXPORT)
 #        define TASK_API __declspec(dllexport)
 #    else
-#        define TASK_API __declspec(dllimport)
+#        define TASK_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

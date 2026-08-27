@@ -8,7 +8,7 @@
 #    if defined(SILICON_EXPORT)
 #        define TIME_API __declspec(dllexport)
 #    else
-#        define TIME_API __declspec(dllimport)
+#        define TIME_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

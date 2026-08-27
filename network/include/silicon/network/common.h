@@ -8,7 +8,7 @@
 #    if defined(SILICON_EXPORT)
 #        define NET_API __declspec(dllexport)
 #    else
-#        define NET_API __declspec(dllimport)
+#        define NET_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

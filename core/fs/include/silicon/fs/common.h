@@ -11,7 +11,7 @@
 #    if defined(SILICON_EXPORT)
 #        define FS_API __declspec(dllexport)
 #    else
-#        define FS_API __declspec(dllimport)
+#        define FS_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

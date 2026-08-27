@@ -8,7 +8,7 @@
 #    if defined(SILICON_EXPORT)
 #        define LOGGER_API __declspec(dllexport)
 #    else
-#        define LOGGER_API __declspec(dllimport)
+#        define LOGGER_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)

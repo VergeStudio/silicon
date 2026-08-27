@@ -11,7 +11,7 @@
 #    if defined(SILICON_EXPORT)
 #        define DI_API __declspec(dllexport)
 #    else
-#        define DI_API __declspec(dllimport)
+#        define DI_API
 #    endif
 #else
 #    if defined(SILICON_EXPORT)
