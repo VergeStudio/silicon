@@ -4602,13 +4602,13 @@ export {
     // that instantiate basic_json must be able to resolve the friend types.
     // Re-export them from the module interface so the friend declarations resolve
     // across module boundaries.
-    silicon::json_impl::detail::external_constructor;
-    silicon::json_impl::detail::parser;
-    silicon::json_impl::detail::serializer;
-    silicon::json_impl::detail::iter_impl;
-    silicon::json_impl::detail::binary_writer;
-    silicon::json_impl::detail::binary_reader;
-    silicon::json_impl::detail::json_sax_dom_parser;
-    silicon::json_impl::detail::json_sax_dom_callback_parser;
-    silicon::json_impl::detail::exception;
+    using silicon::json_impl::detail::external_constructor;
+    using silicon::json_impl::detail::parser;
+    using silicon::json_impl::detail::serializer;
+    using silicon::json_impl::detail::iter_impl;
+    using silicon::json_impl::detail::binary_writer;
+    using silicon::json_impl::detail::binary_reader;
+    using silicon::json_impl::detail::json_sax_dom_parser;
+    using silicon::json_impl::detail::json_sax_dom_callback_parser;
+    using silicon::json_impl::detail::exception;
 }
