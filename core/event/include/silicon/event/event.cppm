@@ -8,7 +8,6 @@ module;
 
 export module silicon.event;
 
-export import :config;
 export import silicon.event.error;
 
 export namespace silicon::event {

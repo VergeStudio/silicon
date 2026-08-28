@@ -1,4 +1,5 @@
 -- di 模块已并入 core（由 core 单一 DLL 编译导出）。
--- 其接口单元（silicon.di / silicon.di:facade / silicon.di.error）与 :config 分区
--- 生成（di.config.cppm.in）现统一在 core/xmake.lua 内处理，故本文件不再声明
--- 任何 target。消费方直接 add_deps("core") 即可 import silicon.di。
+-- 其接口单元（silicon.di / silicon.di:facade / silicon.di.error）现统一在
+-- core/xmake.lua 内处理；本模块不再生成 :config 分区（版本信息由
+-- silicon.core::GetVersion* 统一提供）。故本文件不再声明任何 target。
+-- 消费方直接 add_deps("core") 即可 import silicon.di。

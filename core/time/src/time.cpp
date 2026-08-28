@@ -21,7 +21,7 @@ std::int64_t system_clock::now_ms() const {
 }
 
 std::string date_source::current_date() const {
-    auto tp = impl_->clock_->now();
+    auto tp = impl_->clock_.now();
     auto tt = std::chrono::system_clock::to_time_t(tp);
     std::tm gmt{};
 #if defined(SILICON_PLATFORM_WINDOWS)

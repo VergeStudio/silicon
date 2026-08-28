@@ -18,12 +18,18 @@ import silicon.proxy;
 export namespace silicon::time {
 
 /// 时钟门面（type-erased，鸭子类型满足即可）
+/// 注意：约定用 add_direct_convention（直接约定），这样 proxy<clock_facade>
+/// 会生成 now()/now_ms() 成员，可由 clock_proxy 直接以成员形式调用。
+/// （add_convention 是 indirect 约定，只能经 invoke 调用，而 vendored proxy 的
+///  invoke 在间接约定下对 owning/observer proxy 均有 meta 基类不匹配的 bug，
+///  且间接约定也不会暴露为代理成员，与 date_source / SystemContext 的
+///  `clock.now_ms()` / `clock_->now()` 成员式用法不一致。）
 PRO_DEF_MEM_DISPATCH(MemClockNow, now);
 PRO_DEF_MEM_DISPATCH(MemClockNowMs, now_ms);
 struct clock_facade : silicon::proxy::facade_builder
-    ::add_convention<MemClockNow,
-                     std::chrono::system_clock::time_point() const>
-    ::add_convention<MemClockNowMs, std::int64_t() const>::build {};
+    ::add_direct_convention<MemClockNow,
+                            std::chrono::system_clock::time_point() const>
+    ::add_direct_convention<MemClockNowMs, std::int64_t() const>::build {};
 
 using clock_proxy = silicon::proxy::proxy<clock_facade>;
 using clock_view = silicon::proxy::proxy_view<clock_facade>;
@@ -63,15 +69,17 @@ template <class T, class... Args>
 }
 
 /// 默认日期实现（基于 clock 门面，返回 UTC 日期 YYYY-MM-DD）
+/// 持有 owning clock_proxy（直接约定生成的 now() 成员仅在 owning proxy 上可用，
+/// observer_facade 会丢弃直接约定，故这里用 clock_proxy 而非 clock_view）。
 class TIME_API date_source {
     struct impl {
       public:
-        clock_view clock_;
+        clock_proxy clock_;
     };
     std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 
   public:
-    explicit date_source(const clock_view &clock) { impl_->clock_ = clock; }
+    explicit date_source(clock_proxy clock) { impl_->clock_ = std::move(clock); }
     std::string current_date() const;
 };
 

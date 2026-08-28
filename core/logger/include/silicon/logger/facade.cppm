@@ -15,7 +15,6 @@ module;
 
 export module silicon.logger;
 
-export import :config;
 export import silicon.logger.error;
 import silicon.proxy;
 

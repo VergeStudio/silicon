@@ -83,22 +83,12 @@ target("core", function()
         add_cxflags("-Wno-unknown-attributes", {public = true})
     end
 
-    -- 生成式 :config 分区（各模块版本信息）。config/event/di/logger 的 .in 原在各
-    -- 模块目录，现随模块并入 core 统一产出到同一 configdir；core 自有 :config 亦在此。
+    -- 生成式 :config 分区（版本信息）。仅保留 silicon.core:config；并入 core 的其余
+    -- 模块（config/event/di/logger）不再各自导出 :config 分区（版本信息统一由
+    -- silicon.core::GetVersion* 提供），故此处只生成并编译 core.config.cppm。
+    -- 注：coroutine/ai/scheduler/network/task/cli 等未并入 core 的模块仍由各自
+    -- target 生成其 *.config.cppm，与此处无关。
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("core.config.cppm.in")
-    add_configfiles("config.config.cppm.in")
-    add_configfiles("event.config.cppm.in")
-    add_configfiles("di.config.cppm.in")
-    add_configfiles("logger.config.cppm.in")
-    -- 注意：所有模块的 :config 分区都生成到同一 configdir，但只有并入 core 的 5 个
-    -- 分区（core/config/event/di/logger）由本 target 编译；其余模块（coroutine/ai/
-    -- scheduler/network/task/cli 等）的 *.config.cppm 由其各自 target 编译，故此处
-    -- 必须显式列出，不可用 *.config.cppm 通配（否则会误编译未并入 core 的模块分区，
-    -- 引发找不到其 include 头文件等问题）。
     add_files("$(builddir)/silicon/config/core.config.cppm", {public = true})
-    add_files("$(builddir)/silicon/config/config.config.cppm", {public = true})
-    add_files("$(builddir)/silicon/config/event.config.cppm", {public = true})
-    add_files("$(builddir)/silicon/config/di.config.cppm", {public = true})
-    add_files("$(builddir)/silicon/config/logger.config.cppm", {public = true})
 end)
