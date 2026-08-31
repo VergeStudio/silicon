@@ -22,7 +22,9 @@ import :void_value;
 
 export namespace silicon::coroutine {
 
-class when_all_latch {
+// 并入 core.dll 后跨 DLL 消费：普通类的 out-of-line 成员（when_all.cpp 定义）
+// 须类级 dllexport 跟随导出（宏在 class 关键字后规避 C4091）。
+class COROUTINE_API when_all_latch {
   public:
     when_all_latch(std::size_t) noexcept;
 
@@ -284,7 +286,9 @@ class when_all_task_promise {
 };
 
 template<>
-class when_all_task_promise<void> {
+// 显式全特化的 inline 成员（get_return_object/final_suspend/...）由拥有定义的
+// TU 导出（消费方不本地实例化），并入 core.dll 后跨 DLL 消费须类级标注。
+class COROUTINE_API when_all_task_promise<void> {
   public:
     using coroutine_handle_type = std::coroutine_handle<when_all_task_promise<void>>;
 
@@ -294,17 +298,20 @@ class when_all_task_promise<void> {
 
     std::suspend_always initial_suspend() noexcept { return {}; }
 
-    auto final_suspend() noexcept {
-        struct completion_notifier {
-            bool await_ready() const noexcept { return false; }
-            void await_suspend(coroutine_handle_type coroutine) const noexcept {
-                coroutine.promise().m_p->m_latch->notify_awaitable_completed();
-            }
-            void await_resume() const noexcept {}
-        };
+    // 完成通知 awaiter：必须是类级嵌套类型（不可为 final_suspend 函数体内的
+    // 局部类）——① 类级 dllexport 不导出函数内局部类的方法符号（MSVC 模块协程
+    // LNK2001 实测 3 符号）；② clang 拒绝局部类的 dllexport 标注（局部类无外部
+    // 链接），故提升为类级嵌套类型并单独标注 COROUTINE_API（照 scheduler
+    // sync_wait.cppm 范式）。
+    struct COROUTINE_API completion_notifier {
+        bool await_ready() const noexcept { return false; }
+        void await_suspend(coroutine_handle_type coroutine) const noexcept {
+            coroutine.promise().m_p->m_latch->notify_awaitable_completed();
+        }
+        void await_resume() const noexcept {}
+    };
 
-        return completion_notifier{};
-    }
+    auto final_suspend() noexcept { return completion_notifier{}; }
 
     void unhandled_exception() noexcept { m_p->m_exception_ptr = std::current_exception(); }
 
@@ -380,7 +387,8 @@ class when_all_task {
 };
 
 template<>
-class when_all_task<void> {
+// 显式全特化：inline 成员（ctor/move/dtor/start）由拥有定义的 TU 导出，须类级标注。
+class COROUTINE_API when_all_task<void> {
   public:
     // To be able to call start().
     template<typename task_container_type>

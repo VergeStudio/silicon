@@ -27,7 +27,8 @@ extern COROUTINE_API std::string semaphore_acquire_result_acquired;
 extern COROUTINE_API std::string semaphore_acquire_result_shutdown;
 extern COROUTINE_API std::string semaphore_acquire_result_unknown;
 
-auto to_string(semaphore_acquire_result) -> const std::string &;
+// 自由函数不随 DLL 自动导出（MSVC），声明+定义均须标 COROUTINE_API。
+COROUTINE_API auto to_string(semaphore_acquire_result) -> const std::string &;
 
 template<std::ptrdiff_t max_value>
 class semaphore;

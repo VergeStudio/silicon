@@ -40,8 +40,8 @@ else
 end
 
 namespace("silicon", function()
-    -- 基础模块（config/di/event/time/logger/fs/xdg/json/scheduler+task）已并入
-    -- core，由 core 这一单一 DLL 导出；其余模块（network/coroutine/plugin/tui/
+    -- 基础模块（config/di/event/time/logger/fs/xdg/json/scheduler+task/coroutine）
+    -- 已并入 core，由 core 这一单一 DLL 导出；其余模块（network/plugin/tui/
     -- ai/cli/http 等）仍为独立 moduleonly + static 目标，消费方 add_deps("core")
     -- 链接 core.dll。子模块 test 目标经由 includes("./**") 解析 core 依赖。
     includes("./**")

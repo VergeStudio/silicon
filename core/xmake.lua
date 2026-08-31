@@ -6,9 +6,9 @@ target("core", function()
     set_kind("shared")
     set_basename("core")
 
-    -- silicon.thread 已并入 silicon.scheduler；scheduler（含 task）亦已并入本
-    -- target（见下），thread_pool / task<T> 统一经 silicon.scheduler /
-    -- silicon.scheduler.task 模块消费。
+    -- silicon.thread 已并入 silicon.scheduler；scheduler（含 task）与 coroutine
+    -- 亦已并入本 target（见下），thread_pool / task<T> / mutex / event 等统一经
+    -- silicon.scheduler / silicon.scheduler.task / silicon.coroutine 模块消费。
 
     if is_plat("windows") then
         add_defines("WIN")
@@ -25,11 +25,11 @@ target("core", function()
 
     -- 基础层（core）不依赖任何其他 silicon 模块：platform / util / exception /
     -- library / proxy / error / config / di / event / time / logger / fs / xdg /
-    -- json / scheduler（含 task）现已统一在 core 内编译，对外保持原 module 名
-    -- 不变（silicon.platform / silicon.config / ... / silicon.json /
-    -- silicon.scheduler / silicon.scheduler.task），消除以往 core → X → core 的
-    -- 跨 target 循环依赖。其他模块统一 add_deps("core") 即可消费上述基础模块，
-    -- 且经本 target 的 public 模块 IFC 拿到所有 silicon.X 的接口。
+    -- json / scheduler（含 task）/ coroutine 现已统一在 core 内编译，对外保持原
+    -- module 名不变（silicon.platform / silicon.config / ... / silicon.json /
+    -- silicon.scheduler / silicon.scheduler.task / silicon.coroutine），消除以往
+    -- core → X → core 的跨 target 循环依赖。其他模块统一 add_deps("core") 即可
+    -- 消费上述基础模块，且经本 target 的 public 模块 IFC 拿到所有 silicon.X 的接口。
 
     add_packages("spdlog", {public = true})
 
@@ -48,6 +48,7 @@ target("core", function()
     add_includedirs("json/include", {public = true})
     add_includedirs("scheduler/include", {public = true})
     add_includedirs("scheduler/task/include", {public = true})
+    add_includedirs("coroutine/include", {public = true})
 
     -- core 自有源文件
     add_files("src/**.cpp")
@@ -57,7 +58,7 @@ target("core", function()
     -- 下，不再被 remove_files 排除）。
     add_files("include/silicon/core/**.cppm", {public = true})
 
-    -- 并入的 8 个基础模块（已物理移入 core/ 子目录）：保持 silicon.X 模块名不变，
+    -- 并入的 9 个基础模块（已物理移入 core/ 子目录）：保持 silicon.X 模块名不变，
     -- 仅把文件加入本 target 编译，从而零 import 改动、零分区重命名。各模块 .cppm
     -- 为 public（消费方据此 import）。
     -- config
@@ -92,6 +93,12 @@ target("core", function()
     add_files("scheduler/src/**.cpp")
     add_files("scheduler/task/include/silicon/scheduler/task/**.cppm", {public = true})
     add_files("scheduler/task/src/**.cpp")
+    -- coroutine（已物理移入 core/coroutine/）：moduleonly+static 目标撤销，
+    -- 接口（silicon.coroutine 主接口 + 16 分区 + silicon.coroutine.error）与实现
+    -- 单元随 core.dll 编译导出。依赖 scheduler/task/proxy/error 均已在 core 内。
+    add_files("coroutine/include/silicon/coroutine/**.cppm", {public = true})
+    add_files("coroutine/src/**.cpp")
+    add_headerfiles("coroutine/include/silicon/coroutine/**.h")
 
     -- clang 对 MSFT proxy 广泛使用的 [[no_unique_address]] 误报 unknown-attribute，
     -- 沿用原 proxy target 的处理（消费方实例化 proxy 模板同样命中，故 public 向下传递）。
@@ -100,9 +107,9 @@ target("core", function()
     end
 
     -- 生成式 :config 分区（版本信息）。core 内所有模块（含并入的
-    -- config/event/di/logger/scheduler/task）只保留 silicon.core:config 这一个
-    -- 分区——版本信息统一由 silicon.core::GetVersion* 提供，其余模块一律使用它，
-    -- 不再各自生成 *.config.cppm。
+    -- config/event/di/logger/scheduler/task/coroutine）只保留 silicon.core:config
+    -- 这一个分区——版本信息统一由 silicon.core::GetVersion* 提供，其余模块一律
+    -- 使用它，不再各自生成 *.config.cppm。
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("core.config.cppm.in")
     add_files("$(builddir)/silicon/config/core.config.cppm", {public = true})

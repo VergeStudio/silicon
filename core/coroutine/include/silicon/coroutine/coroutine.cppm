@@ -3,6 +3,12 @@ module;
 export module silicon.coroutine;
 export import silicon.coroutine.error;
 
+// std 可见性：原由 :config 分区 GMF 的 import std 承担（MSVC 特性——主接口
+// import 对本模块实现单元可见）。:config 已收敛（版本信息由 silicon.core 提供），
+// 故移入主接口导入区 import std（必须位于 export module 之后——全局模块片段内
+// import 非法，MSVC C5202 且本项目警告视为错误）。
+import std;
+
 import silicon.scheduler.task;
 
 // ---------------------------------------------------------------------------
@@ -38,4 +44,3 @@ export import :void_value;
 export import :when_all;
 export import :when_any;
 export import :coroutine_pool;
-export import :config;

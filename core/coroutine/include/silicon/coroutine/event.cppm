@@ -6,6 +6,8 @@ module;
 #include <memory>
 #include <vector>
 
+#include "silicon/coroutine/common.h"
+
 
 export module silicon.coroutine:event;
 
@@ -38,9 +40,12 @@ t1: e.set();
 t2: resume()
  * \endcode
  */
-class event {
+// 并入 core.dll 后跨 DLL 消费：out-of-line 成员（event.cpp 定义）须类级 dllexport。
+class COROUTINE_API event {
   public:
-    struct awaiter {
+    // 类级嵌套 awaiter：其 out-of-line 成员（await_suspend/await_resume）亦须
+    // 导出（函数体局部类不被类级 dllexport 覆盖的同类坑，嵌套类单独标注防御）。
+    struct COROUTINE_API awaiter {
         /**
          * @param e The event to wait for it to be set.
          */

@@ -10,11 +10,11 @@ target("network", function()
         add_defines("WIN", "NOMINMAX", "WIN32_LEAN_AND_MEAN")
     end
 
-    -- 依赖方向保持单向：network -> coroutine -> scheduler -> task。
-    -- 依赖方向保持单向：network -> coroutine（scheduler 实体已并入 core.dll，
-    -- 经 add_deps("silicon::coroutine") 的 public IFC + core 导入库解析）。
+    -- 依赖方向保持单向：network -> coroutine -> scheduler -> task。coroutine 与
+    -- scheduler（含 task）均已并入 core.dll：经 add_deps("core") 的 public IFC
+    -- 拿到 silicon.coroutine / silicon.scheduler 接口，符号由 core 导入库解析。
     -- 错误码体系由各模块自维护：silicon.network 内置 network_error + network_category。
-    add_deps("silicon::coroutine", "core")
+    add_deps("core")
 
     -- 单 DLL 伞宏：本模块编译进 silicon.dll 时，实体经 NET_API（SILICON_EXPORT）dllexport。
     add_defines("SILICON_EXPORT")
