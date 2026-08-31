@@ -87,7 +87,10 @@ scoped_lock::~scoped_lock() {
 void scoped_lock::unlock() {
     if(m_p != nullptr && m_p->m_mutex != nullptr) {
         std::atomic_thread_fence(std::memory_order::acq_rel);
-        m_p->m_mutex->unlock();
+        // mutex::unlock() 返回 result<void>（[[nodiscard]]）。scoped_lock::unlock()
+        // 为 void 且 noexcept，无法向上传播 kAlreadyUnlocked；此处持锁状态已由
+        // m_p->m_mutex != nullptr 保证，故显式丢弃。
+        static_cast<void>(m_p->m_mutex->unlock());
         m_p->m_mutex = nullptr;
     }
 }

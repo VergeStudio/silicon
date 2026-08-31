@@ -10,6 +10,9 @@ module;
 #include <silicon/core/proxy/proxy_macros.h>
 // 单 DLL 伞宏（TIME_API）：同全局模块片段文本包含，不随模块导出
 #include <silicon/time/common.h>
+// system_clock 为 header-only（global module 实体）：跨工具链 mangling 兼容
+// （MSVC 命名模块符号带 ::<!module> 标签而 clang 不带），见该头内注释
+#include <silicon/time/system_clock.h>
 export module silicon.time;
 
 
@@ -18,18 +21,20 @@ import silicon.proxy;
 export namespace silicon::time {
 
 /// 时钟门面（type-erased，鸭子类型满足即可）
-/// 注意：约定用 add_direct_convention（直接约定），这样 proxy<clock_facade>
-/// 会生成 now()/now_ms() 成员，可由 clock_proxy 直接以成员形式调用。
-/// （add_convention 是 indirect 约定，只能经 invoke 调用，而 vendored proxy 的
-///  invoke 在间接约定下对 owning/observer proxy 均有 meta 基类不匹配的 bug，
-///  且间接约定也不会暴露为代理成员，与 date_source / SystemContext 的
-///  `clock.now_ms()` / `clock_->now()` 成员式用法不一致。）
+/// 约定用 add_convention（即 add_indirect_convention，间接约定），与
+/// silicon.ai.llm 的 provider_facade 等保持一致。间接约定的成员不暴露为
+/// proxy 的直属成员，而是经 proxy::operator->() 返回的间接访问器基类调用
+/// （如 clock_->now_ms() / clock_->now()），observer 视图同样可经 operator->
+/// 访问。直接约定（add_direct_convention）在此不成立：proxy 把目标存为
+/// compact_ptr/inplace_ptr 指针包装，间接约定的 proxiable 检查解引用后的
+/// 目标类型（system_clock 拥有 now/now_ms），而直接约定检查存储包装类型本身
+/// （无 now/now_ms 成员），会触发 consteval C3615。
 PRO_DEF_MEM_DISPATCH(MemClockNow, now);
 PRO_DEF_MEM_DISPATCH(MemClockNowMs, now_ms);
 struct clock_facade : silicon::proxy::facade_builder
-    ::add_direct_convention<MemClockNow,
-                            std::chrono::system_clock::time_point() const>
-    ::add_direct_convention<MemClockNowMs, std::int64_t() const>::build {};
+    ::add_convention<MemClockNow,
+                     std::chrono::system_clock::time_point() const>
+    ::add_convention<MemClockNowMs, std::int64_t() const>::build {};
 
 using clock_proxy = silicon::proxy::proxy<clock_facade>;
 using clock_view = silicon::proxy::proxy_view<clock_facade>;
@@ -47,12 +52,11 @@ template <class T>
     return silicon::proxy::make_proxy_view<clock_facade>(target);
 }
 
-/// 默认系统时钟（包装 std::chrono::system_clock）
-class TIME_API system_clock {
-  public:
-    std::chrono::system_clock::time_point now() const;
-    std::int64_t now_ms() const;
-};
+/// 默认系统时钟：定义于 <silicon/time/system_clock.h>（header-only，详见该头
+/// 内的跨工具链 mangling 说明）。此处 re-export 供模块消费方按名使用；由于 IFC
+/// 不含成员函数体，需要完整类型（make_clock<system_clock>、直接构造等）的
+/// 消费方须自行 #include <silicon/time/system_clock.h>。
+using silicon::time::system_clock;
 
 /// 日期源门面：提供当前日期字符串
 PRO_DEF_MEM_DISPATCH(MemDateSourceCurrentDate, current_date);
@@ -69,8 +73,9 @@ template <class T, class... Args>
 }
 
 /// 默认日期实现（基于 clock 门面，返回 UTC 日期 YYYY-MM-DD）
-/// 持有 owning clock_proxy（直接约定生成的 now() 成员仅在 owning proxy 上可用，
-/// observer_facade 会丢弃直接约定，故这里用 clock_proxy 而非 clock_view）。
+/// 持有 owning clock_proxy；间接约定成员经 clock_->now() 访问（owning 与
+/// observer 视图均可经 operator-> 取到，故用 clock_proxy 而非 clock_view 仅因
+/// 此处需要所有权语义，与约定形态无关）。
 class TIME_API date_source {
     struct impl {
       public:

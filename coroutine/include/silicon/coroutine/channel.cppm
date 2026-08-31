@@ -259,14 +259,14 @@ bool channel<element_type>::send_operation::await_ready() noexcept {
     // Sends are rejected once the channel has been closed.
     if(m_ch.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = channel_result::send::kClosed;
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         return true;
     }
 
     // Hand the element directly to a waiting receiver (rendezvous).
     if(auto *waiter = m_ch.m_p->pop_recv_waiter()) {
         waiter->m_e = std::move(m_e);
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         waiter->m_awaiting_coroutine.resume();
         return true;
     }
@@ -274,7 +274,7 @@ bool channel<element_type>::send_operation::await_ready() noexcept {
     // Store the element into a free slot when the buffer has room.
     if(m_ch.m_p->m_count.load(std::memory_order::acquire) < m_ch.m_p->m_capacity) {
         m_ch.m_p->store(std::move(m_e).value());
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         return true;
     }
 
@@ -286,7 +286,7 @@ template<typename element_type>
 bool channel<element_type>::send_operation::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     m_ch.m_p->append_send_waiter(this);
-    m_ch.m_p->m_mutex.unlock();
+    static_cast<void>(m_ch.m_p->m_mutex.unlock());
     return true;
 }
 
@@ -308,14 +308,14 @@ bool channel<element_type>::recv_operation::await_ready() noexcept {
     // Take a buffered element first.
     if(m_ch.m_p->m_count.load(std::memory_order::acquire) > 0) {
         m_e = m_ch.m_p->take();
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         return true;
     }
 
     // Rendezvous with a waiting producer (unbuffered case).
     if(auto *waiter = m_ch.m_p->pop_send_waiter()) {
         m_e = std::move(waiter->m_e);
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         waiter->m_awaiting_coroutine.resume();
         return true;
     }
@@ -323,7 +323,7 @@ bool channel<element_type>::recv_operation::await_ready() noexcept {
     // The channel is closed and drained.
     if(m_ch.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = channel_result::recv::kClosed;
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         return true;
     }
 
@@ -335,7 +335,7 @@ template<typename element_type>
 bool channel<element_type>::recv_operation::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     m_ch.m_p->append_recv_waiter(this);
-    m_ch.m_p->m_mutex.unlock();
+    static_cast<void>(m_ch.m_p->m_mutex.unlock());
     return true;
 }
 
@@ -433,13 +433,13 @@ auto channel<element_type>::try_recv() -> expected<element_type, channel_result:
 
     if(m_p->m_count.load(std::memory_order::acquire) > 0) {
         auto element = m_p->take();
-        m_p->m_mutex.unlock();
+        static_cast<void>(m_p->m_mutex.unlock());
         return expected<element_type, channel_result::recv>(std::move(element).value());
     }
 
     if(auto *waiter = m_p->pop_send_waiter()) {
         auto element = std::move(waiter->m_e);
-        m_p->m_mutex.unlock();
+        static_cast<void>(m_p->m_mutex.unlock());
         waiter->m_awaiting_coroutine.resume();
         return expected<element_type, channel_result::recv>(std::move(element).value());
     }
@@ -447,7 +447,7 @@ auto channel<element_type>::try_recv() -> expected<element_type, channel_result:
     auto result = m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped
                           ? channel_result::recv::kClosed
                           : channel_result::recv::kEmpty;
-    m_p->m_mutex.unlock();
+    static_cast<void>(m_p->m_mutex.unlock());
     return unexpected<channel_result::recv>(result);
 }
 
@@ -504,24 +504,24 @@ bool channel<element_type>::full() const { return size() >= m_p->m_capacity; }
 template<typename element_type>
 auto channel<element_type>::do_try_send(element_type element) -> channel_result::send {
     if(m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
-        m_p->m_mutex.unlock();
+        static_cast<void>(m_p->m_mutex.unlock());
         return channel_result::send::kClosed;
     }
 
     if(auto *waiter = m_p->pop_recv_waiter()) {
         waiter->m_e = std::move(element);
-        m_p->m_mutex.unlock();
+        static_cast<void>(m_p->m_mutex.unlock());
         waiter->m_awaiting_coroutine.resume();
         return channel_result::send::kSent;
     }
 
     if(m_p->m_count.load(std::memory_order::acquire) < m_p->m_capacity) {
         m_p->store(std::move(element));
-        m_p->m_mutex.unlock();
+        static_cast<void>(m_p->m_mutex.unlock());
         return channel_result::send::kSent;
     }
 
-    m_p->m_mutex.unlock();
+    static_cast<void>(m_p->m_mutex.unlock());
     return channel_result::send::kFull;
 }
 

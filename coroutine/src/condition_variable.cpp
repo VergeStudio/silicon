@@ -63,7 +63,9 @@ bool condition_variable::awaiter::await_ready() const noexcept {
 bool condition_variable::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    m_lock.owned_mutex()->unlock();
+    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
+    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+    static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
 
@@ -91,7 +93,9 @@ bool condition_variable::awaiter_with_predicate::await_ready() const noexcept {
 bool condition_variable::awaiter_with_predicate::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    m_lock.owned_mutex()->unlock();
+    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
+    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+    static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
 
@@ -102,7 +106,9 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
         co_return notify_status_t::kReady;
     }
 
-    m_lock.owned_mutex()->unlock();
+    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
+    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+    static_cast<void>(m_lock.owned_mutex()->unlock());
     co_return notify_status_t::kNotReady;
 }
 
@@ -128,7 +134,9 @@ bool condition_variable::awaiter_with_predicate_stop_token::await_ready() noexce
 bool condition_variable::awaiter_with_predicate_stop_token::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    m_lock.owned_mutex()->unlock();
+    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
+    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+    static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
 
@@ -142,7 +150,9 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
         co_return notify_status_t::kReady;
     }
 
-    m_lock.owned_mutex()->unlock();
+    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
+    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+    static_cast<void>(m_lock.owned_mutex()->unlock());
     co_return notify_status_t::kNotReady;
 }
 
@@ -206,7 +216,8 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
         co_return notify_status_t::kReady;
     }
 
-    waiter_mutex->unlock();
+    // 同 await_suspend：result<void> 为 [[nodiscard]]，此处无法传播，显式丢弃。
+    static_cast<void>(waiter_mutex->unlock());
     co_return notify_status_t::kNotReady;
 }
 

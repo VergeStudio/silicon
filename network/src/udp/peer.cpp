@@ -218,7 +218,7 @@ auto peer::sendto(const network::socket_address &endpoint, const buffer_type &bu
 
 template<
         silicon::coroutine::concepts::mutable_buffer buffer_type,
-        typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
+        typename element_type>
 std::tuple<io_status, network::socket_address, std::span<element_type>> peer::recvfrom(buffer_type &&buffer) {
     auto endpoint = network::socket_address::make_uninitialised();
     auto [sockaddr, socklen] = endpoint.native_mutable_data();

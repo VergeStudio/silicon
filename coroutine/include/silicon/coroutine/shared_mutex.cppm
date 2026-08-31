@@ -36,11 +36,11 @@ struct shared_lock_operation {
 
         if(m_exclusive) {
             if(m_shared_mutex.try_lock_locked()) {
-                m_shared_mutex.m_p->m_mutex.unlock();
+                static_cast<void>(m_shared_mutex.m_p->m_mutex.unlock());
                 return true;
             }
         } else if(m_shared_mutex.try_lock_shared_locked()) {
-            m_shared_mutex.m_p->m_mutex.unlock();
+            static_cast<void>(m_shared_mutex.m_p->m_mutex.unlock());
             return true;
         }
 
@@ -68,7 +68,7 @@ struct shared_lock_operation {
         }
 
         m_awaiting_coroutine = awaiting_coroutine;
-        m_shared_mutex.m_p->m_mutex.unlock();
+        static_cast<void>(m_shared_mutex.m_p->m_mutex.unlock());
         return true;
     }
 

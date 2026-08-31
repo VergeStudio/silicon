@@ -12,7 +12,9 @@ module;
 
 module silicon.cli.parser;
 
-import silicon.cli.parser;
+// 实现单元隐式导入自身接口单元（silicon.cli.parser），显式 import 自身属
+// ill-formed：clang 报 "import of module 'X' appears within its own implementation"，
+// MSVC 容忍但不标准。parse_result / cli_error 经接口的 export import 可见。
 import silicon.cli.error;
 
 namespace silicon::cli {

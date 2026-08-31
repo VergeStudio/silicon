@@ -50,7 +50,7 @@ template<class T, class... Args>
 /// 默认 CLI 解析器（鸭子类型满足 parser_facade，零抽象基类耦合）。
 /// 行为类统一 pImpl：`struct impl;` 前向声明 + `std::unique_ptr<impl> impl_;`，
 /// impl 完整定义与方法体沉 .cpp（见 cli/src/parser/parser.cpp），析构在 .cpp `= default`。
-CLI_API class Parser {
+class CLI_API Parser {
   public:
     Parser();
     ~Parser();

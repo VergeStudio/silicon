@@ -42,7 +42,7 @@ class acquire_operation {
     [[nodiscard]] bool await_ready() const noexcept {
         // If the semaphore is shutdown or a resources can be acquired without suspending release the lock and resume execution.
         if(m_semaphore.m_p->m_shutdown.load(std::memory_order::acquire) || m_semaphore.try_acquire()) {
-            m_semaphore.m_p->m_mutex.unlock();
+            static_cast<void>(m_semaphore.m_p->m_mutex.unlock());
             return true;
         }
 
@@ -57,7 +57,7 @@ class acquire_operation {
 
         m_awaiting_coroutine = awaiting_coroutine;
         awaiter_list_push(m_semaphore.m_p->m_acquire_waiters, this);
-        m_semaphore.m_p->m_mutex.unlock();
+        static_cast<void>(m_semaphore.m_p->m_mutex.unlock());
         return true;
     }
 
@@ -106,19 +106,19 @@ class semaphore {
         co_await m_p->m_mutex.lock();
         // Do not resume or increment resources past the max_value.
         if(value() == max()) {
-            m_p->m_mutex.unlock();
+            static_cast<void>(m_p->m_mutex.unlock());
             co_return;
         }
 
         // If there are any waiters just transfer resource ownership to the waiter.
         auto *waiter = awaiter_list_pop(m_p->m_acquire_waiters);
         if(waiter != nullptr) {
-            m_p->m_mutex.unlock();
+            static_cast<void>(m_p->m_mutex.unlock());
             waiter->m_awaiting_coroutine.resume();
         } else {
             // Release the resource.
             m_p->m_counter.fetch_add(1, std::memory_order::release);
-            m_p->m_mutex.unlock();
+            static_cast<void>(m_p->m_mutex.unlock());
         }
     }
 

@@ -109,7 +109,7 @@ client::impl::~impl() = default;
 // ── private templates (recv / send) — defined before the *_impl callers ──────
 template<
         silicon::coroutine::concepts::mutable_buffer buffer_type,
-        typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
+        typename element_type>
 std::pair<io_status, std::span<element_type>> client::recv(buffer_type &&buffer) {
     auto bytes_recv = ::recv(impl_->m_socket.native_handle(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
     if(bytes_recv > 0) {
@@ -131,7 +131,7 @@ std::pair<io_status, std::span<element_type>> client::recv(buffer_type &&buffer)
 
 template<
         silicon::coroutine::concepts::const_buffer buffer_type,
-        typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
+        typename element_type>
 std::pair<io_status, std::span<element_type>> client::send(const buffer_type &buffer) {
     auto bytes_sent = ::send(impl_->m_socket.native_handle(), reinterpret_cast<const char *>(buffer.data()), buffer.size(), 0);
     if(bytes_sent >= 0) {

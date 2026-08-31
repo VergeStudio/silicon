@@ -26,7 +26,7 @@ template<typename element_type>
 bool queue<element_type>::awaiter::await_ready() noexcept {
     // This awaiter is ready when it has actually acquired an element or it is shutting down.
     if(m_queue.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
-        m_queue.m_p->m_mutex.unlock();
+        static_cast<void>(m_queue.m_p->m_mutex.unlock());
         return true; // await_resume with stopped
     }
 
@@ -39,7 +39,7 @@ bool queue<element_type>::awaiter::await_ready() noexcept {
         }
 
         m_queue.m_p->m_elements.pop();
-        m_queue.m_p->m_mutex.unlock();
+        static_cast<void>(m_queue.m_p->m_mutex.unlock());
         return true;
     }
 
@@ -53,7 +53,7 @@ bool queue<element_type>::awaiter::await_suspend(std::coroutine_handle<> awaitin
     this->m_next = m_queue.m_p->m_waiters;
     m_queue.m_p->m_waiters = this;
     m_awaiting_coroutine = awaiting_coroutine;
-    m_queue.m_p->m_mutex.unlock();
+    static_cast<void>(m_queue.m_p->m_mutex.unlock());
     return true;
 }
 

@@ -29,7 +29,7 @@ bool ring_buffer<element, num_elements>::produce_operation::await_ready() noexce
     // Produce operations can only proceed if running.
     if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
         m_result = ring_buffer_result::produce::kStopped;
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         return true; // Will be awoken with produce::stopped
     }
 
@@ -38,7 +38,7 @@ bool ring_buffer<element, num_elements>::produce_operation::await_ready() noexce
         auto slot = m_rb.m_p->m_front.fetch_add(1, std::memory_order::acq_rel) % num_elements;
         m_rb.m_p->m_elements[slot] = std::move(m_e);
         m_rb.m_p->m_used.fetch_add(1, std::memory_order::release);
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         return true; // Will be awoken with produce::produced
     }
 
@@ -49,7 +49,7 @@ template<typename element, size_t num_elements>
 bool ring_buffer<element, num_elements>::produce_operation::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     m_next = m_rb.m_p->m_produce_waiters.exchange(this, std::memory_order::acq_rel);
-    m_rb.m_p->m_mutex.unlock();
+    static_cast<void>(m_rb.m_p->m_mutex.unlock());
     return true;
 }
 
@@ -73,7 +73,7 @@ bool ring_buffer<element, num_elements>::consume_operation::await_ready() noexce
     // Consume operations proceed until stopped.
     if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = ring_buffer_result::consume::kStopped;
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         return true;
     }
 
@@ -82,7 +82,7 @@ bool ring_buffer<element, num_elements>::consume_operation::await_ready() noexce
         m_e = std::move(m_rb.m_p->m_elements[slot]);
         m_rb.m_p->m_elements[slot] = std::nullopt;
         m_rb.m_p->m_used.fetch_sub(1, std::memory_order::release);
-        mutex.unlock();
+        static_cast<void>(mutex.unlock());
         return true;
     }
 
@@ -93,7 +93,7 @@ template<typename element, size_t num_elements>
 bool ring_buffer<element, num_elements>::consume_operation::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     m_next = m_rb.m_p->m_consume_waiters.exchange(this, std::memory_order::acq_rel);
-    m_rb.m_p->m_mutex.unlock();
+    static_cast<void>(m_rb.m_p->m_mutex.unlock());
     return true;
 }
 
@@ -159,7 +159,7 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::notify_produc
 
     co_await m_p->m_mutex.lock();
     auto *produce_waiters = m_p->m_produce_waiters.exchange(nullptr, std::memory_order::acq_rel);
-    m_p->m_mutex.unlock();
+    static_cast<void>(m_p->m_mutex.unlock());
 
     while(produce_waiters != nullptr) {
         auto *next = produce_waiters->m_next;
@@ -180,7 +180,7 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::notify_consum
 
     co_await m_p->m_mutex.lock();
     auto *consume_waiters = m_p->m_consume_waiters.exchange(nullptr, std::memory_order::acq_rel);
-    m_p->m_mutex.unlock();
+    static_cast<void>(m_p->m_mutex.unlock());
 
     while(consume_waiters != nullptr) {
         auto *next = consume_waiters->m_next;
@@ -210,7 +210,7 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::shutdown() {
     co_await m_p->m_mutex.lock();
     auto *produce_waiters = m_p->m_produce_waiters.exchange(nullptr, std::memory_order::acq_rel);
     auto *consume_waiters = m_p->m_consume_waiters.exchange(nullptr, std::memory_order::acq_rel);
-    m_p->m_mutex.unlock();
+    static_cast<void>(m_p->m_mutex.unlock());
 
     while(produce_waiters != nullptr) {
         auto *next = produce_waiters->m_next;

@@ -314,7 +314,8 @@ class condition_variable {
             // actual coroutine only once.
             awaiter_with_wait_hook hook_task{m_condition_variable, m_lock, data};
             m_condition_variable.push_waiter(static_cast<awaiter_base *>(&hook_task));
-            m_lock.owned_mutex()->unlock(); // Unlock the actual lock now that we are setup, not the fake hook task.
+            // unlock() 返回 result<void>（[[nodiscard]]），此处无法向上传播，显式丢弃。
+            static_cast<void>(m_lock.owned_mutex()->unlock()); // Unlock the actual lock now that we are setup, not the fake hook task.
 
             co_await silicon::coroutine::when_all(make_on_notify_callback_task(data), make_timeout_task(data));
             co_return;
