@@ -10,9 +10,12 @@ module;
 #include <utility>
 #include <variant>
 
+#include "silicon/scheduler/task/common.h"
+
 export module silicon.scheduler.task;
 
-export import :config;
+// 版本信息已收敛到 silicon.core:config（silicon.core::GetVersion*），
+// 本模块不再自带 :config 分区。
 
 export namespace silicon::scheduler {
 
@@ -24,9 +27,9 @@ class task;
 
 
 
-struct promise_base {
+struct TASK_API promise_base {
     friend struct final_awaitable;
-    struct final_awaitable {
+    struct TASK_API final_awaitable {
         bool await_ready() const noexcept ;
 
         template<typename promise_type>
@@ -60,7 +63,7 @@ struct promise_base {
 };
 
 template<typename return_type>
-struct promise final: public promise_base {
+struct TASK_API promise final: public promise_base {
   private:
     struct unset_return_value {
         unset_return_value() {}
@@ -165,7 +168,7 @@ struct promise final: public promise_base {
 };
 
 template<>
-struct promise<void>: public promise_base {
+struct TASK_API promise<void>: public promise_base {
     using task_t = task<void>;
     using coroutine_handle = std::coroutine_handle<promise<void>>;
 

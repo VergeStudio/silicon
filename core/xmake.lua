@@ -6,12 +6,15 @@ target("core", function()
     set_kind("shared")
     set_basename("core")
 
-    -- silicon.thread 已并入 silicon.scheduler，而 silicon.scheduler 依赖
-    -- silicon.coroutine（后者又依赖 core），故 core 不再重导出/依赖该模块，
-    -- 避免形成循环依赖。需要 thread_pool 的消费方直接 import silicon.scheduler。
+    -- silicon.thread 已并入 silicon.scheduler；scheduler（含 task）亦已并入本
+    -- target（见下），thread_pool / task<T> 统一经 silicon.scheduler /
+    -- silicon.scheduler.task 模块消费。
 
     if is_plat("windows") then
         add_defines("WIN")
+        -- scheduler 的 io_notifier_iocp.cpp（随 scheduler 并入）引用 WSAPoll，
+        -- 须链接 ws2_32。
+        add_syslinks("ws2_32")
     end
 
     -- 单 DLL 伞宏：core 编译进 core.dll，SILICON_EXPORT 由本 target 定义，
@@ -22,24 +25,29 @@ target("core", function()
 
     -- 基础层（core）不依赖任何其他 silicon 模块：platform / util / exception /
     -- library / proxy / error / config / di / event / time / logger / fs / xdg /
-    -- json 现已统一在 core 内编译，对外保持原 module 名不变
-    -- （silicon.platform / silicon.config / ... / silicon.json），消除以往
-    -- core → X → core 的跨 target 循环依赖。其他模块统一 add_deps("core") 即可
-    -- 消费上述基础模块，且经本 target 的 public 模块 IFC 拿到所有 silicon.X 的接口。
+    -- json / scheduler（含 task）现已统一在 core 内编译，对外保持原 module 名
+    -- 不变（silicon.platform / silicon.config / ... / silicon.json /
+    -- silicon.scheduler / silicon.scheduler.task），消除以往 core → X → core 的
+    -- 跨 target 循环依赖。其他模块统一 add_deps("core") 即可消费上述基础模块，
+    -- 且经本 target 的 public 模块 IFC 拿到所有 silicon.X 的接口。
 
     add_packages("spdlog", {public = true})
 
     add_includedirs("include", {public = true})
     -- 各并入模块（已物理移入 core/ 子目录）的 include 根：其 .cpp/.cppm 内的
-    -- #include <silicon/X/...> 解析。
-    add_includedirs("config/include")
-    add_includedirs("di/include")
-    add_includedirs("event/include")
-    add_includedirs("time/include")
-    add_includedirs("logger/include")
-    add_includedirs("fs/include")
-    add_includedirs("xdg/include")
-    add_includedirs("json/include")
+    -- #include <silicon/X/...> 解析。必须 {public = true}：超级项目侧 clang 消费方
+    -- （ai.impl/cli.impl/app）会为本 target 的 public cppm 重建 BMI，clang-scan-deps
+    -- 扫描其 GMF 时需要这些路径才能解析 #include（私有则 fatal error: file not found）。
+    add_includedirs("config/include", {public = true})
+    add_includedirs("di/include", {public = true})
+    add_includedirs("event/include", {public = true})
+    add_includedirs("time/include", {public = true})
+    add_includedirs("logger/include", {public = true})
+    add_includedirs("fs/include", {public = true})
+    add_includedirs("xdg/include", {public = true})
+    add_includedirs("json/include", {public = true})
+    add_includedirs("scheduler/include", {public = true})
+    add_includedirs("scheduler/task/include", {public = true})
 
     -- core 自有源文件
     add_files("src/**.cpp")
@@ -76,6 +84,14 @@ target("core", function()
     -- json（纯模块库：json 模块 + json_impl 模块，含全量内联实现）
     add_files("json/include/silicon/json/**.cppm", {public = true})
     add_files("json/include/silicon/json_impl/json_impl.cppm", {public = true})
+    -- scheduler（含 task，已物理移入 core/scheduler/）：moduleonly+static 目标
+    -- silicon::scheduler / silicon::task 撤销，实体随 core.dll 导出。三平台
+    -- io_notifier 实现单元均收集编译，平台选择由各文件内 SILICON_PLATFORM_*
+    -- 守卫完成；Windows 下 ws2_32 见上方 add_syslinks。
+    add_files("scheduler/include/silicon/scheduler/**.cppm", {public = true})
+    add_files("scheduler/src/**.cpp")
+    add_files("scheduler/task/include/silicon/scheduler/task/**.cppm", {public = true})
+    add_files("scheduler/task/src/**.cpp")
 
     -- clang 对 MSFT proxy 广泛使用的 [[no_unique_address]] 误报 unknown-attribute，
     -- 沿用原 proxy target 的处理（消费方实例化 proxy 模板同样命中，故 public 向下传递）。
@@ -83,11 +99,10 @@ target("core", function()
         add_cxflags("-Wno-unknown-attributes", {public = true})
     end
 
-    -- 生成式 :config 分区（版本信息）。仅保留 silicon.core:config；并入 core 的其余
-    -- 模块（config/event/di/logger）不再各自导出 :config 分区（版本信息统一由
-    -- silicon.core::GetVersion* 提供），故此处只生成并编译 core.config.cppm。
-    -- 注：coroutine/ai/scheduler/network/task/cli 等未并入 core 的模块仍由各自
-    -- target 生成其 *.config.cppm，与此处无关。
+    -- 生成式 :config 分区（版本信息）。core 内所有模块（含并入的
+    -- config/event/di/logger/scheduler/task）只保留 silicon.core:config 这一个
+    -- 分区——版本信息统一由 silicon.core::GetVersion* 提供，其余模块一律使用它，
+    -- 不再各自生成 *.config.cppm。
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("core.config.cppm.in")
     add_files("$(builddir)/silicon/config/core.config.cppm", {public = true})

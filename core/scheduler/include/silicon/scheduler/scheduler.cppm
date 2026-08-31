@@ -6,6 +6,15 @@ module;
 export module silicon.scheduler;
 export import silicon.scheduler.error;
 
+// std 可见性：原由 :config 分区 GMF 的 import std 承担（MSVC 特性——主接口
+// 的 import 对本模块实现单元可见）。:config 分区已收敛到 silicon.core:config
+//（版本信息统一由 silicon.core::GetVersion* 提供），此处直接在主接口的模块
+// 导入区 import std（注意：必须位于 export module 之后——全局模块片段内
+// 出现 import 声明属非法，MSVC 报 C5202 且本项目警告视为错误），保持实现
+// 单元（io_notifier_* / timer_handle 后端等 .cpp）不必逐一显式 include
+// <mutex>/<vector> 等头。
+import std;
+
 // scheduler 位于 coroutine 之下：事件循环基础设施（io_notifier / poll_info /
 // timer_handle）与其依赖的调度原语（poll / fd / time / expected / sync_wait /
 // concepts / awaiter_list / pipe）均已归属本模块。依赖单向：
@@ -14,8 +23,6 @@ export import silicon.scheduler.error;
 // 注意：迁入的原语保留原有的 silicon::coroutine 命名空间，仅模块归属发生变化，
 // 因此既有消费方（network 等）的类型书写不受影响。
 export import silicon.scheduler.task;
-
-export import :config;
 
 // —— 自 silicon.coroutine 迁入的调度原语（命名空间仍为 silicon::coroutine）——
 export import :concepts.awaitable;

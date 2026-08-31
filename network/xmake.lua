@@ -11,8 +11,10 @@ target("network", function()
     end
 
     -- 依赖方向保持单向：network -> coroutine -> scheduler -> task。
+    -- 依赖方向保持单向：network -> coroutine（scheduler 实体已并入 core.dll，
+    -- 经 add_deps("silicon::coroutine") 的 public IFC + core 导入库解析）。
     -- 错误码体系由各模块自维护：silicon.network 内置 network_error + network_category。
-    add_deps("silicon::coroutine", "silicon::scheduler", "core")
+    add_deps("silicon::coroutine", "core")
 
     -- 单 DLL 伞宏：本模块编译进 silicon.dll 时，实体经 NET_API（SILICON_EXPORT）dllexport。
     add_defines("SILICON_EXPORT")

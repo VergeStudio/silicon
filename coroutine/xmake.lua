@@ -5,9 +5,10 @@ target("coroutine", function()
         add_defines("WIN")
     end
 
-    -- 依赖方向单向：coroutine -> scheduler -> task。
+    -- 依赖方向单向：coroutine -> scheduler（scheduler/task/scheduler.impl/
+    -- task.impl 目标已撤销，scheduler 与 task 实体随 core.dll 导出）。
     -- 错误码体系由各模块自维护：silicon.coroutine 内置 coroutine_error / channel_error。
-    add_deps("core", "silicon::task", "silicon::scheduler")
+    add_deps("core")
 
     -- coroutine 为独立 moduleonly+static 目标，不编译进 DLL；本目标须定义 SILICON_EXPORT，
     -- 否则 :config 生成分区里的 COROUTINE_API 版本函数退化为 dllimport 触发 C2491。
@@ -37,10 +38,8 @@ end)
 target("coroutine.test", function()
     set_kind("binary")
     -- coroutine 接口单向依赖 scheduler/task，且 coroutine 实体（sync_wait_event /
-    -- pipe_t）实际编译于 scheduler 模块；测试须显式链接其实现静态库以解析符号。
+    -- pipe_t）实际编译于 scheduler 模块——现随 core.dll 导出，链接 core 导入库即可。
     add_deps("silicon::coroutine", "silicon::coroutine.impl",
-             "silicon::scheduler", "silicon::scheduler.impl",
-             "silicon::task", "silicon::task.impl",
              "core", "silicon::test")
     add_files("test/**.cpp")
     add_tests()

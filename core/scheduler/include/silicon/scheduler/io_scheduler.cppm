@@ -35,6 +35,11 @@ module;
 export module silicon.scheduler:io_scheduler;
 export import silicon.scheduler.error;
 
+// import 必须紧跟 module 声明、置于任何其他声明（含 using-directive）之前：
+// MSVC 宽松接受，clang 严格报 "imports must immediately follow the module
+// declaration"（超级项目侧 clang 重建 BMI 时命中）。
+import silicon.error;
+
 // io_scheduler 与调度原语同处本模块，复用同模块分区 import；协程 task
 // 类型来自独立模块 silicon.scheduler.task。
 import :concepts.range_of;
@@ -60,8 +65,6 @@ import :timer_handle;
 // time_point / when_any / expected ...）。using-directive 置于全局作用域：命名空间内
 // 的同名实体优先，不会与 silicon::scheduler::task 冲突；且它不参与模块导出。
 using namespace silicon::coroutine;
-
-import silicon.error;
 
 export namespace silicon::scheduler {
 

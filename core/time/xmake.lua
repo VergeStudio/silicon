@@ -5,6 +5,8 @@ target("time.test", function()
     set_kind("binary")
     -- 消费方模式（xmake C++ modules 推荐）：silicon.time 接口与符号现均来自 core.dll，
     -- 故只依赖 silicon::core 与测试支撑 silicon::test 即可。
+    -- system_clock.h（header-only，global module 实体）经 include 根直接引入。
+    add_includedirs("include")
     add_deps("silicon::core", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
