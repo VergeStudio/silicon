@@ -5,6 +5,25 @@ add_requires("spdlog", {configs = {shared = true}})
 -- 其头文件经 dns 分区的全局模块片段 <ares.h> 引入，故同样 public 传递。
 add_requires("c-ares")
 
+-- 关于「并入 core 的模块为何不再各有独立 xmake.lua」：
+-- 根 xmake.lua 以 namespace("silicon") + includes("./**") 递归拾取所有子目录的
+-- xmake.lua。模块并入 core 后，其接口/实现单元统一由本文件的 glob 编译，故原
+-- core/<mod>/xmake.lua 只剩两类内容：
+--   1) 声明 <mod>.test 二进制 target（依赖 silicon::core + silicon::test）——
+--      仅 coroutine / fs / json / platform / plugin / time / xdg 七个模块有
+--      test/ 或 specs/ 目录，这些文件保留；
+--   2) 纯注释占位（config / di / event / logger / scheduler / scheduler-task）——
+--      这些模块无 test/specs，文件内不声明任何 target，对构建零影响
+--      （实证：删除前后 xmake show -l targets 均为同一份 17 目标清单）。
+-- 为免"看似有配置实则无作用"造成误导，第 2 类已删除，其说明并入本注释块：
+--   * config / di / event / logger / scheduler / scheduler.task：接口单元与实现
+--     单元均已由本 target 的 glob 编译；不再各自生成 :config 分区（版本信息统一
+--     由 silicon.core::GetVersion* 提供）。消费方直接 add_deps("core") 即可
+--     import silicon.config / silicon.di / silicon.event / silicon.logger /
+--     silicon.scheduler / silicon.scheduler.task，无需再单独依赖任何子模块 target。
+--   * logger 额外说明：其 spdlog 依赖已由本文件 add_packages("spdlog", {public=true})
+--     向下传递，消费方使用 logger 暴露的 spdlog 类型时仍可解析头文件。
+
 target("core", function()
     set_kind("shared")
     set_basename("core")
