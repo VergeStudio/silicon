@@ -1,46 +1,5 @@
-module;
-
-// 标准库头必须置于全局模块片段：接口单元全局片段中的 #include 对实现单元不可达
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-
+// parse_result 已折为 header-only（见 core/include/silicon/cli/parser/parser_types.h）：
+// 全部方法体现为头内 inline 全局实体，每个消费 TU 本地发射 weak 符号，
+// 规避 MSVC 模块标签 mangling 与 clang 消费方的跨工具链链接未定义。
+// 本实现单元原为 out-of-line 方法定义，现已无定义可承载，仅保留模块实现单元壳。
 module silicon.cli.parser.parse_result;
-
-namespace silicon::cli {
-
-struct parse_result::impl {
-    std::string command_;                      // 子命令名（若无则为空）
-    std::map<std::string, std::string> flags_; // --key value 或 --flag → "true"
-    std::vector<std::string> positional_;      // 位置参数
-};
-
-parse_result::parse_result(): impl_(std::make_shared<impl>()) {}
-
-parse_result::~parse_result() = default;
-
-parse_result::parse_result(const parse_result &o): impl_(std::make_shared<impl>(*o.impl_)) {}
-
-parse_result &parse_result::operator=(const parse_result &o) {
-    if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
-    return *this;
-}
-
-parse_result::parse_result(parse_result &&) noexcept = default;
-
-parse_result &parse_result::operator=(parse_result &&) noexcept = default;
-
-std::string &parse_result::command() { return impl_->command_; }
-
-const std::string &parse_result::command() const { return impl_->command_; }
-
-std::map<std::string, std::string> &parse_result::flags() { return impl_->flags_; }
-
-const std::map<std::string, std::string> &parse_result::flags() const { return impl_->flags_; }
-
-std::vector<std::string> &parse_result::positional() { return impl_->positional_; }
-
-const std::vector<std::string> &parse_result::positional() const { return impl_->positional_; }
-
-} // namespace silicon::cli

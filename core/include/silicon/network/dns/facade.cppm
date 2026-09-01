@@ -24,6 +24,7 @@ module;
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <span>
 #include <system_error>
 #include <unordered_map>
 #include <vector>

@@ -3,6 +3,11 @@
 #include <string>
 #include <vector>
 
+// parser / parse_result / cli_error / make_error_code 已折为 header-only 全局实体
+// （见 parser_types.h / cli_error_defs.h），须直接文本包含，不能经 import silicon.cli 取得。
+#include <silicon/cli/parser/parser_types.h>
+#include <silicon/cli/error/cli_error_defs.h>
+
 import silicon.cli;
 
 using namespace silicon::cli;
