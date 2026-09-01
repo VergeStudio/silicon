@@ -13,7 +13,6 @@ export import :config;
 // ── 基础层 ──────────────────────────────────────────────────────────────
 export import silicon.platform;
 export import silicon.util;
-export import silicon.exception;
 export import silicon.error;
 export import silicon.library;          // shared_library
 export import silicon.proxy;

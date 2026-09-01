@@ -13,6 +13,7 @@ module;
 #include <memory>
 #include <new>
 #include <optional>
+#include <stdexcept>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
@@ -49,8 +50,6 @@ module;
 #endif
 
 export module silicon.proxy:impl;
-
-import silicon.exception;
 
 namespace silicon::proxy {
 // =============================================================================
@@ -2404,7 +2403,7 @@ struct weak_dispatch: D {
     [[noreturn]] PRO4D_STATIC_CALL(details::wildcard, Args &&...)
         requires(!std::is_invocable_v<D, Args...>)
     {
-        PRO4D_THROW(silicon::exception::not_implemented{});
+        PRO4D_THROW(std::logic_error{"weak_dispatch: required convention not implemented"});
     }
 };
 
