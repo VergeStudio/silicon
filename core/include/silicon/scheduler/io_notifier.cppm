@@ -21,6 +21,7 @@ module;
 #include <unistd.h>
 #endif
 
+#include <silicon/common.h>
 export module silicon.scheduler:io_notifier;
 
 import :fd;
@@ -57,7 +58,7 @@ export namespace silicon::scheduler {
 /// （io_notifier_iocp.cpp / io_notifier_kqueue.cpp / io_notifier_epoll.cpp），因此
 /// HANDLE / WSANETWORKEVENTS / kevent / epoll_event 等平台专属状态**绝不出现在本接口单元**。
 /// 任何触及 impl 成员的方法都必须在各自平台的 `.cpp` 中**非内联**实现。
-class io_notifier {
+class CORE_API io_notifier {
     struct impl;
     std::unique_ptr<impl> m_p;
 

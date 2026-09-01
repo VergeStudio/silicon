@@ -22,12 +22,12 @@ namespace silicon::fs {
 
 /// 平台无关的文件系统实现基类（CRTP，无虚函数、无抽象接口耦合）。
 /// win32_file_system / posix_file_system 以具体派生类型实例化 Derived，
-/// write() 经 CRTP 静态分派到派生类的 NormalizeText，避免虚表。
+/// write() 经 CRTP 静态分派到派生类的 normalize_text，避免虚表。
 template<class Derived>
 class file_system_base {
   public:
     result<std::string> read(const std::string &path) const {
-        std::ifstream f(ToPath(path), std::ios::in | std::ios::binary);
+        std::ifstream f(to_path(path), std::ios::in | std::ios::binary);
         if(!f) return std::unexpected(make_error_code(fs_error::kOpenFailed));
         std::ostringstream ss;
         ss << f.rdbuf();
@@ -35,7 +35,7 @@ class file_system_base {
     }
 
     result<std::vector<std::byte>> read_binary(const std::string &path) const {
-        std::ifstream f(ToPath(path), std::ios::in | std::ios::binary);
+        std::ifstream f(to_path(path), std::ios::in | std::ios::binary);
         if(!f) return std::unexpected(make_error_code(fs_error::kOpenFailed));
         std::vector<std::byte> out;
         f.seekg(0, std::ios::end);
@@ -49,7 +49,7 @@ class file_system_base {
     }
 
     result<void> write_binary(const std::string &path, const std::vector<std::byte> &data) const {
-        std::ofstream f(ToPath(path), std::ios::out | std::ios::binary);
+        std::ofstream f(to_path(path), std::ios::out | std::ios::binary);
         if(!f) return std::unexpected(make_error_code(fs_error::kWriteFailed));
         if(!data.empty())
             f.write(reinterpret_cast<const char *>(data.data()), static_cast<std::streamsize>(data.size()));
@@ -57,7 +57,7 @@ class file_system_base {
     }
 
     result<void> write(const std::string &path, const std::string &content) const {
-        const std::string normalized = static_cast<const Derived &>(*this).NormalizeText(content);
+        const std::string normalized = static_cast<const Derived &>(*this).normalize_text(content);
         std::vector<std::byte> bytes(normalized.size());
         for(std::size_t i = 0; i < normalized.size(); ++i)
             bytes[i] = static_cast<std::byte>(normalized[i]);
@@ -66,12 +66,12 @@ class file_system_base {
 
     bool exists(const std::string &path) const {
         std::error_code ec;
-        return std::filesystem::exists(ToPath(path), ec);
+        return std::filesystem::exists(to_path(path), ec);
     }
 
     result<std::vector<std::string>> list_dir(const std::string &path) const {
         std::error_code ec;
-        auto it = std::filesystem::directory_iterator(ToPath(path), ec);
+        auto it = std::filesystem::directory_iterator(to_path(path), ec);
         if(ec) return std::unexpected(make_error_code(fs_error::kOpenFailed));
         std::vector<std::string> entries;
         for(const auto &entry: it)
@@ -81,15 +81,15 @@ class file_system_base {
 
     bool create_directories(const std::string &path) const {
         std::error_code ec;
-        return std::filesystem::create_directories(ToPath(path), ec);
+        return std::filesystem::create_directories(to_path(path), ec);
     }
 
     /// 平台钩子：文本写入前的换行符规范化（默认原样，POSIX 直接复用）。
     /// 派生类可隐藏以提供平台特定行为；write() 经 CRTP 调用派生版本。
-    std::string NormalizeText(const std::string &content) const { return content; }
+    std::string normalize_text(const std::string &content) const { return content; }
 
   protected:
-    static std::filesystem::path ToPath(const std::string &p) { return std::filesystem::path{p}; }
+    static std::filesystem::path to_path(const std::string &p) { return std::filesystem::path{p}; }
 };
 
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -98,7 +98,7 @@ class file_system_base {
 /// 文本写入按 Windows 约定归一化为 CRLF；目录创建使用系统默认权限。
 class win32_file_system: public file_system_base<win32_file_system> {
   public:
-    std::string NormalizeText(const std::string &content) const {
+    std::string normalize_text(const std::string &content) const {
         std::string out;
         out.reserve(content.size() + content.size() / 8 + 1);
         for(char c: content) {
@@ -118,13 +118,13 @@ class posix_file_system: public file_system_base<posix_file_system> {
   public:
     bool create_directories(const std::string &path) const {
         std::error_code ec;
-        auto p = ToPath(path);
+        auto p = to_path(path);
         bool made = std::filesystem::create_directories(p, ec);
         if(ec) return false;
         std::filesystem::permissions(p, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write | std::filesystem::perms::owner_exec | std::filesystem::perms::group_read | std::filesystem::perms::group_exec | std::filesystem::perms::others_read | std::filesystem::perms::others_exec, std::filesystem::perm_options::replace, ec);
         return made;
     }
-    // NormalizeText 复用基类默认实现（保持 LF）
+    // normalize_text 复用基类默认实现（保持 LF）
 };
 
 #endif

@@ -12,6 +12,7 @@ module;
 #include <tuple>
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/proxy/proxy_macros.h>
+#include <silicon/common.h>
 export module silicon.http;
 
 export import silicon.http.error;
@@ -116,13 +117,13 @@ inline http_response get(const http_client_view &client, const std::string &url)
 }
 
 /// 基于 shell curl 的实现（沙箱内网络受限时可用本地模拟）
-class curl_http_client {
+class CORE_API curl_http_client {
   public:
     http_response request(const http_request &) const;
 };
 
 /// 打桩实现（返回预设响应，用于 TDD）
-class fake_http_client {
+class CORE_API fake_http_client {
 
     struct impl {
       public:

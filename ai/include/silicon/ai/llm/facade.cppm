@@ -17,6 +17,7 @@ module;
 
 #include <tuple>
 
+#include <silicon/ai/common.h>
 export module silicon.ai.llm;
 
 import silicon.json;
@@ -31,7 +32,7 @@ export namespace silicon::ai::llm {
 //
 // 目标类型无需继承任何基类，只要拥有匹配签名的成员即自动满足门面（鸭子
 // 类型）。既有的具体类 scripted_provider / http_provider /
-// json_protocol_adapter，以及测试中的 EchoTool / ConstProvider 均直接接入，
+// json_protocol_adapter，以及测试中的 echo_tool / const_provider 均直接接入，
 // 不再耦合任何继承体系。跨 DLL/ABI 边界以「胖指针 + vtable 值」替代虚表。
 
 PRO_DEF_MEM_DISPATCH(MemToolName, name);
@@ -114,7 +115,7 @@ template<class T, class... Args>
 // ── 具体实现（鸭子类型满足上方门面，零抽象基类耦合） ─────────────
 
 /// 内存工具注册表：重复 name 注册返回 false（不替换）。
-class tool_registry {
+class AI_API tool_registry {
 
     struct impl;
     std::unique_ptr<impl> impl_;
@@ -128,7 +129,7 @@ class tool_registry {
 };
 
 /// 内存提供方注册表：重复 id 注册返回 false。
-class provider_registry {
+class AI_API provider_registry {
 
     struct impl;
     std::unique_ptr<impl> impl_;
@@ -143,7 +144,7 @@ class provider_registry {
 
 /// OpenAI 风格 JSON 协议适配器：conversation/Options -> 请求 JSON；
 /// 线路 JSON -> chat_response（choices[0].message.content 等）。
-class json_protocol_adapter {
+class AI_API json_protocol_adapter {
   public:
     std::string encode_request(
             const conversation &,
@@ -155,7 +156,7 @@ class json_protocol_adapter {
 
 /// 脚本化提供方：FIFO 返回预置响应，用于确定性 TDD。
 /// 队列耗尽返回 llm_error，绝不抛异常。
-class scripted_provider {
+class AI_API scripted_provider {
 
     struct impl;
     std::unique_ptr<impl> impl_;
@@ -172,7 +173,7 @@ class scripted_provider {
 /// OpenAI 兼容 HTTP provider：通过本地 curl 调用 {base_url}/chat/completions。
 /// 配置来自环境变量（无 key 时 chat 返回 llm_error，由调用方提示用户）。
 /// 选用 OpenAI 兼容协议，可对接 OpenAI / DeepSeek / Ollama / vLLM / LM Studio 等。
-class http_provider {
+class AI_API http_provider {
 
     struct impl;
     std::unique_ptr<impl> impl_;

@@ -4,6 +4,7 @@ module;
 #include <cstddef>
 #include <memory>
 
+#include <silicon/common.h>
 export module silicon.scheduler:parallel_scheduler;
 
 import silicon.scheduler.task;
@@ -25,7 +26,7 @@ export namespace silicon::scheduler {
 /// 入口，等价于 stdexec 里 `ex::get_parallel_scheduler()` 所返回的调度器。
 ///
 /// 满足 scheduler_facade，因此可被 task_group / 上层组件统一驱动。
-class parallel_scheduler final {
+class CORE_API parallel_scheduler final {
     struct impl;
     std::unique_ptr<impl> m_impl;
 

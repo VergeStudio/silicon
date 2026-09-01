@@ -115,23 +115,23 @@ std::string json_protocol_adapter::encode_request(
         const std::vector<std::string> &tool_defs
 ) const {
     using namespace silicon::json;
-    JsonValue req = JsonValue::object();
-    req["model"] = JsonValue(opts.model());
-    req["temperature"] = JsonValue(opts.temperature());
-    req["max_tokens"] = JsonValue(static_cast<std::int64_t>(opts.max_tokens()));
+    json_value req = json_value::object();
+    req["model"] = json_value(opts.model());
+    req["temperature"] = json_value(opts.temperature());
+    req["max_tokens"] = json_value(static_cast<std::int64_t>(opts.max_tokens()));
 
-    JsonValue messages = JsonValue::array();
+    json_value messages = json_value::array();
     for(const auto &m: conv) {
-        JsonValue msg = JsonValue::object();
-        msg["role"] = JsonValue(m.role());
-        msg["content"] = JsonValue(m.content());
-        if(!m.tool_call_id().empty()) msg["tool_call_id"] = JsonValue(m.tool_call_id());
+        json_value msg = json_value::object();
+        msg["role"] = json_value(m.role());
+        msg["content"] = json_value(m.content());
+        if(!m.tool_call_id().empty()) msg["tool_call_id"] = json_value(m.tool_call_id());
         messages.push_back(std::move(msg));
     }
     req["messages"] = std::move(messages);
 
     if(!tool_defs.empty()) {
-        JsonValue tools = JsonValue::array();
+        json_value tools = json_value::array();
         for(const auto &td: tool_defs) {
             auto parsed = parse(td);
             if(!parsed.is_discarded()) tools.push_back(parsed);

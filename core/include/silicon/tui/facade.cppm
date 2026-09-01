@@ -10,6 +10,7 @@ module;
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/proxy/proxy_macros.h>
 
+#include <silicon/common.h>
 export module silicon.tui;
 
 // 原此处 import silicon.core；core.cppm 伞模块 re-export tui 后会形成
@@ -47,14 +48,14 @@ template <class T>
 
 #if defined(SILICON_PLATFORM_UNIX)
 
-class unix_terminal {
+class CORE_API unix_terminal {
   public:
     std::string_view terminal_type() const;
     int32_t width() const;
     int32_t height() const;
 };
 #else
-class default_terminal {
+class CORE_API default_terminal {
   public:
     std::string_view terminal_type() const;
     int32_t width() const;

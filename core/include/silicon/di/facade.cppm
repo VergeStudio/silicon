@@ -14160,7 +14160,7 @@ template <typename Base, typename Derived> struct is_virtual_base_of {
 #pragma warning(push)
 #pragma warning(disable : 4250)
 #endif
-    struct Test : Derived, virtual Base {};
+    struct test : Derived, virtual Base {};
 #if defined(__GNUG__)
 #pragma GCC diagnostic pop
 #endif
@@ -14168,7 +14168,7 @@ template <typename Base, typename Derived> struct is_virtual_base_of {
 #pragma warning(pop)
 #endif
     // If this equals, it means Base is already a virtual base of Derived
-    static constexpr bool value = sizeof(Test) == sizeof(Derived);
+    static constexpr bool value = sizeof(test) == sizeof(Derived);
 };
 
 template <typename Base, typename Derived>

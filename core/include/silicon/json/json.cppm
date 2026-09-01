@@ -24,7 +24,7 @@ export using silicon::json::json;
 
 // Backward-compatible alias
 export namespace silicon::json {
-using JsonValue = json;
+using json_value = json;
 }
 
 // Convenience helpers

@@ -4,6 +4,7 @@ module;
 #include <cstddef>
 #include <memory>
 
+#include <silicon/common.h>
 export module silicon.scheduler:inline_scheduler;
 
 import silicon.scheduler.task;
@@ -29,7 +30,7 @@ export namespace silicon::scheduler {
 /// run_loop 是同一套语义（spawn_detached / spawn_joinable / resume / shutdown /
 /// size / empty）。m_size 计数与自删除任务的所有权语义照搬 thread_pool，仅把
 /// "队列 + 工作线程" 替换为 "当前线程内联 resume()"。
-class inline_scheduler final {
+class CORE_API inline_scheduler final {
     struct impl;
     std::unique_ptr<impl> m_impl;
 

@@ -7,7 +7,7 @@ export module silicon.scheduler;
 export import silicon.scheduler.error;
 
 // std 可见性：本模块无 :config 分区（版本信息统一由
-// silicon.core::GetVersion* 提供），在主接口的模块导入区 import std
+// silicon.core::get_version* 提供），在主接口的模块导入区 import std
 //（注意：必须位于 export module 之后——全局模块片段内
 // 出现 import 声明属非法，MSVC 报 C5202 且本项目警告视为错误），实现
 // 单元（io_notifier_* / timer_handle 后端等 .cpp）不必逐一显式 include

@@ -32,6 +32,7 @@ module;
 #include <expected>
 #include <system_error>
 
+#include <silicon/common.h>
 export module silicon.scheduler:io_scheduler;
 export import silicon.scheduler.error;
 
@@ -79,7 +80,7 @@ enum class timeout_status {
     kTimeout,
 };
 
-class io_scheduler {
+class CORE_API io_scheduler {
     using timed_events = silicon::scheduler::poll_info::timed_events;
 
     struct private_constructor {

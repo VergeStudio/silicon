@@ -4,6 +4,7 @@ module;
 #include <cstddef>
 #include <memory>
 
+#include <silicon/common.h>
 export module silicon.scheduler:run_loop;
 
 import silicon.scheduler.task;
@@ -32,7 +33,7 @@ export namespace silicon::scheduler {
 ///     run() 正阻塞在空队列等待，同线程调用将无法被该线程观察到；
 ///   - 承载 run() 的线程必须比 run_loop 对象更晚销毁——析构函数仅调用 finish()
 ///     唤醒等待中的 run()，不会等待其退出（run_loop 不持有线程，无法 join）。
-class run_loop final {
+class CORE_API run_loop final {
     struct impl;
     std::unique_ptr<impl> m_impl;
 

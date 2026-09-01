@@ -133,11 +133,11 @@ using Drawable = facade<Draw, Area, skills::as_weak>;    // nullable
 ## Version Info (at runtime)
 
 ```cpp
-auto ver = silicon::proxy::GetVersion();           // "0.0.1"
-auto maj  = silicon::proxy::GetVersionMajor();
-auto min  = silicon::proxy::GetVersionMinor();
-auto br   = silicon::proxy::GetVersionBranch();    // "dev"
-auto cmt  = silicon::proxy::GetVersionCommit();    // commit hash
+auto ver = silicon::core::get_version();           // "0.0.1"
+auto maj  = silicon::core::get_version_major();
+auto min  = silicon::core::get_version_minor();
+auto br   = silicon::core::get_version_branch();   // "dev"
+auto cmt  = silicon::core::get_version_commit();   // commit hash
 ```
 
 ---

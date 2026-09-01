@@ -52,7 +52,7 @@ target("core", function()
     end
 
     -- 生成式 :config 分区（版本信息）。core 内所有模块只保留 silicon.core:config
-    -- 这一个分区，版本信息统一由 silicon.core::GetVersion* 提供。
+    -- 这一个分区，版本信息统一由 silicon.core::get_version* 提供。
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("core.config.cppm.in")
     add_files("$(builddir)/silicon/config/core.config.cppm", {public = true})

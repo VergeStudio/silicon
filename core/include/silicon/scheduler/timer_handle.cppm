@@ -3,6 +3,7 @@ module;
 #include <memory>
 
 
+#include <silicon/common.h>
 export module silicon.scheduler:timer_handle;
 
 import :fd;
@@ -27,7 +28,7 @@ export namespace silicon::scheduler {
 
 
 
-class timer_handle {
+class CORE_API timer_handle {
     struct impl;
     std::unique_ptr<impl> m_p;
 

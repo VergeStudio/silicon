@@ -8,7 +8,7 @@
 // definitions without triggering the classic "declaration follows declaration
 // in the global module" error.
 //
-// 本模块无 :config 分区：版本信息统一由 silicon.core::GetVersion* 提供。
+// 本模块无 :config 分区：版本信息统一由 silicon.core::get_version* 提供。
 
 export module silicon.network;
 export import silicon.network.error;

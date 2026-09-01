@@ -27,6 +27,7 @@ module;
 #include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
+#include <silicon/common.h>
 export module silicon.network:tcp;
 
 export import silicon.coroutine;
@@ -82,7 +83,7 @@ class client;
 
 class server;
 
-class client final {
+class CORE_API client final {
   public:
     /**
      * Creates a new tcp client that can connect to an ip address + port.
@@ -283,7 +284,7 @@ template<class T>
     return silicon::proxy::make_proxy_view<tcp_server_facade>(target);
 }
 
-class server final {
+class CORE_API server final {
   public:
     struct options {
         /// The kernel backlog of connections to buffer.

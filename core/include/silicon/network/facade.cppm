@@ -40,6 +40,7 @@ module;
 #include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
+#include <silicon/common.h>
 export module silicon.network:facade;
 export import silicon.network.error;
 
@@ -354,7 +355,7 @@ template<class T>
 /**
  * Represents IP address and port.
  */
-class socket_address {
+class CORE_API socket_address {
     struct impl {
       public:
         sockaddr_storage m_storage{};
@@ -523,7 +524,7 @@ inline std::ostream & operator<<(std::ostream &os, const socket_address &ep) {
     return os << (text ? *text : std::string{"<invalid socket_address: "} + text.error().message() + ">");
 }
 
-class socket final {
+class CORE_API socket final {
   public:
     enum class type_t {
         /// udp datagram socket

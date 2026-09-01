@@ -9,6 +9,7 @@ module;
 #include <utility>
 
 
+#include <silicon/common.h>
 export module silicon.scheduler:poll_info;
 
 import :fd;
@@ -47,7 +48,7 @@ export namespace silicon::scheduler {
  * `silicon.scheduler`.  Members that touch `impl` are declared here and defined out-of-line in
  * `scheduler/src/detail/poll_info.cpp`.
  */
-struct poll_info {
+struct CORE_API poll_info {
     using timed_events = std::multimap<silicon::coroutine::time_point, poll_info *>;
 
     /// Implementation state of a poll operation.  Kept behind `m_p` so the layout of a poll

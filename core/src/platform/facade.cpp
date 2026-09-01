@@ -18,7 +18,7 @@ namespace silicon::platform {
 // ── 内部 constexpr 辅助函数（仅本模块实现单元可见，不导出）──────────
 // importer 改用导出的 os / arch 直接分支。
 
-constexpr bool IsUnixFamily(os_id o) {
+constexpr bool is_unix_family(os_id o) {
     return o == os_id::kFreeBsd || o == os_id::kAix ||
            o == os_id::kHpux || o == os_id::kTru64 ||
            o == os_id::kNacl || o == os_id::kLinuxOs ||
@@ -30,16 +30,16 @@ constexpr bool IsUnixFamily(os_id o) {
            o == os_id::kUnknownUnix;
 }
 
-constexpr bool IsBsdFamily(os_id o) {
+constexpr bool is_bsd_family(os_id o) {
     return o == os_id::kFreeBsd || o == os_id::kNetBsd ||
            o == os_id::kOpenBsd || o == os_id::kMacOsX;
 }
 
-constexpr bool IsWindowsFamily(os_id o) {
+constexpr bool is_windows_family(os_id o) {
     return o == os_id::kWindowsNt;
 }
 
-constexpr auto NativeNewline() {
+constexpr auto native_newline() {
     if constexpr(os == os_id::kWindowsNt)
         return "\r\n";
     else
@@ -53,7 +53,7 @@ constexpr auto path_separator() {
         return "/";
 }
 
-constexpr char PathSeparatorChar() {
+constexpr char path_separator_char() {
     if constexpr(os == os_id::kWindowsNt)
         return ';';
     else

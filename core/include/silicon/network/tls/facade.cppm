@@ -31,6 +31,7 @@ module;
 #include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
+#include <silicon/common.h>
 export module silicon.network:tls;
 
 export import silicon.coroutine;
@@ -127,7 +128,7 @@ enum class send_status : int64_t {
 
 auto to_string(send_status) -> const std::string &;
 
-class context {
+class CORE_API context {
   public:
     /**
      * Creates a context with no certificate and no private key, maybe useful for testing.

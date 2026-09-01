@@ -5,6 +5,7 @@ module;
 #include <string>
 #include <system_error>
 
+#include <silicon/common.h>
 export module silicon.scheduler.error;
 
 import silicon.error;
@@ -12,7 +13,7 @@ import silicon.error;
 // ---- 模块内部：DI 句柄（不导出）----
 namespace silicon::scheduler {
 
-std::atomic<const std::error_category *> scheduler_error_category_instance{nullptr};
+CORE_API std::atomic<const std::error_category *> scheduler_error_category_instance{nullptr};
 
 } // namespace silicon::scheduler
 
@@ -30,7 +31,7 @@ enum class scheduler_error {
 };
 
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
-class scheduler_category_impl final : public std::error_category {
+class CORE_API scheduler_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.scheduler"; }
     std::string message(int ev) const override {
         switch(static_cast<scheduler_error>(ev)) {

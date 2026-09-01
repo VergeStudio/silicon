@@ -23,13 +23,13 @@ export namespace silicon::cli {
 
 // ── 类型擦除门面（silicon.proxy）─────────
 //
-// 目标类型无需继承任何基类，只要拥有 `Parse` 成员即自动满足门面（鸭子类型）。
-// 既有的具体类 Parser 直接接入，不再耦合任何继承体系。
+// 目标类型无需继承任何基类，只要拥有 `parse` 成员即自动满足门面（鸭子类型）。
+// 既有的具体类 parser 直接接入，不再耦合任何继承体系。
 
-PRO_DEF_MEM_DISPATCH(MemParserParse, Parse);
+PRO_DEF_MEM_DISPATCH(MemParserParse, parse);
 
 /// 解析器门面：满足 `std::expected<parse_result, std::error_code>
-/// Parse(int, const char *const *) const`。
+/// parse(int, const char *const *) const`。
 struct parser_facade
     : silicon::proxy::facade_builder                                                                  //
       ::add_convention<MemParserParse, std::expected<parse_result, std::error_code>(int, const char *const *) const> //
@@ -50,20 +50,20 @@ template<class T, class... Args>
 /// 默认 CLI 解析器（鸭子类型满足 parser_facade，零抽象基类耦合）。
 /// 行为类统一 pImpl：`struct impl;` 前向声明 + `std::unique_ptr<impl> impl_;`，
 /// impl 完整定义与方法体沉 .cpp（见 cli/src/parser/parser.cpp），析构在 .cpp `= default`。
-class CORE_API Parser {
+class CORE_API parser {
   public:
-    Parser();
-    ~Parser();
+    parser();
+    ~parser();
 
-    /// 声明合法子命令。Parse 会校验首个位置参数是否落在已知子命令集合内，
+    /// 声明合法子命令。parse 会校验首个位置参数是否落在已知子命令集合内，
     /// 未登记任何子命令时该维度不做校验（宽松通过）。
-    void AddSubcommand(std::string);
+    void add_subcommand(std::string);
     /// 声明合法命名标志。requires_value=true 时该 flag 必须携带值，否则返回 kMissingArgument。
     /// 未登记任何 flag 时该维度不做校验（宽松通过）。
-    void AddFlag(std::string, bool = false);
+    void add_flag(std::string, bool = false);
 
     /// 解析 argv；成功返回 parse_result，失败返回 cli_error 对应的 error_code。
-    std::expected<parse_result, std::error_code> Parse(int, const char *const *) const;
+    std::expected<parse_result, std::error_code> parse(int, const char *const *) const;
 
   private:
     struct impl;

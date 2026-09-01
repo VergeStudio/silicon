@@ -5,11 +5,12 @@ module;
 #include <string>
 #include <system_error>
 
+#include <silicon/common.h>
 export module silicon.library;
 export import silicon.library.error;
 
 namespace silicon::library {
-export class shared_library final {
+export class CORE_API shared_library final {
 
     /// The shared_library class dynamically
     /// loads shared libraries at Run-time.

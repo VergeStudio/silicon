@@ -53,17 +53,17 @@ class CORE_API config_value {
     config_value(config_value &&) noexcept = default;
     config_value & operator=(config_value &&) noexcept = default;
 
-    [[nodiscard]] bool IsNull() const noexcept ;
-    [[nodiscard]] bool IsBool() const noexcept ;
-    [[nodiscard]] bool IsInt() const noexcept ;
-    [[nodiscard]] bool IsDouble() const noexcept ;
-    [[nodiscard]] bool IsString() const noexcept ;
+    [[nodiscard]] bool is_null() const noexcept ;
+    [[nodiscard]] bool is_bool() const noexcept ;
+    [[nodiscard]] bool is_int() const noexcept ;
+    [[nodiscard]] bool is_double() const noexcept ;
+    [[nodiscard]] bool is_string() const noexcept ;
 
-    [[nodiscard]] bool AsBool() const ;
-    [[nodiscard]] int64_t AsInt() const ;
-    [[nodiscard]] double AsDouble() const ;
-    [[nodiscard]] auto AsString() const -> const std::string &;
-    [[nodiscard]] auto AsStringOpt() const noexcept -> const std::string *;
+    [[nodiscard]] bool as_bool() const ;
+    [[nodiscard]] int64_t as_int() const ;
+    [[nodiscard]] double as_double() const ;
+    [[nodiscard]] auto as_string() const -> const std::string &;
+    [[nodiscard]] auto as_string_opt() const noexcept -> const std::string *;
 };
 
 } // namespace silicon::config

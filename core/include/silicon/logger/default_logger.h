@@ -8,12 +8,13 @@
 #include <string_view>
 
 #include "silicon/logger/ilogger.h"
+#include "silicon/common.h"
 
 namespace silicon::logger {
 
 // 单一定义源：与模块接口 silicon.logger 导出的类保持一致（鸭子类型满足 logger_facade，
 // 无需继承抽象基类），避免 module 声明与 header 声明产生 ODR 双定义。
-class default_logger {
+class CORE_API default_logger {
   public:
     default_logger();
     ~default_logger() noexcept;

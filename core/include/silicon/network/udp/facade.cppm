@@ -24,6 +24,7 @@ module;
 #include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
+#include <silicon/common.h>
 export module silicon.network:udp;
 
 export import silicon.coroutine;
@@ -63,7 +64,7 @@ template<class T>
     return silicon::proxy::make_proxy_view<udp_peer_facade>(target);
 }
 
-class peer final {
+class CORE_API peer final {
   public:
     /**
      * Creates a udp peer that can send packets but not receive them.  This udp peer will not explicitly

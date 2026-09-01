@@ -5,6 +5,7 @@ module;
 #include <string>
 #include <system_error>
 
+#include "silicon/ai/common.h"
 export module silicon.ai.llm.error;
 
 import silicon.error;
@@ -16,7 +17,7 @@ namespace silicon::ai::llm {
 // 句柄用 std::atomic 承载裸指针：组合根可能在动态初始化期或运行期并发注入，
 // 模块读取路径可能并发， atomic 的 release/acquire 保证注入 happens-before 读取。
 // std::error_category 进程期常驻、析构为保护，真实生命周期由组合根持有，模块侧不释放。
-std::atomic<const std::error_category *> llm_error_category_instance{nullptr};
+AI_API std::atomic<const std::error_category *> llm_error_category_instance{nullptr};
 
 } // namespace silicon::ai::llm
 
@@ -36,7 +37,7 @@ enum class llm_error {
 // local static (name()/message() virtual dispatch crashes with SIGSEGV).
 // 该实现类由组合根（composition root）实例化并经 inject_llm_category 注入，
 // 模块自身不再持有单例；下层统一经 llm_category() 取到同一实例，跨模块/跨 DLL 安全。
-class llm_category_impl final: public std::error_category {
+class AI_API llm_category_impl final: public std::error_category {
     const char *name() const noexcept override { return "silicon.ai.llm"; }
     std::string message(int ev) const override {
         switch(static_cast<llm_error>(ev)) {

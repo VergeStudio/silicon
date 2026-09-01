@@ -29,6 +29,7 @@ module;
 #    pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
+#include <silicon/common.h>
 export module silicon.coroutine:facade;
 
 import silicon.scheduler;
@@ -40,7 +41,7 @@ import silicon.proxy;
 
 export namespace silicon::coroutine {
 
-class condition_variable {
+class CORE_API condition_variable {
   public:
     using predicate_type = std::function<bool()>;
 

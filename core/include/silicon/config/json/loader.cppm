@@ -20,14 +20,14 @@ export import silicon.config.config_value;
 export namespace silicon::config {
 /// 基于 JSON 文件的配置加载器（平坦 key=value 映射）。
 /// 满足 silicon.fs 的 file_system_facade（鸭子类型），从给定文件系统句柄读取。
-class CORE_API JsonFileConfig {
+class CORE_API json_file_config {
   public:
-    JsonFileConfig();
-    ~JsonFileConfig();
-    result<void> Load(const std::string &, const fs::file_system_view &);
+    json_file_config();
+    ~json_file_config();
+    result<void> load(const std::string &, const fs::file_system_view &);
 
-    std::optional<config_value> Get(std::string_view) const;
-    std::map<std::string, config_value, std::less<>> All() const;
+    std::optional<config_value> get(std::string_view) const;
+    std::map<std::string, config_value, std::less<>> all() const;
 
   private:
     struct impl;

@@ -116,8 +116,8 @@ constexpr arch_id arch = arch_id::kLoongarch64;
 #endif
 
 // ── Compile-time helpers (internalized) ──────────────────────────────
-// IsUnixFamily / IsBsdFamily / IsWindowsFamily / NativeNewline /
-// path_separator / PathSeparatorChar / shared_lib_prefix / shared_lib_suffix /
+// is_unix_family / is_bsd_family / is_windows_family / native_newline /
+// path_separator / path_separator_char / shared_lib_prefix / shared_lib_suffix /
 // executable_suffix 已迁至实现单元 core/src/platform/facade.cpp，不再对外导出；
 // importer 直接基于导出的 constexpr 变量 os / arch 做 if constexpr 分支。
 

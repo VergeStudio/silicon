@@ -5,13 +5,14 @@ module;
 #include <memory>
 
 
+#include <silicon/common.h>
 export module silicon.scheduler:pipe;
 
 import :fd;
 
 export namespace silicon::coroutine {
 
-class pipe_t {
+class CORE_API pipe_t {
   public:
     explicit pipe_t();
     ~pipe_t();

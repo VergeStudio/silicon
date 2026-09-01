@@ -19,23 +19,23 @@ import silicon.cli.error;
 
 namespace silicon::cli {
 
-struct Parser::impl {
+struct parser::impl {
     std::set<std::string> subcommands;
     std::map<std::string, bool> flags; // name -> requires_value
 };
 
-Parser::Parser() : impl_(std::make_unique<impl>()) {}
-Parser::~Parser() = default;
+parser::parser() : impl_(std::make_unique<impl>()) {}
+parser::~parser() = default;
 
-void Parser::AddSubcommand(std::string name) {
+void parser::add_subcommand(std::string name) {
     impl_->subcommands.insert(std::move(name));
 }
 
-void Parser::AddFlag(std::string name, bool requires_value) {
+void parser::add_flag(std::string name, bool requires_value) {
     impl_->flags.emplace(std::move(name), requires_value);
 }
 
-std::expected<parse_result, std::error_code> Parser::Parse(int argc, const char *const *argv) const {
+std::expected<parse_result, std::error_code> parser::parse(int argc, const char *const *argv) const {
     parse_result result;
     if(argc <= 0) return result;
 
@@ -89,7 +89,7 @@ std::expected<parse_result, std::error_code> Parser::Parse(int argc, const char 
             return std::unexpected(make_error_code(cli_error::kInvalidValue));
         }
 
-        // 声明驱动：已登记的 flag 按 AddFlag 的 requires_value 决定是否消费值；
+        // 声明驱动：已登记的 flag 按 add_flag 的 requires_value 决定是否消费值；
         // 未登记（宽松维度）保留词法回退——长 flag 后随非 '-' token 则带值。
         const auto it = impl_->flags.find(name);
         bool takes_value;

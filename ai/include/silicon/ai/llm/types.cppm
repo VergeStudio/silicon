@@ -9,6 +9,7 @@ module;
 #include <system_error>
 #include <vector>
 
+#include <silicon/ai/common.h>
 export module silicon.ai.llm.types;
 
 import silicon.error;
@@ -22,7 +23,7 @@ using result = silicon::error::result<T>;
 
 // ── 值类型 ──────────────────────────────────────────────────────
 
-struct message {
+struct AI_API message {
 
     struct impl; // 完整定义下沉至 types.cpp（message 非模版）
     std::shared_ptr<impl> impl_;
@@ -47,7 +48,7 @@ struct message {
 
 using conversation = std::vector<message>;
 
-struct model_request_options {
+struct AI_API model_request_options {
 
     struct impl; // 完整定义下沉至 types.cpp（model_request_options 非模版）
     std::shared_ptr<impl> impl_;
@@ -70,7 +71,7 @@ struct model_request_options {
     const std::map<std::string, std::string, std::less<>> &extra() const;
 };
 
-struct chat_response {
+struct AI_API chat_response {
 
     struct impl;                 // 完整定义下沉至 types.cpp（chat_response 非模版）
     std::shared_ptr<impl> impl_; // 接口单元中 impl 不完整；默认构造/拷贝/访问器均在 types.cpp 定义
@@ -93,7 +94,7 @@ struct chat_response {
     const int32_t &completion_tokens() const;
 };
 
-struct tool_call {
+struct AI_API tool_call {
 
     struct impl; // 完整定义下沉至 types.cpp（tool_call 非模版）
     std::shared_ptr<impl> impl_;
@@ -116,7 +117,7 @@ struct tool_call {
     const std::string &arguments() const;
 };
 
-struct tool_output {
+struct AI_API tool_output {
 
     struct impl; // 完整定义下沉至 types.cpp（tool_output 非模版）
     std::shared_ptr<impl> impl_;

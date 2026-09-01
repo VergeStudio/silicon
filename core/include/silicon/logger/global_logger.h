@@ -8,10 +8,11 @@
 #include <atomic>
 
 #include "silicon/logger/logger.h"
+#include "silicon/common.h"
 
 namespace silicon::logger {
 
-class global_logger {
+class CORE_API global_logger {
  public:
     global_logger();
     ~global_logger() noexcept;

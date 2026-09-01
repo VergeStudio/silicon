@@ -5,6 +5,7 @@ module;
 #include <string>
 #include <system_error>
 
+#include <silicon/common.h>
 export module silicon.http.error;
 
 import silicon.error;
@@ -12,7 +13,7 @@ import silicon.error;
 // ---- 模块内部：DI 句柄（不导出）----
 namespace silicon::http {
 
-std::atomic<const std::error_category *> http_error_category_instance{nullptr};
+CORE_API std::atomic<const std::error_category *> http_error_category_instance{nullptr};
 
 } // namespace silicon::http
 
@@ -27,7 +28,7 @@ enum class http_error {
 };
 
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
-class http_category_impl final : public std::error_category {
+class CORE_API http_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.http"; }
     std::string message(int ev) const override {
         switch(static_cast<http_error>(ev)) {

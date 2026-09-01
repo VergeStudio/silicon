@@ -8,6 +8,7 @@ module;
 #include <atomic>
 
 
+#include <silicon/common.h>
 export module silicon.coroutine:latch;
 
 import :event;
@@ -23,7 +24,7 @@ export namespace silicon::coroutine {
  * across a thread pool of workers, or waiting for many asynchronous results like http requests
  * to complete.
  */
-class latch {
+class CORE_API latch {
   public:
     /**
      * Creates a latch with the given count of tasks to wait to complete.

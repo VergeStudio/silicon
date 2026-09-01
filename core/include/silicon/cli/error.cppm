@@ -5,6 +5,7 @@ module;
 #include <string>
 #include <system_error>
 
+#include <silicon/common.h>
 export module silicon.cli.error;
 
 import silicon.error;
@@ -15,7 +16,7 @@ namespace silicon::cli {
 // 句柄用 std::atomic 承载裸指针：组合根可能在动态初始化期或运行期并发注入，
 // 模块读取路径可能并发， atomic 的 release/acquire 保证注入 happens-before 读取。
 // std::error_category 进程期常驻、析构为保护，真实生命周期由组合根持有，模块侧不释放。
-std::atomic<const std::error_category *> cli_error_category_instance{nullptr};
+CORE_API std::atomic<const std::error_category *> cli_error_category_instance{nullptr};
 
 } // namespace silicon::cli
 
@@ -34,7 +35,7 @@ enum class cli_error {
 // 具名类取代匿名类局部静态：MSVC 模块构建对匿名派生类的 vtable 处理有缺陷
 // （name()/message() 虚调用会 SIGSEGV）。该实现类由组合根实例化并经 inject_cli_error_category 注入，
 // 模块自身不再持有单例；下层统一经 cli_category() 取到同一实例，跨模块/跨 DLL 安全。
-class cli_category_impl final : public std::error_category {
+class CORE_API cli_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.cli"; }
     std::string message(int ev) const override {
         switch(static_cast<cli_error>(ev)) {

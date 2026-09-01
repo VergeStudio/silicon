@@ -11,7 +11,7 @@ using namespace silicon::ai::llm;
 
 // ── 测试夹具：具体类型（鸭子类型满足 facade，无需继承 i_*） ────────
 
-class EchoTool {
+class echo_tool {
   public:
     std::string_view name() const { return "echo"; }
     std::string_view description() const { return "echoes input"; }
@@ -23,11 +23,11 @@ class EchoTool {
 };
 
 
-class ConstProvider {
+class const_provider {
     std::string text_;
 
   public:
-    explicit ConstProvider(std::string t): text_(std::move(t)) {}
+    explicit const_provider(std::string t): text_(std::move(t)) {}
     result<chat_response> chat(const conversation &, const model_request_options &) {
         chat_response r;
         r.content() = text_;
@@ -44,7 +44,7 @@ class ConstProvider {
 TEST_CASE("tool_registry 注册并按 name 查询") {
     tool_registry reg;
     CHECK(reg.tool_count() == 0);
-    CHECK(reg.register_tool(make_tool<EchoTool>()));
+    CHECK(reg.register_tool(make_tool<echo_tool>()));
     CHECK(reg.tool_count() == 1);
 
     auto t = reg.get_tool("echo");
@@ -57,8 +57,8 @@ TEST_CASE("tool_registry 注册并按 name 查询") {
 
 TEST_CASE("tool_registry 重复 name 注册返回 false") {
     tool_registry reg;
-    CHECK(reg.register_tool(make_tool<EchoTool>()));
-    CHECK_FALSE(reg.register_tool(make_tool<EchoTool>()));
+    CHECK(reg.register_tool(make_tool<echo_tool>()));
+    CHECK_FALSE(reg.register_tool(make_tool<echo_tool>()));
     CHECK(reg.tool_count() == 1);
 }
 
@@ -71,8 +71,8 @@ TEST_CASE("tool_registry get_tool 未知 name 返回空句柄") {
 
 TEST_CASE("provider_registry 注册/查询/列举") {
     provider_registry reg;
-    CHECK(reg.register_provider("openai", make_provider<ConstProvider>("a")));
-    CHECK(reg.register_provider("anthropic", make_provider<ConstProvider>("b")));
+    CHECK(reg.register_provider("openai", make_provider<const_provider>("a")));
+    CHECK(reg.register_provider("anthropic", make_provider<const_provider>("b")));
     CHECK(reg.list_providers().size() == 2);
 
     auto p = reg.get_provider("openai");
@@ -86,8 +86,8 @@ TEST_CASE("provider_registry 注册/查询/列举") {
 
 TEST_CASE("provider_registry 重复 id 注册返回 false") {
     provider_registry reg;
-    CHECK(reg.register_provider("openai", make_provider<ConstProvider>("a")));
-    CHECK_FALSE(reg.register_provider("openai", make_provider<ConstProvider>("b")));
+    CHECK(reg.register_provider("openai", make_provider<const_provider>("a")));
+    CHECK_FALSE(reg.register_provider("openai", make_provider<const_provider>("b")));
     CHECK(reg.list_providers().size() == 1);
 }
 

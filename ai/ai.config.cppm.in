@@ -8,11 +8,11 @@ module;
 export module silicon.ai:config;
 
 namespace silicon::ai {
-export inline AI_API const std::string GetVersion() { return "${VERSION}"; }
-export inline AI_API std::uint32_t GetVersionMajor() { return ${VERSION_MAJOR}; }
-export inline AI_API std::uint32_t GetVersionMinor() { return ${VERSION_MINOR}; }
-export inline AI_API std::uint32_t GetVersionAlter() { return ${VERSION_ALTER}; }
-export inline AI_API std::uint64_t GetVersionBuild() { return ${VERSION_BUILD}; }
-export inline AI_API const std::string GetVersionBranch() { return "${GIT_BRANCH}"; }
-export inline AI_API const std::string GetVersionCommit() { return "${GIT_COMMIT}"; }
+export inline AI_API const std::string get_version() { return "${VERSION}"; }
+export inline AI_API std::uint32_t get_version_major() { return ${VERSION_MAJOR}; }
+export inline AI_API std::uint32_t get_version_minor() { return ${VERSION_MINOR}; }
+export inline AI_API std::uint32_t get_version_alter() { return ${VERSION_ALTER}; }
+export inline AI_API std::uint64_t get_version_build() { return ${VERSION_BUILD}; }
+export inline AI_API const std::string get_version_branch() { return "${GIT_BRANCH}"; }
+export inline AI_API const std::string get_version_commit() { return "${GIT_COMMIT}"; }
 } // namespace silicon::ai

@@ -17,6 +17,7 @@ module;
 // 消费方必须在全局模块片段显式包含，随后再 `import silicon.proxy`。
 #include <silicon/proxy/proxy_macros.h>
 
+#include <silicon/common.h>
 export module silicon.plugin;
 export import silicon.plugin.error;
 
@@ -86,7 +87,7 @@ template<class T>
 /// 前者保留 shared_ptr 风格的 `name()` 查询 API（register_plugin/get_plugin/
 /// remove_plugin/list_plugins），后者提供 emplace 就地构造与 `get()` 返回
 /// 句柄指针。两者底层均以 plugin_proxy 值持有，跨 DLL / ABI 边界安全。
-class plugin_registry {
+class CORE_API plugin_registry {
 
     struct impl {
       public:
@@ -117,7 +118,7 @@ class plugin_registry {
 /// 基于 proxy 的插件注册表。
 /// 与 plugin_registry 的差异：目标类型无需继承任何基类，也无需 shared_ptr —
 /// 只要满足 plugin_facade 即可注册，句柄按值持有。
-class proxy_plugin_registry {
+class CORE_API proxy_plugin_registry {
 
     struct impl {
       public:

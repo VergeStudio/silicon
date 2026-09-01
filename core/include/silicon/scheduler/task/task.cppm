@@ -14,7 +14,7 @@ module;
 
 export module silicon.scheduler.task;
 
-// 版本信息由 silicon.core:config（silicon.core::GetVersion*）提供，
+// 版本信息由 silicon.core:config（silicon.core::get_version*）提供，
 // 本模块无 :config 分区。
 
 export namespace silicon::scheduler {
@@ -303,7 +303,7 @@ inline auto promise<void>::get_return_object() noexcept -> task<> {
 
 class task_self_deleting;
 
-class promise_self_deleting {
+class CORE_API promise_self_deleting {
   public:
     promise_self_deleting() = default;
     ~promise_self_deleting() = default;
@@ -324,7 +324,7 @@ class promise_self_deleting {
     std::function<void()> m_user_final_suspend{nullptr};
 };
 
-class task_self_deleting {
+class CORE_API task_self_deleting {
   public:
     using promise_type = promise_self_deleting;
     explicit task_self_deleting(promise_self_deleting &);
@@ -353,7 +353,7 @@ auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_self_deleti
 // task_event — minimal coroutine-aware event for task_group
 // ---------------------------------------------------------------------------
 
-class task_event {
+class CORE_API task_event {
   public:
     struct awaiter {
         awaiter(const task_event &) noexcept;

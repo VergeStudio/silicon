@@ -15,15 +15,15 @@ import silicon.config.error;
 namespace silicon::config {
 
 // ── Pimpl ─────────────────────────────────────────────────────────────────
-struct JsonFileConfig::impl {
+struct json_file_config::impl {
     std::map<std::string, config_value, std::less<>> entries_;
 };
 
-JsonFileConfig::JsonFileConfig(): impl_(std::make_unique<impl>()) {}
-JsonFileConfig::~JsonFileConfig() = default;
+json_file_config::json_file_config(): impl_(std::make_unique<impl>()) {}
+json_file_config::~json_file_config() = default;
 
-// ── JsonFileConfig methods ────────────────────────────────────────────────
-auto JsonFileConfig::Load(const std::string &path, const fs::file_system_view &filesystem) -> result<void> {
+// ── json_file_config methods ────────────────────────────────────────────────
+auto json_file_config::load(const std::string &path, const fs::file_system_view &filesystem) -> result<void> {
     auto content = filesystem->read(path);
     if(!content) return std::unexpected(make_error_code(config_error::kLoadFailed));
 
@@ -36,13 +36,13 @@ auto JsonFileConfig::Load(const std::string &path, const fs::file_system_view &f
     return {};
 }
 
-std::optional<config_value> JsonFileConfig::Get(std::string_view key) const {
+std::optional<config_value> json_file_config::get(std::string_view key) const {
     auto it = impl_->entries_.find(key);
     if(it == impl_->entries_.end()) return std::nullopt;
     return it->second;
 }
 
-std::map<std::string, config_value, std::less<>> JsonFileConfig::All() const {
+std::map<std::string, config_value, std::less<>> json_file_config::all() const {
     return impl_->entries_;
 }
 
