@@ -2,11 +2,11 @@ target("ai", function()
     -- 接口模块（moduleonly）：纯抽象接口（proxy 门面 + 工厂签名 + 类声明），不含实现。
     set_kind("moduleonly")
 
-    -- 接口（silicon.http 等）与实现符号由 core.dll 统一提供。
+    -- 接口（silicon.http 等）与实现符号由 silicon_core 统一提供。
     add_deps("core")
 
-    -- 单 DLL 伞宏闸门：本模块实体经 *_API（CORE_EXPORT）dllexport，
-    -- 由消费方（测试/应用）静态链接 core.dll 与 ai.impl.lib。
+    -- 单 DLL 伞宏闸门：本模块实体经 CORE_API（CORE_EXPORT）dllexport，
+    -- 由消费方（测试/应用）静态链接 silicon_core 与 ai.impl.lib。
     add_defines("CORE_EXPORT")
 
     add_includedirs("include", {public = true})
