@@ -10,7 +10,7 @@ module;
 #include <tuple>
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/proxy/proxy_macros.h>
-// FS_API（dllexport/dlimport 闸门，键控 SILICON_EXPORT）：跨 DLL 导出的自由函数须显式标注，
+// FS_API（dllexport/dlimport 闸门，键控 CORE_EXPORT）：跨 DLL 导出的自由函数须显式标注，
 // 否则 MSVC 不会把模块接口中声明、实现单元中定义的自由函数导出到 core.dll 导入库。
 #include <silicon/common.h>
 export module silicon.fs;

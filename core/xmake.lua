@@ -19,11 +19,11 @@ target("core", function()
         add_defines("NOMINMAX", "WIN32_LEAN_AND_MEAN")
     end
 
-    -- 单 DLL 伞宏：core 编译进 core.dll，SILICON_EXPORT 由本 target 定义，
+    -- 单 DLL 伞宏：core 编译进 core.dll，CORE_EXPORT 由本 target 定义，
     -- 使各模块 *API（CORE_API/CONFIG_API/DI_API/EVENT_API/TIME_API/LOGGER_API/
     -- FS_API/XDG_API/JSON_API/NET_API/HTTP_API/PLUGIN_API 等）据此 dllexport
     --（消费方不定义则 dllimport）。
-    add_defines("SILICON_EXPORT")
+    add_defines("CORE_EXPORT")
 
     -- 基础层（core）不依赖任何其他 silicon 模块；其他模块统一
     -- add_deps("core")，经本 target 的 public 模块 IFC 拿到

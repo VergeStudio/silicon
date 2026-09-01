@@ -1,6 +1,6 @@
 module;
 
-// COROUTINE_API（键控 SILICON_EXPORT）宏来源；定义侧须标注。
+// COROUTINE_API（键控 CORE_EXPORT）宏来源；定义侧须标注。
 #include "silicon/common.h"
 
 module silicon.coroutine;
