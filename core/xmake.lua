@@ -5,9 +5,9 @@ add_requires("spdlog", {configs = {shared = true}})
 -- 引入，故同样 public 传递。
 add_requires("c-ares")
 
-target("silicon_core", function()
+target("core", function()
     set_kind("shared")
-    set_basename("core")
+    set_basename("silicon_core")
 
     if is_plat("windows") then
         add_defines("WIN")
@@ -26,7 +26,7 @@ target("silicon_core", function()
     add_defines("SILICON_EXPORT")
 
     -- 基础层（core）不依赖任何其他 silicon 模块；其他模块统一
-    -- add_deps("silicon_core")，经本 target 的 public 模块 IFC 拿到
+    -- add_deps("core")，经本 target 的 public 模块 IFC 拿到
     -- 所有 silicon.X 的接口。
 
     add_packages("spdlog", {public = true})
