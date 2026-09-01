@@ -7,15 +7,14 @@ add_requires("c-ares")
 
 -- 关于「并入 core 的模块为何不再各有独立 xmake.lua」：
 -- 根 xmake.lua 以 namespace("silicon") + includes("./**") 递归拾取所有子目录的
--- xmake.lua。模块并入 core 后，其接口/实现单元统一由本文件的 glob 编译，故原
--- core/<mod>/xmake.lua 只剩两类内容：
---   1) 声明 <mod>.test 二进制 target（依赖 silicon::core + silicon::test）——
---      仅 fs / json / platform / plugin / time / xdg 六个模块仍有
---      core/<mod>/{test,specs}/；coroutine 的测试已迁入 src/coroutine/test/，
---   2) 纯注释占位（config / di / event / logger / scheduler / scheduler-task）——
---      这些模块无 test/specs，文件内不声明任何 target，对构建零影响
---      （实证：删除前后 xmake show -l targets 均为同一份 17 目标清单）。
--- 为免"看似有配置实则无作用"造成误导，第 2 类已删除，其说明并入本注释块：
+-- xmake.lua。模块并入 core 后，其接口/实现单元统一由本文件的 glob 编译。
+-- 测试随实现同置 src/<mod>/test/ 的模块（coroutine / fs / json / platform /
+-- time / xdg），其 <mod>.test target（依赖 silicon::core + silicon::test）
+-- 声明在 core/src/<mod>/xmake.lua；仍留在 core/<mod>/ 的仅剩 plugin
+--（test/ 未迁移，target 声明在 core/plugin/xmake.lua）。
+-- 早期一轮清理（1d5d95c）删除过 6 个纯注释占位的 xmake.lua
+--（config / di / event / logger / scheduler / scheduler-task，无 test/specs、
+-- 不声明任何 target、对构建零影响），其说明并入本注释块：
 --   * config / di / event / logger / scheduler / scheduler.task：接口单元与实现
 --     单元均已由本 target 的 glob 编译；不再各自生成 :config 分区（版本信息统一
 --     由 silicon.core::GetVersion* 提供）。消费方直接 add_deps("core") 即可
@@ -67,11 +66,18 @@ target("core", function()
     --（私有则 fatal error: file not found）。
     add_includedirs("include", {public = true})
 
-    -- 全部实现单元（core 自有 + 各并入模块）。coroutine 的测试源随实现同置
-    -- src/coroutine/test/，但测试属于 coroutine.test 二进制（见
-    -- core/src/coroutine/xmake.lua），必须从本 DLL 排除（含 main 定义）。
+    -- 全部实现单元（core 自有 + 各并入模块）。各模块测试源随实现同置
+    -- src/<mod>/test/（vendored libffi 同置 src/ffi/），但测试属于各自的
+    -- <mod>.test 二进制（见 core/src/<mod>/xmake.lua），必须从本 DLL 排除
+    --（test_main.cpp 定义 main；ffi 测试 import 尚未实现的 silicon.ffi）。
     add_files("src/**.cpp")
-    remove_files("src/coroutine/test/**.cpp")
+    remove_files("src/coroutine/test/**.cpp",
+                 "src/fs/test/**.cpp",
+                 "src/json/test/**.cpp",
+                 "src/platform/test/**.cpp",
+                 "src/time/test/**.cpp",
+                 "src/xdg/test/**.cpp",
+                 "src/ffi/**.cpp")
     -- 全部接口单元（core 自有 + 各并入模块，含 silicon.json_impl）
     add_files("include/silicon/**.cppm", {public = true})
 
