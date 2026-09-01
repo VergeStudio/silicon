@@ -5,7 +5,7 @@ module;
 
 export module silicon.cli:config;
 
-#include "silicon/cli/common.h"
+#include "silicon/common.h"
 
 namespace silicon::cli {
 export inline CLI_API const std::string GetVersion() { return "${VERSION}"; }

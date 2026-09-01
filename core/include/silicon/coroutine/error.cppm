@@ -5,7 +5,7 @@ module;
 #include <string>
 #include <system_error>
 
-#include "silicon/coroutine/common.h"
+#include "silicon/common.h"
 
 export module silicon.coroutine.error;
 

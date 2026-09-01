@@ -2,7 +2,7 @@
 #define SILICON_AI_COMMON_H
 
 // Platform detection via SILICON_PLATFORM_* macros (single source: xmake.lua root;
-// see core/include/silicon/core/common.h). Do NOT use raw predefined OS macros.
+// see core/include/silicon/common.h). Do NOT use raw predefined OS macros.
 // Windows: SILICON_PLATFORM_WINDOWS
 // Unix-like: SILICON_PLATFORM_UNIX / LINUX / APPLE / BSD
 

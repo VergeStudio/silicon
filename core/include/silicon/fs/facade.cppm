@@ -12,7 +12,7 @@ module;
 #include <silicon/proxy/proxy_macros.h>
 // FS_API（dllexport/dlimport 闸门，键控 SILICON_EXPORT）：跨 DLL 导出的自由函数须显式标注，
 // 否则 MSVC 不会把模块接口中声明、实现单元中定义的自由函数导出到 core.dll 导入库。
-#include <silicon/fs/common.h>
+#include <silicon/common.h>
 export module silicon.fs;
 export import silicon.fs.error;
 

@@ -2,7 +2,7 @@ module;
 
 #include <cstdint>
 
-#include "silicon/core/common.h"
+#include "silicon/common.h"
 
 export module silicon.core:config;
 

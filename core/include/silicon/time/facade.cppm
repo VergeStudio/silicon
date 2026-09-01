@@ -9,7 +9,7 @@ module;
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/proxy/proxy_macros.h>
 // 单 DLL 伞宏（TIME_API）：同全局模块片段文本包含，不随模块导出
-#include <silicon/time/common.h>
+#include <silicon/common.h>
 // system_clock 为 header-only（global module 实体）：跨工具链 mangling 兼容
 // （MSVC 命名模块符号带 ::<!module> 标签而 clang 不带），见该头内注释
 #include <silicon/time/system_clock.h>

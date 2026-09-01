@@ -7,7 +7,7 @@ module;
 
 // FS_API 宏（dllexport/dlimport 闸门）：fs_category_impl 的 vtable 须跨 DLL 导出，
 // 否则消费方（测试/应用）内联 make_error_code / fs_category 时无法解析其虚函数槽。
-#include <silicon/fs/common.h>
+#include <silicon/common.h>
 
 export module silicon.fs.error;
 

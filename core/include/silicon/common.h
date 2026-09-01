@@ -1,0 +1,55 @@
+#ifndef SILICON_COMMON_H
+#define SILICON_COMMON_H
+
+// silicon 全仓统一公共头（原各模块 <mod>/common.h 收敛于此，2026-09-01）。
+
+// 平台检测：SILICON_PLATFORM_* 宏由根 xmake.lua 按目标平台统一定义
+// （Windows: SILICON_PLATFORM_WINDOWS；Unix-like: SILICON_PLATFORM_UNIX /
+// LINUX / APPLE / BSD）。禁止直接使用编译器预定义 OS 宏。
+
+// 可移植属性宏：GCC/Clang 下展开为 __attribute__(x)（如 __ATTRIBUTE__(used)，
+// 防止死代码消除）；MSVC 无等价物，展开为空（模板按需实例化，不影响语义）。
+#if defined(_MSC_VER)
+#    define __ATTRIBUTE__(x)
+#else
+#    define __ATTRIBUTE__(x) __attribute__((x))
+#endif
+
+// 单 DLL 伞宏：core.dll 构建时 SILICON_EXPORT 由编译进本 DLL 的 core 目标
+// 统一定义（dllexport）；消费方（测试/应用）不定义该宏 → dllimport（展开为空，
+// 符号经导入库解析）。历史上各模块保有自有的 *API 宏命名，收敛后一律别名到
+// 同一闸门，宏名保留以兼容既有标注。
+#if defined(SILICON_PLATFORM_WINDOWS)
+#    if defined(SILICON_EXPORT)
+#        define SILICON_DLLEXPORT __declspec(dllexport)
+#    else
+#        define SILICON_DLLEXPORT
+#    endif
+#else
+#    if defined(SILICON_EXPORT)
+#        define SILICON_DLLEXPORT __attribute__((visibility("default")))
+#    else
+#        define SILICON_DLLEXPORT
+#    endif
+#endif
+
+// MSVC 注意：模块接口中声明、实现单元内定义的错误类别实例（如
+// di_error_category_instance / fs_category_impl）与仅含内联虚函数的导出类
+// （如 di_category_impl / fs_category_impl）的 vtable，MSVC 不会自动经模块
+// 链接导出到 core.dll 导入库，须显式以对应 *API 宏标注，否则跨 DLL 消费方
+// 出现 LNK2001。
+#define CORE_API       SILICON_DLLEXPORT
+#define CLI_API        SILICON_DLLEXPORT
+#define CONFIG_API     SILICON_DLLEXPORT
+#define COROUTINE_API  SILICON_DLLEXPORT
+#define DI_API         SILICON_DLLEXPORT
+#define EVENT_API      SILICON_DLLEXPORT
+#define FS_API         SILICON_DLLEXPORT
+#define LOGGER_API     SILICON_DLLEXPORT
+#define NET_API        SILICON_DLLEXPORT
+#define SCHEDULER_API  SILICON_DLLEXPORT
+#define TASK_API       SILICON_DLLEXPORT
+#define TIME_API       SILICON_DLLEXPORT
+#define XDG_API        SILICON_DLLEXPORT
+
+#endif // SILICON_COMMON_H

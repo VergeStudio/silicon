@@ -4,7 +4,7 @@ module;
 #include <exception>
 #include <string>
 #include <system_error>
-#include <silicon/di/common.h>
+#include <silicon/common.h>
 
 export module silicon.di.error;
 

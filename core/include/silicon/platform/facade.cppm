@@ -16,7 +16,7 @@ module;
 // CORE_API（dllexport/dlimport 闸门）：create_platform 为模块接口声明、实现单元
 // 定义的自由函数，须显式标注方能被导出到 core.dll 导入库（MSVC 不会自动导出模块
 // 链接的自由函数）。
-#include <silicon/core/common.h>
+#include <silicon/common.h>
 export module silicon.platform;
 
 

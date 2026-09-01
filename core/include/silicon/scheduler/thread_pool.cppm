@@ -10,7 +10,7 @@ module;
 #include <thread>
 #include <vector>
 
-#include "silicon/scheduler/common.h"
+#include "silicon/common.h"
 
 export module silicon.scheduler:thread_pool;
 

@@ -5,7 +5,7 @@
 #include <source_location>
 #include <string_view>
 
-#include "silicon/logger/common.h"
+#include "silicon/common.h"
 #include "silicon/logger/ilogger.h"
 
 namespace silicon::logger {

@@ -5,7 +5,7 @@ module;
 #include <exception>
 #include <string>
 #include <system_error>
-#include <silicon/config/common.h>
+#include <silicon/common.h>
 
 export module silicon.config.error;
 

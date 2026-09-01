@@ -9,7 +9,7 @@ module;
 
 export module silicon.cli.parser.parse_result;
 
-#include "silicon/cli/common.h"
+#include "silicon/common.h"
 
 export namespace silicon::cli {
 /// 解析结果

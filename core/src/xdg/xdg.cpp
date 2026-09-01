@@ -11,7 +11,7 @@ module;
 #include <sstream>
 #include <string>
 #include <vector>
-#include <silicon/xdg/common.h>
+#include <silicon/common.h>
 
 module silicon.xdg;
 

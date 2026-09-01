@@ -14,7 +14,7 @@ module;
 
 #include <string>
 #include <vector>
-#include <silicon/xdg/common.h>
+#include <silicon/common.h>
 
 export module silicon.xdg;
 

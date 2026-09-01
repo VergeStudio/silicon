@@ -5,7 +5,7 @@ module;
 #include <string>
 #include <utility>
 
-#include "silicon/core/common.h"
+#include "silicon/common.h"
 
 export module silicon.exception;
 

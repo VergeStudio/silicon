@@ -9,7 +9,7 @@ module;
 #include <tuple>
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/proxy/proxy_macros.h>
-#include "silicon/cli/common.h"
+#include "silicon/common.h"
 export module silicon.cli.parser;
 
 

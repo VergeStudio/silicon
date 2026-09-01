@@ -8,7 +8,7 @@ module;
 #include <string_view>
 #include <system_error>
 
-#include "silicon/logger/common.h"
+#include "silicon/common.h"
 #include "silicon/logger/ilogger.h"
 #include <tuple>
 #include <silicon/proxy/proxy_macros.h>

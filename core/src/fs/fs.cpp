@@ -14,7 +14,7 @@ module;
 #include <vector>
 
 // FS_API 宏（dllexport/dlimport 闸门）：create_file_system 定义处须可见，否则 FS_API 展开为空。
-#include <silicon/fs/common.h>
+#include <silicon/common.h>
 
 module silicon.fs;
 import silicon.fs.error;

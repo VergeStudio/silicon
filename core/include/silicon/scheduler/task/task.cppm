@@ -10,7 +10,7 @@ module;
 #include <utility>
 #include <variant>
 
-#include "silicon/scheduler/task/common.h"
+#include "silicon/common.h"
 
 export module silicon.scheduler.task;
 

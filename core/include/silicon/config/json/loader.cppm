@@ -9,7 +9,7 @@ module;
 
 export module silicon.config.json;
 
-#include "silicon/config/common.h"
+#include "silicon/common.h"
 
 import silicon.json;
 import silicon.fs;

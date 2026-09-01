@@ -1,7 +1,7 @@
 module;
 
 // COROUTINE_API（键控 SILICON_EXPORT）宏来源；并入 core.dll 后定义侧须标注。
-#include "silicon/coroutine/common.h"
+#include "silicon/common.h"
 
 module silicon.coroutine;
 

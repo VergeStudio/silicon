@@ -7,7 +7,7 @@ module;
 
 // CORE_API 宏（dllexport/dlimport 闸门）：library_category_impl 的 vtable 须跨 DLL 导出，
 // 否则消费方（测试/应用）内联 make_error_code / library_category 时无法解析其虚函数槽。
-#include <silicon/core/common.h>
+#include <silicon/common.h>
 
 export module silicon.library.error;
 

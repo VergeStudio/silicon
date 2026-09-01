@@ -10,7 +10,7 @@ module;
 #include <variant>
 #include <vector>
 
-#include "silicon/config/common.h"
+#include "silicon/common.h"
 
 export module silicon.config.config_value;
 

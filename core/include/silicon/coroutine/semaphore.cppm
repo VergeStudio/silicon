@@ -6,7 +6,7 @@ module;
 #include <memory>
 #include <string>
 
-#include "silicon/coroutine/common.h"
+#include "silicon/common.h"
 
 
 export module silicon.coroutine:semaphore;

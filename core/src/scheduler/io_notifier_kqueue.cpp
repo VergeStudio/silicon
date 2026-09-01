@@ -18,7 +18,11 @@ module;
 #include <optional>
 
 module silicon.scheduler;
+// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
+// 实现单元自引用，故以 _MSC_VER 守卫（跨编译器分歧，ddbb1aa 实战）。
+#if defined(_MSC_VER)
 import silicon.scheduler;
+#endif
 
 import :poll_info_impl;
 #include "poll_info_impl.hpp"

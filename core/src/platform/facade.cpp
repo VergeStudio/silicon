@@ -2,12 +2,16 @@ module;
 
 #include <string>
 // CORE_API 宏：create_platform 定义处须可见，否则 CORE_API 展开为空。
-#include <silicon/core/common.h>
+#include <silicon/common.h>
 
 module silicon.platform;
 
 // 实现单元需显式导入主接口，方可访问其导出的 platform_proxy / os / os_id / make_platform
+// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
+// 实现单元自引用，故以 _MSC_VER 守卫（跨编译器分歧，ddbb1aa 实战）。
+#if defined(_MSC_VER)
 import silicon.platform;
+#endif
 
 namespace silicon::platform {
 
