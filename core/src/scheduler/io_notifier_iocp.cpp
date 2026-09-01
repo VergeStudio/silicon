@@ -54,6 +54,9 @@ struct io_notifier::impl {
     /// The IOCP handle.
     HANDLE m_iocp{};
 
+    /// Validity flag: true only when the IOCP handle was created successfully.
+    bool m_valid{false};
+
     /// Mutex protecting the watched-fds tracking structures.
     std::mutex m_mutex;
 
@@ -94,10 +97,12 @@ static void CALLBACK timer_callback(PTP_CALLBACK_INSTANCE, void *ctx, PTP_TIMER 
 io_notifier::io_notifier()
     : m_p(std::make_unique<impl>()) {
     m_p->m_iocp = CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
-    if (!m_p->m_iocp) {
-        throw std::system_error(GetLastError(), std::system_category(),
-                                "io_notifier: CreateIoCompletionPort failed");
-    }
+    // 构造不再抛异常：失败时 m_valid 保持 false，由调用方通过 is_valid() 检查。
+    m_p->m_valid = (m_p->m_iocp != nullptr);
+}
+
+bool io_notifier::is_valid() const noexcept {
+    return m_p->m_valid;
 }
 
 io_notifier::~io_notifier() = default;

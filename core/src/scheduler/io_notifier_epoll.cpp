@@ -48,6 +48,7 @@ using event_t = struct ::epoll_event;
 // ---------------------------------------------------------------------------
 struct io_notifier::impl {
     fd_t m_fd{-1};
+    bool m_valid{false};
 };
 
 /**
@@ -87,11 +88,16 @@ static poll_status event_to_poll_status(const event_t &event) {
     } else if(event.events & EPOLLRDHUP || event.events & EPOLLHUP) {
         return poll_status::closed;
     }
-    throw std::runtime_error{"invalid epoll state"};
+    return poll_status::error;
 }
 
 io_notifier::io_notifier(): m_p(std::make_unique<impl>()) {
     m_p->m_fd = ::epoll_create1(EPOLL_CLOEXEC);
+    m_p->m_valid = (m_p->m_fd != -1);
+}
+
+bool io_notifier::is_valid() const noexcept {
+    return m_p->m_valid;
 }
 
 io_notifier::~io_notifier() = default;

@@ -77,6 +77,10 @@ class CORE_API io_notifier {
   public:
     io_notifier();
 
+    /// 底层 IO 通知器是否成功建立（epoll/kqueue/IOCP 句柄有效）。
+    /// 构造不再抛异常：失败时处于无效状态，须由调用方显式检查。
+    [[nodiscard]] bool is_valid() const noexcept;
+
     io_notifier(const io_notifier &) = delete;
     io_notifier(io_notifier &&) = delete;
     io_notifier & operator=(const io_notifier &) = delete;

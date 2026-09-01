@@ -6,6 +6,7 @@ module;
 #include <coroutine>
 #include <cstdint>
 #include <deque>
+#include <exception>
 #include <expected>
 #include <functional>
 #include <memory>
@@ -122,8 +123,10 @@ auto thread_pool::schedule() -> schedule_operation {
     if(!m_impl->m_shutdown_requested.load(std::memory_order::acquire)) {
         return schedule_operation{*this};
     } else {
+        // 关闭后调度属于调用方违反前提（在已 shutdown 的执行器上继续入队），
+        // 不可恢复且语义上等同契约违例，统一终止而非抛异常。
         m_impl->m_size.fetch_sub(1, std::memory_order::release);
-        throw std::runtime_error("silicon::scheduler::thread_pool is shutting down, unable to schedule new tasks.");
+        std::terminate();
     }
 }
 

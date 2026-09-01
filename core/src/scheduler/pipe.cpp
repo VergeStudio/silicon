@@ -2,6 +2,8 @@ module;
 
 #include <cerrno>
 #include <cstring>
+#include <expected>
+#include <iostream>
 #include <memory>
 #include <system_error> // std::system_category：替代被 MSVC 弃用的 strerror
 #include <stdexcept>
@@ -23,6 +25,7 @@ module;
 #endif
 
 module silicon.scheduler;
+import silicon.scheduler.error;
 #include "poll_info_impl.hpp"
 
 namespace silicon::coroutine
@@ -36,11 +39,12 @@ class pipe_t::impl {
 pipe_t::pipe_t(): m_p(std::make_unique<impl>())
 {
     // Using pipe instead of pipe2 since macos does not have support for pipe2.
+    // 构造不再抛异常：失败时将 fd 保留为默认 -1，由调用方通过 is_valid() 检查。
 #if defined(SILICON_PLATFORM_WINDOWS)
     if (_pipe(m_p->m_fds.data(), 256, _O_BINARY) != 0)
     {
-        const std::string msg = "Failed to create pipe, errno=[" + std::system_category().message(errno) + "]";
-        throw std::runtime_error(msg);
+        std::cerr << "Failed to create pipe, errno=[" << std::system_category().message(errno) << "]\n";
+        return;
     }
 
     // Set the pipe file descriptors to be non-blocking.
@@ -53,8 +57,8 @@ pipe_t::pipe_t(): m_p(std::make_unique<impl>())
 #else
     if (::pipe(m_p->m_fds.data()) != 0)
     {
-        const std::string msg = "Failed to create pipe, errno=[" + std::system_category().message(errno) + "]";
-        throw std::runtime_error(msg);
+        std::cerr << "Failed to create pipe, errno=[" << std::system_category().message(errno) << "]\n";
+        return;
     }
 
     // Set the pipe file descriptors to be non-blocking.
@@ -65,6 +69,21 @@ pipe_t::pipe_t(): m_p(std::make_unique<impl>())
         fcntl(fd, F_SETFL, flags);
     }
 #endif
+}
+
+bool pipe_t::is_valid() const noexcept
+{
+    return m_p != nullptr && m_p->m_fds[0] != -1 && m_p->m_fds[1] != -1;
+}
+
+std::expected<pipe_t, std::error_code> pipe_t::create()
+{
+    pipe_t p;
+    if(!p.is_valid())
+    {
+        return std::unexpected(silicon::scheduler::make_error_code(silicon::scheduler::scheduler_error::kPipeCreateFailed));
+    }
+    return p;
 }
 
 pipe_t::~pipe_t()

@@ -129,7 +129,8 @@ struct CORE_API promise final: public promise_base {
         } else if(std::holds_alternative<std::exception_ptr>(m_storage)) {
             std::rethrow_exception(std::get<std::exception_ptr>(m_storage));
         } else {
-            throw std::runtime_error{"The return value was never set, did you execute the coroutine?"};
+            // 返回值从未设置即调用 result() 违反调用前提（协程未执行），不可恢复 → 终止。
+            std::terminate();
         }
     }
 
@@ -143,7 +144,7 @@ struct CORE_API promise final: public promise_base {
         } else if(std::holds_alternative<std::exception_ptr>(m_storage)) {
             std::rethrow_exception(std::get<std::exception_ptr>(m_storage));
         } else {
-            throw std::runtime_error{"The return value was never set, did you execute the coroutine?"};
+            std::terminate();
         }
     }
 
@@ -159,7 +160,7 @@ struct CORE_API promise final: public promise_base {
         } else if(std::holds_alternative<std::exception_ptr>(m_storage)) {
             std::rethrow_exception(std::get<std::exception_ptr>(m_storage));
         } else {
-            throw std::runtime_error{"The return value was never set, did you execute the coroutine?"};
+            std::terminate();
         }
     }
 
@@ -392,8 +393,9 @@ class task_group {
   public:
     explicit task_group(executor_type *executor)
         : m_executor(executor) {
+        // 空执行器违反构造前提，不可恢复 → 终止（与异常方向保持一致，避免隐藏契约违例）。
         if(executor == nullptr) {
-            throw std::runtime_error{"task_group cannot have a nullptr executor"};
+            std::terminate();
         }
     }
 

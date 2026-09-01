@@ -60,38 +60,50 @@ static silicon::scheduler::task<void> make_spawned_joinable_wait_task(std::uniqu
 
 io_scheduler::io_scheduler(options &&opts, private_constructor)
     : m_p(std::make_unique<impl>(std::move(opts))) {
-    if(!m_p->m_io_notifier.watch(m_p->m_shutdown_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(m_shutdown_ptr), true)) {
-        throw std::runtime_error("Failed to register m_shutdown_pipe.read_fd() for read events.");
-    }
-
-    if(!m_p->m_io_notifier.watch(m_p->m_schedule_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(m_schedule_ptr), true)) {
-        throw std::runtime_error("Failed to register m_schedule.pipe.read_rd() for read events.");
-    }
-
+    // 构造不再抛异常：管道 / IO 通知器 / fd 注册的失败检查已上提至 create()，
+    // 由返回值 std::expected 向调用方暴露，而非依赖异常。
     m_p->m_recent_events.reserve(m_max_events);
-
-    if(m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_on_thread_pool) {
-        m_p->m_thread_pool = thread_pool::create(std::move(m_p->m_opts.pool)).value();
-    }
 }
 
 std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::create(options opts) {
-    try {
-        auto s = std::make_unique<io_scheduler>(std::move(opts), private_constructor{});
+    auto s = std::make_unique<io_scheduler>(std::move(opts), private_constructor{});
 
-        // Spawn the dedicated event loop thread once the scheduler is fully constructed
-        // so it has a full object to work with.
-        if(s->m_p->m_opts.thread_strategy == thread_strategy_t::spawn) {
-            s->m_p->m_io_thread = std::thread([s = s.get()]() { s->process_events_dedicated_thread(); });
-        }
-        // else manual mode, the user must call process_events.
-
-        return s;
-    } catch(const std::exception &) {
-        // 构造期失败（事件管道创建 / fd 注册 / 线程池初始化）统一收敛为 unexpected。
-        // 具体失败原因由底层 ctor 的 stderr 诊断信息保留；此处仅给出模块级错误码。
-        return std::unexpected(make_error_code(scheduler_error::kUnknown));
+    // 校验构造期资源（管道 / IO 通知器）已成功建立。
+    if(!s->m_p->m_shutdown_pipe.is_valid() || !s->m_p->m_schedule_pipe.is_valid()) {
+        return std::unexpected(make_error_code(scheduler_error::kPipeCreateFailed));
     }
+    if(!s->m_p->m_io_notifier.is_valid()) {
+        return std::unexpected(make_error_code(scheduler_error::kInvalidNotifierState));
+    }
+
+    // 注册事件循环唤醒管道（关闭后调度 / fd 注册失败 → 返回错误）。
+    if(!s->m_p->m_io_notifier.watch(s->m_p->m_shutdown_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(m_shutdown_ptr), true)) {
+        return std::unexpected(make_error_code(scheduler_error::kEventRegisterFailed));
+    }
+    if(!s->m_p->m_io_notifier.watch(s->m_p->m_schedule_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(m_schedule_ptr), true)) {
+        return std::unexpected(make_error_code(scheduler_error::kEventRegisterFailed));
+    }
+
+    // 线程池（按需）：失败直接透传其错误码。
+    if(s->m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_on_thread_pool) {
+        auto tp = thread_pool::create(std::move(s->m_p->m_opts.pool));
+        if(!tp) {
+            return std::unexpected(tp.error());
+        }
+        s->m_p->m_thread_pool = std::move(*tp);
+    }
+
+    // 启动事件循环线程（std::thread 构造可能抛 system_error → 收敛为错误）。
+    if(s->m_p->m_opts.thread_strategy == thread_strategy_t::spawn) {
+        try {
+            s->m_p->m_io_thread = std::thread([s = s.get()]() { s->process_events_dedicated_thread(); });
+        } catch(const std::exception &) {
+            return std::unexpected(make_error_code(scheduler_error::kUnknown));
+        }
+    }
+    // else manual mode, the user must call process_events.
+
+    return s;
 }
 
 io_scheduler::~io_scheduler() {

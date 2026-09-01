@@ -5,6 +5,7 @@ module;
 #include <memory>
 #include <string>
 #include <utility>
+#include <exception>
 #include <coroutine>
 #include <map>
 #include <optional>
@@ -104,7 +105,12 @@ struct poll_stop_source::impl {
     pipe_t m_pipe{};
 };
 
-poll_stop_source::poll_stop_source(): m_p(std::make_unique<impl>()) {}
+poll_stop_source::poll_stop_source(): m_p(std::make_unique<impl>()) {
+    // 管道创建失败时 pipe_t 处于无效状态；无法建立取消源属于前提违例 → 终止。
+    if(!m_p->m_pipe.is_valid()) {
+        std::terminate();
+    }
+}
 
 poll_stop_source::poll_stop_source(poll_stop_source &&other) noexcept: m_p(std::make_unique<impl>()) {
     *this = std::move(other);

@@ -132,7 +132,8 @@ class CORE_API sync_wait_task_promise: public sync_wait_task_promise_base {
         } else if(std::holds_alternative<std::exception_ptr>(m_p->m_storage)) {
             std::rethrow_exception(std::get<std::exception_ptr>(m_p->m_storage));
         } else {
-            throw std::runtime_error{"The return value was never set, did you execute the coroutine?"};
+            // 返回值从未设置即调用 result() 违反调用前提（协程未执行），不可恢复 → 终止。
+            std::terminate();
         }
     }
 
@@ -146,7 +147,7 @@ class CORE_API sync_wait_task_promise: public sync_wait_task_promise_base {
         } else if(std::holds_alternative<std::exception_ptr>(m_p->m_storage)) {
             std::rethrow_exception(std::get<std::exception_ptr>(m_p->m_storage));
         } else {
-            throw std::runtime_error{"The return value was never set, did you execute the coroutine?"};
+            std::terminate();
         }
     }
 
@@ -162,7 +163,7 @@ class CORE_API sync_wait_task_promise: public sync_wait_task_promise_base {
         } else if(std::holds_alternative<std::exception_ptr>(m_p->m_storage)) {
             std::rethrow_exception(std::get<std::exception_ptr>(m_p->m_storage));
         } else {
-            throw std::runtime_error{"The return value was never set, did you execute the coroutine?"};
+            std::terminate();
         }
     }
 
