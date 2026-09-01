@@ -7,6 +7,7 @@ module;
 #include <source_location>
 #include <string_view>
 #include <system_error>
+#include <expected>
 
 #include "silicon/common.h"
 #include "silicon/logger/ilogger.h"
@@ -56,7 +57,7 @@ requires silicon::proxy::proxiable_target<T, logger_facade>
     return silicon::proxy::make_proxy_view<logger_facade>(target);
 }
 
-void init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
+[[nodiscard]] std::expected<void, std::error_code> init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
 void stop();
 void set_log_level(log_level);
 void trace(const std::string_view &, std::source_location &&location = std::source_location::current());

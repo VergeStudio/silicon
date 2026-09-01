@@ -9,6 +9,7 @@
 #include <string_view>
 
 import silicon.util;
+import silicon.logger.error;
 #include "spdlog/async.h"
 #include "spdlog/async_logger.h"
 #include "spdlog/sinks/hourly_file_sink.h"
@@ -27,7 +28,7 @@ default_logger::default_logger(): impl_(std::make_unique<impl>()) {}
 
 default_logger::~default_logger() noexcept = default;
 
-void default_logger::init(const std::string_view &log_path, const log_level log_level, const int32_t queue_size, const int32_t thread_num, const int32_t backtrace_num) {
+std::expected<void, std::error_code> default_logger::init(const std::string_view &log_path, const log_level log_level, const int32_t queue_size, const int32_t thread_num, const int32_t backtrace_num) {
     try {
         if(!is_initialized_) {
             std::scoped_lock<std::mutex> const lock(mutex_);
@@ -37,10 +38,12 @@ void default_logger::init(const std::string_view &log_path, const log_level log_
 
             is_initialized_ = true;
         }
-    } catch(const spdlog::spdlog_ex &ex) {
-        std::cout << "log init failed:" << ex.what() << std::endl;
-
+        return {};
+    } catch(const spdlog::spdlog_ex &) {
+        // spdlog 构造/注册失败属可恢复错误：清理已分配资源并返回 expected，
+        // 由调用方决定如何处理，而非吞掉异常。
         stop();
+        return std::unexpected(make_error_code(logger_error::kInitFailed));
     }
 }
 

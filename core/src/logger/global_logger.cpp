@@ -7,6 +7,7 @@
 #include <string_view>
 
 import silicon.util;
+import silicon.logger.error;
 #include "silicon/logger/global_logger.h"
 #include "spdlog/async.h"
 #include "spdlog/async_logger.h"
@@ -26,7 +27,7 @@ global_logger::global_logger() : impl_(std::make_unique<impl>()) {}
 
 global_logger::~global_logger() noexcept = default;
 
-void global_logger::init(const std::string_view &log_path, const log_level log_level, const int32_t queue_size, const int32_t thread_num, const int32_t backtrace_num) {
+std::expected<void, std::error_code> global_logger::init(const std::string_view &log_path, const log_level log_level, const int32_t queue_size, const int32_t thread_num, const int32_t backtrace_num) {
     try {
         if (!is_initialized_) {
             std::scoped_lock<std::mutex> const lock(mutex_);
@@ -36,10 +37,10 @@ void global_logger::init(const std::string_view &log_path, const log_level log_l
 
             is_initialized_ = true;
         }
-    } catch (const spdlog::spdlog_ex &ex) {
-        std::cout << "log init failed:" << ex.what() << std::endl;
-
+        return {};
+    } catch (const spdlog::spdlog_ex &) {
         stop();
+        return std::unexpected(make_error_code(logger_error::kInitFailed));
     }
 }
 

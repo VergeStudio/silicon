@@ -6,6 +6,8 @@
 #include <memory>
 #include <mutex>
 #include <atomic>
+#include <expected>
+#include <system_error>
 
 #include "silicon/logger/logger.h"
 #include "silicon/common.h"
@@ -18,7 +20,7 @@ class CORE_API global_logger {
     ~global_logger() noexcept;
 
  public:
-    void init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
+    [[nodiscard]] std::expected<void, std::error_code> init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
     void create_logger(log_level, const std::string_view &, int32_t);
     void set_log_level(log_level) const;
     void stop();

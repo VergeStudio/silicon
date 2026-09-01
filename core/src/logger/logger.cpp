@@ -7,7 +7,7 @@ silicon::logger::default_logger g_logger;
 }
 
 namespace silicon::logger {
-void init(const std::string_view &log_path, log_level log_level, int32_t queue_size, int32_t thread_num, int32_t backtrace_num) {
+std::expected<void, std::error_code> init(const std::string_view &log_path, log_level log_level, int32_t queue_size, int32_t thread_num, int32_t backtrace_num) {
     return g_logger.init(log_path, log_level, queue_size, thread_num, backtrace_num);
 }
 
