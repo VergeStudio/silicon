@@ -9,9 +9,8 @@ add_requires("c-ares")
 -- 根 xmake.lua 以 namespace("silicon") + includes("./**") 递归拾取所有子目录的
 -- xmake.lua。模块并入 core 后，其接口/实现单元统一由本文件的 glob 编译。
 -- 测试随实现同置 src/<mod>/test/ 的模块（coroutine / fs / json / platform /
--- time / xdg），其 <mod>.test target（依赖 silicon::core + silicon::test）
--- 声明在 core/src/<mod>/xmake.lua；仍留在 core/<mod>/ 的仅剩 plugin
---（test/ 未迁移，target 声明在 core/plugin/xmake.lua）。
+-- time / xdg / plugin），其 <mod>.test target（依赖 silicon::core + silicon::test）
+-- 声明在 core/src/<mod>/xmake.lua。
 -- 早期一轮清理（1d5d95c）删除过 6 个纯注释占位的 xmake.lua
 --（config / di / event / logger / scheduler / scheduler-task，无 test/specs、
 -- 不声明任何 target、对构建零影响），其说明并入本注释块：
@@ -77,6 +76,7 @@ target("core", function()
                  "src/platform/test/**.cpp",
                  "src/time/test/**.cpp",
                  "src/xdg/test/**.cpp",
+                 "src/plugin/test/**.cpp",
                  "src/ffi/**.cpp")
     -- 全部接口单元（core 自有 + 各并入模块，含 silicon.json_impl）
     add_files("include/silicon/**.cppm", {public = true})
