@@ -11,7 +11,9 @@ module;
 
 module silicon.tui;
 
-import silicon.core;
+// 直接依赖 silicon.util（silicon::os::get_env 声明于此；silicon.core 伞模块
+// re-export 了 tui，此处 import core 会形成 core -> tui -> core 环路）。
+import silicon.util;
 
 namespace silicon::tui {
 

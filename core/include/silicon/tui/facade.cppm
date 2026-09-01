@@ -12,9 +12,8 @@ module;
 
 export module silicon.tui;
 
-import silicon.core;
-
-
+// 原此处 import silicon.core；core.cppm 伞模块 re-export tui 后会形成
+// core -> tui -> core 环路，且本单元实际只消费 silicon.proxy，故删除。
 import silicon.proxy;
 
 export import silicon.tui.error;
