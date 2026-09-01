@@ -34,7 +34,7 @@ class condition_variable;
 
 
 // 跨 DLL 消费：带虚函数的基类（vtable + out-of-line 成员）须类级标注。
-struct COROUTINE_API lock_operation_base {
+struct CORE_API lock_operation_base {
     explicit lock_operation_base(silicon::coroutine::mutex &m): m_mutex(m) {}
     virtual ~lock_operation_base() = default;
 
@@ -79,7 +79,7 @@ struct lock_operation: public lock_operation_base {
 /**
  * A scoped RAII lock holder similar to std::unique_lock.
  */
-class COROUTINE_API scoped_lock {
+class CORE_API scoped_lock {
     friend class silicon::coroutine::mutex;
     friend class silicon::coroutine::condition_variable; // cv.wait() functions need to be able do unlock and re-lock
 
@@ -123,7 +123,7 @@ class COROUTINE_API scoped_lock {
     [[nodiscard]] auto owned_mutex() const noexcept -> class silicon::coroutine::mutex *;
 };
 
-class COROUTINE_API mutex {
+class CORE_API mutex {
   public:
     explicit mutex() noexcept;
     ~mutex();

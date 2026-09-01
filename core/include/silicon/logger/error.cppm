@@ -13,8 +13,8 @@ import silicon.error;
 export namespace silicon::logger {
 
 // 错误类别实例（组合根注入）：跨 DLL 消费方经导出的内联函数 logger_category() /
-// make_error_code() 引用，须以 LOGGER_API 显式导出，否则 LNK2001。
-LOGGER_API std::atomic<const std::error_category *> logger_error_category_instance{nullptr};
+// make_error_code() 引用，须以 CORE_API 显式导出，否则 LNK2001。
+CORE_API std::atomic<const std::error_category *> logger_error_category_instance{nullptr};
 
 /// logger 模块专属错误码枚举。
 enum class logger_error {
@@ -23,8 +23,8 @@ enum class logger_error {
 };
 
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
-// vtable 须以 LOGGER_API 显式导出，否则跨 DLL 消费方出现 LNK2001。
-class LOGGER_API logger_category_impl final : public std::error_category {
+// vtable 须以 CORE_API 显式导出，否则跨 DLL 消费方出现 LNK2001。
+class CORE_API logger_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.logger"; }
     std::string message(int ev) const override {
         switch(static_cast<logger_error>(ev)) {

@@ -27,9 +27,9 @@ class task;
 
 
 
-struct TASK_API promise_base {
+struct CORE_API promise_base {
     friend struct final_awaitable;
-    struct TASK_API final_awaitable {
+    struct CORE_API final_awaitable {
         bool await_ready() const noexcept ;
 
         template<typename promise_type>
@@ -63,7 +63,7 @@ struct TASK_API promise_base {
 };
 
 template<typename return_type>
-struct TASK_API promise final: public promise_base {
+struct CORE_API promise final: public promise_base {
   private:
     struct unset_return_value {
         unset_return_value() {}
@@ -168,7 +168,7 @@ struct TASK_API promise final: public promise_base {
 };
 
 template<>
-struct TASK_API promise<void>: public promise_base {
+struct CORE_API promise<void>: public promise_base {
     using task_t = task<void>;
     using coroutine_handle = std::coroutine_handle<promise<void>>;
 

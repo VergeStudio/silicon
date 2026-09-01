@@ -24,7 +24,7 @@ import :concepts.awaitable;
 export namespace silicon::coroutine {
 
 
-struct SCHEDULER_API unset_return_value {
+struct CORE_API unset_return_value {
     unset_return_value() {}
     unset_return_value(unset_return_value &&) = delete;
     unset_return_value(const unset_return_value &) = delete;
@@ -32,7 +32,7 @@ struct SCHEDULER_API unset_return_value {
     auto operator=(const unset_return_value &) = delete;
 };
 
-class SCHEDULER_API sync_wait_event {
+class CORE_API sync_wait_event {
   public:
     sync_wait_event(bool = false);
     sync_wait_event(const sync_wait_event &) = delete;
@@ -50,7 +50,7 @@ class SCHEDULER_API sync_wait_event {
     std::unique_ptr<impl> m_p;
 };
 
-class SCHEDULER_API sync_wait_task_promise_base {
+class CORE_API sync_wait_task_promise_base {
   public:
     sync_wait_task_promise_base() noexcept = default;
 
@@ -61,7 +61,7 @@ class SCHEDULER_API sync_wait_task_promise_base {
 };
 
 template<typename return_type>
-class SCHEDULER_API sync_wait_task_promise: public sync_wait_task_promise_base {
+class CORE_API sync_wait_task_promise: public sync_wait_task_promise_base {
   public:
     using coroutine_type = std::coroutine_handle<sync_wait_task_promise<return_type>>;
 
@@ -176,7 +176,7 @@ class SCHEDULER_API sync_wait_task_promise: public sync_wait_task_promise_base {
 };
 
 template<>
-class SCHEDULER_API sync_wait_task_promise<void>: public sync_wait_task_promise_base {
+class CORE_API sync_wait_task_promise<void>: public sync_wait_task_promise_base {
     using coroutine_type = std::coroutine_handle<sync_wait_task_promise<void>>;
 
   public:
@@ -191,9 +191,9 @@ class SCHEDULER_API sync_wait_task_promise<void>: public sync_wait_task_promise_
     auto get_return_object() noexcept { return coroutine_type::from_promise(*this); }
 
     // 完成通知 awaiter：必须是类级嵌套类型（不可为 final_suspend 函数体内的
-    // 局部类）——类级 SCHEDULER_API(dllexport) 不会导出函数内局部类的方法符号，
+    // 局部类）——类级 CORE_API(dllexport) 不会导出函数内局部类的方法符号，
     // 跨 DLL 消费方（coroutine.test 等）将报 LNK2001。
-    struct SCHEDULER_API completion_notifier {
+    struct CORE_API completion_notifier {
         auto await_ready() const noexcept { return false; }
         auto await_suspend(coroutine_type coroutine) const noexcept { coroutine.promise().m_p->m_event->set(); }
         auto await_resume() noexcept {};

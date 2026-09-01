@@ -8,7 +8,7 @@ module;
 #include <tuple>
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/proxy/proxy_macros.h>
-// 单 DLL 伞宏（TIME_API）：同全局模块片段文本包含，不随模块导出
+// 单 DLL 伞宏（CORE_API）：同全局模块片段文本包含，不随模块导出
 #include <silicon/common.h>
 // system_clock 为 header-only（global module 实体）：跨工具链 mangling 兼容
 // （MSVC 命名模块符号带 ::<!module> 标签而 clang 不带），见该头内注释
@@ -76,7 +76,7 @@ template <class T, class... Args>
 /// 持有 owning clock_proxy；间接约定成员经 clock_->now() 访问（owning 与
 /// observer 视图均可经 operator-> 取到，故用 clock_proxy 而非 clock_view 仅因
 /// 此处需要所有权语义，与约定形态无关）。
-class TIME_API date_source {
+class CORE_API date_source {
     struct impl {
       public:
         clock_proxy clock_;

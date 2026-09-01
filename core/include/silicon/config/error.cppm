@@ -14,8 +14,8 @@ import silicon.error;
 export namespace silicon::config {
 
 // 错误类别实例（组合根注入）：跨 DLL 消费方经导出的内联函数 config_category() /
-// make_error_code() 引用，须以 CONFIG_API 显式导出，否则 LNK2001。
-CONFIG_API std::atomic<const std::error_category *> config_error_category_instance{nullptr};
+// make_error_code() 引用，须以 CORE_API 显式导出，否则 LNK2001。
+CORE_API std::atomic<const std::error_category *> config_error_category_instance{nullptr};
 
 /// 统一错误返回类型：config 模块可失败 API 返回 config::result<T>。
 /// 转发至 silicon.error 的集中别名。
@@ -31,8 +31,8 @@ enum class config_error {
 };
 
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
-// vtable 须以 CONFIG_API 显式导出，否则跨 DLL 消费方出现 LNK2001。
-class CONFIG_API config_category_impl final : public std::error_category {
+// vtable 须以 CORE_API 显式导出，否则跨 DLL 消费方出现 LNK2001。
+class CORE_API config_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.config"; }
     std::string message(int ev) const override {
         switch(static_cast<config_error>(ev)) {

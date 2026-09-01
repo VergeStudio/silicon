@@ -17,7 +17,7 @@
 
 // 单 DLL 伞宏：聚合库构建时 CORE_EXPORT 由编译进该 DLL 的 core 目标
 // 统一定义（dllexport）；消费方（测试/应用）不定义该宏 → dllimport（展开为空，
-// 符号经导入库解析）。各模块 *API 宏一律别名到 CORE_API 同一闸门。
+// 符号经导入库解析）。导出实体统一以 CORE_API 标注。
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(CORE_EXPORT)
 #        define CORE_API __declspec(dllexport)
@@ -37,17 +37,4 @@
 // （如 di_category_impl / fs_category_impl）的 vtable，MSVC 不会自动经模块
 // 链接导出到聚合库导入库，须显式以对应 *API 宏标注，否则跨 DLL 消费方
 // 出现 LNK2001。
-#define CLI_API        CORE_API
-#define CONFIG_API     CORE_API
-#define COROUTINE_API  CORE_API
-#define DI_API         CORE_API
-#define EVENT_API      CORE_API
-#define FS_API         CORE_API
-#define LOGGER_API     CORE_API
-#define NET_API        CORE_API
-#define SCHEDULER_API  CORE_API
-#define TASK_API       CORE_API
-#define TIME_API       CORE_API
-#define XDG_API        CORE_API
-
 #endif // SILICON_COMMON_H

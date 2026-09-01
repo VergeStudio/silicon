@@ -41,11 +41,11 @@ t2: resume()
  * \endcode
  */
 // 跨 DLL 消费：out-of-line 成员（event.cpp 定义）须类级 dllexport。
-class COROUTINE_API event {
+class CORE_API event {
   public:
     // 类级嵌套 awaiter：其 out-of-line 成员（await_suspend/await_resume）亦须
     // 导出（函数体局部类不被类级 dllexport 覆盖的同类坑，嵌套类单独标注防御）。
-    struct COROUTINE_API awaiter {
+    struct CORE_API awaiter {
         /**
          * @param e The event to wait for it to be set.
          */

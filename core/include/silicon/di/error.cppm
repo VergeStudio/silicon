@@ -13,8 +13,8 @@ import silicon.error;
 export namespace silicon::di {
 
 // 错误类别实例（组合根注入）：跨 DLL 消费方经导出的内联函数 di_category() /
-// make_error_code() 引用，须以 DI_API 显式导出，否则 LNK2001。
-DI_API std::atomic<const std::error_category *> di_error_category_instance{nullptr};
+// make_error_code() 引用，须以 CORE_API 显式导出，否则 LNK2001。
+CORE_API std::atomic<const std::error_category *> di_error_category_instance{nullptr};
 
 /// di 模块专属错误码枚举（依赖注入容器 resolve 链路）。
 enum class di_error {
@@ -35,8 +35,8 @@ enum class di_error {
 };
 
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
-// vtable 须以 DI_API 显式导出，否则跨 DLL 消费方出现 LNK2001。
-class DI_API di_category_impl final : public std::error_category {
+// vtable 须以 CORE_API 显式导出，否则跨 DLL 消费方出现 LNK2001。
+class CORE_API di_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.di"; }
     std::string message(int ev) const override {
         switch(static_cast<di_error>(ev)) {

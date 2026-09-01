@@ -58,8 +58,4 @@ target("core", function()
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("core.config.cppm.in")
     add_files("$(builddir)/silicon/config/core.config.cppm", {public = true})
-
-    -- cli 保留自身 :config 分区（silicon.cli:config，命名空间 silicon::cli 的版本信息）。
-    add_configfiles("cli.config.cppm.in")
-    add_files("$(builddir)/silicon/config/cli.config.cppm", {public = true})
 end)

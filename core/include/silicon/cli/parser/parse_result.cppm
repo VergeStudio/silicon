@@ -13,7 +13,7 @@ export module silicon.cli.parser.parse_result;
 
 export namespace silicon::cli {
 /// 解析结果
-struct CLI_API parse_result {
+struct CORE_API parse_result {
 
   public:
     parse_result();

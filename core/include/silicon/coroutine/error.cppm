@@ -15,9 +15,9 @@ import silicon.error;
 namespace silicon::coroutine {
 
 // 变量不随 DLL 自动导出（MSVC），且 test / 外部消费方经
-// inline 注入函数展开会跨 DLL 引用本原子变量 → 标 COROUTINE_API（dllexport）。
-COROUTINE_API std::atomic<const std::error_category *> coroutine_error_category_instance{nullptr};
-COROUTINE_API std::atomic<const std::error_category *> channel_error_category_instance{nullptr};
+// inline 注入函数展开会跨 DLL 引用本原子变量 → 标 CORE_API（dllexport）。
+CORE_API std::atomic<const std::error_category *> coroutine_error_category_instance{nullptr};
+CORE_API std::atomic<const std::error_category *> channel_error_category_instance{nullptr};
 
 } // namespace silicon::coroutine
 
@@ -41,7 +41,7 @@ enum class channel_error {
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
 // inline-virtual 类的 vtable 不随 DLL 自动导出 → 类级标注
 // （宏须在 class 关键字后，规避 C4091）。
-class COROUTINE_API coroutine_category_impl final : public std::error_category {
+class CORE_API coroutine_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.coroutine"; }
     std::string message(int ev) const override {
         switch(static_cast<coroutine_error>(ev)) {
@@ -54,7 +54,7 @@ class COROUTINE_API coroutine_category_impl final : public std::error_category {
     }
 };
 
-class COROUTINE_API channel_category_impl final : public std::error_category {
+class CORE_API channel_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.channel"; }
     std::string message(int ev) const override {
         switch(static_cast<channel_error>(ev)) {

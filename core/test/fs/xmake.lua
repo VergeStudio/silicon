@@ -2,6 +2,6 @@
 target("fs.test", function()
     set_kind("binary")
     add_deps("silicon::core", "silicon::test")
-    add_files("test/**.cpp")
+    add_files("*.cpp")
     add_tests()
 end)
