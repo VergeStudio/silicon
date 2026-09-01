@@ -55,12 +55,6 @@ target("silicon_core", function()
     -- 全部接口单元（core 自有 + 各并入模块，含 silicon.json_impl）
     add_files("include/silicon/**.cppm", {public = true})
 
-    add_headerfiles("include/silicon/core/**.h")
-    add_headerfiles("include/silicon/coroutine/**.h")
-    add_headerfiles("include/silicon/logger/**.h")
-    add_headerfiles("include/silicon/network/**.h")
-    add_headerfiles("include/silicon/proxy/**.h")
-
     -- clang 对 proxy 广泛使用的 [[no_unique_address]] 误报 unknown-attribute；
     -- 消费方实例化 proxy 模板同样命中，故 public 向下传递。
     if is_config("toolchain", "clang") or is_config("toolchain", "clang-cl") then
