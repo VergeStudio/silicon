@@ -3,7 +3,7 @@
 -- 单元测试 target。core 现编译进 core.dll，故依赖 core。
 target("platform.test", function()
     set_kind("binary")
-    add_deps("silicon::core", "silicon::test")
+    add_deps("silicon::silicon_core", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
 end)

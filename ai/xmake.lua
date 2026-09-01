@@ -4,7 +4,7 @@ target("ai", function()
 
     -- silicon.http 已并入 core：其接口（silicon.http / silicon.http.error）与
     -- 实现现由 core.dll 统一提供，经 core 依赖的 public IFC 拿到，无需再单独依赖。
-    add_deps("core")
+    add_deps("silicon_core")
 
     -- 单 DLL 伞宏闸门：本模块实体经 *_API（SILICON_EXPORT）dllexport，
     -- 由消费方（测试/应用）静态链接 core.dll 与 ai.impl.lib。
@@ -34,7 +34,7 @@ target("ai.test", function()
     set_kind("binary")
     -- silicon.json 已并入 core，其模块 IFC 经 core 的 public 依赖传递（无需直接 add_deps）。
     -- ai.impl 为独立 static lib（不再并入任何 DLL），测试须直接链接以解析 ai 实体符号。
-    add_deps("silicon::ai", "silicon::ai.impl", "core", "silicon::test")
+    add_deps("silicon::ai", "silicon::ai.impl", "silicon_core", "silicon::test")
     add_files("test/**.cpp")
     add_tests()
 end)
