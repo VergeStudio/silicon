@@ -43,12 +43,12 @@ namespace("silicon", function()
     -- 已并入 core（由 core 这一单一 DLL 导出）的模块：platform / util /
     -- exception / library / proxy / error / config / di / event / time /
     -- logger / fs / xdg / json / scheduler（含 task）/ coroutine / network /
-    -- http / plugin。目录约定：接口 core/include/silicon/<mod>/，实现
-    -- core/src/<mod>/，测试随实现同置 core/src/<mod>/test/（coroutine / fs /
-    -- json / platform / time / xdg 及 vendored libffi 同置 core/src/ffi/），
-    -- 各 <mod>.test target 声明在 core/src/<mod>/xmake.lua。
-    -- 仍为独立 moduleonly + static 目标的模块：ai / cli / tui（消费方
-    -- add_deps("core") 链接 core.dll）；test 为 headeronly 测试支撑。
+    -- http / plugin / cli / tui。目录约定：接口 core/include/silicon/<mod>/，
+    -- 实现 core/src/<mod>/，测试随实现同置 core/src/<mod>/test/（vendored
+    -- libffi 同置 core/src/ffi/），各 <mod>.test target 声明在
+    -- core/src/<mod>/xmake.lua。
+    -- 仍为独立 moduleonly + static 目标的模块：ai（消费方 add_deps("core")
+    -- 链接 core.dll）；test 为 headeronly 测试支撑。
     -- 各子模块 test 目标经由 includes("./**") 解析 core 依赖。
     includes("./**")
 end)

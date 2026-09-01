@@ -60,7 +60,7 @@ target("core", function()
     -- 目录约定（2026-08-31 归一）：所有并入模块的接口单元统一位于
     -- core/include/silicon/<mod>/，实现单元统一位于 core/src/<mod>/。
     -- 单一 include 根即可解析全部 #include <silicon/...>；必须 {public = true}：
-    -- 超级项目侧 clang 消费方（ai.impl/cli.impl/app）会为本 target 的 public cppm
+    -- 超级项目侧 clang 消费方（ai.impl/app）会为本 target 的 public cppm
     -- 重建 BMI，clang-scan-deps 扫描其 GMF 时需要该路径才能解析 #include
     --（私有则 fatal error: file not found）。
     add_includedirs("include", {public = true})
@@ -77,6 +77,7 @@ target("core", function()
                  "src/time/test/**.cpp",
                  "src/xdg/test/**.cpp",
                  "src/plugin/test/**.cpp",
+                 "src/cli/test/**.cpp",
                  "src/ffi/**.cpp")
     -- 全部接口单元（core 自有 + 各并入模块，含 silicon.json_impl）
     add_files("include/silicon/**.cppm", {public = true})
@@ -101,4 +102,9 @@ target("core", function()
     set_configdir("$(builddir)/silicon/config")
     add_configfiles("core.config.cppm.in")
     add_files("$(builddir)/silicon/config/core.config.cppm", {public = true})
+
+    -- cli 并入 core 后保留自身 :config 分区（silicon.cli:config，命名空间为
+    -- silicon::cli 的版本信息），模板与 core.config.cppm.in 同置 core/ 顶层。
+    add_configfiles("cli.config.cppm.in")
+    add_files("$(builddir)/silicon/config/cli.config.cppm", {public = true})
 end)
