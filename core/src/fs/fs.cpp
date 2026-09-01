@@ -1,7 +1,5 @@
 // 实现单元：silicon.fs
-// 原 fs_common.hpp / fs_win.hpp / fs_posix.hpp 的平台实现已并入此模块实现单元，
 // 按 SILICON_PLATFORM_* 宏在编译期选用对应平台实现（宏由顶层 xmake.lua 定义）。
-// create_file_system() 此前仅有声明、无定义，现于此补齐，返回 file_system_proxy。
 module;
 
 #include <cstddef>

@@ -22,7 +22,7 @@ import :void_value;
 
 export namespace silicon::coroutine {
 
-// 并入 core.dll 后跨 DLL 消费：普通类的 out-of-line 成员（when_all.cpp 定义）
+// 跨 DLL 消费：普通类的 out-of-line 成员（when_all.cpp 定义）
 // 须类级 dllexport 跟随导出（宏在 class 关键字后规避 C4091）。
 class COROUTINE_API when_all_latch {
   public:
@@ -287,7 +287,7 @@ class when_all_task_promise {
 
 template<>
 // 显式全特化的 inline 成员（get_return_object/final_suspend/...）由拥有定义的
-// TU 导出（消费方不本地实例化），并入 core.dll 后跨 DLL 消费须类级标注。
+// TU 导出（消费方不本地实例化），跨 DLL 消费须类级标注。
 class COROUTINE_API when_all_task_promise<void> {
   public:
     using coroutine_handle_type = std::coroutine_handle<when_all_task_promise<void>>;

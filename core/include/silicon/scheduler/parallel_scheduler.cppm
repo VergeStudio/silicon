@@ -24,7 +24,7 @@ export namespace silicon::scheduler {
 /// 并列，构成 silicon 调度器家族的并行计算分支。它是把 CPU 密集型工作并行化时最常用的
 /// 入口，等价于 stdexec 里 `ex::get_parallel_scheduler()` 所返回的调度器。
 ///
-/// 满足 scheduler_facade（原 i_scheduler），因此可被 task_group / 上层组件统一驱动。
+/// 满足 scheduler_facade，因此可被 task_group / 上层组件统一驱动。
 class parallel_scheduler final {
     struct impl;
     std::unique_ptr<impl> m_impl;

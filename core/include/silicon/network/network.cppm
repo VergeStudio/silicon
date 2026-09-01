@@ -8,9 +8,7 @@
 // definitions without triggering the classic "declaration follows declaration
 // in the global module" error.
 //
-// :config 分区已随 network 并入 core 而收敛：版本信息统一由
-// silicon.core::GetVersion* 提供（与 scheduler / coroutine / config 等并入模块一致），
-// network.config.cppm.in 已删除，主接口不再 export import :config。
+// 本模块无 :config 分区：版本信息统一由 silicon.core::GetVersion* 提供。
 
 export module silicon.network;
 export import silicon.network.error;

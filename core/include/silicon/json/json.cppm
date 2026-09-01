@@ -7,9 +7,9 @@ export module silicon.json;
 // module boundaries when importers instantiate basic_json.
 import std;
 
-// silicon.json_impl 已把完整 JSON 实现内联进自身 global module fragment
-// （原 json.hpp 伞头已删除），作为真正的命名模块只产出一份 BMI；消费方只
-// import 该模块，故无共享 header-unit 缓存条目，消除 clean -j4 C3474 竞态。
+// silicon.json_impl 把完整 JSON 实现内联进自身 global module fragment，
+// 作为真正的命名模块只产出一份 BMI；消费方只 import 该模块，
+// 无共享 header-unit 缓存条目，避免 clean -j4 C3474 竞态。
 export import silicon.json_impl;
 
 // Public type, re-exported from the forked implementation.

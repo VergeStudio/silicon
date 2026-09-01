@@ -1,7 +1,7 @@
 #ifndef SILICON_COMMON_H
 #define SILICON_COMMON_H
 
-// silicon 全仓统一公共头（原各模块 <mod>/common.h 收敛于此，2026-09-01）。
+// silicon 全仓统一公共头。
 
 // 平台检测：SILICON_PLATFORM_* 宏由根 xmake.lua 按目标平台统一定义
 // （Windows: SILICON_PLATFORM_WINDOWS；Unix-like: SILICON_PLATFORM_UNIX /
@@ -17,8 +17,7 @@
 
 // 单 DLL 伞宏：core.dll 构建时 SILICON_EXPORT 由编译进本 DLL 的 core 目标
 // 统一定义（dllexport）；消费方（测试/应用）不定义该宏 → dllimport（展开为空，
-// 符号经导入库解析）。历史上各模块保有自有的 *API 宏命名，收敛后一律别名到
-// 同一闸门，宏名保留以兼容既有标注。
+// 符号经导入库解析）。各模块 *API 宏一律别名到同一闸门，宏名保留以兼容既有标注。
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(SILICON_EXPORT)
 #        define SILICON_DLLEXPORT __declspec(dllexport)

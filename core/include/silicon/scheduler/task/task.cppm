@@ -14,8 +14,8 @@ module;
 
 export module silicon.scheduler.task;
 
-// 版本信息已收敛到 silicon.core:config（silicon.core::GetVersion*），
-// 本模块不再自带 :config 分区。
+// 版本信息由 silicon.core:config（silicon.core::GetVersion*）提供，
+// 本模块无 :config 分区。
 
 export namespace silicon::scheduler {
 
@@ -294,13 +294,11 @@ inline auto promise<void>::get_return_object() noexcept -> task<> {
 // task_self_deleting — a coroutine that self-destructs upon completion
 // ---------------------------------------------------------------------------
 //
-// NOTE: 这些内部辅助类型此前由公共头 include/silicon/scheduler/task/detail/
-// task_self_deleting.hpp 提供；该兼容头已删除，本模块接口现为唯一定义处。
-// silicon::scheduler::task 现指类模板本身，不能作命名空间限定符；
+// NOTE: silicon::scheduler::task 指类模板本身，不能作命名空间限定符；
 // 辅助类型（task_self_deleting / make_task_self_deleting）位于
-// silicon::scheduler 命名空间（detail 层已消除），实现单元
+// silicon::scheduler 命名空间，实现单元
 // src/task_self_deleting.cpp 使用同一命名空间，修饰名一致。
-// 消费方统一经 `import silicon.scheduler.task;` 使用，不再走头文件路径。
+// 消费方统一经 `import silicon.scheduler.task;` 使用。
 
 
 class task_self_deleting;

@@ -1685,7 +1685,7 @@ std::size_t append_binding_collection(T& results,
     return count;
 }
 
-// --- expected 返回类型封装（di #47：全量迁移 std::expected）---
+// --- expected 返回类型封装 ---
 // di 的 resolve 入口可能返回 T&（引用），而 std::expected<T&, E> 标准不允许；
 // 用 as_expected_t 把引用统一包成 reference_wrapper<T>，其余类型原样包入 expected。
 template <typename T>

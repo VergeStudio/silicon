@@ -22,7 +22,7 @@ export namespace silicon::scheduler {
 /// io_scheduler、inline_scheduler / parallel_scheduler / run_loop）只要满足本门面
 /// 即可被 task_group / 上层组件以同一套语义驱动，无需继承。
 ///
-/// 约定（对应原 i_scheduler 虚方法；参数按值声明，proxy 以右值转发到具体
+/// 约定（参数按值声明，proxy 以右值转发到具体
 /// `task<void> &&` 形参，noexcept 差异由具体类自行兼容）：
 ///   - spawn_detached / spawn_joinable（提交任务）
 ///   - resume（恢复裸协程句柄）

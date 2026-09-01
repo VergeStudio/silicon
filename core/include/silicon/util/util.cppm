@@ -61,7 +61,7 @@ inline void str_append(std::string *destination, const Args &...args) {
 
 } // namespace silicon::util
 
-// OS 兼容工具（原 silicon.common 并入 core 后保留 silicon::os 命名空间）。
+// OS 兼容工具。
 // Windows 使用安全 CRT（_dupenv_s），POSIX 回落 std::getenv，规避
 // -Wdeprecated-declarations。
 export namespace silicon::os {

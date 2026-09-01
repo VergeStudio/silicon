@@ -33,7 +33,7 @@ class condition_variable;
 
 
 
-// 并入 core.dll 后跨 DLL 消费：带虚函数的基类（vtable + out-of-line 成员）须类级标注。
+// 跨 DLL 消费：带虚函数的基类（vtable + out-of-line 成员）须类级标注。
 struct COROUTINE_API lock_operation_base {
     explicit lock_operation_base(silicon::coroutine::mutex &m): m_mutex(m) {}
     virtual ~lock_operation_base() = default;

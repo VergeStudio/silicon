@@ -8,15 +8,15 @@ module silicon.platform;
 
 // 实现单元需显式导入主接口，方可访问其导出的 platform_proxy / os / os_id / make_platform
 // MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
-// 实现单元自引用，故以 _MSC_VER 守卫（跨编译器分歧，ddbb1aa 实战）。
+// 实现单元自引用，故以 _MSC_VER 守卫。
 #if defined(_MSC_VER)
 import silicon.platform;
 #endif
 
 namespace silicon::platform {
 
-// ── 内部 constexpr 辅助函数（由接口 facade.cppm 内化迁移而来）──────────
-// 不再对外导出，仅本模块实现单元可见；importer 改用导出的 os / arch 直接分支。
+// ── 内部 constexpr 辅助函数（仅本模块实现单元可见，不导出）──────────
+// importer 改用导出的 os / arch 直接分支。
 
 constexpr bool IsUnixFamily(os_id o) {
     return o == os_id::kFreeBsd || o == os_id::kAix ||

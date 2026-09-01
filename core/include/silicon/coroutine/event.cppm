@@ -40,7 +40,7 @@ t1: e.set();
 t2: resume()
  * \endcode
  */
-// 并入 core.dll 后跨 DLL 消费：out-of-line 成员（event.cpp 定义）须类级 dllexport。
+// 跨 DLL 消费：out-of-line 成员（event.cpp 定义）须类级 dllexport。
 class COROUTINE_API event {
   public:
     // 类级嵌套 awaiter：其 out-of-line 成员（await_suspend/await_resume）亦须

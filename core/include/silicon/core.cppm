@@ -2,11 +2,10 @@ module;
 
 export module silicon.core;
 
-// silicon.core 伞模块：export import 全部并入 core 的模块接口，消费方
+// silicon.core 伞模块：export import core 内全部模块接口，消费方
 // `import silicon.core;` 即可访问 core.dll 内所有实体，无需逐个 import。
-// 各模块自身的 *.error / 子模块接口一并导出（config 模板生成的
-// silicon.cli:config 为 silicon.cli 的分区，无法跨模块 re-export，由
-// silicon.cli 接口内部消费）。
+// 各模块自身的 *.error / 子模块接口一并导出（silicon.cli:config 为
+// silicon.cli 的分区，无法跨模块 re-export）。
 
 // :config 分区（silicon.core 版本信息，由 core.config.cppm.in 生成）。
 export import :config;

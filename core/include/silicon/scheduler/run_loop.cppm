@@ -23,7 +23,7 @@ export namespace silicon::scheduler {
 ///   - 把执行上下文嵌入某个特定线程（如主线程、UI 线程）；
 ///   - 作为 stdexec 风格的 "inline" 调度器使用。
 ///
-/// 它满足 scheduler_facade（原 i_scheduler），因此对 task_group 等上层组件而言与 thread_pool / io_scheduler
+/// 它满足 scheduler_facade，因此对 task_group 等上层组件而言与 thread_pool / io_scheduler
 /// 是同一套语义（spawn_detached / spawn_joinable / resume / shutdown / size / empty）。
 ///
 /// 线程安全与生命周期：
