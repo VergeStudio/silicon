@@ -43,15 +43,7 @@ target("silicon_core", function()
     -- 属于各自的 <mod>.test 二进制（core/src/<mod>/xmake.lua），必须排除：
     -- test_main.cpp 定义 main；ffi 为 vendored libffi，未接入构建。
     add_files("src/**.cpp")
-    remove_files("src/coroutine/test/**.cpp",
-                 "src/fs/test/**.cpp",
-                 "src/json/test/**.cpp",
-                 "src/platform/test/**.cpp",
-                 "src/time/test/**.cpp",
-                 "src/xdg/test/**.cpp",
-                 "src/plugin/test/**.cpp",
-                 "src/cli/test/**.cpp",
-                 "src/ffi/**.cpp")
+    remove_files("src/*/test/**.cpp", "src/ffi/**.cpp")
     -- 全部接口单元（core 自有 + 各并入模块，含 silicon.json_impl）
     add_files("include/silicon/**.cppm", {public = true})
 
