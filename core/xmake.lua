@@ -10,8 +10,8 @@ add_requires("c-ares")
 -- xmake.lua。模块并入 core 后，其接口/实现单元统一由本文件的 glob 编译，故原
 -- core/<mod>/xmake.lua 只剩两类内容：
 --   1) 声明 <mod>.test 二进制 target（依赖 silicon::core + silicon::test）——
---      仅 coroutine / fs / json / platform / plugin / time / xdg 七个模块有
---      test/ 或 specs/ 目录，这些文件保留；
+--      仅 fs / json / platform / plugin / time / xdg 六个模块仍有
+--      core/<mod>/{test,specs}/；coroutine 的测试已迁入 src/coroutine/test/，
 --   2) 纯注释占位（config / di / event / logger / scheduler / scheduler-task）——
 --      这些模块无 test/specs，文件内不声明任何 target，对构建零影响
 --      （实证：删除前后 xmake show -l targets 均为同一份 17 目标清单）。
@@ -67,8 +67,11 @@ target("core", function()
     --（私有则 fatal error: file not found）。
     add_includedirs("include", {public = true})
 
-    -- 全部实现单元（core 自有 + 各并入模块）
+    -- 全部实现单元（core 自有 + 各并入模块）。coroutine 的测试源随实现同置
+    -- src/coroutine/test/，但测试属于 coroutine.test 二进制（见
+    -- core/src/coroutine/xmake.lua），必须从本 DLL 排除（含 main 定义）。
     add_files("src/**.cpp")
+    remove_files("src/coroutine/test/**.cpp")
     -- 全部接口单元（core 自有 + 各并入模块，含 silicon.json_impl）
     add_files("include/silicon/**.cppm", {public = true})
 
