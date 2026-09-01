@@ -51,7 +51,7 @@ std::expected<void, std::error_code> shared_library::unload() {
 }
 
 std::string shared_library::prefix() {
-    if constexpr (os == os_id::kCygwin) {
+    if constexpr (platform::os == platform::os_id::kCygwin) {
         return "cyg";
     } else {
         return "lib";
@@ -59,19 +59,19 @@ std::string shared_library::prefix() {
 }
 
 std::string shared_library::suffix() {
-    if constexpr (os == os_id::kMacOsX) {
+    if constexpr (platform::os == platform::os_id::kMacOsX) {
 #if defined(_DEBUG) && !defined(CL_NO_SHARED_LIBRARY_DEBUG_SUFFIX)
         return "d.dylib";
 #else
         return ".dylib";
 #endif
-    } else if constexpr (os == os_id::kHpux) {
+    } else if constexpr (platform::os == platform::os_id::kHpux) {
 #if defined(_DEBUG) && !defined(CL_NO_SHARED_LIBRARY_DEBUG_SUFFIX)
         return "d.sl";
 #else
         return ".sl";
 #endif
-    } else if constexpr (os == os_id::kCygwin) {
+    } else if constexpr (platform::os == platform::os_id::kCygwin) {
 #if defined(_DEBUG) && !defined(CL_NO_SHARED_LIBRARY_DEBUG_SUFFIX)
         return "d.dll";
 #else
