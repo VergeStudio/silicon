@@ -1,5 +1,6 @@
-#include "silicon/logger/default_logger.h"
+module;
 
+#include "silicon/logger/default_logger.h"
 #include <ctime>
 #include <format>
 #include <iostream>
@@ -7,14 +8,16 @@
 #include <mutex>
 #include <source_location>
 #include <string_view>
-
-import silicon.util;
-import silicon.logger.error;
 #include "spdlog/async.h"
 #include "spdlog/async_logger.h"
 #include "spdlog/sinks/hourly_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
+
+module silicon.logger;
+
+import silicon.util;
+import silicon.logger.error;
 
 namespace silicon::logger {
 

@@ -1,6 +1,10 @@
+module;
+
 #include "silicon/logger/logger.h"
 
 #include "silicon/logger/default_logger.h"
+
+module silicon.logger;
 
 namespace {
 silicon::logger::default_logger g_logger;

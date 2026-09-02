@@ -55,3 +55,15 @@ inline void inject_logger_error_category(const std::error_category &cat) noexcep
 }
 
 } // namespace silicon::logger
+
+// category 自注册：与 silicon.network / silicon.config 一致，避免未注入消费方走错误路径时
+// logger_category() 直接 std::terminate（init 失败经 make_error_code 构造 kInitFailed 即触发）。
+// 匿名命名空间须置于模块作用域（export 块之外），否则 clang 报
+// "anonymous namespaces cannot be exported"。组合根仍可调 inject_logger_error_category 注入自定义实例。
+namespace {
+    const silicon::logger::logger_category_impl s_default_logger_category{};
+    const bool s_logger_category_registered = [] {
+        silicon::logger::inject_logger_error_category(s_default_logger_category);
+        return true;
+    }();
+} // namespace
