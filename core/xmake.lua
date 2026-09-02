@@ -37,9 +37,9 @@ target("core", function()
     --（私有则 fatal error: file not found）。
     add_includedirs("include", {public = true})
 
-    -- 全部实现单元（core 自有 + 各并入模块）。测试源随实现同置 src/<mod>/test/，
-    -- 属于各自的 <mod>.test 二进制（core/src/<mod>/xmake.lua），必须排除：
-    -- test_main.cpp 定义 main；ffi 为 vendored libffi，未接入构建。
+    -- 全部实现单元（core 自有 + 各并入模块）。各模块的测试二进制位于
+    -- core/test/<mod>/，不在本 glob 覆盖范围内；需排除的是 vendored libffi
+    -- 及其自带测试（ffi 未接入构建，其 test_main.cpp 另定义 main）。
     add_files("src/**.cpp")
     remove_files("src/*/test/**.cpp", "src/ffi/**.cpp")
     -- 全部接口单元（core 自有 + 各并入模块，含 silicon.json_impl）

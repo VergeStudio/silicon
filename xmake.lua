@@ -41,8 +41,8 @@ end
 
 namespace("silicon", function()
     -- 各模块统一并入 core（接口 core/include/silicon/<mod>/，实现
-    -- core/src/<mod>/，测试同置 core/src/<mod>/test/，vendored libffi 同置
+    -- core/src/<mod>/，测试 core/test/<mod>/，vendored libffi 同置
     -- core/src/ffi/）；仅 ai（moduleonly + static）独立。各 <mod>.test target
-    -- 声明在 core/src/<mod>/xmake.lua。
+    -- 声明在 core/test/<mod>/xmake.lua。
     includes("./**")
 end)
