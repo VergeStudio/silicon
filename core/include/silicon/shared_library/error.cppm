@@ -69,3 +69,16 @@ inline void inject_library_error_category(const std::error_category &cat) noexce
 }
 
 } // namespace silicon::library
+
+// category 自注册：与 silicon.network / silicon.config / silicon.logger / silicon.event 一致，
+// 避免未注入消费方走错误路径时 library_category() 直接 std::terminate（load 失败经
+// make_error_code(kLoadFailed)、get_symbol 失败经 kSymbolNotFound 即触发）。匿名命名空间须置于
+// 模块作用域（export 块之外），否则 clang 报 "anonymous namespaces cannot be exported"。组合根仍
+// 可调 inject_library_error_category 注入自定义实例。
+namespace {
+    const silicon::library::library_category_impl s_default_library_category{};
+    const bool s_library_category_registered = [] {
+        silicon::library::inject_library_error_category(s_default_library_category);
+        return true;
+    }();
+} // namespace
