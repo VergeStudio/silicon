@@ -53,3 +53,15 @@ inline void inject_event_error_category(const std::error_category &cat) noexcept
 }
 
 } // namespace silicon::event
+
+// category 自注册：与 silicon.network / silicon.config / silicon.logger 一致，避免未注入消费方
+// 走错误路径时 event_category() 直接 std::terminate（make_error_code 构造 kInvalidStatus 即触发）。
+// 匿名命名空间须置于模块作用域（export 块之外），否则 clang 报
+// "anonymous namespaces cannot be exported"。组合根仍可调 inject_event_error_category 注入自定义实例。
+namespace {
+    const silicon::event::event_category_impl s_default_event_category{};
+    const bool s_event_category_registered = [] {
+        silicon::event::inject_event_error_category(s_default_event_category);
+        return true;
+    }();
+} // namespace
