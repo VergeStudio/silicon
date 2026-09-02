@@ -31,6 +31,7 @@ module;
 #include <system_error>
 #include <iostream>
 #include <silicon/proxy/proxy_macros.h>
+#include <silicon/di/di_macros.h>
 
 export module silicon.di:facade;
 export import silicon.di.error;
@@ -5378,19 +5379,21 @@ template <typename Container> class runtime_binding_interface {
   public:
     virtual ~runtime_binding_interface() = default;
 
-    virtual void* get_value(
+    // 绑定层统一返回 as_expected_t<void*>：能力缺失（如请求 T* 但存储仅
+    // 支持 T&）以错误码向上传播，而非异常/终止。
+    virtual as_expected_t<void*> get_value(
         runtime_context&,
         const instance_request<typename Container::rtti_type>& request,
         instance_cache_sink) = 0;
-    virtual void* get_lvalue_reference(
+    virtual as_expected_t<void*> get_lvalue_reference(
         runtime_context&,
         const instance_request<typename Container::rtti_type>& request,
         instance_cache_sink) = 0;
-    virtual void* get_rvalue_reference(
+    virtual as_expected_t<void*> get_rvalue_reference(
         runtime_context&,
         const instance_request<typename Container::rtti_type>& request,
         instance_cache_sink) = 0;
-    virtual void* get_pointer(
+    virtual as_expected_t<void*> get_pointer(
         runtime_context&,
         const instance_request<typename Container::rtti_type>& request,
         instance_cache_sink) = 0;
@@ -6099,10 +6102,33 @@ struct type_conversion {
                        type_descriptor registered_type);
 };
 
+// 基类上转：rvalue 源（unique/值语义存储）解析到基类引用或基类值时，
+// 向上转型取基类引用，避免按值 move 派生对象后丢失上转能力
+// （否则 get_address_as 会误入构造抽象基类分支）。
+template <typename Target, typename Source>
+struct type_conversion<
+    Target, rvalue_source<Source>,
+    std::enable_if_t<
+        !std::is_pointer_v<Target> && !std::is_pointer_v<Source> &&
+        !std::is_same_v<std::remove_cv_t<Target>, std::remove_cv_t<Source>> &&
+        std::is_base_of_v<std::remove_cv_t<Target>, std::remove_cv_t<Source>> &&
+        !is_alternative_type_v<Source>>> {
+    template <typename Factory, typename Context, typename SourceCapability>
+    static Target& apply(Factory&, Context&, SourceCapability&& source,
+                         type_descriptor, type_descriptor) {
+        return static_cast<Target&>(*source.get_ptr());
+    }
+};
+
 template <typename Target, typename Source>
 struct type_conversion<Target, rvalue_source<Source>,
-                       std::enable_if_t<!std::is_pointer_v<Source> &&
-                                        !is_alternative_type_v<Source>>> {
+                       std::enable_if_t<
+                           !std::is_pointer_v<Source> &&
+                           !is_alternative_type_v<Source> &&
+                           !(std::is_base_of_v<std::remove_cv_t<Target>,
+                                               std::remove_cv_t<Source>> &&
+                             !std::is_same_v<std::remove_cv_t<Target>,
+                                             std::remove_cv_t<Source>>)>> {
     template <typename Factory, typename Context, typename SourceCapability>
     static decltype(auto) apply(Factory&, Context&, SourceCapability&& source,
                                 type_descriptor, type_descriptor) {
@@ -7544,8 +7570,8 @@ void* resolve_static_binding_address_from_source(Resolver& resolver,
 }
 
 template <typename RTTI, typename Binding, typename Context>
-void* dispatch_binding_request(Binding& binding, Context& context,
-                               const binding_request<RTTI>& request) {
+as_expected_t<void*> dispatch_binding_request(Binding& binding, Context& context,
+                                              const binding_request<RTTI>& request) {
     switch (request.kind) {
     case binding_request_kind::kPointer:
         return binding.get_pointer(context, request.request, request.cache);
@@ -7565,12 +7591,15 @@ void* dispatch_binding_request(Binding& binding, Context& context,
 
 
 template <typename T, typename RTTI, typename Binding, typename Context>
-T resolve_binding_request(Binding& binding, Context& context,
-                          instance_cache_sink cache = {}) {
+as_expected_t<T> resolve_binding_request(Binding& binding, Context& context,
+                                         instance_cache_sink cache = {}) {
     auto request = make_binding_request<T, RTTI>(cache);
-    void* ptr =
+    auto ptr =
         dispatch_binding_request<RTTI>(binding, context, request);
-    return convert_resolved_binding<T>(ptr);
+    if (!ptr) {
+        return std::unexpected(ptr.error());
+    }
+    return convert_resolved_binding<T>(*std::move(ptr));
 }
 
 template <typename RTTI, typename Factory, typename Context, typename... Types>
@@ -7579,21 +7608,21 @@ as_expected_t<void*> resolve_binding_capability_address(Factory& factory, Contex
                                          const typename RTTI::type_index& type,
                                          type_descriptor requested_type,
                                          type_descriptor registered_type) {
-    void* address = nullptr;
-    const bool matched =
-        ((RTTI::template get_type_index<lookup_type_t<Types>>() == type
-              ? (address = factory.template resolve_address<Types>(
-                     context, requested_type, registered_type),
-                 true)
-              : false) ||
-         ...);
-
-    if (!matched) {
-        return std::unexpected(make_type_not_convertible_exception(
-            requested_type, registered_type, context));
-    }
-
-    return address;
+    as_expected_t<void*> result = std::unexpected(
+        make_type_not_convertible_exception(requested_type, registered_type,
+                                            context));
+    auto try_capability = [&]<typename Cap>() {
+        if (result) {
+            return;
+        }
+        if (RTTI::template get_type_index<lookup_type_t<Cap>>() != type) {
+            return;
+        }
+        result = factory.template resolve_address<Cap>(
+            context, requested_type, registered_type);
+    };
+    (try_capability.template operator()<Types>(), ...);
+    return result;
 }
 
 template <typename Request>
@@ -7679,7 +7708,7 @@ template <typename Request>
 }
 
 template <typename Request, typename ResolveExact, typename ResolveNormalized>
-request_result_t<Request>
+as_expected_t<request_result_t<Request>>
 construct_request_or_wrap_normalized(ResolveExact&& resolve_exact,
                                      ResolveNormalized&& resolve_normalized) {
     // expected 语义：仅当精确解析以 kTypeNotConvertible 失败且支持
@@ -7688,8 +7717,11 @@ construct_request_or_wrap_normalized(ResolveExact&& resolve_exact,
     if (!exact && can_wrap_normalized_request_v<Request> &&
         exact.error() == make_error_code(di_error::kTypeNotConvertible)) {
         auto value = std::forward<ResolveNormalized>(resolve_normalized)();
+        if (!value) {
+            return std::unexpected(value.error());
+        }
         return type_traits<std::decay_t<Request>>::make(
-            std::forward<decltype(value)>(value));
+            *std::move(value));
     }
     return exact;
 }
@@ -7713,13 +7745,27 @@ class runtime_context : public context_state {
   public:
     template <typename T, typename Container>
     T resolve(Container& container) {
+        // 依赖解析（构造函数/工厂/invoke 的参数注入）走容器 expected 入口；
+        // 该层无法向上传播错误码，失败按硬失败落地（与 rvalue 转换缺失一致）。
         if constexpr (is_keyed_v<T>) {
             using request_type = keyed_type_t<T>;
             using key_type = keyed_key_t<T>;
-            return T(container.template resolve<request_type, false, true>(
-                *this, key<key_type>{}));
+            auto resolved = container.template resolve<request_type, false, true>(
+                *this, key<key_type>{});
+            if (!resolved) {
+                std::cerr << "silicon::di: keyed dependency resolution failed: "
+                          << resolved.error().message() << "\n";
+                std::terminate();
+            }
+            return T(*std::move(resolved));
         } else {
-            return container.template resolve<T, false>(*this);
+            auto resolved = container.template resolve<T, false>(*this);
+            if (!resolved) {
+                std::cerr << "silicon::di: dependency resolution failed: "
+                          << resolved.error().message() << "\n";
+                std::terminate();
+            }
+            return *std::move(resolved);
         }
     }
 
@@ -7931,11 +7977,17 @@ class runtime_binding
 #pragma warning(push)
 #pragma warning(disable : 4702)
 #endif
-    void* convert(runtime_context& context, const request_type& request,
-                  instance_cache_sink cache) {
-        void* ptr = ::silicon::di::resolve_binding_capability_address<rtti_type>(
-            *this, context, ConversionTypes{}, request.lookup_type,
-            request.requested_type, registered_type());
+    as_expected_t<void*> convert(runtime_context& context,
+                                 const request_type& request,
+                                 instance_cache_sink cache) {
+        auto address =
+            ::silicon::di::resolve_binding_capability_address<rtti_type>(
+                *this, context, ConversionTypes{}, request.lookup_type,
+                request.requested_type, registered_type());
+        if (!address) {
+            return std::unexpected(address.error());
+        }
+        void* ptr = *address;
         // Request caching is intentionally stricter than conversion caching.
         // shared_cyclical shared_ptr storage, for example, can keep converted
         // handles alive in the storage while still deferring publication of a
@@ -7955,27 +8007,29 @@ class runtime_binding
 
     auto& get_container() { return state_ref().instance_container_ref(); }
 
-    void* get_value(runtime_context& context, const request_type& request,
-                    instance_cache_sink cache) override {
+    as_expected_t<void*> get_value(runtime_context& context,
+                                   const request_type& request,
+                                   instance_cache_sink cache) override {
         return convert<value_capability_types>(context, request, cache);
     }
 
-    void* get_lvalue_reference(runtime_context& context,
-                               const request_type& request,
-                               instance_cache_sink cache) override {
+    as_expected_t<void*> get_lvalue_reference(runtime_context& context,
+                                              const request_type& request,
+                                              instance_cache_sink cache) override {
         return convert<lvalue_reference_capability_types>(
             context, request, cache);
     }
 
-    void* get_rvalue_reference(runtime_context& context,
-                               const request_type& request,
-                               instance_cache_sink cache) override {
+    as_expected_t<void*> get_rvalue_reference(runtime_context& context,
+                                              const request_type& request,
+                                              instance_cache_sink cache) override {
         return convert<typename Storage::conversions::rvalue_reference_types>(
             context, request, cache);
     }
 
-    void* get_pointer(runtime_context& context, const request_type& request,
-                      instance_cache_sink cache) override {
+    as_expected_t<void*> get_pointer(runtime_context& context,
+                                     const request_type& request,
+                                     instance_cache_sink cache) override {
         return convert<pointer_capability_types>(context, request, cache);
     }
 
@@ -7983,7 +8037,12 @@ class runtime_binding
 #pragma warning(push)
 #pragma warning(disable : 4702)
 #endif
-    template <typename T, typename Context>
+template <typename T> struct optional_abstract_element : std::false_type {};
+template <typename E>
+struct optional_abstract_element<std::optional<E>>
+    : std::bool_constant<std::is_abstract_v<E>> {};
+
+template <typename T, typename Context>
     as_expected_t<void*> resolve_address(Context& context, type_descriptor requested_type,
                           type_descriptor registered_type) {
         if constexpr (is_exact_lookup_v<T>) {
@@ -7995,13 +8054,20 @@ class runtime_binding
         }
 
         using Target = std::remove_reference_t<resolved_type_t<T, Type>>;
-        return materialize_binding_resolution_source(
-            context, get_storage(), get_resolution_container(), closure_,
-            [&](auto&& source) -> void* {
-                return resolve_binding_address_from_source<Target>(
-                    *this, context, std::forward<decltype(source)>(source),
-                    requested_type, registered_type);
-            });
+        // 值能力 optional<U> 替换到抽象接口得到 optional<abstract>，
+        // 无法物化，按类型不可转换报错，避免实例化非法构造。
+        if constexpr (optional_abstract_element<Target>::value) {
+            return std::unexpected(make_type_not_convertible_exception(
+                requested_type, registered_type, context));
+        } else {
+            return materialize_binding_resolution_source(
+                context, get_storage(), get_resolution_container(), closure_,
+                [&](auto&& source) -> void* {
+                    return resolve_binding_address_from_source<Target>(
+                        *this, context, std::forward<decltype(source)>(source),
+                        requested_type, registered_type);
+                });
+        }
     }
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -8584,8 +8650,17 @@ template <typename Derived> class runtime_registration_api {
         using registration = type_registration<TypeArgs...>;
         return register_type<TypeArgs...>(callable(
             [this, collection_fn = std::forward<Fn>(fn)]() mutable {
-                return self().template construct_collection<
+                // 工厂接口产出裸集合；集合构造失败无法经工厂签名向上传播，
+                // 按硬失败落地。
+                auto made = self().template construct_collection<
                     typename registration::storage_type::type>(collection_fn);
+                if (!made) {
+                    std::cerr << "silicon::di: collection construction "
+                                 "failed: "
+                              << made.error().message() << "\n";
+                    std::terminate();
+                }
+                return std::move(*made);
             }));
     }
 
@@ -11944,31 +12019,33 @@ class runtime_registry : public allocator_base<Allocator> {
 
   protected:
     template <typename T, typename IdType = none_t,
-              typename R = request_result_t<T>>
+              typename R = resolve_expected_result_t<T, true>>
     R resolve(IdType&& id = IdType()) {
         return resolve_runtime_request<T>(std::forward<IdType>(id));
     }
 
     template <typename T, typename Factory = constructor<normalized_type_t<T>>,
-              typename R = request_result_t<T>>
+              typename R = resolve_expected_result_t<T, false>>
     R construct(Factory factory = Factory()) {
         return construct_runtime_request<T>(std::move(factory));
     }
 
-    template <typename T> T construct_collection() {
+    template <typename T> as_expected_t<T> construct_collection() {
         return construct_collection_runtime_request<T>();
     }
 
-    template <typename T, typename Fn> T construct_collection(Fn&& fn) {
+    template <typename T, typename Fn>
+    as_expected_t<T> construct_collection(Fn&& fn) {
         return construct_collection_runtime_request<T>(std::forward<Fn>(fn));
     }
 
-    template <typename T, typename Key> T construct_collection(key<Key>) {
+    template <typename T, typename Key>
+    as_expected_t<T> construct_collection(key<Key>) {
         return construct_collection_runtime_request<T>(key<Key>{});
     }
 
     template <typename T, typename Fn, typename Key>
-    T construct_collection(Fn&& fn, key<Key>) {
+    as_expected_t<T> construct_collection(Fn&& fn, key<Key>) {
         return construct_collection_runtime_request<T>(
             std::forward<Fn>(fn), key<Key>{});
     }
@@ -11980,11 +12057,11 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename T, typename IdType = none_t,
-              typename R = request_result_t<T>>
+              typename R = resolve_expected_result_t<T, true>>
     R resolve_runtime_request(IdType&& id = IdType()) {
         if constexpr (is_typed_key_v<IdType> &&
-                      collection_traits<R>::is_collection) {
-            return construct_collection_runtime_request<R>(
+                      collection_traits<request_result_t<T>>::is_collection) {
+            return construct_collection_runtime_request<request_result_t<T>>(
                 std::decay_t<IdType>{});
         } else {
             if constexpr (cache_enabled) {
@@ -11992,8 +12069,8 @@ class runtime_registry : public allocator_base<Allocator> {
                     if (auto* state = runtime_bindings_if_present()) {
                         void* cache = state->type_cache.template get<T>();
                         if (cache) {
-                            return convert_resolved_binding<
-                                request_interface_t<T>>(cache);
+                            return R(convert_resolved_binding<
+                                request_result_t<T>>(cache));
                         }
                     }
                 } else {
@@ -12032,9 +12109,9 @@ class runtime_registry : public allocator_base<Allocator> {
 
                                 if (indexed) {
                                     if (indexed->cache) {
-                                        return convert_resolved_binding<
-                                            request_interface_t<T>>(
-                                            indexed->cache);
+                                        return R(convert_resolved_binding<
+                                            request_result_t<T>>(
+                                            indexed->cache));
                                     }
                                 }
                             }
@@ -12050,7 +12127,7 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename T, typename Factory = constructor<normalized_type_t<T>>,
-              typename R = request_result_t<T>>
+              typename R = resolve_expected_result_t<T, false>>
     R construct_runtime_request(Factory factory = Factory()) {
         runtime_context context;
         if constexpr (std::is_same_v<Factory,
@@ -12078,9 +12155,13 @@ class runtime_registry : public allocator_base<Allocator> {
                                       T>) {
                     ::silicon::di::terminate_missing_rvalue_conversion<T>(true, context);
                 } else if constexpr (construct_normalized_request_v<T>) {
+                    auto dep =
+                        resolve<normalized_type_t<T>, false>(context, none_t{});
+                    if (!dep) {
+                        return std::unexpected(dep.error());
+                    }
                     return type_traits<std::decay_t<T>>::make(
-                        resolve<normalized_type_t<T>, false>(context,
-                                                             none_t{}));
+                        *std::move(dep));
                 } else {
                     return resolve<T, false>(context, none_t{});
                 }
@@ -12088,7 +12169,8 @@ class runtime_registry : public allocator_base<Allocator> {
         }
 
         if constexpr (construct_factory_request_v<T>) {
-            return factory.template construct<R>(context, *resolve_root());
+            return R(factory.template construct<request_result_t<T>>(
+                context, *resolve_root()));
         } else if constexpr (::silicon::di::
                                  rvalue_request_requires_explicit_conversion_v<
                                      T>) {
@@ -12098,31 +12180,31 @@ class runtime_registry : public allocator_base<Allocator> {
         }
     }
 
-    template <typename T> T construct_collection_runtime_request() {
+    template <typename T> as_expected_t<T> construct_collection_runtime_request() {
         return construct_collection_runtime_request<T>(
             binding_collection_append{});
     }
 
     template <typename T, typename Fn>
-    T construct_collection_runtime_request(Fn&& fn) {
+    as_expected_t<T> construct_collection_runtime_request(Fn&& fn) {
         return construct_collection_runtime_request<T>(std::forward<Fn>(fn),
                                                        none_t{});
     }
 
     template <typename T, typename Key>
-    T construct_collection_runtime_request(key<Key>) {
+    as_expected_t<T> construct_collection_runtime_request(key<Key>) {
         return construct_collection_runtime_request<T>(
             binding_collection_append{}, key<Key>{});
     }
 
     template <typename T, typename Fn, typename Key>
-    T construct_collection_runtime_request(Fn&& fn, key<Key>) {
+    as_expected_t<T> construct_collection_runtime_request(Fn&& fn, key<Key>) {
         return construct_collection_runtime_request_impl<T, Key>(
             std::forward<Fn>(fn));
     }
 
     template <typename T, typename Fn>
-    T construct_collection_runtime_request(Fn&& fn, none_t) {
+    as_expected_t<T> construct_collection_runtime_request(Fn&& fn, none_t) {
         return construct_collection_runtime_request_impl<T, void>(
             std::forward<Fn>(fn));
     }
@@ -12197,7 +12279,7 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = resolve_expected_result_t<T, RemoveRvalueReferences>>
     R resolve_request(runtime_context& context) {
         return resolve<T, RemoveRvalueReferences>(context,
                                                   collection_key<Key>());
@@ -12330,10 +12412,10 @@ class runtime_registry : public allocator_base<Allocator> {
         IdType& id;
 
         template <typename Request>
-        request_interface_t<Request> resolve(runtime_context& context) {
+        as_expected_t<request_interface_t<Request>> resolve(runtime_context& context) {
             return registry.template runtime_source_missing<
                 T, RemoveRvalueReferences, MayAutoConstruct, IdType,
-                request_interface_t<Request>>(context,
+                as_expected_t<request_interface_t<Request>>>(context,
                                               std::forward<IdType>(id));
         }
     };
@@ -12355,8 +12437,8 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename T, bool CheckCache, typename IdType>
-    request_interface_t<T> runtime_source_resolve(runtime_selection selection,
-                                runtime_context& context, IdType&& id) {
+    as_expected_t<request_interface_t<T>> runtime_source_resolve(
+        runtime_selection selection, runtime_context& context, IdType&& id) {
         (void)id;
         if constexpr (is_none_v<std::decay_t<IdType>>) {
             return resolve<T, request_interface_t<T>>(*selection.binding,
@@ -12364,8 +12446,9 @@ class runtime_registry : public allocator_base<Allocator> {
         } else {
             if constexpr (cache_enabled && CheckCache) {
                 if (selection.state->cache) {
-                    return convert_resolved_binding<
-                        request_interface_t<T>>(selection.state->cache);
+                    return as_expected_t<request_interface_t<T>>(
+                        convert_resolved_binding<
+                            request_interface_t<T>>(selection.state->cache));
                 }
             }
 
@@ -12401,14 +12484,15 @@ class runtime_registry : public allocator_base<Allocator> {
         }
 
         if constexpr (MayAutoConstruct && is_typed_key_v<IdType> &&
-                      collection_traits<R>::is_collection) {
-            return this->template construct_collection_runtime_request<R>(
+                      collection_traits<request_result_t<T>>::is_collection) {
+            return this->template construct_collection_runtime_request<
+                request_result_t<T>>(
                 binding_collection_append{}, std::decay_t<IdType>{});
         } else if constexpr (MayAutoConstruct &&
                              is_auto_constructible<std::decay_t<T>>::value) {
             if constexpr (constructor<Type>::kind ==
                           constructor_kind::kConcrete) {
-                return auto_construct<T>(context);
+                return R(auto_construct<T>(context));
             } else if constexpr (is_none_v<std::decay_t<IdType>>) {
                 return std::unexpected(
                     make_type_not_found_exception<T>(context));
@@ -12466,8 +12550,17 @@ class runtime_registry : public allocator_base<Allocator> {
                 continue;
             }
             ++count;
-            fn(results,
-               resolve_collection_type<resolve_type>(*entry.binding, context));
+            auto resolved =
+                resolve_collection_type<resolve_type>(*entry.binding, context);
+            if (!resolved) {
+                // 追加回调无法向上传播错误码，失败按硬失败落地
+                // （与依赖解析/工厂路径一致）。
+                std::cerr << "silicon::di: collection element resolution "
+                             "failed: "
+                          << resolved.error().message() << "\n";
+                std::terminate();
+            }
+            fn(results, std::move(*resolved));
         }
 
         return count;
@@ -12716,7 +12809,7 @@ class runtime_registry : public allocator_base<Allocator> {
 #endif
     template <typename T, bool RemoveRvalueReferences, bool MayAutoConstruct,
               bool CheckCache = true, typename IdType = none_t,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = resolve_expected_result_t<T, RemoveRvalueReferences>>
     R resolve_impl(runtime_context& context, IdType&& id = IdType()) {
         using Type = normalized_type_t<T>;
         static_assert(!std::is_const_v<Type>);
@@ -12725,8 +12818,8 @@ class runtime_registry : public allocator_base<Allocator> {
             if (auto* state = runtime_bindings_if_present()) {
                 void* cache = state->type_cache.template get<T>();
                 if (cache) {
-                    return convert_resolved_binding<
-                        request_interface_t<T>>(cache);
+                    return R(convert_resolved_binding<
+                        request_result_t<T>>(cache));
                 }
             }
         }
@@ -12736,7 +12829,8 @@ class runtime_registry : public allocator_base<Allocator> {
                                 IdType>
             missing{*this, id};
         auto sources = make_selected_binding_sources(selected, missing);
-        return resolve_from_binding_sources<T, R>(context, sources);
+        return resolve_from_binding_sources<T,
+            resolve_request_t<T, RemoveRvalueReferences>>(context, sources);
     }
 
     template <typename T>
@@ -12754,7 +12848,7 @@ class runtime_registry : public allocator_base<Allocator> {
 
     template <typename T, bool RemoveRvalueReferences, bool CheckCache = true,
               typename IdType = none_t,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = resolve_expected_result_t<T, RemoveRvalueReferences>>
     R resolve(runtime_context& context, IdType&& id = IdType()) {
         return resolve_impl < T, RemoveRvalueReferences,
                std::is_same_v<request_value_t<T>, std::decay_t<T>> &&
@@ -12769,7 +12863,7 @@ class runtime_registry : public allocator_base<Allocator> {
 #endif
 
     template <typename CachedT, typename T, typename Binding, typename Context>
-    T resolve(Binding& binding, Context& context) {
+    as_expected_t<T> resolve(Binding& binding, Context& context) {
         return ::silicon::di::resolve_binding_request<T, rtti_type>(
             binding, context,
             cache_enabled
@@ -12779,7 +12873,7 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename CachedT, typename T, typename Binding, typename Context>
-    T resolve(Binding& binding, Context& context, index_data& data) {
+    as_expected_t<T> resolve(Binding& binding, Context& context, index_data& data) {
         return ::silicon::di::resolve_binding_request<T, rtti_type>(
             binding, context,
             cache_enabled
@@ -12788,7 +12882,7 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename CachedT, typename T, typename Binding, typename Context>
-    T resolve(Binding& binding, Context& context, binding_cache_state& data) {
+    as_expected_t<T> resolve(Binding& binding, Context& context, binding_cache_state& data) {
         return ::silicon::di::resolve_binding_request<T, rtti_type>(
             binding, context,
             cache_enabled
@@ -12797,7 +12891,7 @@ class runtime_registry : public allocator_base<Allocator> {
     }
 
     template <typename T, typename Binding, typename Context>
-    T resolve_collection_type(Binding& binding, Context& context) {
+    as_expected_t<T> resolve_collection_type(Binding& binding, Context& context) {
         return ::silicon::di::resolve_binding_request<T, rtti_type>(binding, context);
     }
 
@@ -12956,7 +13050,7 @@ class runtime_container
     const registry_type& registry() const { return runtime_registry_; }
 
     template <typename T, typename IdType = none_t,
-              typename R = request_result_t<T>>
+              typename R = resolve_expected_result_t<T, true>>
     R resolve(IdType&& id = IdType()) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(id) ==
@@ -12974,7 +13068,7 @@ class runtime_container
 
     template <typename T, bool RemoveRvalueReferences,
               bool CheckCache = true,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = resolve_expected_result_t<T, RemoveRvalueReferences>>
     R resolve(runtime_context& context) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(none_t{}) ==
@@ -12988,14 +13082,14 @@ class runtime_container
 
     template <typename T, bool RemoveRvalueReferences,
               bool CheckCache = true,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = resolve_expected_result_t<T, RemoveRvalueReferences>>
     R resolve(runtime_context& context, none_t) {
         return resolve<T, RemoveRvalueReferences, CheckCache>(context);
     }
 
     template <typename T, bool RemoveRvalueReferences, bool CheckCache,
               typename Key,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = resolve_expected_result_t<T, RemoveRvalueReferences>>
     R resolve(runtime_context& context, key<Key>) {
         if (parent_ &&
             runtime_registry_.template binding_status_for_id<T>(key<Key>{}) ==
@@ -13009,32 +13103,34 @@ class runtime_container
 
     template <typename T,
               typename Factory = constructor<normalized_type_t<T>>,
-              typename R = request_result_t<T>>
+              typename R = resolve_expected_result_t<T, false>>
     R construct(Factory factory = Factory()) {
         return runtime_registry_.template construct<T>(std::move(factory));
     }
 
-    template <typename T> T construct_collection() {
+    template <typename T> as_expected_t<T> construct_collection() {
         return runtime_registry_.template construct_collection<T>();
     }
 
-    template <typename T, typename Fn> T construct_collection(Fn&& fn) {
+    template <typename T, typename Fn>
+    as_expected_t<T> construct_collection(Fn&& fn) {
         return runtime_registry_.template construct_collection<T>(
             std::forward<Fn>(fn));
     }
 
-    template <typename T, typename Key> T construct_collection(key<Key>) {
+    template <typename T, typename Key>
+    as_expected_t<T> construct_collection(key<Key>) {
         return runtime_registry_.template construct_collection<T>(key<Key>{});
     }
 
     template <typename T, typename Fn, typename Key>
-    T construct_collection(Fn&& fn, key<Key>) {
+    as_expected_t<T> construct_collection(Fn&& fn, key<Key>) {
         return runtime_registry_.template construct_collection<T>(
             std::forward<Fn>(fn), key<Key>{});
     }
 
     template <typename T, typename Fn>
-    T construct_collection(Fn&& fn, none_t) {
+    as_expected_t<T> construct_collection(Fn&& fn, none_t) {
         return runtime_registry_.template construct_collection<T>(
             std::forward<Fn>(fn));
     }
@@ -13069,7 +13165,7 @@ class runtime_container
     }
 
     template <typename T, bool RemoveRvalueReferences, typename Key = void,
-              typename R = resolve_request_t<T, RemoveRvalueReferences>>
+              typename R = resolve_expected_result_t<T, RemoveRvalueReferences>>
     R resolve_request(runtime_context& context) {
         return runtime_registry_.template resolve_request<
             T, RemoveRvalueReferences, Key>(context);
@@ -14461,11 +14557,19 @@ struct resolution_traits<
     unique, Type, U,
     std::enable_if_t<!type_traits<Type>::enabled && !std::is_reference_v<Type> &&
                      !std::is_array_v<Type> && !is_alternative_type_v<Type>>> {
-    using value_types = type_list<std::optional<U>>;
+    // 抽象 U 无法以值形式物化（std::optional<U> 非法），值/转换能力退化为空，
+    // 按值请求抽象类型在解析期报 type_not_convertible 错误。
+    using value_types =
+        std::conditional_t<std::is_abstract_v<U>, type_list<>,
+                           type_list<std::optional<U>>>;
     using lvalue_reference_types = type_list<>;
-    using rvalue_reference_types = type_list<std::optional<U>&&>;
+    using rvalue_reference_types =
+        std::conditional_t<std::is_abstract_v<U>, type_list<>,
+                           type_list<std::optional<U>&&>>;
     using pointer_types = type_list<>;
-    using conversion_types = type_list<std::optional<U>>;
+    using conversion_types =
+        std::conditional_t<std::is_abstract_v<U>, type_list<>,
+                           type_list<std::optional<U>>>;
 };
 
 template <typename Type, typename U>

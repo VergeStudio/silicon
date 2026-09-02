@@ -79,3 +79,16 @@ inline void inject_di_error_category(const std::error_category &cat) noexcept {
 }
 
 } // namespace silicon::di
+
+// category 自注册：与 silicon.network / silicon.config / silicon.logger / silicon.event /
+// silicon.library 一致，避免未注入消费方走错误路径时 di_category() 直接 std::terminate
+// （resolve/construct 失败均经 make_error_code 触发）。匿名命名空间须置于模块作用域
+// （export 块之外），否则 clang 报 "anonymous namespaces cannot be exported"。组合根仍可
+// 调 inject_di_error_category 注入自定义实例。
+namespace {
+    const silicon::di::di_category_impl s_default_di_category{};
+    const bool s_di_category_registered = [] {
+        silicon::di::inject_di_error_category(s_default_di_category);
+        return true;
+    }();
+} // namespace
