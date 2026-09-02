@@ -40,7 +40,7 @@ struct client::impl {
     bool m_is_read_ready{false};
     bool m_is_write_ready{false};
 
-    impl() = default;
+    impl() = delete;
 
     impl(silicon::scheduler::io_scheduler *scheduler, network::socket socket, const network::socket_address &endpoint);
     impl(silicon::scheduler::io_scheduler *scheduler, network::socket_address endpoint, network::socket sock);
