@@ -201,16 +201,13 @@ stick to a specific major version of the Proxy library.")
 #endif // PROD_UNREACHABLE
 
 #ifndef PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE
-// clang (incl. clang-cl, which defines _MSC_VER) on the Windows/msvc target
-// only recognizes the vendor spelling [[msvc::no_unique_address]]; the standard
-// [[no_unique_address]] spelling is reported as an unknown attribute and, under
-// -Werror, breaks the build. MSVC natively accepts [[msvc::no_unique_address]]
-// too, so use it for both clang and MSVC. GCC/others use the standard spelling.
-#    if defined(__clang__)
+// [[no_unique_address]] is the standard C++20 spelling and is what pure clang
+// (macOS/Linux, no _MSC_VER) and GCC accept. On the MSVC target — MSVC itself
+// and clang-cl, both of which define _MSC_VER — only the vendor spelling
+// [[msvc::no_unique_address]] is recognized, so use that there.
+#    if defined(_MSC_VER)
 #        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE msvc::no_unique_address
-#    elif defined(_MSC_VER)
-#        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE msvc::no_unique_address
-#    elif defined(__GNUC__)
+#    elif defined(__clang__) || defined(__GNUC__)
 #        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE no_unique_address
 #    else
 #        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE no_unique_address
