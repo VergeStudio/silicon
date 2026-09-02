@@ -2,9 +2,9 @@
 // 与错误返回路径。不含需 io_scheduler 事件循环的实时 socket I/O（tcp/udp/tls 收发
 // 另见集成测试）。
 //
-// 重要：network_error 的专属 category 须由组合根（DI）注入后才能安全走错误路径——
-// make_error_code() 在 category 未注入时 network_category() 会 std::terminate()。
-// 本测试作为消费者，在静态初始化期自行注入一个 network_category_impl 实例。
+// 本测试刻意不调用 inject_network_error_category：network_error 的专属 category 现已
+// 由 error.cppm 在模块静态初始化期自注册默认实例，故未注入的消费方也能安全走错误路径
+// （不再 std::terminate）。若自注册失效，下面依赖错误返回路径的用例会崩溃。
 #include <array>
 #include <span>
 #include <string>
@@ -14,15 +14,6 @@
 import silicon.network;
 
 using namespace silicon::network;
-
-namespace {
-    // 维持程序生命周期，供 inject_network_error_category 持引用。
-    network_category_impl g_network_category;
-    const bool g_category_injected = [] {
-        inject_network_error_category(g_network_category);
-        return true;
-    }();
-} // namespace
 
 TEST_CASE("socket_address::create 解析合法 IPv4 并回环 ip/port/domain/to_string") {
     auto ep = socket_address::create("127.0.0.1", 8080);

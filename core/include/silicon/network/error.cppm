@@ -103,3 +103,17 @@ inline void inject_network_error_category(const std::error_category &cat) noexce
 }
 
 } // namespace silicon::network
+
+// ── 自注册默认 category（模块作用域，非导出）──
+// network_error 专属 category 须由 network_category() 提供。历史上它仅由组合根经
+// inject_network_error_category 注入，但全仓从未调用，导致 category 未注入时
+// network_category() 直接 std::terminate()，错误返回路径在真实消费方会崩溃而非
+// 返回 expected 错误。此处自注册一个默认实例，保证任何消费方在走错误路径前 category
+// 已可用。组合根仍可调 inject_network_error_category 注入自定义实例（原子存储，后写覆盖）。
+namespace {
+    const silicon::network::network_category_impl s_default_network_category{};
+    const bool s_network_category_registered = [] {
+        silicon::network::inject_network_error_category(s_default_network_category);
+        return true;
+    }();
+} // namespace
