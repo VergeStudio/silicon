@@ -65,3 +65,15 @@ inline void inject_config_error_category(const std::error_category &cat) noexcep
 }
 
 } // namespace silicon::config
+
+// category 自注册：与 silicon.network 一致，避免未注入消费方走错误路径时
+// config_category() 直接 std::terminate。匿名命名空间须置于模块作用域（export 块之外），
+// 否则 clang 报 "anonymous namespaces cannot be exported"。组合根仍可调
+// inject_config_error_category 注入自定义实例（原子存储后写覆盖）。
+namespace {
+    const silicon::config::config_category_impl s_default_config_category{};
+    const bool s_config_category_registered = [] {
+        silicon::config::inject_config_error_category(s_default_config_category);
+        return true;
+    }();
+} // namespace
