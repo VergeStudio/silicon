@@ -9,19 +9,42 @@ module;
 #include <tuple>
 // proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
 #include <silicon/proxy/proxy_macros.h>
-#include "silicon/common.h"
-// parser / parse_result 为 header-only（global module 实体），见 parser_types.h 内
-// mangling 说明；其内部已包含 cli_error_defs.h（make_error_code 同为 header-only）。
-#include <silicon/cli/parser/parser_types.h>
+#include <silicon/common.h>
 export module silicon.cli.parser;
-
-
 
 export import silicon.cli.parser.parse_result;
 
 import silicon.proxy;
 
 export namespace silicon::cli {
+
+// ── 命令行解析器 ──────────────────────────────────────────────
+//
+// 声明驱动：先经 add_subcommand / add_flag 登记合法词表，再 parse；
+// 未登记的维度不做校验（宽松通过）。
+//
+// PIMPL：实现状态完全隐藏于实现单元（core/src/cli/parser/parser.cpp）。
+// 与 parse_result 同理，方法体全部 out-of-line；类级 CORE_API 导出跨 DLL
+// 符号（MSVC 对模块实体并无自动导出，实测 640 个导出中无未标注类）。
+class CORE_API parser {
+  public:
+    parser();
+    ~parser();
+
+    /// 声明合法子命令。parse 会校验首个位置参数是否落在已知子命令集合内，
+    /// 未登记任何子命令时该维度不做校验（宽松通过）。
+    void add_subcommand(std::string);
+    /// 声明合法命名标志。requires_value=true 时该 flag 必须携带值，否则返回 kMissingArgument。
+    /// 未登记任何 flag 时该维度不做校验（宽松通过）。
+    void add_flag(std::string, bool = false);
+
+    /// 解析 argv；成功返回 parse_result，失败返回 cli_error 对应的 error_code。
+    std::expected<parse_result, std::error_code> parse(int, const char *const *) const;
+
+  private:
+    struct impl;
+    std::unique_ptr<impl> impl_;
+};
 
 // ── 类型擦除门面（silicon.proxy）─────────
 //
@@ -48,8 +71,5 @@ template<class T, class... Args>
 [[nodiscard]] parser_proxy make_parser(Args &&...args) {
     return silicon::proxy::make_proxy<parser_facade, T>(std::forward<Args>(args)...);
 }
-
-// 注：parser / parse_result 已折为 header-only（见 parser_types.h），不再作为模块导出实体；
-// 消费方（如 siliconbuddy.cli）直接 #include <silicon/cli/parser/parser_types.h> 取用。
 
 } // namespace silicon::cli

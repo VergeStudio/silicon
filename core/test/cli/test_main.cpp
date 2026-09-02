@@ -6,9 +6,7 @@
 // 下层（silicon.cli 模块内部）统一经 cli_category() 引用同一对象，
 // 满足 std::error_category「全局唯一地址」契约，跨模块 / 跨 DLL 一致。
 // 真实实例在最上层 exe 构造，其他模块/库/DLL 皆经注入句柄收到同一对象。
-// cli_error / cli_category_impl / inject_cli_error_category 已折为 header-only 全局实体
-// （见 cli_error_defs.h），须直接文本包含，不能经 import silicon.cli.error 取得。
-#include <silicon/cli/error/cli_error_defs.h>
+import silicon.cli.error;
 
 namespace {
     const silicon::cli::cli_category_impl g_cli_category;
