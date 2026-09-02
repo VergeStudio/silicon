@@ -13,7 +13,7 @@
 namespace silicon::logger {
 // log_level 与 logger 统一在 ilogger.h 中定义，避免重复声明导致底层类型冲突。
 
-CORE_API [[nodiscard]] std::expected<void, std::error_code> init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
+[[nodiscard]] CORE_API std::expected<void, std::error_code> init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
 
 CORE_API void stop();
 
