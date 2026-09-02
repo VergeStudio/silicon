@@ -8409,7 +8409,7 @@ struct static_type_map {
 #endif
             return {*node.value, true};
         }
-        assert(node.owner ==);
+        assert(node.owner == this);
         return {*node.value, false};
     }
 
