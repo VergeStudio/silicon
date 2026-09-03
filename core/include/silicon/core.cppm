@@ -35,7 +35,7 @@ export import silicon.fs.error;
 export import silicon.time;
 export import silicon.xdg;
 export import silicon.json;
-export import silicon.json_impl;        // vendored nlohmann/json
+export import silicon.json.impl;        // vendored nlohmann/json
 
 // ── 并发与调度 ──────────────────────────────────────────────────────────
 export import silicon.coroutine;

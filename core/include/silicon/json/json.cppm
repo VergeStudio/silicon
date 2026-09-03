@@ -7,15 +7,15 @@ export module silicon.json;
 // module boundaries when importers instantiate basic_json.
 import std;
 
-// silicon.json_impl 把完整 JSON 实现内联进自身 global module fragment，
+// silicon.json.impl 把完整 JSON 实现内联进自身 global module fragment，
 // 作为真正的命名模块只产出一份 BMI；消费方只 import 该模块，
 // 无共享 header-unit 缓存条目，避免 clean -j4 C3474 竞态。
-export import silicon.json_impl;
+export import silicon.json.impl;
 
 // Public type, re-exported from the forked implementation.
-// 注意：clang 下 export import 仅暴露 json_impl 在模块作用域重导出的 json，
-// 不暴露 silicon::json_impl 命名空间路径；故此处用模块作用域的 json（即
-// json_impl 重导出名）作别名源，MSVC/clang 均可编译。
+// 注意：clang 下 export import 仅暴露 impl 在模块作用域重导出的 json，
+// 不暴露 silicon::json::impl 命名空间路径；故此处用模块作用域的 json（即
+// impl 重导出名）作别名源，MSVC/clang 均可编译。
 export namespace silicon::json {
 using json = ::json;
 }
