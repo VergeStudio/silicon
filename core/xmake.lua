@@ -42,7 +42,7 @@ target("core", function()
     -- 及其自带测试（ffi 未接入构建，其 test_main.cpp 另定义 main）。
     add_files("src/**.cpp")
     remove_files("src/*/test/**.cpp", "src/ffi/**.cpp")
-    -- 全部接口单元（core 自有 + 各并入模块，含 silicon.json.impl）
+    -- 全部接口单元（core 自有 + 各并入模块）
     add_files("include/silicon/**.cppm", {public = true})
 
     -- clang 对 proxy 广泛使用的 [[no_unique_address]] 误报 unknown-attribute；
