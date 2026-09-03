@@ -68,3 +68,17 @@ inline void inject_scheduler_error_category(const std::error_category &cat) noex
 }
 
 } // namespace silicon::scheduler
+
+// category 自注册：与 silicon.network / silicon.config / silicon.logger / silicon.event /
+// silicon.library / silicon.di 一致，避免未注入消费方走错误路径时 scheduler_category()
+// 直接 std::terminate（io_scheduler / thread_pool 的构造失败与关闭路径均经
+// make_error_code 触发）。匿名命名空间须置于模块作用域（export 块之外），否则 clang 报
+// "anonymous namespaces cannot be exported"。组合根仍可调
+// inject_scheduler_error_category 注入自定义实例（原子存储，后写覆盖）。
+namespace {
+    const silicon::scheduler::scheduler_category_impl s_default_scheduler_category{};
+    const bool s_scheduler_category_registered = [] {
+        silicon::scheduler::inject_scheduler_error_category(s_default_scheduler_category);
+        return true;
+    }();
+} // namespace

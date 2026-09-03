@@ -77,10 +77,10 @@ std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::crea
     }
 
     // 注册事件循环唤醒管道（关闭后调度 / fd 注册失败 → 返回错误）。
-    if(!s->m_p->m_io_notifier.watch(s->m_p->m_shutdown_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(m_shutdown_ptr), true)) {
+    if(!s->m_p->m_io_notifier.watch(s->m_p->m_shutdown_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(s->m_p->m_shutdown_ptr), true)) {
         return std::unexpected(make_error_code(scheduler_error::kEventRegisterFailed));
     }
-    if(!s->m_p->m_io_notifier.watch(s->m_p->m_schedule_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(m_schedule_ptr), true)) {
+    if(!s->m_p->m_io_notifier.watch(s->m_p->m_schedule_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(s->m_p->m_schedule_ptr), true)) {
         return std::unexpected(make_error_code(scheduler_error::kEventRegisterFailed));
     }
 
@@ -280,13 +280,13 @@ void io_scheduler::process_events_execute(std::chrono::milliseconds timeout) {
     m_p->m_io_notifier.next_events(m_p->m_recent_events, timeout);
 
     for(auto &[handle_ptr, poll_status]: m_p->m_recent_events) {
-        if(handle_ptr == m_timer_ptr) {
+        if(handle_ptr == m_p->m_timer_ptr) {
             // Process all events that have timed out.
             process_timeout_execute();
-        } else if(handle_ptr == m_schedule_ptr) {
+        } else if(handle_ptr == m_p->m_schedule_ptr) {
             // Process scheduled coroutines.
             process_scheduled_execute_inline();
-        } else if(handle_ptr == m_shutdown_ptr) [[unlikely]] {
+        } else if(handle_ptr == m_p->m_shutdown_ptr) [[unlikely]] {
             // Nothing to do, just needed to wake-up and smell the flowers
         } else {
             // Individual poll task wake-up.

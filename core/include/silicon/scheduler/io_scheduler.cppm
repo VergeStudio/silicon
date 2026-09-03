@@ -452,15 +452,33 @@ class CORE_API io_scheduler {
         explicit impl(options &&opts)
             : m_opts(std::move(opts)),
               m_io_notifier(),
-              m_timer(static_cast<const void *>(&io_scheduler::m_timer_object), m_io_notifier) {}
+              m_shutdown_poll(),
+              m_schedule_poll(),
+              m_timer_poll(),
+              m_timer(&m_timer_poll, m_io_notifier),
+              m_shutdown_ptr(&m_shutdown_poll),
+              m_schedule_ptr(&m_schedule_poll),
+              m_timer_ptr(&m_timer_poll) {}
 
         /// The configuration options.
         options m_opts;
 
         /// The io event notifier.
         ::silicon::scheduler::io_notifier m_io_notifier;
+        /// 控制管道 / 定时器对应的哨兵 poll_info：kevent 的 udata 被
+        /// io_notifier::next_events 当作 poll_info* 解引用以读取 m_cancel_trigger，
+        /// 因此必须是真实 poll_info（其 m_cancel_trigger 为空），而非早先实现里
+        /// 的 int 地址 —— 后者会让任何 pipe/timer 事件在 next_events 内 SIGSEGV。
+        silicon::scheduler::poll_info m_shutdown_poll{};
+        silicon::scheduler::poll_info m_schedule_poll{};
+        silicon::scheduler::poll_info m_timer_poll{};
         /// The timer handle for timed events, e.g. yield_for() or scheduler_after().
         silicon::scheduler::timer_handle m_timer;
+        /// 标记指针：指向上述哨兵 poll_info，供 create() 注册与
+        /// process_events_execute() 分派时做指针比较。
+        void *m_shutdown_ptr = &m_shutdown_poll;
+        void *m_schedule_ptr = &m_schedule_poll;
+        void *m_timer_ptr = &m_timer_poll;
         /// The event loop pipe to trigger a shutdown.
         silicon::coroutine::pipe_t m_shutdown_pipe{};
         /// The event loop schedule task pipe.
@@ -493,15 +511,6 @@ class CORE_API io_scheduler {
     };
 
     std::unique_ptr<impl> m_p;
-
-    static constexpr const int m_shutdown_object{0};
-    static constexpr const void *m_shutdown_ptr = &m_shutdown_object;
-
-    static constexpr const int m_timer_object{0};
-    static constexpr const void *m_timer_ptr = &m_timer_object;
-
-    static constexpr const int m_schedule_object{0};
-    static constexpr const void *m_schedule_ptr = &m_schedule_object;
 
     static const constexpr std::chrono::milliseconds m_default_timeout{1000};
     static const constexpr std::chrono::milliseconds m_no_timeout{0};
