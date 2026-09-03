@@ -9,7 +9,7 @@
 #include <span>
 #include <string>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.network;
 

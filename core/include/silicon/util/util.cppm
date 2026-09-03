@@ -15,14 +15,14 @@ export module silicon.util;
 export namespace silicon::util {
 
 // -----------------------------------------------------------------------------
-// util.hpp declarations
+// util declarations
 // -----------------------------------------------------------------------------
 
 CORE_API bool has_suffix(const char *, const char *);
 CORE_API std::uint64_t generate_unique_id();
 
 // -----------------------------------------------------------------------------
-// string.hpp — str_cat / str_append (C++23 unified variadic template)
+// string — str_cat / str_append (C++23 unified variadic template)
 // -----------------------------------------------------------------------------
 
 namespace strings_internal {

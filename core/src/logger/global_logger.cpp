@@ -1,3 +1,5 @@
+module;
+
 #include <ctime>
 #include <iostream>
 #include <memory>
@@ -6,14 +8,17 @@
 #include <source_location>
 #include <string_view>
 
-import silicon.util;
-import silicon.logger.error;
-#include "silicon/logger/global_logger.h"
 #include "spdlog/async.h"
 #include "spdlog/async_logger.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/hourly_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+
+module silicon.logger;
+
+import :global_logger;
+import silicon.util;
+import silicon.logger.error;
 
 namespace silicon::logger {
 

@@ -10,7 +10,7 @@
 // 包含（与 silicon.proxy 模块接口内的同一份定义互不冲突，各 TU 各有一份）。
 #include <silicon/proxy/proxy_macros.h>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.proxy;
 

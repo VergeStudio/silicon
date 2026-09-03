@@ -8,7 +8,7 @@
 #include <system_error>
 #include <variant>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.config;
 

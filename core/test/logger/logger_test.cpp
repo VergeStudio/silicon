@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <string>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.logger;
 

@@ -1,6 +1,6 @@
 #include <cstdint>
 #include <cstring>
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 #include <string>
 
 import silicon.ffi;

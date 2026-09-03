@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.util;
 

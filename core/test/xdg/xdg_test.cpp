@@ -1,5 +1,5 @@
 #include <cstdlib>
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 #include <string>
 
 import silicon.xdg;

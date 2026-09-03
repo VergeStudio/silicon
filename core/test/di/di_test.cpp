@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <silicon/di/di_macros.h>
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.di;
 

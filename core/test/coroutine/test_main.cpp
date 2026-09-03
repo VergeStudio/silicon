@@ -1,5 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 // ── 组合根（composition root）────────────────────────────────────
 // 顶层 exe 拥有 coroutine / channel 专属 error_category 的唯一实例，并经 DI 注入；

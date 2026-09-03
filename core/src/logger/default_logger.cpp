@@ -15,6 +15,7 @@ module;
 
 module silicon.logger;
 
+import :default_logger;
 import silicon.util;
 import silicon.logger.error;
 

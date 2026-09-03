@@ -35,7 +35,7 @@ concept executor = requires(executor_type e, std::coroutine_handle<> c)
 
 // io_executor 仅依赖 coroutine 自身类型（fd_t/poll_op/task），与 network 无耦合。
 // 上游 libcoro 将其置于 LIBCORO_FEATURE_NETWORKING 之下属过度约束；silicon::network
-// 的公共头（dns/resolver.hpp 等）无条件引用此概念，故此处无条件导出。
+// 的公共头（dns/resolver 等）无条件引用此概念，故此处无条件导出。
 template<typename executor_type>
 concept io_executor = executor<executor_type> and requires(executor_type e, std::coroutine_handle<> c, fd_t fd, silicon::coroutine::poll_op op, std::chrono::milliseconds timeout)
 {

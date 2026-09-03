@@ -27,7 +27,7 @@ import silicon.scheduler;
 
 import :poll_info;
 import :poll_info_impl;
-#include "poll_info_impl.hpp"
+#include "poll_info_impl.h"
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 using namespace std::chrono_literals;

@@ -10,7 +10,7 @@
 #include <system_error>
 #include <type_traits>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.error;
 

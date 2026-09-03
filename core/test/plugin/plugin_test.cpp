@@ -1,5 +1,5 @@
 #include <memory>
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 #include <ostream>
 #include <string>
 #include <string_view>

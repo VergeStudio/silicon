@@ -9,7 +9,7 @@ module;
 module silicon.library;
 import silicon.library.error;
 
-#include "shared_library_impl.hpp"
+#include "shared_library_impl.h"
 
 namespace silicon::library {
 

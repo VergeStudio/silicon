@@ -10,18 +10,17 @@ module;
 #include <expected>
 
 #include "silicon/common.h"
-#include "silicon/logger/ilogger.h"
 #include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
 export module silicon.logger;
 
 export import silicon.logger.error;
+export import :ilogger;
+export import :default_logger;
 import silicon.proxy;
 
 export namespace silicon::logger {
-
-using ::silicon::logger::log_level;
 
 // logger 接口：类型擦除门面
 PRO_DEF_MEM_DISPATCH(MemLoggerTrace, trace);
@@ -69,8 +68,6 @@ CORE_API void critical(const std::string_view &, std::source_location &&location
 
 } // namespace silicon::logger
 
-// default_logger 的单一定义源位于头文件 default_logger.h（鸭子类型满足 logger_facade，
-// 无需继承抽象基类），模块仅 re-export 该头文件，避免与实现单元产生 ODR 双定义。
-export {
-#include "silicon/logger/default_logger.h"
-}
+// default_logger 的单一定义源位于分区 :default_logger（default_logger.cppm），
+// 鸭子类型满足 logger_facade，无需继承抽象基类；分区由本接口 `export import` 重导出，
+// 避免与实现单元产生 ODR 双定义。log_level 同理来自分区 :ilogger（ilogger.cppm）。

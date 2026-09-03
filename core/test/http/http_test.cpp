@@ -7,7 +7,7 @@
 #include <map>
 #include <string>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 #include <silicon/http/http_types.h>
 
 using namespace silicon::http;

@@ -1,5 +1,5 @@
 #include <cstdint>
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 #include <silicon/time/system_clock.h>
 
 import silicon.time;

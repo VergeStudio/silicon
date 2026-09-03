@@ -6,7 +6,7 @@
 // 故未注入的消费方走错误路径（make_error_code）前 category 已可用，不再 std::terminate。
 #include <string>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.event;
 

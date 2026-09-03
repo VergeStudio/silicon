@@ -1,7 +1,7 @@
 #include <cstddef>
 #include <filesystem>
 #include <memory>
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 #include <string>
 #include <vector>
 

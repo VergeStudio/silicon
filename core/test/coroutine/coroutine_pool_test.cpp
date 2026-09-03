@@ -1,4 +1,4 @@
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 // 本 TU 自身定义协程（co_await），须直接可见 std::coroutine_traits，
 // 不能只依赖 import silicon.coroutine。

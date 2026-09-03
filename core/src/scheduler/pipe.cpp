@@ -26,7 +26,7 @@ module;
 
 module silicon.scheduler;
 import silicon.scheduler.error;
-#include "poll_info_impl.hpp"
+#include "poll_info_impl.h"
 
 namespace silicon::coroutine
 {
