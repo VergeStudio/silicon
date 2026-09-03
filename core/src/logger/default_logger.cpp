@@ -1,6 +1,7 @@
 module;
 
 #include <ctime>
+#include <expected>
 #include <format>
 #include <iostream>
 #include <memory>

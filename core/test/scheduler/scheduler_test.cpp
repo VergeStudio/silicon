@@ -12,7 +12,7 @@
 #include <thread>
 #include <utility>
 
-#include <silicon/test/test.hpp>
+#include <silicon/test/test.h>
 
 import silicon.proxy;
 import silicon.scheduler;

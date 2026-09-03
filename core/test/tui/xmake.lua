@@ -1,0 +1,6 @@
+target("tui.test")
+    set_kind("binary")
+    set_default(true)
+    add_deps("silicon::core", "silicon::test")
+    add_files("*.cpp")
+    add_tests()
