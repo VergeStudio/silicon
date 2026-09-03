@@ -101,7 +101,7 @@ TEST_CASE("构造注入：SILICON_DI_CONSTRUCTOR 声明的依赖被自动装配"
     di::container<> c;
     c.register_type<di::interfaces<igreeter>, di::storage_marker<english_greeter>, di::scope<di::shared>>();
     c.register_type<di::interfaces<iconfig>, di::storage_marker<retry_config>, di::scope<di::shared>>();
-    c.register_type<di::storage_marker<greeting_service>, di::scope<di::unique>>();
+    c.register_type<di::storage_marker<greeting_service>, di::scope<di::shared>>();
 
     auto s = c.resolve<greeting_service &>();
     REQUIRE(s.has_value());
