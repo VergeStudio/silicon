@@ -32,6 +32,7 @@ module;
 #include <iostream>
 #include <silicon/proxy/proxy_macros.h>
 #include <silicon/di/di_macros.h>
+#include <silicon/common.h>
 
 export module silicon.di:facade;
 export import silicon.di.error;
@@ -4883,12 +4884,12 @@ struct closure_strategy {
 struct context_closure_base {
     context_closure_proxy strategy_{};
     void reset() { strategy_->reset(); }
-    arena<>& arena_storage() { return strategy_->arena_storage(); }
-    void add_destructor(void* instance, void (*dtor)(void*)) { strategy_->add_destructor(instance, dtor); }
+    CORE_API arena<>& arena_storage() { return strategy_->arena_storage(); }
+    CORE_API void add_destructor(void* instance, void (*dtor)(void*)) { strategy_->add_destructor(instance, dtor); }
 };
 
 struct context_closure : context_closure_base {
-    context_closure()
+    CORE_API context_closure()
         : arena_(arena_buffer_)
         , destructibles_(arena_) {
         // 在构造函数体内（complete-class 上下文）初始化 strategy_，
@@ -4896,7 +4897,7 @@ struct context_closure : context_closure_base {
         strategy_ = make_context_closure<closure_strategy<context_closure>>(this);
     }
 
-    ~context_closure() { reset(); }
+    CORE_API ~context_closure() { reset(); }
 
     context_closure(const context_closure&) = delete;
     context_closure& operator=(const context_closure&) = delete;
@@ -5069,13 +5070,13 @@ class context_path_state {
 
 class context_state : public context_path_state {
   public:
-    context_state()
+    CORE_API context_state()
         : arena_(arena_buffer_)
         , closures_(arena_) {
         closures_.emplace_back(&closure_);
     }
 
-    ~context_state() {
+    CORE_API ~context_state() {
         for (auto it = closures_.rbegin(); it != closures_.rend(); ++it) {
             (*it)->reset();
         }
@@ -5101,7 +5102,7 @@ class context_state : public context_path_state {
         return allocator_traits::allocate(allocator, 1);
     }
 
-    void push(context_closure_base* c) {
+    CORE_API void push(context_closure_base* c) {
         // A closure represents one owner of preserved temporaries. Recursive
         // shared resolution must be stopped by the type guard before the same
         // factory tries to reactivate its closure while it is already active.
@@ -5109,7 +5110,7 @@ class context_state : public context_path_state {
         closures_.emplace_back(c);
     }
 
-    void pop() { closures_.pop_back(); }
+    CORE_API void pop() { closures_.pop_back(); }
 
     bool contains(const context_closure_base* candidate) const {
         for (auto* active : closures_) {
@@ -5365,7 +5366,7 @@ struct instance_cache_sink {
 #pragma warning(push)
 #pragma warning(disable : 4702)
 #endif
-    void operator()(void* ptr) const {
+    CORE_API void operator()(void* ptr) const {
         if (store) {
             store(context, ptr);
         }
@@ -8338,12 +8339,12 @@ template<> class rtti<typeid_provider> {
     class type_index {
         friend struct std::hash<type_index>;
       public:
-        type_index(std::type_index value) : value_(value) {}
+        CORE_API type_index(std::type_index value) : value_(value) {}
 
-        bool operator<(const type_index& other) const {
+        CORE_API bool operator<(const type_index& other) const {
             return value_ < other.value_;
         }
-        bool operator==(const type_index& other) const {
+        CORE_API bool operator==(const type_index& other) const {
             return value_ == other.value_;
         }
 

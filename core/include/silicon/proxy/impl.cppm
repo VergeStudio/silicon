@@ -47,6 +47,8 @@ module;
 #    endif
 #endif
 
+#include <silicon/common.h>
+
 export module silicon.proxy:impl;
 
 namespace silicon::proxy {
@@ -2410,12 +2412,17 @@ struct weak_dispatch: D {
 // =============================================================================
 
 #if __cpp_rtti >= 199711L
-export class bad_proxy_cast: public std::bad_cast {
+export class CORE_API bad_proxy_cast: public std::bad_cast {
   public:
-    char const *what() const noexcept override {
-        return "silicon::proxy::bad_proxy_cast";
-    }
+    char const *what() const noexcept override;
 };
+
+// 类外 out-of-line 定义：类体内 inline 定义会被 MSVC 标为模块内部链接
+// （::<!silicon.proxy），导致消费方 proxy.test 链接报 LNK2001；改为 out-of-line
+// 后获得外部链接，可由测试跨模块解析。
+char const *bad_proxy_cast::what() const noexcept {
+    return "silicon::proxy::bad_proxy_cast";
+}
 #endif // __cpp_rtti >= 199711L
 
 namespace details {

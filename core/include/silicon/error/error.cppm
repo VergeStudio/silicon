@@ -11,6 +11,7 @@ module;
 
 #include <expected>
 #include <system_error>
+#include <silicon/common.h>
 
 export module silicon.error;
 
@@ -24,7 +25,7 @@ using result = std::expected<T, std::error_code>;
 // std::error_category 析构为保护，category 对象设计上进程期常驻、永不释放；
 // 故承载「模块独占 category 句柄」的 unique_ptr 使用此 no-op 删除器——仅表达所有权语义，
 // 不实际 delete（真实生命周期由组合根持有）。各 error 子模块经 import silicon.error 复用。
-struct category_deleter {
+struct CORE_API category_deleter {
     void operator()(const std::error_category*) const noexcept {}
 };
 

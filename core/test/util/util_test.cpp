@@ -51,7 +51,7 @@ TEST_CASE("str_append 就地追加到已有字符串") {
 }
 
 TEST_CASE("os::get_env 读取已设置变量与未设置变量") {
-    setenv("SILICON_UTIL_TEST_VAR", "hello", 1);
+    set_env("SILICON_UTIL_TEST_VAR", "hello");
     CHECK(get_env("SILICON_UTIL_TEST_VAR") == "hello");
 
     CHECK(get_env("SILICON_UTIL_TEST_VAR_DEFINITELY_UNSET") == "");

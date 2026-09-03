@@ -1,6 +1,5 @@
 module;
 
-#include "silicon/logger/default_logger.h"
 #include <ctime>
 #include <format>
 #include <iostream>

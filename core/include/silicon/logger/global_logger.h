@@ -9,7 +9,7 @@
 #include <expected>
 #include <system_error>
 
-#include "silicon/logger/logger.h"
+#include "silicon/logger/ilogger.h"
 #include "silicon/common.h"
 
 namespace silicon::logger {

@@ -18,7 +18,11 @@ TEST_CASE("flags 枚举底层值（kShLibGlobal/kShLibLocal）") {
 }
 
 TEST_CASE("prefix/suffix 非空且 get_os_name 由其拼接") {
+    // Windows 共享库无前缀（DLL 直接以 <name>.dll 命名），prefix() 返回空串属正确行为；
+    // Unix/Cygwin 下 prefix 为 "lib"/"cyg"，非空。故仅在非 Windows 平台断言 prefix 非空。
+#if !defined(SILICON_PLATFORM_WINDOWS)
     CHECK_FALSE(shared_library::prefix().empty());
+#endif
     CHECK_FALSE(shared_library::suffix().empty());
     CHECK(shared_library::get_os_name("foo") == shared_library::prefix() + "foo" + shared_library::suffix());
 }

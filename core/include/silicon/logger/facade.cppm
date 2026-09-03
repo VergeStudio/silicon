@@ -57,15 +57,15 @@ requires silicon::proxy::proxiable_target<T, logger_facade>
     return silicon::proxy::make_proxy_view<logger_facade>(target);
 }
 
-[[nodiscard]] std::expected<void, std::error_code> init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
-void stop();
-void set_log_level(log_level);
-void trace(const std::string_view &, std::source_location &&location = std::source_location::current());
-void debug(const std::string_view &, std::source_location &&location = std::source_location::current());
-void info(const std::string_view &, std::source_location &&location = std::source_location::current());
-void warning(const std::string_view &, std::source_location &&location = std::source_location::current());
-void error(const std::string_view &, std::source_location &&location = std::source_location::current());
-void critical(const std::string_view &, std::source_location &&location = std::source_location::current());
+[[nodiscard]] CORE_API std::expected<void, std::error_code> init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
+CORE_API void stop();
+CORE_API void set_log_level(log_level);
+CORE_API void trace(const std::string_view &, std::source_location &&location = std::source_location::current());
+CORE_API void debug(const std::string_view &, std::source_location &&location = std::source_location::current());
+CORE_API void info(const std::string_view &, std::source_location &&location = std::source_location::current());
+CORE_API void warning(const std::string_view &, std::source_location &&location = std::source_location::current());
+CORE_API void error(const std::string_view &, std::source_location &&location = std::source_location::current());
+CORE_API void critical(const std::string_view &, std::source_location &&location = std::source_location::current());
 
 } // namespace silicon::logger
 

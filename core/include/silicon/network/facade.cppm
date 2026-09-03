@@ -84,9 +84,9 @@ enum class connect_status {
  * @return 字符串视图（指向静态存储）；枚举值非法时返回
  *         network_error::kInvalidConnectStatus。
  */
-auto to_string(const connect_status &) -> result<std::string_view>;
+CORE_API auto to_string(const connect_status &) -> result<std::string_view>;
 
-class hostname {
+class CORE_API hostname {
     struct impl {
       public:
         std::string m_hostname;
@@ -214,7 +214,7 @@ enum class domain_t : int {
 ///         network_error::kInvalidDomain。
 auto to_string(domain_t) -> result<std::string_view>;
 
-class ip_address {
+class CORE_API ip_address {
   public:
     static const constexpr size_t ipv4_len{4};
     static const constexpr size_t ipv6_len{16};

@@ -8,6 +8,7 @@ module;
 #include <queue>
 #include <string>
 #include <string_view>
+#include <silicon/common.h>
 
 export module silicon.util;
 
@@ -17,8 +18,8 @@ export namespace silicon::util {
 // util.hpp declarations
 // -----------------------------------------------------------------------------
 
-bool has_suffix(const char *, const char *);
-std::uint64_t generate_unique_id();
+CORE_API bool has_suffix(const char *, const char *);
+CORE_API std::uint64_t generate_unique_id();
 
 // -----------------------------------------------------------------------------
 // string.hpp — str_cat / str_append (C++23 unified variadic template)
@@ -80,6 +81,16 @@ inline std::string get_env(const char *name) {
 #else
     const char *v = std::getenv(name);
     return (v && *v) ? std::string(v) : std::string{};
+#endif
+}
+
+// 设置环境变量（进程级）。Windows 使用安全 CRT（_putenv_s），POSIX 使用 setenv
+// （overwrite=1）。与 get_env 对称，屏蔽平台差异，避免测试/调用方直接写 POSIX 符号。
+inline void set_env(const char *name, const char *value) {
+#if defined(SILICON_PLATFORM_WINDOWS)
+    _putenv_s(name, value);
+#else
+    setenv(name, value, 1);
 #endif
 }
 
