@@ -14,7 +14,9 @@ module;
 // module: the types are compiled exactly once into this module's BMI and
 // re-exported below. No shared header-unit cache entry is derived per consumer,
 // so the clean -j4 parallel-build C3474 write race is eliminated at the module
-// level. The former impl umbrella header has been inlined here and removed.
+// level. The vendored fork headers live directly alongside this file
+// (json_fwd.h / adl_serializer.h / detail/ / thirdparty/), mirroring the
+// upstream nlohmann/json layout.
 // ============================================================================
 //     __ _____ _____ _____
 //  __|  |   __|     |   | |  silicon JSON
@@ -43,35 +45,35 @@ module;
 #endif                // JSON_NO_IO
 #include <iterator>   // random_access_iterator_tag
 #include <memory>     // unique_ptr
-#include <silicon/json/impl/adl_serializer.h>
-#include <silicon/json/impl/byte_container_with_subtype.h>
-#include <silicon/json/impl/detail/conversions/from_json.h>
-#include <silicon/json/impl/detail/conversions/to_json.h>
-#include <silicon/json/impl/detail/exceptions.h>
-#include <silicon/json/impl/detail/hash.h>
-#include <silicon/json/impl/detail/input/binary_reader.h>
-#include <silicon/json/impl/detail/input/input_adapters.h>
-#include <silicon/json/impl/detail/input/lexer.h>
-#include <silicon/json/impl/detail/input/parser.h>
-#include <silicon/json/impl/detail/iterators/internal_iterator.h>
-#include <silicon/json/impl/detail/iterators/iter_impl.h>
-#include <silicon/json/impl/detail/iterators/iteration_proxy.h>
-#include <silicon/json/impl/detail/iterators/json_reverse_iterator.h>
-#include <silicon/json/impl/detail/iterators/primitive_iterator.h>
-#include <silicon/json/impl/detail/json_custom_base_class.h>
-#include <silicon/json/impl/detail/json_pointer.h>
-#include <silicon/json/impl/detail/json_ref.h>
-#include <silicon/json/impl/detail/macro_scope.h>
-#include <silicon/json/impl/detail/meta/cpp_future.h>
-#include <silicon/json/impl/detail/meta/type_traits.h>
-#include <silicon/json/impl/detail/output/binary_writer.h>
-#include <silicon/json/impl/detail/output/output_adapters.h>
-#include <silicon/json/impl/detail/output/serializer.h>
-#include <silicon/json/impl/detail/string_concat.h>
-#include <silicon/json/impl/detail/string_escape.h>
-#include <silicon/json/impl/detail/value_t.h>
-#include <silicon/json/impl/json_fwd.h>
-#include <silicon/json/impl/ordered_map.h>
+#include <silicon/json/adl_serializer.h>
+#include <silicon/json/byte_container_with_subtype.h>
+#include <silicon/json/detail/conversions/from_json.h>
+#include <silicon/json/detail/conversions/to_json.h>
+#include <silicon/json/detail/exceptions.h>
+#include <silicon/json/detail/hash.h>
+#include <silicon/json/detail/input/binary_reader.h>
+#include <silicon/json/detail/input/input_adapters.h>
+#include <silicon/json/detail/input/lexer.h>
+#include <silicon/json/detail/input/parser.h>
+#include <silicon/json/detail/iterators/internal_iterator.h>
+#include <silicon/json/detail/iterators/iter_impl.h>
+#include <silicon/json/detail/iterators/iteration_proxy.h>
+#include <silicon/json/detail/iterators/json_reverse_iterator.h>
+#include <silicon/json/detail/iterators/primitive_iterator.h>
+#include <silicon/json/detail/json_custom_base_class.h>
+#include <silicon/json/detail/json_pointer.h>
+#include <silicon/json/detail/json_ref.h>
+#include <silicon/json/detail/macro_scope.h>
+#include <silicon/json/detail/meta/cpp_future.h>
+#include <silicon/json/detail/meta/type_traits.h>
+#include <silicon/json/detail/output/binary_writer.h>
+#include <silicon/json/detail/output/output_adapters.h>
+#include <silicon/json/detail/output/serializer.h>
+#include <silicon/json/detail/string_concat.h>
+#include <silicon/json/detail/string_escape.h>
+#include <silicon/json/detail/value_t.h>
+#include <silicon/json/json_fwd.h>
+#include <silicon/json/ordered_map.h>
 #include <string>  // string, stoi, to_string
 #include <utility> // declval, forward, move, pair, swap
 #include <vector>  // vector
@@ -4582,7 +4584,7 @@ using silicon::json::impl::literals::json_literals::operator"" _json_pointer; //
 #    endif
 #endif
 
-#include <silicon/json/impl/detail/macro_unscope.h>
+#include <silicon/json/detail/macro_unscope.h>
 
 export module silicon.json;
 
