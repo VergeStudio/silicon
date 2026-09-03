@@ -8,7 +8,12 @@
 
 #pragma once
 
-#include <silicon/json/detail/meta/detected.h>
+// NOTE: macro_scope.h is textually included in the global module fragment of
+// EVERY json module partition. It must therefore stay PURELY a macro header and
+// must NOT #include any json *type* header (detected.h / void_t.h / ...): those
+// are now C++20 module partitions, and textually pulling them in here would
+// re-define their entities in the global module of every partition that
+// imports them. Consumers that need detected/void_t pull them in as partitions.
 #include <silicon/json/thirdparty/hedley/hedley.h>
 #include <utility> // declval, pair
 

@@ -45,35 +45,11 @@ module;
 #endif                // JSON_NO_IO
 #include <iterator>   // random_access_iterator_tag
 #include <memory>     // unique_ptr
-#include <silicon/json/adl_serializer.h>
-#include <silicon/json/byte_container_with_subtype.h>
-#include <silicon/json/detail/conversions/from_json.h>
-#include <silicon/json/detail/conversions/to_json.h>
-#include <silicon/json/detail/exceptions.h>
-#include <silicon/json/detail/hash.h>
-#include <silicon/json/detail/input/binary_reader.h>
-#include <silicon/json/detail/input/input_adapters.h>
-#include <silicon/json/detail/input/lexer.h>
-#include <silicon/json/detail/input/parser.h>
-#include <silicon/json/detail/iterators/internal_iterator.h>
-#include <silicon/json/detail/iterators/iter_impl.h>
-#include <silicon/json/detail/iterators/iteration_proxy.h>
-#include <silicon/json/detail/iterators/json_reverse_iterator.h>
-#include <silicon/json/detail/iterators/primitive_iterator.h>
-#include <silicon/json/detail/json_custom_base_class.h>
-#include <silicon/json/detail/json_pointer.h>
-#include <silicon/json/detail/json_ref.h>
+// Macro headers are pure preprocessor; C++20 modules do not export macros, so
+// they are textually included in the global module fragment (and re-included in
+// every partition that needs the JSON_* feature flags).
+#include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
-#include <silicon/json/detail/meta/cpp_future.h>
-#include <silicon/json/detail/meta/type_traits.h>
-#include <silicon/json/detail/output/binary_writer.h>
-#include <silicon/json/detail/output/output_adapters.h>
-#include <silicon/json/detail/output/serializer.h>
-#include <silicon/json/detail/string_concat.h>
-#include <silicon/json/detail/string_escape.h>
-#include <silicon/json/detail/value_t.h>
-#include <silicon/json/json_fwd.h>
-#include <silicon/json/ordered_map.h>
 #include <string>  // string, stoi, to_string
 #include <utility> // declval, forward, move, pair, swap
 #include <vector>  // vector
@@ -85,11 +61,60 @@ module;
 #    include <string_view>
 #endif
 
+export module silicon.json;
+
+// Partitions of silicon.json. The relative `:name` import syntax keeps xmake's
+// dependency scanner from mis-resolving a partition import as a self-reference
+// of silicon.json. Each partition is re-exported so importers see the full
+// public API (previously reachable through the GMF re-export block).
+import std;
+export import :json_fwd;
+export import :adl_serializer;
+export import :byte_container_with_subtype;
+export import :ordered_map;
+export import :detail.exceptions;
+export import :detail.hash;
+export import :detail.json_custom_base_class;
+export import :detail.json_pointer;
+export import :detail.json_ref;
+export import :detail.string_concat;
+export import :detail.string_escape;
+export import :detail.value_t;
+export import :detail.conversions.from_json;
+export import :detail.conversions.to_chars;
+export import :detail.conversions.to_json;
+export import :detail.input.binary_reader;
+export import :detail.input.input_adapters;
+export import :detail.input.json_sax;
+export import :detail.input.lexer;
+export import :detail.input.parser;
+export import :detail.input.position_t;
+export import :detail.output.binary_writer;
+export import :detail.output.output_adapters;
+export import :detail.output.serializer;
+export import :detail.meta.cpp_future;
+export import :detail.meta.detected;
+export import :detail.meta.identity_tag;
+export import :detail.meta.is_sax;
+export import :detail.meta.std_fs;
+export import :detail.meta.type_traits;
+export import :detail.meta.void_t;
+export import :detail.meta.call_std.begin;
+export import :detail.meta.call_std.end;
+export import :detail.iterators.internal_iterator;
+export import :detail.iterators.iter_impl;
+export import :detail.iterators.iteration_proxy;
+export import :detail.iterators.iterator_traits;
+export import :detail.iterators.json_reverse_iterator;
+export import :detail.iterators.primitive_iterator;
+
 /*!
 @brief namespace for silicon JSON
 @see https://github.com/silicon
 @since version 1.0.0
 */
+
+export {
 SILICON_JSON_NAMESPACE_BEGIN
 
 /*!
@@ -4524,6 +4549,7 @@ inline silicon::json::impl::json::json_pointer operator"" _json_pointer(const ch
 } // namespace json_literals
 } // namespace literals
 SILICON_JSON_NAMESPACE_END
+}
 
 ///////////////////////
 // nonmember support //
@@ -4584,46 +4610,6 @@ using silicon::json::impl::literals::json_literals::operator"" _json_pointer; //
 #    endif
 #endif
 
-#include <silicon/json/detail/macro_unscope.h>
-
-export module silicon.json;
-
-
-// Consume the C++20 standard library module so that std comparison operators
-// (e.g. unique_ptr != nullptr inside basic_json::create) are visible across
-// module boundaries when importers instantiate basic_json.
-import std;
-
-// basic_json 的 friend 声明引用下列内部模板类（GMF 内定义）；从本模块
-// 接口重导出，使 importers 实例化 basic_json 时可跨模块解析这些类型。
-
-// Re-export the public API that was previously visible through the (now removed)
-// impl umbrella header.
-export {
-    using silicon::json::impl::basic_json;
-    using silicon::json::impl::json;
-    using silicon::json::impl::ordered_json;
-    using silicon::json::impl::json_pointer;
-    using silicon::json::impl::adl_serializer;
-    using silicon::json::impl::ordered_map;
-    using silicon::json::impl::byte_container_with_subtype;
-    // basic_json's friend declarations name these internal template classes.
-    // They are declared in this module's global module fragment (via the inlined
-    // impl header content) and are therefore NOT visible to importers; but importers
-    // that instantiate basic_json must be able to resolve the friend types.
-    // Re-export them from the module interface so the friend declarations resolve
-    // across module boundaries.
-    using silicon::json::impl::detail::external_constructor;
-    using silicon::json::impl::detail::parser;
-    using silicon::json::impl::detail::serializer;
-    using silicon::json::impl::detail::iter_impl;
-    using silicon::json::impl::detail::binary_writer;
-    using silicon::json::impl::detail::binary_reader;
-    using silicon::json::impl::detail::json_sax_dom_parser;
-    using silicon::json::impl::detail::json_sax_dom_callback_parser;
-    using silicon::json::impl::detail::exception;
-}
-
 
 // Public type, re-exported from the implementation namespace.
 // 实现位于本模块 GMF 内联的 silicon::json::impl 命名空间（forked
@@ -4648,3 +4634,4 @@ inline std::string serialize(const json &value) {
     return value.dump();
 }
 } // namespace silicon::json
+// 公共类型现由各分区 export import 重导出（见顶部 import 区）。
