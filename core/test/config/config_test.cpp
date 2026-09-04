@@ -72,12 +72,14 @@ TEST_CASE("config_value 移动构造转移值") {
 
 TEST_CASE("config_value as_* 类型不匹配抛 std::bad_variant_access") {
     config_value s{std::string{"not_a_bool"}};
-    CHECK_THROWS_AS(s.as_bool(), std::bad_variant_access);
-    CHECK_THROWS_AS(s.as_int(), std::bad_variant_access);
-    CHECK_THROWS_AS(s.as_double(), std::bad_variant_access);
+    // as_* 为 [[nodiscard]]，CHECK_THROWS_AS 内以丢弃值表达式求值，需显式
+    // static_cast<void> 丢弃返回值；求值语义不变，异常仍照常传播。
+    CHECK_THROWS_AS(static_cast<void>(s.as_bool()), std::bad_variant_access);
+    CHECK_THROWS_AS(static_cast<void>(s.as_int()), std::bad_variant_access);
+    CHECK_THROWS_AS(static_cast<void>(s.as_double()), std::bad_variant_access);
 
     config_value i{static_cast<int64_t>(1)};
-    CHECK_THROWS_AS(i.as_string(), std::bad_variant_access);
+    CHECK_THROWS_AS(static_cast<void>(i.as_string()), std::bad_variant_access);
 }
 
 // ---------- config error category（自注册消费方验证） ----------
