@@ -1,9 +1,10 @@
-// Implementation unit for silicon::network (socket + make_socket factories).
+// Implementation unit for silicon::network (platform-independent socket members).
 //
-// Provides out-of-line member definitions for silicon::network::socket and the
-// free make_socket / make_accept_socket factories. Network types come from the
-// :core partition (implicit primary import); platform socket APIs come from
-// the global module fragment below.
+// 本文件只含跨平台语义一致的成员与工厂：类型映射、移动赋值与两个 factory。
+// 句柄语义随平台变化的成员（复制赋值 / blocking / shutdown / close / accept /
+// connect / last_error / in_progress）以及 socket_duplicate_handle /
+// socket_enable_address_reuse 两个辅助，分别在 socket_linux.cpp 与
+// socket_win.cpp 中定义；两文件以互斥的平台宏守卫，恰好一个参与链接。
 
 module;
 
@@ -14,31 +15,23 @@ module;
 #    include <winsock2.h>
 #    include <ws2tcpip.h>
 #else
-#    include <arpa/inet.h>
-#    include <fcntl.h>
 #    include <sys/socket.h>
-#    include <unistd.h>
 #endif
 
-#include <cerrno>
 #include <expected>
+#include <memory>
 #include <system_error>
-#include <coroutine>
+#include <utility>
 
 module silicon.network;
-
-import silicon.coroutine;
-
-#if defined(SILICON_PLATFORM_WINDOWS)
-// Winsock uses SD_RECEIVE/SD_SEND/SD_BOTH instead of the POSIX SHUT_RD/WR/RDWR.
-#    ifndef SHUT_RD
-#        define SHUT_RD SD_RECEIVE
-#        define SHUT_WR SD_SEND
-#        define SHUT_RDWR SD_BOTH
-#    endif
+// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
+// 实现单元自引用，故以 _MSC_VER 守卫。
+#if defined(_MSC_VER)
+import silicon.network;
 #endif
 
 namespace silicon::network {
+
 auto socket::type_to_os(type_t type) -> result<int> {
     switch(type) {
         case type_t::udp:
@@ -49,17 +42,6 @@ auto socket::type_to_os(type_t type) -> result<int> {
     return std::unexpected(make_error_code(network_error::kInvalidSocketType));
 }
 
-auto socket::operator=(const socket &other) noexcept -> socket & {
-    this->close();
-#if defined(SILICON_PLATFORM_WINDOWS)
-    // Windows has no dup() for SOCKET handles; shallow-copy the handle.
-    this->m_fd = other.m_fd;
-#else
-    this->m_fd = dup(other.m_fd);
-#endif
-    return *this;
-}
-
 auto socket::operator=(socket &&other) noexcept -> socket & {
     if(std::addressof(other) != this) {
         m_fd = std::exchange(other.m_fd, -1);
@@ -68,66 +50,12 @@ auto socket::operator=(socket &&other) noexcept -> socket & {
     return *this;
 }
 
-bool socket::blocking(blocking_t block) {
-    if(m_fd < 0) {
-        return false;
-    }
-
-#if defined(SILICON_PLATFORM_WINDOWS)
-    // Windows has no fcntl; non-blocking mode is controlled via ioctlsocket(FIONBIO).
-    unsigned long mode = (block == blocking_t::yes) ? 0u : 1u;
-    return (ioctlsocket(m_fd, FIONBIO, &mode) == 0);
-#else
-    int flags = fcntl(m_fd, F_GETFL, 0);
-    if(flags == -1) {
-        return false;
-    }
-
-    // Add or subtract non-blocking flag.
-    flags = (block == blocking_t::yes) ? flags & ~O_NONBLOCK : (flags | O_NONBLOCK);
-
-    return (fcntl(m_fd, F_SETFL, flags) == 0);
-#endif
-}
-
-bool socket::shutdown(silicon::coroutine::poll_op how) {
-    if(m_fd != -1) {
-        int h{0};
-        switch(how) {
-            case silicon::coroutine::poll_op::read:
-                h = SHUT_RD;
-                break;
-            case silicon::coroutine::poll_op::write:
-                h = SHUT_WR;
-                break;
-            case silicon::coroutine::poll_op::read_write:
-                h = SHUT_RDWR;
-                break;
-        }
-
-        return (::shutdown(m_fd, h) == 0);
-    }
-    return false;
-}
-
-void socket::close() {
-    if(m_fd != -1) {
-#if defined(SILICON_PLATFORM_WINDOWS)
-        ::closesocket(m_fd);
-#else
-        ::close(m_fd);
-#endif
-        m_fd = -1;
-    }
-}
-
 auto make_socket(const socket::options &opts, domain_t domain) -> result<socket> {
     auto os_type = socket::type_to_os(opts.type);
     if(!os_type) { return std::unexpected(os_type.error()); }
 
-    // On Windows ::socket() returns a SOCKET (unsigned 64-bit); the fd-based
-    // design stores it as int, so an explicit cast is required (and matches the
-    // existing i_socket::native_handle() -> int contract). INVALID_SOCKET maps to -1.
+    // ::socket() 在 Windows 返回 SOCKET（unsigned 64 位），在 POSIX 返回 int；
+    // 统一 static_cast 到 fd 语义的 int，INVALID_SOCKET 恰好映射为 -1。
     socket s{static_cast<int>(::socket(static_cast<int>(domain), *os_type, 0))};
     if(s.native_handle() < 0) {
         return std::unexpected(make_error_code(network_error::kSocketCreateFailed));
@@ -151,22 +79,9 @@ auto make_accept_socket(const socket::options &opts, const network::socket_addre
     if(!created) { return std::unexpected(created.error()); }
     socket s = std::move(*created);
 
-    [[maybe_unused]] int sock_opt{1};
-
-#if defined(SILICON_PLATFORM_LINUX)
-    // On Linux the address and port should be marked for reuse.
-    if(setsockopt(s.native_handle(), SOL_SOCKET, SO_REUSEADDR, &sock_opt, sizeof(sock_opt)) < 0) {
+    if(socket_enable_address_reuse(s.native_handle()) == false) {
         return std::unexpected(make_error_code(network_error::kSetSockOptFailed));
     }
-#endif
-
-#if !defined(SILICON_PLATFORM_WINDOWS)
-    // SO_REUSEPORT is a BSD/Linux socket option; Windows has no equivalent
-    // (SO_REUSEADDR already covers the port-reuse semantics there).
-    if(setsockopt(s.native_handle(), SOL_SOCKET, SO_REUSEPORT, &sock_opt, static_cast<int>(sizeof(sock_opt))) < 0) {
-        return std::unexpected(make_error_code(network_error::kSetSockOptFailed));
-    }
-#endif
 
     auto [sockaddr, socklen] = endpoint.data();
 
@@ -181,55 +96,6 @@ auto make_accept_socket(const socket::options &opts, const network::socket_addre
     }
 
     return s;
-}
-
-auto socket::accept(socket_address &client_endpoint) -> socket {
-    // accept()/recvfrom() 需要可写缓冲区：必用 native_mutable_data()（返回
-    // sockaddr* + socklen_t*），只读的 data() 返回 const sockaddr* + 值长度，不适用。
-    auto [addr, addrlen] = client_endpoint.native_mutable_data();
-
-#if defined(SILICON_PLATFORM_WINDOWS)
-    // Winsock's accept() takes an int* for addrlen and returns a SOCKET handle.
-    int len = static_cast<int>(*addrlen);
-    auto raw = ::accept(m_fd, addr, &len);
-    *addrlen = static_cast<socklen_t>(len);
-    return socket{static_cast<int>(raw)};
-#else
-    auto raw = ::accept(m_fd, addr, addrlen);
-    return socket{raw};
-#endif
-}
-
-int socket::last_error() const {
-#if defined(SILICON_PLATFORM_WINDOWS)
-    return static_cast<int>(WSAGetLastError());
-#else
-    return errno;
-#endif
-}
-
-int socket::connect(const socket_address &endpoint) {
-    auto [addr, addrlen] = endpoint.data();
-
-#if defined(SILICON_PLATFORM_WINDOWS)
-    // Winsock's connect() takes an int for addrlen and returns SOCKET_ERROR (-1)
-    // on failure (check last_error() == WSAEWOULDBLOCK for async in-progress).
-    int len = static_cast<int>(addrlen);
-    return static_cast<int>(::connect(m_fd, const_cast<sockaddr *>(addr), len));
-#else
-    return ::connect(m_fd, const_cast<sockaddr *>(addr), addrlen);
-#endif
-}
-
-bool socket::in_progress() const {
-    // A non-blocking connect() that has not yet completed returns EINPROGRESS
-    // on POSIX or WSAEWOULDBLOCK on Windows; either way the connection is
-    // establishing asynchronously and the caller should poll for writability.
-#if defined(SILICON_PLATFORM_WINDOWS)
-    return (last_error() == WSAEWOULDBLOCK);
-#else
-    return (last_error() == EINPROGRESS);
-#endif
 }
 
 } // namespace silicon::network

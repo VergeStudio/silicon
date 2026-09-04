@@ -524,6 +524,13 @@ inline std::ostream & operator<<(std::ostream &os, const socket_address &ep) {
     return os << (text ? *text : std::string{"<invalid socket_address: "} + text.error().message() + ">");
 }
 
+// ── Platform-specific helpers (defined in socket_linux.cpp / socket_win.cpp) ──
+/// 复制底层句柄：POSIX 用 dup()；Windows 的 SOCKET 无 dup 语义，返回同一句柄值。
+int socket_duplicate_handle(int) ;
+/// 监听套接字绑定前的地址/端口复用选项设置。
+/// Windows 无 SO_REUSEPORT，其 SO_REUSEADDR 已覆盖端口复用语义。
+bool socket_enable_address_reuse(int) ;
+
 class CORE_API socket final {
   public:
     enum class type_t {
@@ -554,12 +561,7 @@ class CORE_API socket final {
     socket() = default;
     explicit socket(int fd): m_fd(fd) {}
 
-#    if defined(SILICON_PLATFORM_WINDOWS)
-    // Windows has no dup() for SOCKET handles; shallow-copy the handle.
-    socket(const socket &other): m_fd(other.m_fd) {}
-#    else
-    socket(const socket &other): m_fd(dup(other.m_fd)) {}
-#    endif
+    socket(const socket &other): m_fd(socket_duplicate_handle(other.m_fd)) {}
     socket(socket &&other) noexcept: m_fd(std::exchange(other.m_fd, -1)) {}
     socket & operator=(const socket &other) noexcept ;
     socket & operator=(socket &&other) noexcept ;
