@@ -30,23 +30,19 @@ using silicon::coroutine::time_point;
 
 // poll_info 的 PIMPL 实现类型（poll_info::impl 即本类型的别名）。
 //
-// 为什么必须 `export` 且必须落在本分区：
-//   * MSVC 不把「非导出实体」暴露给实现单元（实现单元即使写了
-//     `import :poll_info_impl;` 也只能看到 :poll_info 中的前置声明），
-//     故此处必须用 export；
-//   * 本分区的主模块接口单元 scheduler.cppm 只做普通 `import :poll_info_impl;`
-//     而非 `export import`，因此该定义不会随主接口重新导出，模块外部消费者
-//     仍然只拿到不完整类型（PIMPL 封装不变）；
-//   * 它需要是命名空间作用域类型而非 poll_info 的嵌套类：MSVC 无法把外围类所在
-//     模块单元之外给出的嵌套类定义写进 IFC（详见 poll_info.cppm 中的说明）。
+// 定义刻意**不 export**，与 :poll_info 分区中 `struct poll_info_impl;` 的非导出
+// 前置声明保持一致：实体只有模块链接，属模块内部实现类型，不进入模块对外接口。
+// 需要完整定义的本模块单元（接口分区与实现单元）显式写 `import :poll_info_impl;`
+// 即可使用；主模块接口单元 scheduler.cppm 亦只做普通 import 而非 export import，
+// 因此 `import silicon.scheduler;` 的消费方始终只拿到不完整类型（PIMPL 封装不变）。
 //
-// 因此，凡要在 purview 内使用完整实现的本模块实现单元，都必须显式写
-// `import :poll_info_impl;`——只 import 主模块接口是不够的。
+// 类型必须是命名空间作用域而非 poll_info 的嵌套类：MSVC 无法把外围类所在模块单元
+// 之外给出的嵌套类定义写进 IFC（详见 poll_info.cppm 中的说明）。
 //
 // 本分区的 purview 内**不要** #include 任何标准头：所需的 <coroutine> <map>
 // <optional> 等已在上方全局模块片段中包含，purview 内的 #include 会与 IFC 携带的
 // std 声明重复附着而触发 C2953。
-export namespace silicon::scheduler {
+namespace silicon::scheduler {
 
 /// Implementation state of a poll operation: target descriptor, requested
 /// operation, the paired timeout's position in `io_scheduler`'s timed events
