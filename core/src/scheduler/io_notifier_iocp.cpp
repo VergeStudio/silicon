@@ -45,6 +45,20 @@ using silicon::coroutine::time_point;
 
 namespace silicon::scheduler {
 
+// threadpool 定时器到期回调的上下文（文件局部；impl 为 private 嵌套类，
+// 自由回调函数不可引用其嵌套类型）。
+struct timer_post_ctx {
+    HANDLE iocp;
+    poll_info *pi;
+};
+
+// threadpool 定时器到期回调：向 IOCP 投递完成包（key = 哨兵 poll_info*），
+// 事件循环线程经 GetQueuedCompletionStatus 取到后走 process_timeout_execute。
+static void CALLBACK timer_post_callback(PTP_CALLBACK_INSTANCE, void *ctx, PTP_TIMER) noexcept {
+    auto *tc = static_cast<timer_post_ctx *>(ctx);
+    PostQueuedCompletionStatus(tc->iocp, 0, reinterpret_cast<ULONG_PTR>(tc->pi), nullptr);
+}
+
 // ---------------------------------------------------------------------------
 // PIMPL: platform-specific implementation state for io_notifier (IOCP backend).
 // Defined here (where it is complete) so the unique_ptr destructor and every
@@ -68,27 +82,14 @@ struct io_notifier::impl {
         bool is_cancel_event;
     };
     std::unordered_map<fd_t, watch_entry> m_watched_fds;
+
+    /// 常驻 threadpool 定时器：到期回调经 PostQueuedCompletionStatus 把完成包
+    /// （key = 哨兵 poll_info*）投递到 IOCP。IOCP 只接受支持 overlapped I/O
+    /// 的对象句柄，waitable timer 不可关联（CreateIoCompletionPort 报
+    /// ERROR_INVALID_HANDLE），故须借 threadpool 定时器转发。
+    timer_post_ctx m_timer_ctx{};
+    PTP_TIMER m_tp_timer{nullptr};
 };
-
-// ---------------------------------------------------------------------------
-// Timer callback — posted to the IOCP when a timer fires
-// ---------------------------------------------------------------------------
-
-struct timer_completion_key {
-    poll_info *pi;
-    bool fired;
-};
-
-static void CALLBACK timer_callback(PTP_CALLBACK_INSTANCE, void *ctx, PTP_TIMER timer) noexcept {
-    auto *tck = static_cast<timer_completion_key *>(ctx);
-    tck->fired = true;
-    // Post the timer event to the IOCP. The io_notifier pointer is embedded in the
-    // first pointer, poll_info in the second. fd_t 为 int：整型→指针须经 uintptr_t
-    // 中转 reinterpret_cast。
-    HANDLE iocp = reinterpret_cast<HANDLE>(static_cast<std::uintptr_t>(tck->pi->m_p->m_fd));
-    PostQueuedCompletionStatus(iocp, 0, reinterpret_cast<ULONG_PTR>(tck->pi), nullptr);
-    CloseThreadpoolTimer(timer);
-}
 
 // ---------------------------------------------------------------------------
 // io_notifier (IOCP backend)
@@ -105,7 +106,15 @@ bool io_notifier::is_valid() const noexcept {
     return m_p->m_valid;
 }
 
-io_notifier::~io_notifier() = default;
+io_notifier::~io_notifier() {
+    if (m_p->m_tp_timer != nullptr) {
+        // 停止并等待未决回调，防止析构后回调访问已销毁的 ctx/IOCP。
+        SetThreadpoolTimer(m_p->m_tp_timer, nullptr, 0, 0);
+        WaitForThreadpoolTimerCallbacks(m_p->m_tp_timer, TRUE);
+        CloseThreadpoolTimer(m_p->m_tp_timer);
+        m_p->m_tp_timer = nullptr;
+    }
+}
 
 void io_notifier::remove_fd(fd_t fd) {
     std::lock_guard lock(m_p->m_mutex);
@@ -143,37 +152,48 @@ bool io_notifier::unwatch(poll_info &pi) {
 }
 
 bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) {
-    // Store the IOCP handle in m_fd so the timer callback can reach it.
-    // NOTE: this is a simplified approach — in production the io_notifier would
-    // track timer keys directly.
+    // 与 kqueue/epoll 的 EV_ONESHOT / timerfd 语义对齐：每次 watch_timer 重新
+    // 武装一次性到期（period=0），到期回调向 IOCP 投递完成包（key = 哨兵
+    // poll_info*，即 io_scheduler 的 &m_timer_poll）。
+    //
+    // 不能用 CreateWaitableTimer + CreateIoCompletionPort：IOCP 只接受支持
+    // overlapped I/O 的对象句柄，waitable timer 不可关联（报
+    // ERROR_INVALID_HANDLE(6)），故借 threadpool 定时器转发完成包。
     auto *pi = reinterpret_cast<poll_info *>(const_cast<void *>(timer.get_inner()));
-    if (!pi) return false;
-
-    HANDLE hTimer = CreateWaitableTimerW(nullptr, TRUE, nullptr);
-    if (!hTimer) {
+    if (!pi || !m_p->m_valid) {
         return false;
     }
 
+    if (duration < 0ns) {
+        duration = 0ns;
+    }
+
+    m_p->m_timer_ctx.iocp = m_p->m_iocp;
+    m_p->m_timer_ctx.pi = pi;
+
+    if (m_p->m_tp_timer == nullptr) {
+        m_p->m_tp_timer = CreateThreadpoolTimer(timer_post_callback, &m_p->m_timer_ctx, nullptr);
+        if (!m_p->m_tp_timer) {
+            return false;
+        }
+    }
+
+    // 相对到期时间：FILETIME 负值 = 相对时刻，单位 100ns，向上取整。
     LARGE_INTEGER liDueTime{};
-    auto ns = duration.count();
-    liDueTime.QuadPart = -static_cast<LONGLONG>(ns / 100); // convert to 100-ns intervals, negative = relative
+    liDueTime.QuadPart = -static_cast<LONGLONG>((duration.count() + 99) / 100);
+    FILETIME ft{};
+    ft.dwHighDateTime = static_cast<DWORD>(static_cast<std::uint64_t>(liDueTime.QuadPart) >> 32);
+    ft.dwLowDateTime = static_cast<DWORD>(static_cast<std::uint64_t>(liDueTime.QuadPart) & 0xFFFFFFFFu);
 
-    if (!SetWaitableTimer(hTimer, &liDueTime, 0, nullptr, nullptr, FALSE)) {
-        CloseHandle(hTimer);
-        return false;
-    }
-
-    // Associate the waitable timer with the IOCP
-    if (!CreateIoCompletionPort(hTimer, m_p->m_iocp, reinterpret_cast<ULONG_PTR>(pi), 0)) {
-        CloseHandle(hTimer);
-        return false;
-    }
-
+    SetThreadpoolTimer(m_p->m_tp_timer, &ft, 0, 0);
     return true;
 }
 
 bool io_notifier::unwatch_timer(const timer_handle &) {
-    // In this implementation, timers fire once and self-clean.
+    // 常驻 threadpool 定时器仅取消未决到期，不销毁（下次 watch_timer 复用）。
+    if (m_p->m_tp_timer != nullptr) {
+        SetThreadpoolTimer(m_p->m_tp_timer, nullptr, 0, 0);
+    }
     return true;
 }
 
@@ -181,37 +201,37 @@ void io_notifier::next_events(
         std::vector<std::pair<poll_info *, poll_status>> &ready_events,
         std::chrono::milliseconds timeout
 ) {
-    // Phase 1: Drain any IOCP completions (timer expirations, etc.)
-    DWORD bytes_transferred;
-    ULONG_PTR completion_key;
-    LPOVERLAPPED overlapped;
-    DWORD timeout_ms = static_cast<DWORD>(timeout.count());
+    // 与 epoll_wait / kevent 的阻塞语义对齐：本调用应在 timeout 内等待事件就绪，
+    // 而非立即返回。manual 模式下调用方（io_scheduler::process_events）仅靠本
+    // 函数消耗时间，若立即返回，定时器事件将永远等不到驱动。
+    using steady_clock = std::chrono::steady_clock;
+    const auto deadline = steady_clock::now() + timeout;
+    auto remaining_ms = [&deadline]() -> DWORD {
+        auto left = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - steady_clock::now());
+        return left.count() > 0 ? static_cast<DWORD>(left.count()) : 0;
+    };
 
-    auto wait_start = std::chrono::steady_clock::now();
-
-    // Check for IOCP completions (from timers)
-    while (true) {
-        BOOL ok = GetQueuedCompletionStatus(
-                m_p->m_iocp, &bytes_transferred, &completion_key, &overlapped, 0);
-        if (!ok) {
-            DWORD err = GetLastError();
-            if (err == WAIT_TIMEOUT) {
-                break; // No more completions
-            }
-            // Error or the completion port handle is closed
-            break;
-        }
-
-        // completion_key is a poll_info* posted by the timer callback
-        auto *pi = reinterpret_cast<poll_info *>(completion_key);
-        if (pi) {
-            if (!pi->m_p->m_processed) {
-                pi->m_p->m_processed = true;
-                pi->m_p->m_poll_status = poll_status::timeout;
+    // 排空完成包：wait_ms > 0 时阻塞等待首个包，其后一律 0 超时排空积压。
+    auto drain_packets = [&](DWORD wait_ms) {
+        DWORD bytes_transferred;
+        ULONG_PTR completion_key;
+        LPOVERLAPPED overlapped;
+        while (GetQueuedCompletionStatus(
+                m_p->m_iocp, &bytes_transferred, &completion_key, &overlapped, wait_ms)) {
+            // completion_key 是 watch_timer 关联定时器时的 poll_info*（哨兵
+            // &m_timer_poll）。不得在此写 m_processed：哨兵 poll_info 常驻复用，
+            // 一次性置位会吞掉后续所有定时器事件；去重由 io_scheduler 的
+            // process_event_execute / process_timeout_execute 负责（与 kqueue 一致）。
+            auto *pi = reinterpret_cast<poll_info *>(completion_key);
+            if (pi) {
                 ready_events.emplace_back(pi, poll_status::timeout);
             }
+            wait_ms = 0;
         }
-    }
+    };
+
+    // Phase 1: 非阻塞排空已积压的完成包（timer 到期等）。
+    drain_packets(0);
 
     // Phase 2: Build WSAPoll fd set from watched fds
     // Only include "real" socket fds (exclude cancel-event pipe fds from poll_stop_source)
@@ -235,12 +255,16 @@ void io_notifier::next_events(
 
     // Phase 3: WSAPoll for socket readiness
     if (!poll_fds.empty()) {
-        // Calculate remaining timeout (don't exceed the original timeout)
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::steady_clock::now() - wait_start);
-        int poll_timeout = static_cast<int>((timeout > elapsed) ? (timeout - elapsed).count() : 0);
+        int poll_timeout = static_cast<int>(remaining_ms());
 
         int result = WSAPoll(poll_fds.data(), static_cast<ULONG>(poll_fds.size()), poll_timeout);
+        if (result == SOCKET_ERROR && ready_events.empty()) {
+            // fd 集中含非 socket fd（如调度管道的 CRT fd）时 WSAPoll 立即以
+            // WSAENOTSOCK 失败——此时没有任何 socket 可等，回退为阻塞等待
+            // IOCP 完成包（timer 哨兵）至 deadline，维持等待语义。
+            drain_packets(remaining_ms());
+            return;
+        }
         if (result > 0) {
             for (size_t i = 0; i < poll_fds.size(); ++i) {
                 auto &pfd = poll_fds[i];
@@ -274,6 +298,12 @@ void io_notifier::next_events(
                 }
             }
         }
+
+        // socket 等待结束后再排空一次等待期间到达的完成包。
+        drain_packets(0);
+    } else if (ready_events.empty()) {
+        // 无 socket 可等：阻塞等待 IOCP 完成包（timer 哨兵）至 deadline。
+        drain_packets(remaining_ms());
     }
 }
 
