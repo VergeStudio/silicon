@@ -39,6 +39,15 @@ export import :time;
 
 // —— 事件循环基础设施 ——
 export import :poll_info;
+
+// poll_info 的 PIMPL 实现类型定义在分区 :poll_info_impl 中。
+// 这里是**普通 import，不是 export import**，两层作用：
+//   * 标准上要求模块的所有接口分区都能从主模块接口单元到达，否则程序 IFNDR；
+//   * 而非 export import 保证 `poll_info_impl` 不随主接口重新导出，
+//     `import silicon.scheduler;` 的消费方看不到其定义（C2027），PIMPL 封装不变。
+// 实现单元要拿到完整类型，仍须各自写 `import :poll_info_impl;`。
+import :poll_info_impl;
+
 export import :io_notifier;
 export import :timer_handle;
 export import :facade;

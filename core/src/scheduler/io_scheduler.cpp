@@ -38,7 +38,6 @@ import silicon.scheduler;
 #endif
 
 import :poll_info_impl;
-#include "poll_info_impl.h"
 
 
 

@@ -18,7 +18,6 @@ import silicon.scheduler;
 
 import :poll_info;
 import :poll_info_impl;
-#include "poll_info_impl.h"
 
 // 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
 namespace silicon::scheduler {

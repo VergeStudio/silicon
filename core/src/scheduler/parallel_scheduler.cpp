@@ -10,7 +10,8 @@ module;
 #include <optional>
 
 module silicon.scheduler;
-#include "poll_info_impl.h"
+
+import :poll_info_impl;
 
 namespace silicon::scheduler {
 

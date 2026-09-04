@@ -25,7 +25,6 @@ import silicon.scheduler;
 #endif
 
 import :poll_info_impl;
-#include "poll_info_impl.h"
 
 #if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
 using namespace std::chrono_literals;
