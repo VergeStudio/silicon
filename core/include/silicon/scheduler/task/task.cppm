@@ -346,7 +346,7 @@ class CORE_API task_self_deleting {
     promise_self_deleting *m_promise{nullptr};
 };
 
-auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_self_deleting;
+CORE_API auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_self_deleting;
 
 
 
@@ -356,7 +356,9 @@ auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_self_deleti
 
 class CORE_API task_event {
   public:
-    struct awaiter {
+    // 嵌套类型须显式 CORE_API：类级 dllexport 不覆盖模块 impl 单元中的
+    // 嵌套类 out-of-line 成员定义（同 di context_state 修法）。
+    struct CORE_API awaiter {
         awaiter(const task_event &) noexcept;
         bool await_ready() const noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;

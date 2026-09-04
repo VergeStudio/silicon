@@ -15,6 +15,7 @@ module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
+#include <silicon/common.h> // CORE_API
 #include <array>   // array
 #include <cmath>   // signbit, isfinite
 #include <cstdint> // intN_t, uintN_t
@@ -71,7 +72,7 @@ export struct diyfp // f * 2^e
     @brief returns x - y
     @pre x.e == y.e and x.f >= y.f
     */
-    static diyfp sub(const diyfp &x, const diyfp &y) noexcept {
+    CORE_API static diyfp sub(const diyfp &x, const diyfp &y) noexcept {
         JSON_ASSERT(x.e == y.e);
         JSON_ASSERT(x.f >= y.f);
 
@@ -82,7 +83,7 @@ export struct diyfp // f * 2^e
     @brief returns x * y
     @note The result is rounded. (Only the upper q bits are returned.)
     */
-    static diyfp mul(const diyfp &x, const diyfp &y) noexcept {
+    CORE_API static diyfp mul(const diyfp &x, const diyfp &y) noexcept {
         static_assert(kPrecision == 64, "internal error");
 
         // Computes:
@@ -146,7 +147,7 @@ export struct diyfp // f * 2^e
     @brief normalize x such that the significand is >= 2^(q-1)
     @pre x.f != 0
     */
-    static diyfp normalize(diyfp x) noexcept {
+    CORE_API static diyfp normalize(diyfp x) noexcept {
         JSON_ASSERT(x.f != 0);
 
         while((x.f >> 63u) == 0) {
@@ -161,7 +162,7 @@ export struct diyfp // f * 2^e
     @brief normalize x such that the result has the exponent E
     @pre e >= x.e and the upper e - x.e bits of x.f must be zero.
     */
-    static diyfp normalize_to(const diyfp &x, const int target_exponent) noexcept {
+    CORE_API static diyfp normalize_to(const diyfp &x, const int target_exponent) noexcept {
         const int delta = x.e - target_exponent;
 
         JSON_ASSERT(delta >= 0);

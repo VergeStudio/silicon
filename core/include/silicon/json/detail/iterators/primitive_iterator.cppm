@@ -15,6 +15,7 @@ module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
+#include <silicon/common.h> // CORE_API
 #include <cstddef> // ptrdiff_t
 #include <limits>  // numeric_limits
 
@@ -49,12 +50,12 @@ export class primitive_iterator_t {
     }
 
     /// set iterator to a defined beginning
-    void set_begin() noexcept {
+    CORE_API void set_begin() noexcept {
         m_it = begin_value;
     }
 
     /// set iterator to a defined past the end
-    void set_end() noexcept {
+    CORE_API void set_end() noexcept {
         m_it = end_value;
     }
 
@@ -86,7 +87,7 @@ export class primitive_iterator_t {
         return lhs.m_it - rhs.m_it;
     }
 
-    primitive_iterator_t &operator++() noexcept {
+    CORE_API primitive_iterator_t &operator++() noexcept {
         ++m_it;
         return *this;
     }

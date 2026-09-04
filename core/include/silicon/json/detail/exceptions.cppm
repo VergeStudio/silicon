@@ -15,6 +15,7 @@ module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
+#include <silicon/common.h> // CORE_API：成员 inline 函数被导出模板跨模块引用时须显式导出
 #include <cstddef>   // nullptr_t
 #include <exception> // exception
 #if JSON_DIAGNOSTICS
@@ -46,7 +47,7 @@ namespace detail {
 export class exception: public std::exception {
   public:
     /// returns the explanatory string
-    const char *what() const noexcept override {
+    CORE_API const char *what() const noexcept override {
         return m.what();
     }
 
@@ -57,11 +58,11 @@ export class exception: public std::exception {
     JSON_HEDLEY_NON_NULL(3)
     exception(int id_, const char *what_arg): id(id_), m(what_arg) {} // NOLINT(bugprone-throw-keyword-missing)
 
-    static std::string name(const std::string &ename, int id_) {
+    CORE_API static std::string name(const std::string &ename, int id_) {
         return concat("[json.exception.", ename, '.', std::to_string(id_), "] ");
     }
 
-    static std::string diagnostics(std::nullptr_t /*leaf_element*/) {
+    CORE_API static std::string diagnostics(std::nullptr_t /*leaf_element*/) {
         return "";
     }
 
@@ -160,10 +161,10 @@ export class parse_error: public exception {
     const std::size_t byte;
 
   private:
-    parse_error(int id_, std::size_t byte_, const char *what_arg)
+    CORE_API parse_error(int id_, std::size_t byte_, const char *what_arg)
         : exception(id_, what_arg), byte(byte_) {}
 
-    static std::string position_string(const position_t &pos) {
+    CORE_API static std::string position_string(const position_t &pos) {
         return concat(" at line ", std::to_string(pos.lines_read + 1), ", column ", std::to_string(pos.chars_read_current_line));
     }
 };
@@ -180,7 +181,7 @@ export class invalid_iterator: public exception {
 
   private:
     JSON_HEDLEY_NON_NULL(3)
-    invalid_iterator(int id_, const char *what_arg)
+    CORE_API invalid_iterator(int id_, const char *what_arg)
         : exception(id_, what_arg) {}
 };
 
@@ -196,7 +197,7 @@ export class type_error: public exception {
 
   private:
     JSON_HEDLEY_NON_NULL(3)
-    type_error(int id_, const char *what_arg): exception(id_, what_arg) {}
+    CORE_API type_error(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
 /// @brief exception indicating access out of the defined range
@@ -211,7 +212,7 @@ export class out_of_range: public exception {
 
   private:
     JSON_HEDLEY_NON_NULL(3)
-    out_of_range(int id_, const char *what_arg): exception(id_, what_arg) {}
+    CORE_API out_of_range(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
 /// @brief exception indicating other library errors
@@ -226,7 +227,7 @@ export class other_error: public exception {
 
   private:
     JSON_HEDLEY_NON_NULL(3)
-    other_error(int id_, const char *what_arg): exception(id_, what_arg) {}
+    CORE_API other_error(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
 } // namespace detail

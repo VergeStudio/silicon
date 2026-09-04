@@ -27,13 +27,15 @@ export module silicon.json:detail.meta.std_fs;
 #if JSON_HAS_EXPERIMENTAL_FILESYSTEM
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-namespace std_fs = std::experimental::filesystem;
+// Namespace aliases are not visible across partitions unless exported
+// (clang is lax here; MSVC enforces [module.import] visibility).
+export namespace std_fs = std::experimental::filesystem;
 } // namespace detail
 SILICON_JSON_NAMESPACE_END
 #elif JSON_HAS_FILESYSTEM
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-namespace std_fs = std::filesystem;
+export namespace std_fs = std::filesystem;
 } // namespace detail
 SILICON_JSON_NAMESPACE_END
 #endif
