@@ -60,6 +60,7 @@ import :thread_pool;
 // import 对应分区（分区间不可借道主接口，且本单元即为 :io_scheduler 分区）。
 import :poll_info;
 import :io_notifier;
+import :io_ring;
 import :timer_handle;
 
 // 本单元沿用 coroutine 的基础类型（fd_t / poll_op / poll_status / poll_stop_token /
@@ -110,6 +111,21 @@ class CORE_API io_scheduler {
         process_tasks_inline
     };
 
+    /// completion I/O 引擎（带偏移的文件 read_at / write_at）的策略。
+    /// readiness（io_notifier：socket/pipe/timer 就绪）与 completion（io_ring：
+    /// 常规文件读写完成）是两套引擎；本策略只控制后者，且 create() 无论结果
+    /// 如何都成功——后端无效时 completion_backend() 为 none，操作级立即返回
+    /// kNoCompletionBackend（降级，不挂起）。
+    enum class io_completion_policy {
+        /// 禁用 completion 引擎：read_at/write_at 恒返回 kNoCompletionBackend。
+        disabled,
+        /// 显式启用：与 auto_ 同路径尝试建立后端（探测失败同样降级为 none）。
+        enabled,
+        /// 自动：编译期存在后端（linux/windows 定义 SILICON_FEATURE_IO_RING）
+        /// 且运行期 io_ring 可用时启用，否则降级为 none。
+        auto_
+    };
+
     struct options {
         /// Should the io scheduler spawn a dedicated event processor?
         thread_strategy_t thread_strategy{thread_strategy_t::spawn};
@@ -127,6 +143,20 @@ class CORE_API io_scheduler {
         /// If inline task processing is enabled then the io worker will resume tasks on its thread
         /// rather than scheduling them to be picked up by the thread pool.
         execution_strategy_t execution_strategy{execution_strategy_t::process_tasks_on_thread_pool};
+
+        /// completion I/O 引擎策略；默认由编译期能力推导：编译出 io_ring 后端的
+        /// 平台（linux/windows 且 --io_ring=y，SILICON_FEATURE_IO_RING 已定义）
+        /// 为 auto_，否则为 disabled。既有字段全部保留、本字段只追加在末尾，
+        /// designated-initializer 兼容。
+        io_completion_policy completion_policy{
+#if defined(SILICON_FEATURE_IO_RING)
+                io_completion_policy::auto_
+#else
+                io_completion_policy::disabled
+#endif
+        };
+        /// io_ring 构造配置（仅在 completion_policy != disabled 且后端存在时生效）。
+        io_ring_config io_ring{};
     };
 
     /**
@@ -153,7 +183,16 @@ class CORE_API io_scheduler {
                                      ((std::thread::hardware_concurrency() > 1) ? (std::thread::hardware_concurrency() - 1) : 1),
                              .on_thread_start_functor = nullptr,
                              .on_thread_stop_functor = nullptr},
-                    .execution_strategy = execution_strategy_t::process_tasks_on_thread_pool
+                    .execution_strategy = execution_strategy_t::process_tasks_on_thread_pool,
+                    // 与 options::completion_policy 的默认成员初始化器保持同源推导：
+                    // clang 不允许在外围类定义体内的默认实参中隐式求值 DMI（default
+                    // member initializer ... outside of member functions），故显式补全。
+#if defined(SILICON_FEATURE_IO_RING)
+                    .completion_policy = io_completion_policy::auto_,
+#else
+                    .completion_policy = io_completion_policy::disabled,
+#endif
+                    .io_ring = {}
             }
     ) -> result<std::unique_ptr<io_scheduler>>;
 
@@ -402,6 +441,34 @@ class CORE_API io_scheduler {
     ) -> silicon::scheduler::task<poll_status>;
 
     /**
+     * @brief 对常规文件发起一次带偏移的异步读（completion I/O 引擎）。
+     *
+     * 与 poll() 的 readiness 语义互补：read_at 由 io_ring（Linux=io_uring /
+     * Windows=I/O Ring）直接完成"已读/写了多少字节"。v1 只路由常规文件；
+     * socket/pipe 等非常规文件立即返回 kNotRegularFile；后端不可用（未编译
+     * io_ring、io_ring 初始化失败或 completion_policy=disabled）立即返回
+     * kNoCompletionBackend（不挂起、不阻塞）。
+     *
+     * 契约：操作期间 fd 不得被其他线程关闭、缓冲区须存活到返回的 task 完成；
+     * 不支持超时/取消（v1）。
+     *
+     * @param fd 常规文件的文件描述符 / CRT fd。
+     * @param buffer 读入缓冲区（须在 task 完成前存活）。
+     * @param length 请求字节数（≤ 4GiB，io_ring 提交面为 32 位长度）。
+     * @param offset 文件偏移，直传内核。
+     * @return 成功为实际传输字节数；失败为 std::error_code。
+     */
+    [[nodiscard]] silicon::scheduler::task<result<int64_t>> read_at(
+            fd_t, void *, std::uint32_t, std::uint64_t) ;
+
+    /**
+     * @brief 对常规文件发起一次带偏移的异步写（completion I/O 引擎）。
+     * 语义与约束同 read_at。
+     */
+    [[nodiscard]] silicon::scheduler::task<result<int64_t>> write_at(
+            fd_t, const void *, std::uint32_t, std::uint64_t) ;
+
+    /**
      * Resumes execution of a direct coroutine handle on this io scheduler.
      * @param handle The coroutine handle to resume execution.
      */
@@ -446,6 +513,12 @@ class CORE_API io_scheduler {
 
     silicon::scheduler::io_notifier & io_notifier() { return m_p->m_io_notifier; }
 
+    /**
+     * @return completion I/O 引擎当前生效的后端。未探测/后端不可用时为 none，
+     *         此时调度器退化为纯 readiness（io_notifier），create() 依旧成功。
+     */
+    [[nodiscard]] io_ring::backend completion_backend() const noexcept ;
+
   private:
     struct impl {
       public:
@@ -479,6 +552,18 @@ class CORE_API io_scheduler {
         void *m_shutdown_ptr = &m_shutdown_poll;
         void *m_schedule_ptr = &m_schedule_poll;
         void *m_timer_ptr = &m_timer_poll;
+        /// completion 唤醒哨兵 poll_info 及标记指针：POSIX 把内部 completion
+        /// pipe 的读端以本哨兵为 udata 注册（keep=true），Windows 经
+        /// io_notifier::post 以本哨兵为完成包 key 投递；驱动线程据指针比较
+        /// 分派到 drain_ring_completions()。哨兵必须是真实 poll_info（epoll/
+        /// kqueue 的 next_events 会解引用 udata 读取 m_cancel_trigger）。
+        silicon::scheduler::poll_info m_completion_poll{};
+        void *m_completion_ptr = &m_completion_poll;
+        /// completion 引擎惰性一次性初始化闸（首次 read_at/write_at 探测）。
+        std::once_flag m_completion_once{};
+        /// completion 引擎 opaque 槽：实体定义藏在实现单元
+        /// io_scheduler_completion.cpp，cppm 只以 void* 持有（不引入平台类型）。
+        void *m_completion_engine{nullptr};
         /// The event loop pipe to trigger a shutdown.
         silicon::coroutine::pipe_t m_shutdown_pipe{};
         /// The event loop schedule task pipe.
@@ -526,6 +611,12 @@ class CORE_API io_scheduler {
 
     void process_event_execute(silicon::scheduler::poll_info *, poll_status) ;
     void process_timeout_execute() ;
+
+    /// 收割 completion worker 已完成的操作并排队其协程句柄（仅在驱动线程调用，
+    /// 由 process_events_execute 的 m_completion_ptr 哨兵分支触发）。
+    void drain_ring_completions() ;
+    /// 销毁惰性建立的 completion 引擎：停 worker、join、关 io_ring。
+    void destroy_completion_engine() ;
 
     auto add_timer_token(time_point, silicon::scheduler::poll_info &) -> timed_events::iterator;
     void remove_timer_token(timed_events::iterator) ;

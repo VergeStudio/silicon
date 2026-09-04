@@ -28,6 +28,11 @@ enum class scheduler_error {
     kEventRegisterFailed,
     kNullExecutor,
     kUnknown,
+    // completion I/O 引擎（io_ring 接入 io_scheduler 第二层）新增：
+    // 追加于枚举末尾以保持既有枚举值不变。
+    kNoCompletionBackend,
+    kNotRegularFile,
+    kCompletionSubmitFailed,
 };
 
 // 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
@@ -42,6 +47,11 @@ class CORE_API scheduler_category_impl final : public std::error_category {
             case scheduler_error::kPipeCreateFailed: return "failed to create pipe";
             case scheduler_error::kEventRegisterFailed: return "failed to register event";
             case scheduler_error::kNullExecutor: return "executor must not be null";
+            case scheduler_error::kNoCompletionBackend:
+                return "no completion I/O backend is available";
+            case scheduler_error::kNotRegularFile: return "file descriptor is not a regular file";
+            case scheduler_error::kCompletionSubmitFailed:
+                return "failed to submit completion I/O operation";
             case scheduler_error::kUnknown: return "unknown scheduler error";
         }
         return "unknown scheduler error";

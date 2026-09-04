@@ -112,6 +112,11 @@ io_scheduler::~io_scheduler() {
         m_p->m_io_thread.join();
     }
 
+    // completion 引擎（read_at/write_at 首次调用时惰性建立）：停 worker、join、
+    // 注销内部唤醒 fd、关 io_ring。必须在 shutdown() 已等全部挂起任务完成之后、
+    // io_notifier 仍存活（m_p 尚未析构）时调用。
+    destroy_completion_engine();
+
     m_p->m_shutdown_pipe.close();
     m_p->m_schedule_pipe.close();
 }
@@ -287,6 +292,10 @@ void io_scheduler::process_events_execute(std::chrono::milliseconds timeout) {
             process_scheduled_execute_inline();
         } else if(handle_ptr == m_p->m_shutdown_ptr) [[unlikely]] {
             // Nothing to do, just needed to wake-up and smell the flowers
+        } else if(handle_ptr == m_p->m_completion_ptr) [[unlikely]] {
+            // completion worker 已完成若干 io_op 并唤醒驱动：收割完成项并把
+            // 挂起协程句柄排入待恢复队列（readiness 之外的 completion 通道）。
+            drain_ring_completions();
         } else {
             // Individual poll task wake-up.
             process_event_execute(static_cast<silicon::scheduler::poll_info *>(handle_ptr), poll_status);

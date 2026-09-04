@@ -103,6 +103,13 @@ class CORE_API io_notifier {
     void next_events(std::vector<std::pair<poll_info *, poll_status>> &,
                      std::chrono::milliseconds) ;
 
+    /// 向底层通知器投递一条唤醒完成包（completion worker 唤醒事件驱动线程）。
+    /// Windows/IOCP 以 PostQueuedCompletionStatus 实现（completion 引擎的
+    /// wake_driver 依赖它——Windows 事件循环禁接 CRT schedule pipe）；
+    /// epoll/kqueue 后端无等价设施（completion worker 走内部 completion pipe
+    /// + 哨兵 udata 唤醒），恒返回 false。
+    bool post(void *) ;
+
 #if defined(SILICON_PLATFORM_WINDOWS)
         HANDLE native_handle() const ;
 #else

@@ -20,9 +20,11 @@ target("core", function()
     end
 
     -- completion I/O 后端：--io_ring=y 时编入 io_ring_uring.cpp /
-    -- io_ring_ioring.cpp；两文件内部再按平台宏互斥守卫，因此 macOS 等无后端的
-    -- 平台仍只得到空 TU，io_ring 保持"声明存在但不可实例化"。
-    if has_config("io_ring") then
+    -- io_ring_ioring.cpp；两文件内部再按平台宏互斥守卫。
+    -- SILICON_FEATURE_IO_RING 只在有后端实现单元的 linux/windows 上定义：
+    -- 若 mac 等无后端平台也定义该宏，io_ring 构造符号将悬空、链接失败
+    -- （io_scheduler 的 completion 引擎按此宏决定是否触碰 io_ring）。
+    if has_config("io_ring") and (is_plat("linux") or is_plat("windows")) then
         add_defines("SILICON_FEATURE_IO_RING=1")
         if is_plat("linux") then
             add_packages("liburing")

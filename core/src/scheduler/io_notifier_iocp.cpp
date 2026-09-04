@@ -306,6 +306,18 @@ void io_notifier::next_events(
     }
 }
 
+bool io_notifier::post(void *data) {
+    if(!m_p->m_valid) { return false; }
+    // 投递一条「假完成」：completion_key = 调用方给的哨兵（io_scheduler 的
+    // m_completion_ptr）。事件循环线程经 GetQueuedCompletionStatus 取到后，
+    // process_events_execute 按 handle_ptr==m_completion_ptr 分派到
+    // drain_ring_completions。这是 Windows 唯一可靠的跨线程唤醒通道（设计 R4）：
+    // 不能写 CRT schedule pipe，因为 IOCP 等待语义无法被普通管道写打断。
+    return ::PostQueuedCompletionStatus(
+                   m_p->m_iocp, 0, reinterpret_cast<ULONG_PTR>(data), nullptr
+           ) != 0;
+}
+
 auto io_notifier::native_handle() const -> HANDLE {
     return m_p->m_iocp;
 }

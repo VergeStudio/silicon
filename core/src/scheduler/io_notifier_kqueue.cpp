@@ -200,6 +200,13 @@ void io_notifier::next_events(
     }
 }
 
+bool io_notifier::post(void *) {
+    // kqueue 后端无完成包通道：completion worker 经内部 completion pipe + 哨兵
+    // udata 唤醒驱动（io_scheduler_completion.cpp 的 wake_driver），此处无需
+    // 也无法投递。返回 false 仅表示"本后端不支持 post"。
+    return false;
+}
+
 auto io_notifier::native_handle() const -> fd_t {
     return m_p->m_fd;
 }

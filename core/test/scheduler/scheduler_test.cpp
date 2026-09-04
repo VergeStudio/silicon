@@ -5,6 +5,7 @@
 #include <chrono>
 #include <coroutine>
 #include <cstddef>
+#include <cstdio>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -430,4 +431,54 @@ TEST_CASE("awaiter_list：pop_all 摘取整条链表且可反转") {
     CHECK(reversed->m_next == &b);
     CHECK(reversed->m_next->m_next == &c);
     CHECK(reversed->m_next->m_next->m_next == nullptr);
+}
+
+TEST_CASE("io_scheduler：completion read_at 默认契约（无后端时立即降级）") {
+    // completion 引擎（io_ring）是 readiness 之外的独立引擎：未编译后端或后端
+    // 初始化失败时，read_at/write_at 对常规文件必须立即返回 kNoCompletionBackend，
+    // 不得挂起、不得阻塞，调度器其余能力不受影响。
+    auto created = sched::io_scheduler::create(sched::io_scheduler::options{
+        .thread_strategy = sched::io_scheduler::thread_strategy_t::spawn,
+        .pool = {.thread_count = 1},
+        .execution_strategy =
+            sched::io_scheduler::execution_strategy_t::process_tasks_on_thread_pool});
+    REQUIRE(created.has_value());
+    auto &ios = *created.value();
+
+    // 常规文件 fd（跨平台：CRT tmpfile + fileno/_fileno）。
+    struct temp_file {
+        std::FILE *file{nullptr};
+        int fd{-1};
+
+        bool write_byte(char value) {
+            return file != nullptr && std::fwrite(&value, 1, 1, file) == 1 && std::fflush(file) == 0;
+        }
+
+        ~temp_file() {
+            if(file != nullptr) { std::fclose(file); }
+        }
+    };
+    temp_file tf;
+    tf.file = std::tmpfile();
+    REQUIRE(tf.file != nullptr);
+#if defined(SILICON_PLATFORM_WINDOWS)
+    tf.fd = ::_fileno(tf.file);
+#else
+    tf.fd = ::fileno(tf.file);
+#endif
+    REQUIRE(tf.fd >= 0);
+    REQUIRE(tf.write_byte('X'));
+
+    // 先跑一次真实 read_at 触发惰性探测（后端可用则完成一次读）。
+    char buffer[1]{};
+    auto read_probe = coro::sync_wait(ios.read_at(tf.fd, buffer, 1, 0));
+
+    // 仅在确实无后端时断言默认降级契约；有后端（io_ring=y 的 Linux/Windows CI）
+    // 时 read_at 走真路径，该契约不适用。
+    if(ios.completion_backend() == sched::io_ring::backend::none) {
+        REQUIRE_FALSE(read_probe.has_value());
+        CHECK(read_probe.error() == sched::make_error_code(sched::scheduler_error::kNoCompletionBackend));
+    }
+
+    ios.shutdown();
 }

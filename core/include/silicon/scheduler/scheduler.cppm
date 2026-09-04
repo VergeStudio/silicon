@@ -48,6 +48,11 @@ export import :poll_info;
 // 实现单元要拿到完整类型，仍须各自写 `import :poll_info_impl;`。
 import :poll_info_impl;
 
+// completion I/O 操作的内部状态类型定义在分区 :io_op 中，同为普通 import：
+// 不随主接口导出（镜像 :poll_info_impl 的非导出模式），实现单元须显式
+// `import :io_op;` 才可见完整定义。
+import :io_op;
+
 export import :io_notifier;
 // completion 语义的 I/O 环（Linux=io_uring / Windows=I/O Ring）。与 io_notifier
 // 的 readiness 模型并列而非替代；后端需 xmake 选项 --io_ring=y 才会编译，
