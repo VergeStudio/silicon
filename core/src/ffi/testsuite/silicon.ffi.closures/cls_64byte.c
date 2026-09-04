@@ -1,12 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Depending on the ABI. Check bigger struct which overlaps
-		the gp and fp register count on Darwin/AIX/ppc64.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_64byte {
@@ -111,10 +105,10 @@ int main (void)
   args_dbl[4] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_64byte_fn), &res_dbl, args_dbl);
-  /* { dg-output "22 15 17 25 6 13 19 18" } */
+  
   printf("res: %g %g %g %g %g %g %g %g\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h);
-  /* { dg-output "\nres: 22 15 17 25 6 13 19 18" } */
+  
   CHECK(res_dbl.a == 22);
   CHECK(res_dbl.b == 15);
   CHECK(res_dbl.c == 17);
@@ -131,10 +125,10 @@ int main (void)
 				   cls_struct_64byte,
 				   cls_struct_64byte))
 	     (code))(e_dbl, f_dbl, g_dbl, h_dbl);
-  /* { dg-output "\n22 15 17 25 6 13 19 18" } */
+  
   printf("res: %g %g %g %g %g %g %g %g\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h);
-  /* { dg-output "\nres: 22 15 17 25 6 13 19 18" } */
+  
   CHECK(res_dbl.a == 22);
   CHECK(res_dbl.b == 15);
   CHECK(res_dbl.c == 17);

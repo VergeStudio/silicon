@@ -1,15 +1,15 @@
 module;
 
-// C++23: std::generator replaces custom implementation when available.
-// <version> is required so the __cpp_lib_generator feature macro is visible
-// before the branch is taken (a bare defined() check would silently fall
-// back to the custom implementation).
+
+
+
+
 #include <version>
 
 #if __has_include(<generator>) && defined(__cpp_lib_generator)
 #include <generator>
 #else
-// Fallback: custom generator (for compilers without std::generator support)
+
 #include <coroutine>
 #include <exception>
 #include <iterator>
@@ -25,7 +25,7 @@ export module silicon.coroutine:generator;
 export namespace silicon::coroutine {
 template <typename T>
 using generator = std::generator<T>;
-} // namespace silicon::coroutine
+}
 
 #else
 
@@ -171,6 +171,6 @@ auto generator_promise<T>::get_return_object() noexcept -> generator<T> {
 }
 
 
-} // namespace silicon::coroutine
+}
 
 #endif

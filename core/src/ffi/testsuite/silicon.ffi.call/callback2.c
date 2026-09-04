@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check structures with nested array and callback.
-   Limitations:	none.
-   PR:		none.
-   Originator:	David Tenty <daltenty@ibm.com>  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static int i=5;

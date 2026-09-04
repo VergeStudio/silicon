@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network::tls::connection_status to_string.
+
 
 module;
 
@@ -53,6 +53,6 @@ auto to_string(connection_status status) -> const std::string & {
     }
 }
 
-} // namespace silicon::network::tls
+}
 
-#endif // #ifdef SILICON_FEATURE_TLS
+#endif

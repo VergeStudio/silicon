@@ -1,12 +1,8 @@
-/* Area:		sffi_call, closure_call
-   Purpose:		Test long doubles passed in variable argument lists.
-   Limitations:	none.
-   PR:			none.
-   Originator:	Blake Chaffin 6/6/2007	 */
 
-/* { dg-do run { xfail strongarm*-*-* xscale*-*-* } } */
-/* { dg-output "" { xfail avr32*-*-* } } */
-/* { dg-output "" { xfail mips-sgi-irix6* } } PR SILICON_FFI/46660 */
+
+
+
+
 
 #include "ffitest.h"
 #include <stdarg.h>
@@ -53,7 +49,7 @@ int main (void)
 	arg_types[1] = &sffi_type_longdouble;
 	arg_types[2] = NULL;
 
-	/* This printf call is variadic */
+	
 	CHECK(sffi_prep_cif_var(&cif, SFFI_DEFAULT_ABI, 1, 2, &sffi_type_sint,
 			       arg_types) == SFFI_OK);
 
@@ -62,18 +58,18 @@ int main (void)
 	args[2] = NULL;
 
 	sffi_call(&cif, SFFI_FN(wrap_printf), &res, args);
-	/* { dg-output "7.0" } */
+	
 	printf("res: %d\n", (int) res);
-	/* { dg-output "\nres: 4" } */
+	
 	CHECK(res == 4);
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_longdouble_va_fn, NULL,
 				   code) == SFFI_OK);
 
 	res = ((int(*)(char*, ...))(code))(format, ldArg);
-	/* { dg-output "\n7.0" } */
+	
 	printf("res: %d\n", (int) res);
-	/* { dg-output "\nres: 4" } */
+	
 	CHECK(res == 4);
 
 	exit(0);

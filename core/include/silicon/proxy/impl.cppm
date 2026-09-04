@@ -1,6 +1,6 @@
 module;
 
-// Standard library includes (global module fragment)
+
 #include <atomic>
 #include <bit>
 #include <cassert>
@@ -23,10 +23,10 @@ module;
 
 #include "silicon/proxy/proxy_macros.h"
 
-// Build-environment compensation: this vendored proxy impl unit references
-// PROD_UNREACHABLE()/PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE. proxy_macros.h already
-// defines both (guarded by #ifndef), so only provide fallbacks if absent to
-// avoid -Wmacro-redefined.
+
+
+
+
 #if !defined(PROD_UNREACHABLE)
 #    if defined(_MSC_VER)
 #        define PROD_UNREACHABLE() __assume(false)
@@ -52,16 +52,16 @@ module;
 export module silicon.proxy:impl;
 
 namespace silicon::proxy {
-// =============================================================================
-// == Core Components (facade, proxy, etc.)                                   ==
-// =============================================================================
+
+
+
 
 namespace details {
 
 template<class F>
 struct basic_facade_traits;
 
-} // namespace details
+}
 
 export enum class constraint_level { kNone,
                               kNontrivial,
@@ -719,7 +719,7 @@ struct facade_traits
         diagnose_proxiable_insufficient_destructibility<P, F, F::destructibility>();
         facade_traits::template diagnose_proxiable_conv<P>();
         facade_traits::template diagnose_proxiable_refl<P>();
-        PROD_UNREACHABLE(); // Propagate the error to the caller side
+        PROD_UNREACHABLE();
     }
 
     template<class P>
@@ -855,7 +855,7 @@ R reinterpret_invoke(proxy_accessor<F, IsDirect, Q> self, Args &&...args) {
     }
 }
 
-} // namespace details
+}
 
 export template<class P, class F>
 concept proxiable = facade<F> && details::pointer_like<P> &&
@@ -931,7 +931,7 @@ class proxy: public details::facade_traits<F>::direct_accessor,
     proxy(const proxy &rhs) noexcept(F::copyability == constraint_level::kNothrow)
         requires(F::copyability == constraint_level::kNontrivial || F::copyability == constraint_level::kNothrow)
         : details::inplace_ptr<
-                  proxy_indirect_accessor<F>>() /* Make GCC happy */ {
+                  proxy_indirect_accessor<F>>()  {
         initialize(rhs);
     }
     proxy(proxy &&rhs) noexcept(F::relocatability >= constraint_level::kNothrow)
@@ -1038,15 +1038,15 @@ class proxy: public details::facade_traits<F>::direct_accessor,
         if constexpr(F::relocatability == constraint_level::kTrivial || F::copyability == constraint_level::kTrivial) {
             std::swap(meta_, rhs.meta_);
 #ifdef __INTEL_LLVM_COMPILER
-            // Workaround: Intel oneAPI compiler (as of 2025.2.0) may over-optimize
-            // the swap below, causing unit tests failure
+
+
             std::byte temp[F::max_size];
             std::ranges::uninitialized_copy(ptr_, temp);
             std::ranges::uninitialized_copy(rhs.ptr_, ptr_);
             std::ranges::uninitialized_copy(temp, rhs.ptr_);
 #else
             std::swap(ptr_, rhs.ptr_);
-#endif // __INTEL_LLVM_COMPILER
+#endif
         } else {
             if(meta_.has_value()) {
                 if(rhs.meta_.has_value()) {
@@ -1263,9 +1263,9 @@ proxy_reflect(const proxy<F> &p) noexcept {
     return reflect<R>(p);
 }
 
-// =============================================================================
-// == Core Extensions (substitution_dispatch, proxy_view, weak_proxy)         ==
-// =============================================================================
+
+
+
 
 export struct substitution_dispatch;
 
@@ -1445,7 +1445,7 @@ using weak_conv_types = composite_t<
         std::tuple<conv_impl<true, weak_mem_lock, proxy<F>() const noexcept>>,
         typename weak_conv_traits<Cs>::type...>;
 
-} // namespace details
+}
 
 struct PRO4D_ENFORCE_EBO substitution_dispatch
     : details::cast_dispatch_base<false, true>,
@@ -1465,8 +1465,8 @@ struct PRO4D_ENFORCE_EBO substitution_dispatch
         return std::forward<T>(self);
     }
 
-    // This overload is not reachable at runtime, but is necessary to ensure
-    // substitution_dispatch is SFINAE-friendly.
+
+
     template<class T>
     PRO4D_STATIC_CALL(auto, T &&) noexcept
         requires(std::is_same_v<T, std::remove_cvref_t<T>> && is_bitwise_trivially_relocatable_v<T>)
@@ -1501,9 +1501,9 @@ struct weak_facade
               F::relocatability,
               F::destructibility> {};
 
-// =============================================================================
-// == Proxy Creation (make_proxy, proxiable_target, etc.)                     ==
-// =============================================================================
+
+
+
 
 namespace details {
 
@@ -1774,9 +1774,9 @@ template<class F, class T, class... Args>
 constexpr proxy<F> make_proxy_shared_impl(Args &&...args) {
     return allocate_proxy_shared_impl<F, T>(std::allocator<void>{}, std::forward<Args>(args)...);
 }
-#endif // __STDC_HOSTED__
+#endif
 
-} // namespace details
+}
 
 export template<class T, class F>
 concept inplace_proxiable_target = proxiable<details::inplace_ptr<T>, F>;
@@ -1928,11 +1928,11 @@ constexpr proxy<F> make_proxy_shared(T &&value)
             std::forward<T>(value)
     );
 }
-#endif // __STDC_HOSTED__
+#endif
 
-// =============================================================================
-// == Facade Creation (facade_builder)                                        ==
-// =============================================================================
+
+
+
 
 namespace details {
 
@@ -2025,7 +2025,7 @@ struct [[deprecated(
 )]]
 add_facade_deprecation_traits<true>: std::bool_constant<true> {};
 
-} // namespace details
+}
 
 export template<class Cs, class Rs, std::size_t MaxSize, std::size_t MaxAlign, constraint_level Copyability, constraint_level Relocatability, constraint_level Destructibility>
 struct basic_facade_builder {
@@ -2128,9 +2128,9 @@ struct basic_facade_builder {
 export using facade_builder =
         basic_facade_builder<std::tuple<>, std::tuple<>, details::invalid_size, details::invalid_size, details::invalid_cl, details::invalid_cl, details::invalid_cl>;
 
-// =============================================================================
-// == Dispatch Extensions (operator_dispatch, weak_dispatch, etc.)            ==
-// =============================================================================
+
+
+
 
 namespace details {
 
@@ -2150,10 +2150,10 @@ struct sign {
 template<std::size_t N>
 sign(const char (&str)[N]) -> sign<N - 1u>;
 
-// When std::reference_constructs_from_temporary_v (C++23) is not available, we
-// fall back to a conservative approximation that disallows binding a temporary
-// to a reference type if the source type is not a reference or if the source
-// and target reference types are not compatible.
+
+
+
+
 template<class T, class U>
 concept explicitly_convertible =
         std::is_constructible_v<U, T> &&
@@ -2163,7 +2163,7 @@ concept explicitly_convertible =
         (!std::is_reference_v<U> ||
          (std::is_reference_v<T> &&
           std::is_convertible_v<std::add_pointer_t<std::remove_reference_t<T>>, std::add_pointer_t<std::remove_reference_t<U>>>));
-#endif // __cpp_lib_reference_from_temporary >= 202202L
+#endif
 
 struct noreturn_conversion {
     template<class T>
@@ -2173,7 +2173,7 @@ struct noreturn_conversion {
 };
 using wildcard = converter<noreturn_conversion>;
 
-} // namespace details
+}
 
 export template<details::sign Sign, bool Rhs = false>
 struct operator_dispatch;
@@ -2354,7 +2354,7 @@ struct operator_dispatch<"[]", false> {
     template<class T, class Arg>
     PRO4D_STATIC_CALL(decltype(auto), T &&self, Arg &&arg)
     PRO4D_DIRECT_FUNC_IMPL(std::forward<T>(self)[std::forward<Arg>(arg)])
-#endif // __cpp_multidimensional_subscript >= 202110L
+#endif
             PRO4D_DEF_ACCESSOR_TEMPLATE(MEM, PRO4D_DEF_MEM_ACCESSOR, operator[])
 };
 
@@ -2407,9 +2407,9 @@ struct weak_dispatch: D {
     }
 };
 
-// =============================================================================
-// == Skill Extensions (skills::rtti, skills::format, etc.)                   ==
-// =============================================================================
+
+
+
 
 #if __cpp_rtti >= 199711L
 export class CORE_API bad_proxy_cast: public std::bad_cast {
@@ -2417,13 +2417,13 @@ export class CORE_API bad_proxy_cast: public std::bad_cast {
     char const *what() const noexcept override;
 };
 
-// 类外 out-of-line 定义：类体内 inline 定义会被 MSVC 标为模块内部链接
-// （::<!silicon.proxy），导致消费方 proxy.test 链接报 LNK2001；改为 out-of-line
-// 后获得外部链接，可由测试跨模块解析。
+
+
+
 char const *bad_proxy_cast::what() const noexcept {
     return "silicon::proxy::bad_proxy_cast";
 }
-#endif // __cpp_rtti >= 199711L
+#endif
 
 namespace details {
 
@@ -2527,7 +2527,7 @@ template<class CharT>
 using std_format_context = typename std_format_context_traits<CharT>::type;
 struct std_format_traits
     : format_traits<std::formatter, std::basic_string_view, std::basic_format_parse_context, std_format_context> {};
-#endif // PRO4D_HAS_FORMAT
+#endif
 
 #if __cpp_rtti >= 199711L
 struct proxy_cast_context {
@@ -2621,9 +2621,9 @@ struct proxy_typeid_reflector {
 
     const std::type_info *info;
 };
-#endif // __cpp_rtti >= 199711L
+#endif
 
-} // namespace details
+}
 
 namespace skills {
 
@@ -2637,7 +2637,7 @@ export template<class FB>
 using wformat = typename FB::template add_convention<
         details::std_format_traits::dispatch,
         details::std_format_traits::overload<wchar_t>>;
-#endif // PRO4D_HAS_FORMAT
+#endif
 
 #if __cpp_rtti >= 199711L
 export template<class FB>
@@ -2658,7 +2658,7 @@ using direct_rtti = typename FB::template add_direct_convention<
 
 export template<class FB>
 using rtti = indirect_rtti<FB>;
-#endif // __cpp_rtti >= 199711L
+#endif
 
 export template<class FB>
 using slim =
@@ -2674,10 +2674,10 @@ using as_weak = typename FB::template add_direct_convention<
         details::weak_conversion_dispatch,
         facade_aware_overload_t<details::weak_conversion_overload>>;
 
-} // namespace skills
+}
 
 
-} // namespace silicon::proxy
+}
 
 #ifdef PRO4D_HAS_FORMAT
 namespace std {
@@ -2687,8 +2687,8 @@ template<class T, class CharT>
 struct formatter<T, CharT>
     : details::std_format_traits::formatter<CharT> {};
 
-} // namespace std
-#endif // PRO4D_HAS_FORMAT
+}
+#endif
 
 #undef PROD_UNREACHABLE
 #undef PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE
@@ -2702,12 +2702,12 @@ template<class CharT>
 using fmt_buffered_context = fmt::buffered_context<CharT>;
 #    else
 using fmt_buffered_context = fmt::buffer_context<CharT>;
-#    endif // FMT_VERSION
+#    endif
 
 struct fmt_format_traits
     : format_traits<fmt::formatter, std::basic_string_view, fmt::basic_format_parse_context, fmt_buffered_context> {};
 
-} // namespace details
+}
 
 namespace skills {
 
@@ -2721,8 +2721,8 @@ using fmt_wformat = typename FB::template add_convention<
         details::fmt_format_traits::dispatch,
         details::fmt_format_traits::overload<wchar_t>>;
 
-} // namespace skills
+}
 
 
-} // namespace silicon::proxy
-#endif // PRO4D_HAS_FORMAT
+}
+#endif

@@ -1,6 +1,6 @@
-// Copyright (c) 2022-2026 Microsoft Corporation.
-// Copyright (c) 2026-Present Next Gen C++ Foundation.
-// Licensed under the MIT License.
+
+
+
 
 #ifndef MSFT_PROXY_PROXY_MACROS_H_
 #define MSFT_PROXY_PROXY_MACROS_H_
@@ -9,25 +9,25 @@
 #    define PRO4D_STATIC_CALL(ret, ...) static ret operator()(__VA_ARGS__)
 #else
 #    define PRO4D_STATIC_CALL(ret, ...) ret operator()(__VA_ARGS__) const
-#endif // __cpp_static_call_operator >= 202207L
+#endif
 
 #if __cpp_exceptions >= 199711L
 #    define PRO4D_THROW(...) throw __VA_ARGS__
 #else
 #    define PRO4D_THROW(...) std::abort()
-#endif // __cpp_exceptions >= 199711L
+#endif
 
 #ifdef _MSC_VER
 #    define PRO4D_ENFORCE_EBO __declspec(empty_bases)
 #else
 #    define PRO4D_ENFORCE_EBO
-#endif // _MSC_VER
+#endif
 
 #ifdef NDEBUG
 #    define PRO4D_DEBUG(...)
 #else
 #    define PRO4D_DEBUG(...) __VA_ARGS__
-#endif // NDEBUG
+#endif
 
 #define __msft_lib_proxy4 202603L
 
@@ -142,7 +142,7 @@
 #define PRO4_DEF_FREE_AS_MEM_DISPATCH(name, ...) \
     PRO4D_EXPAND_MACRO(PRO4D_DEF_FREE_AS_MEM_DISPATCH, name, __VA_ARGS__)
 
-// Version-less macro aliases
+
 
 #define PRO4D_AMBIGUOUS_MACRO_DIAGNOSTIC_ASSERT(name, qualified_name) \
     static_assert(false, "The use of macro `" #name                   \
@@ -163,7 +163,7 @@ stick to a specific major version of the Proxy library.")
         }()
 #else
 #    define __msft_lib_proxy __msft_lib_proxy4
-#endif // __msft_lib_proxy
+#endif
 
 #ifdef PRO_DEF_MEM_DISPATCH
 #    undef PRO_DEF_MEM_DISPATCH
@@ -171,7 +171,7 @@ stick to a specific major version of the Proxy library.")
         PRO4D_AMBIGUOUS_MACRO_DIAGNOSTIC_ASSERT(PRO_DEF_MEM_DISPATCH, PRO4_DEF_MEM_DISPATCH)
 #else
 #    define PRO_DEF_MEM_DISPATCH(name, ...) PRO4_DEF_MEM_DISPATCH(name, __VA_ARGS__)
-#endif // PRO_DEF_MEM_DISPATCH
+#endif
 
 #ifdef PRO_DEF_FREE_DISPATCH
 #    undef PRO_DEF_FREE_DISPATCH
@@ -180,7 +180,7 @@ stick to a specific major version of the Proxy library.")
 #else
 #    define PRO_DEF_FREE_DISPATCH(name, ...) \
         PRO4_DEF_FREE_DISPATCH(name, __VA_ARGS__)
-#endif // PRO_DEF_FREE_DISPATCH
+#endif
 
 #ifdef PRO_DEF_FREE_AS_MEM_DISPATCH
 #    undef PRO_DEF_FREE_AS_MEM_DISPATCH
@@ -189,22 +189,22 @@ stick to a specific major version of the Proxy library.")
 #else
 #    define PRO_DEF_FREE_AS_MEM_DISPATCH(name, ...) \
         PRO4_DEF_FREE_AS_MEM_DISPATCH(name, __VA_ARGS__)
-#endif // PRO_DEF_FREE_AS_MEM_DISPATCH
+#endif
 
-// Legacy "PROD_" internal macros consumed by impl.cppm (`:impl` partition).
-// These were dropped during the PRO4D rename and never re-added, leaving the
-// proxy module partition uncompilable. Re-add them here (the only header
-// impl.cppm includes in its global module fragment) so the partition links.
-// impl.cppm #undef's both at its end to avoid leakage.
+
+
+
+
+
 #ifndef PROD_UNREACHABLE
 #    define PROD_UNREACHABLE() ::std::unreachable()
-#endif // PROD_UNREACHABLE
+#endif
 
 #ifndef PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE
-// [[no_unique_address]] is the standard C++20 spelling and is what pure clang
-// (macOS/Linux, no _MSC_VER) and GCC accept. On the MSVC target — MSVC itself
-// and clang-cl, both of which define _MSC_VER — only the vendor spelling
-// [[msvc::no_unique_address]] is recognized, so use that there.
+
+
+
+
 #    if defined(_MSC_VER)
 #        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE msvc::no_unique_address
 #    elif defined(__clang__) || defined(__GNUC__)
@@ -212,6 +212,6 @@ stick to a specific major version of the Proxy library.")
 #    else
 #        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE no_unique_address
 #    endif
-#endif // PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE
+#endif
 
-#endif // MSFT_PROXY_PROXY_MACROS_H_
+#endif

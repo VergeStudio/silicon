@@ -1,9 +1,9 @@
-// event 模块测试：覆盖 event_status 枚举契约、event 类（命名构造 / 缺省构造 / set_status）
-// 与 event error category 自注册（未注入消费方也能构造 error_code，不再 terminate——与
-// silicon.network / silicon.config / silicon.logger 一致）。
-//
-// 注：event_error 的专属 category 现已由 error.cppm 在模块静态初始化期自注册默认实例，
-// 故未注入的消费方走错误路径（make_error_code）前 category 已可用，不再 std::terminate。
+
+
+
+
+
+
 #include <string>
 
 #include <silicon/test/test.h>
@@ -40,7 +40,7 @@ TEST_CASE("event set_status 回写状态") {
 
 TEST_CASE("event error category 自注册：非注入消费方也能构造 error_code（不再 terminate）") {
     auto ec = make_error_code(event_error::kInvalidStatus);
-    CHECK(ec); // 已置错误
+    CHECK(ec);
     CHECK(ec.value() == static_cast<int>(event_error::kInvalidStatus));
     CHECK(std::string(ec.category().name()) == "silicon.event");
     CHECK(ec.message() == "invalid event status");

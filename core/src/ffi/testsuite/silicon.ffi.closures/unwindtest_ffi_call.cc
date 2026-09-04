@@ -1,10 +1,6 @@
-/* Area:	sffi_call, unwind info
-   Purpose:	Check if the unwind information is passed correctly.
-   Limitations:	none.
-   PR:		none.
-   Originator:	Andreas Tobler <andreast@gcc.gnu.org> 20061213  */
 
-/* { dg-do run { xfail moxie*-*-* } } */
+
+
 
 #include "ffitest.h"
 
@@ -32,7 +28,7 @@ extern "C"
     args[2] = &sffi_type_schar;
     values[2] = &sc;
 
-    /* Initialize the cif */
+    
     CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3, &sffi_type_sint, args) == SFFI_OK);
 
     si = -6;
@@ -45,7 +41,7 @@ extern "C"
             CHECK(exception_code == 9);
         }
         printf("part one OK\n");
-        /* { dg-output "part one OK" } */
+        
     }
     exit(0);
 }

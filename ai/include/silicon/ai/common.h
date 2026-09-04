@@ -1,10 +1,10 @@
 #ifndef SILICON_AI_COMMON_H
 #define SILICON_AI_COMMON_H
 
-// Platform detection via SILICON_PLATFORM_* macros (single source: xmake.lua root;
-// see core/include/silicon/common.h). Do NOT use raw predefined OS macros.
-// Windows: SILICON_PLATFORM_WINDOWS
-// Unix-like: SILICON_PLATFORM_UNIX / LINUX / APPLE / BSD
+
+
+
+
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(AI_SHARED_LIB)
@@ -28,4 +28,4 @@
 #    endif
 #endif
 
-#endif // SILICON_AI_COMMON_H
+#endif

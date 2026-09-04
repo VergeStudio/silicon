@@ -1,22 +1,6 @@
-/**
-  Copyright 1993 Bill Triggs <Bill.Triggs@inrialpes.fr>
-  Copyright 1995-2017 Bruno Haible <bruno@clisp.org>
 
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 3 of the License, or
-  (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
 
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-**/
-
-/* { dg-do run { xfail gccbug } } */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,9 +9,9 @@
 #include "alignof.h"
 #include <stdarg.h>
 
-/* SILICON_FFI testsuite local changes -------------------------------- */
+
 #ifdef DGTEST
-/* Redefine exit(1) as a test failure */
+
 #define exit(V) (void)((V) ? (abort(), 1) : exit(0))
 int count = 0;
 char rbuf1[2048];
@@ -61,7 +45,7 @@ int _fprintf(FILE *stream, const char *format, ...)
 }
 #define fprintf _fprintf
 #endif
-/* --------------------------------------------------------------- */
+
 
 #include "testcases.c"
 
@@ -69,12 +53,12 @@ int _fprintf(FILE *stream, const char *format, ...)
 #define ABI_NUM SFFI_DEFAULT_ABI
 #endif
 
-/* Definitions that ought to be part of SILICON_FFI. */
+
 static sffi_type sffi_type_char;
 #define sffi_type_slonglong sffi_type_sint64
 #define sffi_type_ulonglong sffi_type_uint64
 
-/* SILICON_FFI does not support arrays inside structs. */
+
 #define SKIP_EXTRA_STRUCTS
 
 #define SFFI_PREP_CIF(cif,argtypes,rettype) \
@@ -152,7 +136,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_sint);
     {
-      /*const*/ void* args[] = { &i1 };
+       void* args[] = { &i1 };
       SFFI_CALL(cif,i_i,args,&retvalue);
       ir = retvalue;
     }
@@ -171,7 +155,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_sint);
     {
-      /*const*/ void* args[] = { &i1, &i2 };
+       void* args[] = { &i1, &i2 };
       SFFI_CALL(cif,i_i2,args,&retvalue);
       ir = retvalue;
     }
@@ -190,7 +174,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_sint);
     {
-      /*const*/ void* args[] = { &i1, &i2, &i3, &i4 };
+       void* args[] = { &i1, &i2, &i3, &i4 };
       SFFI_CALL(cif,i_i4,args,&retvalue);
       ir = retvalue;
     }
@@ -209,7 +193,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_sint);
     {
-      /*const*/ void* args[] = { &i1, &i2, &i3, &i4, &i5, &i6, &i7, &i8 };
+       void* args[] = { &i1, &i2, &i3, &i4, &i5, &i6, &i7, &i8 };
       SFFI_CALL(cif,i_i8,args,&retvalue);
       ir = retvalue;
     }
@@ -228,7 +212,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_sint);
     {
-      /*const*/ void* args[] = { &i1, &i2, &i3, &i4, &i5, &i6, &i7, &i8, &i9, &i10, &i11, &i12, &i13, &i14, &i15, &i16 };
+       void* args[] = { &i1, &i2, &i3, &i4, &i5, &i6, &i7, &i8, &i9, &i10, &i11, &i12, &i13, &i14, &i15, &i16 };
       SFFI_CALL(cif,i_i16,args,&retvalue);
       ir = retvalue;
     }
@@ -254,7 +238,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1 };
+       void* args[] = { &f1 };
       SFFI_CALL(cif,f_f,args,&fr);
     }
   }
@@ -272,7 +256,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2 };
+       void* args[] = { &f1, &f2 };
       SFFI_CALL(cif,f_f2,args,&fr);
     }
   }
@@ -290,7 +274,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4 };
+       void* args[] = { &f1, &f2, &f3, &f4 };
       SFFI_CALL(cif,f_f4,args,&fr);
     }
   }
@@ -308,7 +292,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8 };
+       void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8 };
       SFFI_CALL(cif,f_f8,args,&fr);
     }
   }
@@ -326,7 +310,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &f13, &f14, &f15, &f16 };
+       void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &f13, &f14, &f15, &f16 };
       SFFI_CALL(cif,f_f16,args,&fr);
     }
   }
@@ -344,7 +328,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &f13, &f14, &f15, &f16, &f17, &f18, &f19, &f20, &f21, &f22, &f23, &f24 };
+       void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &f13, &f14, &f15, &f16, &f17, &f18, &f19, &f20, &f21, &f22, &f23, &f24 };
       SFFI_CALL(cif,f_f24,args,&fr);
     }
   }
@@ -368,7 +352,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1 };
+       void* args[] = { &d1 };
       SFFI_CALL(cif,d_d,args,&dr);
     }
   }
@@ -386,7 +370,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2 };
+       void* args[] = { &d1, &d2 };
       SFFI_CALL(cif,d_d2,args,&dr);
     }
   }
@@ -404,7 +388,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4 };
+       void* args[] = { &d1, &d2, &d3, &d4 };
       SFFI_CALL(cif,d_d4,args,&dr);
     }
   }
@@ -422,7 +406,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8 };
+       void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8 };
       SFFI_CALL(cif,d_d8,args,&dr);
     }
   }
@@ -440,7 +424,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &d13, &d14, &d15, &d16 };
+       void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &d13, &d14, &d15, &d16 };
       SFFI_CALL(cif,d_d16,args,&dr);
     }
   }
@@ -468,7 +452,7 @@ void
       void* pd2 = &d2;
       void* pstr3 = str3;
       void* pI4 = &I4;
-      /*const*/ void* args[] = { &puc1, &pd2, &pstr3, &pI4 };
+       void* args[] = { &puc1, &pd2, &pstr3, &pI4 };
       SFFI_CALL(cif,vp_vpdpcpsp,args,&vpr);
     }
   }
@@ -486,8 +470,7 @@ void
   double dr;
   long long llr;
 
-  /* Unsigned types.
-   */
+  
 #if (!defined(DGTEST)) || DGTEST == 20
   ucr = uc_ucsil(uc1, us2, ui3, ul4);
   fprintf(out,"->%u\n",ucr);
@@ -499,7 +482,7 @@ void
     SFFI_PREP_CIF(cif,argtypes,sffi_type_uchar);
     {
       sffi_arg r;
-      /*const*/ void* args[] = { &uc1, &us2, &ui3, &ul4 };
+       void* args[] = { &uc1, &us2, &ui3, &ul4 };
       SFFI_CALL(cif,uc_ucsil,args,&r);
       ucr = (uchar) r;
     }
@@ -509,8 +492,7 @@ void
 #endif
 
 #if (!defined(DGTEST)) || DGTEST == 21
-  /* Mixed int & float types.
-   */
+  
   dr = d_iidd(i1,i2,d3,d4);
   fprintf(out,"->%g\n",dr);
   fflush(out);
@@ -520,7 +502,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &i1, &i2, &d3, &d4 };
+       void* args[] = { &i1, &i2, &d3, &d4 };
       SFFI_CALL(cif,d_iidd,args,&dr);
     }
   }
@@ -538,7 +520,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &i1, &i2, &i3, &d4, &i5 };
+       void* args[] = { &i1, &i2, &i3, &d4, &i5 };
       SFFI_CALL(cif,d_iiidi,args,&dr);
     }
   }
@@ -556,7 +538,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &i1, &d2, &i3, &d4 };
+       void* args[] = { &i1, &d2, &i3, &d4 };
       SFFI_CALL(cif,d_idid,args,&dr);
     }
   }
@@ -574,7 +556,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &f1, &d2, &i3 };
+       void* args[] = { &f1, &d2, &i3 };
       SFFI_CALL(cif,d_fdi,args,&dr);
     }
   }
@@ -593,7 +575,7 @@ void
     SFFI_PREP_CIF(cif,argtypes,sffi_type_ushort);
     {
       sffi_arg rint;
-      /*const*/ void* args[] = { &c1, &d2, &c3, &d4 };
+       void* args[] = { &c1, &d2, &c3, &d4 };
       SFFI_CALL(cif,us_cdcd,args,&rint);
       usr = (ushort) rint;
     }
@@ -603,8 +585,7 @@ void
 #endif
 
 #if (!defined(DGTEST)) || DGTEST == 26
-  /* Long long types.
-   */
+  
   llr = ll_iiilli(i1,i2,i3,ll1,i13);
   fprintf(out,"->0x%lx%08lx\n",(long)(llr>>32),(long)(llr&0xffffffff));
   fflush(out);
@@ -614,7 +595,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slonglong);
     {
-      /*const*/ void* args[] = { &i1, &i2, &i3, &ll1, &i13 };
+       void* args[] = { &i1, &i2, &i3, &ll1, &i13 };
       SFFI_CALL(cif,ll_iiilli,args,&llr);
     }
   }
@@ -632,7 +613,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slonglong);
     {
-      /*const*/ void* args[] = { &f13, &ll1, &i13 };
+       void* args[] = { &f13, &ll1, &i13 };
       SFFI_CALL(cif,ll_flli,args,&llr);
     }
   }
@@ -650,7 +631,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &i9 };
+       void* args[] = { &f1, &i9 };
       SFFI_CALL(cif,f_fi,args,&fr);
     }
   }
@@ -668,7 +649,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &i9 };
+       void* args[] = { &f1, &f2, &i9 };
       SFFI_CALL(cif,f_f2i,args,&fr);
     }
   }
@@ -686,7 +667,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &i9 };
+       void* args[] = { &f1, &f2, &f3, &i9 };
       SFFI_CALL(cif,f_f3i,args,&fr);
     }
   }
@@ -704,7 +685,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &i9 };
+       void* args[] = { &f1, &f2, &f3, &f4, &i9 };
       SFFI_CALL(cif,f_f4i,args,&fr);
     }
   }
@@ -722,7 +703,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &i9 };
+       void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &i9 };
       SFFI_CALL(cif,f_f7i,args,&fr);
     }
   }
@@ -740,7 +721,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &i9 };
+       void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &i9 };
       SFFI_CALL(cif,f_f8i,args,&fr);
     }
   }
@@ -758,7 +739,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &i9 };
+       void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &i9 };
       SFFI_CALL(cif,f_f12i,args,&fr);
     }
   }
@@ -776,7 +757,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &f13, &i9 };
+       void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &f13, &i9 };
       SFFI_CALL(cif,f_f13i,args,&fr);
     }
   }
@@ -794,7 +775,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &i9 };
+       void* args[] = { &d1, &i9 };
       SFFI_CALL(cif,d_di,args,&dr);
     }
   }
@@ -812,7 +793,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &i9 };
+       void* args[] = { &d1, &d2, &i9 };
       SFFI_CALL(cif,d_d2i,args,&dr);
     }
   }
@@ -830,7 +811,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &i9 };
+       void* args[] = { &d1, &d2, &d3, &i9 };
       SFFI_CALL(cif,d_d3i,args,&dr);
     }
   }
@@ -848,7 +829,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4, &i9 };
+       void* args[] = { &d1, &d2, &d3, &d4, &i9 };
       SFFI_CALL(cif,d_d4i,args,&dr);
     }
   }
@@ -866,7 +847,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &i9 };
+       void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &i9 };
       SFFI_CALL(cif,d_d7i,args,&dr);
     }
   }
@@ -884,7 +865,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &i9 };
+       void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &i9 };
       SFFI_CALL(cif,d_d8i,args,&dr);
     }
   }
@@ -902,7 +883,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &i9 };
+       void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &i9 };
       SFFI_CALL(cif,d_d12i,args,&dr);
     }
   }
@@ -920,7 +901,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &d13, &i9 };
+       void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &d13, &i9 };
       SFFI_CALL(cif,d_d13i,args,&dr);
     }
   }
@@ -1169,7 +1150,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_Int);
     {
-      /*const*/ void* args[] = { &I1, &I2, &I3 };
+       void* args[] = { &I1, &I2, &I3 };
       SFFI_CALL(cif,I_III,args,&Ir);
     }
   }
@@ -1192,7 +1173,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_Char);
     {
-      /*const*/ void* args[] = { &C1, &d2, &C3 };
+       void* args[] = { &C1, &d2, &C3 };
       SFFI_CALL(cif,C_CdC,args,&Cr);
     }
   }
@@ -1215,7 +1196,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_Float);
     {
-      /*const*/ void* args[] = { &F1, &f2, &d3 };
+       void* args[] = { &F1, &f2, &d3 };
       SFFI_CALL(cif,F_Ffd,args,&Fr);
     }
   }
@@ -1238,7 +1219,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_Double);
     {
-      /*const*/ void* args[] = { &f1, &D2, &d3 };
+       void* args[] = { &f1, &D2, &d3 };
       SFFI_CALL(cif,D_fDd,args,&Dr);
     }
   }
@@ -1261,7 +1242,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_Double);
     {
-      /*const*/ void* args[] = { &D1, &f2, &d3 };
+       void* args[] = { &D1, &f2, &d3 };
       SFFI_CALL(cif,D_Dfd,args,&Dr);
     }
   }
@@ -1284,7 +1265,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_J);
     {
-      /*const*/ void* args[] = { &J1, &i2, &J2 };
+       void* args[] = { &J1, &i2, &J2 };
       SFFI_CALL(cif,J_JiJ,args,&Jr);
     }
   }
@@ -1309,7 +1290,7 @@ void
     SFFI_PREP_CIF(cif,argtypes,sffi_type_T);
     {
       char space = ' ';
-      /*const*/ void* args[] = { &T1, &space, &T2 };
+       void* args[] = { &T1, &space, &T2 };
       SFFI_CALL(cif,T_TcT,args,&Tr);
     }
   }
@@ -1332,7 +1313,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_X);
     {
-      /*const*/ void* args[] = { &B1, &c2, &d3, &B2 };
+       void* args[] = { &B1, &c2, &d3, &B2 };
       SFFI_CALL(cif,X_BcdB,args,&Xr);
     }
   }
@@ -1376,7 +1357,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slong);
     {
-      /*const*/ void* args[] = { &K1, &l9 };
+       void* args[] = { &K1, &l9 };
       SFFI_CALL(cif,l_l0K,args,&lr);
     }
   }
@@ -1393,7 +1374,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slong);
     {
-      /*const*/ void* args[] = { &l1, &K1, &l9 };
+       void* args[] = { &l1, &K1, &l9 };
       SFFI_CALL(cif,l_l1K,args,&lr);
     }
   }
@@ -1410,7 +1391,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &K1, &l9 };
+       void* args[] = { &l1, &l2, &K1, &l9 };
       SFFI_CALL(cif,l_l2K,args,&lr);
     }
   }
@@ -1427,7 +1408,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &K1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &K1, &l9 };
       SFFI_CALL(cif,l_l3K,args,&lr);
     }
   }
@@ -1444,7 +1425,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &K1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &K1, &l9 };
       SFFI_CALL(cif,l_l4K,args,&lr);
     }
   }
@@ -1461,7 +1442,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &l5, &K1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &l5, &K1, &l9 };
       SFFI_CALL(cif,l_l5K,args,&lr);
     }
   }
@@ -1478,7 +1459,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &K1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &K1, &l9 };
       SFFI_CALL(cif,l_l6K,args,&lr);
     }
   }
@@ -1495,7 +1476,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_float);
     {
-      /*const*/ void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &f13, &f14, &f15, &f16, &f17, &l6, &l7, &l8, &L1 };
+       void* args[] = { &f1, &f2, &f3, &f4, &f5, &f6, &f7, &f8, &f9, &f10, &f11, &f12, &f13, &f14, &f15, &f16, &f17, &l6, &l7, &l8, &L1 };
       SFFI_CALL(cif,f_f17l3L,args,&fr);
     }
   }
@@ -1512,7 +1493,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &d13, &d14, &d15, &d16, &d17, &l6, &l7, &l8, &L1 };
+       void* args[] = { &d1, &d2, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10, &d11, &d12, &d13, &d14, &d15, &d16, &d17, &l6, &l7, &l8, &L1 };
       SFFI_CALL(cif,d_d17l3L,args,&dr);
     }
   }
@@ -1529,7 +1510,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slonglong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &ll1, &l9 };
+       void* args[] = { &l1, &l2, &ll1, &l9 };
       SFFI_CALL(cif,ll_l2ll,args,&llr);
     }
   }
@@ -1546,7 +1527,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slonglong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &ll1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &ll1, &l9 };
       SFFI_CALL(cif,ll_l3ll,args,&llr);
     }
   }
@@ -1563,7 +1544,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slonglong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &ll1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &ll1, &l9 };
       SFFI_CALL(cif,ll_l4ll,args,&llr);
     }
   }
@@ -1580,7 +1561,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slonglong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &l5, &ll1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &l5, &ll1, &l9 };
       SFFI_CALL(cif,ll_l5ll,args,&llr);
     }
   }
@@ -1597,7 +1578,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slonglong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &ll1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &ll1, &l9 };
       SFFI_CALL(cif,ll_l6ll,args,&llr);
     }
   }
@@ -1614,7 +1595,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_slonglong);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &l7, &ll1, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &l7, &ll1, &l9 };
       SFFI_CALL(cif,ll_l7ll,args,&llr);
     }
   }
@@ -1631,7 +1612,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &l1, &l2, &d2, &l9 };
+       void* args[] = { &l1, &l2, &d2, &l9 };
       SFFI_CALL(cif,d_l2d,args,&dr);
     }
   }
@@ -1648,7 +1629,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &d2, &l9 };
+       void* args[] = { &l1, &l2, &l3, &d2, &l9 };
       SFFI_CALL(cif,d_l3d,args,&dr);
     }
   }
@@ -1665,7 +1646,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &d2, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &d2, &l9 };
       SFFI_CALL(cif,d_l4d,args,&dr);
     }
   }
@@ -1682,7 +1663,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &l5, &d2, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &l5, &d2, &l9 };
       SFFI_CALL(cif,d_l5d,args,&dr);
     }
   }
@@ -1699,7 +1680,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &d2, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &d2, &l9 };
       SFFI_CALL(cif,d_l6d,args,&dr);
     }
   }
@@ -1716,7 +1697,7 @@ void
     sffi_cif cif;
     SFFI_PREP_CIF(cif,argtypes,sffi_type_double);
     {
-      /*const*/ void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &l7, &d2, &l9 };
+       void* args[] = { &l1, &l2, &l3, &l4, &l5, &l6, &l7, &d2, &l9 };
       SFFI_CALL(cif,d_l7d,args,&dr);
     }
   }

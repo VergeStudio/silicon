@@ -1,32 +1,6 @@
-/*
- * Copyright (c) 2013 Miodrag Vallat.  <miod@openbsd.org>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * ``Software''), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
 
-/*
- * vax Foreign Function Interface
- *
- * This file attempts to provide all the FFI entry points which can reliably
- * be implemented in C.
- */
+
+
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -34,14 +8,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define CIF_FLAGS_CHAR		1	/* for struct only */
-#define CIF_FLAGS_SHORT		2	/* for struct only */
+#define CIF_FLAGS_CHAR		1	
+#define CIF_FLAGS_SHORT		2	
 #define CIF_FLAGS_INT		4
 #define CIF_FLAGS_DINT		8
 
-/*
- * Foreign Function Interface API
- */
+
 
 void sffi_call_elfbsd (extended_cif *, unsigned, unsigned, void *,
 		       void (*) ());
@@ -106,7 +78,7 @@ sffi_prep_args (extended_cif *ecif, void *stack)
 	{
 	  memcpy (argp, *p_argv, z);
 
-	  /* Align if necessary.  */
+	  
 	  if ((sizeof(int) - 1) & z)
 	    z = SFFI_ALIGN(z, sizeof(int));
 	}
@@ -121,7 +93,7 @@ sffi_prep_args (extended_cif *ecif, void *stack)
 sffi_status
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
-  /* Set the return type flag */
+  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -167,8 +139,7 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
   ecif.cif = cif;
   ecif.avalue = avalue;
 
-  /* If the return value is a struct and we don't have a return value
-     address then we need to make one.  */
+  
 
   if (rvalue == NULL
       && cif->rtype->type == SFFI_TYPE_STRUCT
@@ -189,9 +160,7 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
     }
 }
 
-/*
- * Closure API
- */
+
 
 void sffi_closure_elfbsd (void);
 void sffi_closure_struct_elfbsd (void);
@@ -213,7 +182,7 @@ sffi_prep_closure_elfbsd (sffi_cif *cif, void **avalue, char *stackp)
       z = (*p_arg)->size;
       *p_argv = stackp;
 
-      /* Align if necessary */
+      
       if ((sizeof (int) - 1) & z)
 	z = SFFI_ALIGN(z, sizeof (int));
 
@@ -248,9 +217,9 @@ sffi_prep_closure_loc (sffi_closure *closure, sffi_cif *cif,
 
   SFFI_ASSERT (cif->abi == SFFI_ELFBSD);
 
-  /* entry mask */
+  
   *(unsigned short *)(tramp + 0) = 0x0000;
-  /* movl #closure, r0 */
+  
   tramp[2] = 0xd0;
   tramp[3] = 0x8f;
   *(unsigned int *)(tramp + 4) = (unsigned int) closure;
@@ -262,7 +231,7 @@ sffi_prep_closure_loc (sffi_closure *closure, sffi_cif *cif,
   else
     fn = &sffi_closure_elfbsd;
 
-  /* jmpl #fn */
+  
   tramp[9] = 0x17;
   tramp[10] = 0xef;
   *(unsigned int *)(tramp + 11) = (unsigned int)fn + 2 -

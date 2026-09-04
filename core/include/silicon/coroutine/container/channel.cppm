@@ -1,6 +1,6 @@
 module;
 
-// 模块化补齐：原经传递 include 获得的标准头，模块单元须显式包含。
+
 #include <atomic>
 #include <coroutine>
 #include <memory>
@@ -26,31 +26,9 @@ enum class recv {
     kEmpty,
     kClosed,
 };
-} // namespace channel_result
+}
 
-/**
- * @brief A multi-producer / multi-consumer communication channel.
- *
- * The channel is bounded by a user supplied capacity. When the capacity is
- * exhausted a producer suspends until a consumer frees a slot; when the
- * channel is empty a consumer suspends until a producer delivers an element.
- * With capacity 0 the channel behaves like a synchronous rendezvous: send()
- * suspends until a receiver is waiting and the element is handed off directly
- * without touching a buffer slot.
- *
- * Waiting producers and consumers are woken up in FIFO order (fairness).
- *
- * close() is idempotent. After close(), send() returns
- * channel_result::send::kClosed and recv() keeps returning the elements that
- * are still buffered before it reports channel_result::recv::kClosed (drain
- * semantics, like Go channels). All suspended waiters are woken up with the
- * closed result.
- *
- * @tparam element_type The type of items being sent and received.
- *
- * @note 实现（成员函数体）位于 coroutine/src/channel.cpp（主模块实现单元），
- *       本接口分区仅保留声明与嵌套类型布局，以降低编辑实现时的重编波及面。
- */
+
 template<typename element_type>
 class channel {
   private:
@@ -98,11 +76,7 @@ class channel {
         std::optional<element_type> m_e;
     };
 
-    /**
-     * @param capacity The maximum number of buffered elements. 0 creates an
-     *                 unbuffered rendezvous channel where send() suspends
-     *                 until a receiver is waiting.
-     */
+    
     explicit channel(size_t);
 
     ~channel();
@@ -112,92 +86,40 @@ class channel {
     channel & operator=(const channel &) = delete;
     channel & operator=(channel &&) = delete;
 
-    /**
-     * @brief Sends an element into the channel, suspending until a slot is
-     *        available or the element can be handed off to a waiting receiver.
-     *
-     * @return channel_result::send::kSent on success, or kClosed if the
-     *         channel has been closed.
-     */
+    
     silicon::scheduler::task<channel_result::send> send(const element_type &) ;
 
-    /**
-     * @brief Sends an element into the channel, suspending until a slot is
-     *        available or the element can be handed off to a waiting receiver.
-     *
-     * @return channel_result::send::kSent on success, or kClosed if the
-     *         channel has been closed.
-     */
+    
     silicon::scheduler::task<channel_result::send> send(element_type &&element) ;
 
-    /**
-     * @brief Non-blocking send. Does not suspend.
-     *
-     * @return channel_result::send::kSent on success, kFull when the channel
-     *         has no free slot (mutex contention is treated as kFull, like
-     *         tokio::sync::mpsc), and kClosed if the channel is closed.
-     */
+    
     auto try_send(const element_type &) -> channel_result::send;
 
-    /**
-     * @brief Non-blocking send. Does not suspend.
-     *
-     * @return channel_result::send::kSent on success, kFull when the channel
-     *         has no free slot (mutex contention is treated as kFull, like
-     *         tokio::sync::mpsc), and kClosed if the channel is closed.
-     */
+    
     auto try_send(element_type &&element) -> channel_result::send;
 
-    /**
-     * @brief Receives an element from the channel, suspending until an element
-     *        is available or the channel is closed and drained.
-     *
-     * @return The element, or channel_result::recv::kClosed if the channel is
-     *         closed and no buffered elements remain.
-     */
+    
     [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element_type, channel_result::recv>> recv() ;
 
-    /**
-     * @brief Non-blocking receive. Does not suspend.
-     *
-     * @return The element, channel_result::recv::kEmpty when the channel has
-     *         no element (mutex contention is treated as kEmpty, like
-     *         tokio::sync::mpsc), or kClosed if the channel is closed and
-     *         drained.
-     */
+    
     [[nodiscard]] auto try_recv() -> silicon::scheduler::expected<element_type, channel_result::recv>;
 
-    /**
-     * @brief Closes the channel. Idempotent. Buffered elements are preserved
-     *        and can still be received (drain semantics), then recv() reports
-     *        kClosed. All suspended waiters are woken up with the closed result.
-     */
+    
     silicon::scheduler::task<void> close() ;
 
-    /**
-     * @return true if close() has been called.
-     */
+    
     [[nodiscard]] bool closed() const ;
 
-    /**
-     * @return The maximum number of buffered elements (0 = unbuffered).
-     */
+    
     [[nodiscard]] size_t capacity() const ;
 
-    /**
-     * @return The number of elements currently buffered.
-     */
+    
     [[nodiscard]] size_t size() const ;
 
-    /**
-     * @return true if the channel currently buffers zero elements.
-     */
+    
     [[nodiscard]] bool empty() const ;
 
-    /**
-     * @return true if the channel buffer has no free slot (always true for an
-     *         unbuffered channel with capacity 0).
-     */
+    
     [[nodiscard]] bool full() const ;
 
   private:
@@ -236,16 +158,16 @@ class channel {
 };
 
 
-// ===========================================================================
-// channel<T> template member definitions (moved from channel.cpp: templates
-// must live in an interface unit so importers can instantiate them; MSVC
-// cannot instantiate templates defined in a .cpp -> LNK2019)
-// ===========================================================================
 
 
-// ===========================================================================
-// channel::send_operation
-// ===========================================================================
+
+
+
+
+
+
+
+
 
 template<typename element_type>
 channel<element_type>::send_operation::send_operation(channel<element_type> &ch, element_type e) noexcept
@@ -256,14 +178,14 @@ template<typename element_type>
 bool channel<element_type>::send_operation::await_ready() noexcept {
     auto &mutex = m_ch.m_p->m_mutex;
 
-    // Sends are rejected once the channel has been closed.
+
     if(m_ch.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = channel_result::send::kClosed;
         static_cast<void>(mutex.unlock());
         return true;
     }
 
-    // Hand the element directly to a waiting receiver (rendezvous).
+
     if(auto *waiter = m_ch.m_p->pop_recv_waiter()) {
         waiter->m_e = std::move(m_e);
         static_cast<void>(mutex.unlock());
@@ -271,14 +193,14 @@ bool channel<element_type>::send_operation::await_ready() noexcept {
         return true;
     }
 
-    // Store the element into a free slot when the buffer has room.
+
     if(m_ch.m_p->m_count.load(std::memory_order::acquire) < m_ch.m_p->m_capacity) {
         m_ch.m_p->store(std::move(m_e).value());
         static_cast<void>(mutex.unlock());
         return true;
     }
 
-    // The channel is full, suspend until a slot is freed.
+
     return false;
 }
 
@@ -293,9 +215,9 @@ bool channel<element_type>::send_operation::await_suspend(std::coroutine_handle<
 template<typename element_type>
 auto channel<element_type>::send_operation::await_resume() noexcept -> channel_result::send { return m_result; }
 
-// ===========================================================================
-// channel::recv_operation
-// ===========================================================================
+
+
+
 
 template<typename element_type>
 channel<element_type>::recv_operation::recv_operation(channel<element_type> &ch) noexcept
@@ -305,14 +227,14 @@ template<typename element_type>
 bool channel<element_type>::recv_operation::await_ready() noexcept {
     auto &mutex = m_ch.m_p->m_mutex;
 
-    // Take a buffered element first.
+
     if(m_ch.m_p->m_count.load(std::memory_order::acquire) > 0) {
         m_e = m_ch.m_p->take();
         static_cast<void>(mutex.unlock());
         return true;
     }
 
-    // Rendezvous with a waiting producer (unbuffered case).
+
     if(auto *waiter = m_ch.m_p->pop_send_waiter()) {
         m_e = std::move(waiter->m_e);
         static_cast<void>(mutex.unlock());
@@ -320,14 +242,14 @@ bool channel<element_type>::recv_operation::await_ready() noexcept {
         return true;
     }
 
-    // The channel is closed and drained.
+
     if(m_ch.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = channel_result::recv::kClosed;
         static_cast<void>(mutex.unlock());
         return true;
     }
 
-    // The channel is empty, suspend until an element is produced.
+
     return false;
 }
 
@@ -347,9 +269,9 @@ auto channel<element_type>::recv_operation::await_resume() noexcept -> silicon::
     return silicon::scheduler::unexpected<channel_result::recv>(m_result);
 }
 
-// ===========================================================================
-// channel
-// ===========================================================================
+
+
+
 
 template<typename element_type>
 channel<element_type>::channel(size_t capacity)
@@ -357,10 +279,10 @@ channel<element_type>::channel(size_t capacity)
 
 template<typename element_type>
 channel<element_type>::~channel() {
-    // Non-blocking wake-up of all waiters, mirroring queue::~queue.
-    // Blocking here (e.g. sync_wait(shutdown())) would deadlock when the
-    // channel is destroyed from within a coroutine context, because the
-    // scheduler would never get to process the shutdown coroutine.
+
+
+
+
     if(m_p->m_running_state.exchange(running_state_t::kStopped, std::memory_order::acq_rel) == running_state_t::kStopped) {
         return;
     }
@@ -559,9 +481,9 @@ silicon::scheduler::task<void> channel<element_type>::try_resume_receivers() {
     }
 }
 
-// ===========================================================================
-// channel::impl
-// ===========================================================================
+
+
+
 
 template<typename element_type>
 channel<element_type>::impl::impl(size_t capacity)
@@ -633,4 +555,4 @@ auto channel<element_type>::impl::pop_recv_waiter() -> recv_operation * {
 }
 
 
-} // namespace silicon::coroutine
+}

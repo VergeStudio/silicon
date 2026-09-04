@@ -28,9 +28,9 @@ namespace silicon::scheduler {
 
 using event_t = struct ::kevent;
 
-// ---------------------------------------------------------------------------
-// PIMPL: kqueue backend state for io_notifier.
-// ---------------------------------------------------------------------------
+
+
+
 struct io_notifier::impl {
     fd_t m_fd{-1};
     bool m_valid{false};
@@ -50,7 +50,7 @@ static poll_status event_to_poll_status(const event_t &event) {
     } else if(event.filter == EVFILT_WRITE) {
         return poll_status::write;
     } else if(event.filter == EVFILT_TIMER) {
-        // Due timer is handled like a read event by the lib
+
         return poll_status::read;
     }
 
@@ -69,8 +69,8 @@ bool io_notifier::is_valid() const noexcept {
 io_notifier::~io_notifier() = default;
 
 bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) {
-    // Prevent negative durations for the timeout as they will result in an error. 0 will fire in the next instance
-    // possible.
+
+
     if(duration < 0ns) {
         duration = 0ns;
     }
@@ -102,7 +102,7 @@ bool io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_canc
 }
 
 bool io_notifier::watch(poll_info &pi) {
-    // For read-write event, we need to register both event types separately to the kqueue
+
     if(pi.m_p->m_op == poll_op::read_write) {
         if(!watch(pi.m_p->m_fd, poll_op::read, static_cast<void *>(&pi), false, false) ||
            !watch(pi.m_p->m_fd, poll_op::write, static_cast<void *>(&pi), false, false)) {
@@ -122,7 +122,7 @@ bool io_notifier::watch(poll_info &pi) {
 }
 
 bool io_notifier::unwatch(fd_t fd, poll_op op) {
-    // For read-write event, we need to de-register both event types separately to the kqueue
+
     if(op == silicon::scheduler::poll_op::read_write) {
         auto event_data = event_t{};
 
@@ -167,8 +167,8 @@ void io_notifier::next_events(
 
         auto keep_registered = !(ready_set[i].flags & EV_ONESHOT);
 
-        // If the event issuing fd is the same as the fd of the cancellation trigger of the registered poll_info we
-        // this operation was cancelled by the user.
+
+
         if(pi->m_p->m_cancel_trigger.has_value() &&
            ready_set[i].ident == static_cast<uintptr_t>(pi->m_p->m_cancel_trigger.value().native_handle())) {
             ready_events.emplace_back(pi, poll_status::cancelled);
@@ -185,9 +185,9 @@ void io_notifier::next_events(
 }
 
 bool io_notifier::post(void *) {
-    // kqueue 后端无完成包通道：completion worker 经内部 completion pipe + 哨兵
-    // udata 唤醒驱动（io_scheduler_completion.cpp 的 wake_driver），此处无需
-    // 也无法投递。返回 false 仅表示"本后端不支持 post"。
+
+
+
     return false;
 }
 
@@ -195,5 +195,5 @@ auto io_notifier::native_handle() const -> fd_t {
     return m_p->m_fd;
 }
 
-} // namespace silicon::scheduler
+}
 #endif

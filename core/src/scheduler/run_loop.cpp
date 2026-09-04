@@ -17,8 +17,8 @@ import :poll_info_impl;
 
 namespace silicon::scheduler {
 
-// 与 thread_pool 一致的便捷封装：把 user_task 包成自删除任务，并返回其等待任务，
-// 使 spawn_joinable 的返回句柄在整组任务完成时变为 ready。
+
+
 
 static auto make_spawned_joinable_wait_task(std::unique_ptr<task_group<run_loop>> group_ptr) -> task<void> {
     co_await *group_ptr;
@@ -37,8 +37,8 @@ struct run_loop::impl {
 run_loop::run_loop(): m_impl(std::make_unique<impl>()) {}
 
 run_loop::~run_loop() {
-    // 仅唤醒可能阻塞在空队列上的 run()；不等待 run() 所在的外部线程退出
-    // （run_loop 不持有线程，无法 join）。承载 run() 的线程须比本对象更晚销毁。
+
+
     finish();
 }
 
@@ -52,7 +52,7 @@ void run_loop::run() noexcept {
                 return !impl.m_queue.empty() || impl.m_stop.load(std::memory_order::acquire);
             });
             if(impl.m_queue.empty()) {
-                // 仅因 m_stop 置位而唤醒、且队列已空 → 退出循环。
+
                 break;
             }
             handle = impl.m_queue.front();
@@ -90,9 +90,9 @@ bool run_loop::resume(std::coroutine_handle<> handle) noexcept {
 
 bool run_loop::spawn_detached(task<void> &&task) noexcept {
     auto &impl = *m_impl;
-    // 与 thread_pool::spawn_detached 相同的计数/所有权语义：
-    //   spawn 计数 +1，由自删除任务完成时经 user_final_suspend 计数 -1；
-    //   resume 计数 +1，由 run() 在 resume() 后计数 -1。
+
+
+
     impl.m_size.fetch_add(1, std::memory_order::release);
     auto wrapper = make_task_self_deleting(std::move(task));
     wrapper.promise().user_final_suspend([impl = m_impl.get()]() -> void {
@@ -118,4 +118,4 @@ std::size_t run_loop::size() const noexcept {
     return m_impl->m_size.load(std::memory_order::acquire);
 }
 
-} // namespace silicon::scheduler
+}

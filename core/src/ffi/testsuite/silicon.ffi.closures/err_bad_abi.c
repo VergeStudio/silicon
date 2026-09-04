@@ -1,10 +1,6 @@
-/* Area:		sffi_prep_cif, sffi_prep_closure
-   Purpose:		Test error return for bad ABIs.
-   Limitations:	none.
-   PR:			none.
-   Originator:	Blake Chaffin 6/6/2007	 */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 

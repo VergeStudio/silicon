@@ -1,37 +1,11 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2011, 2013, 2026 Anthony Green
-           Copyright (c) 1996, 2003-2004, 2007-2008 Red Hat, Inc.
 
-   SPARC Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
 #include <stdlib.h>
 #include "internal.h"
 
-/* Force SFFI_TYPE_LONGDOUBLE to be different than SFFI_TYPE_DOUBLE;
-   all further uses in this file will refer to the 128-bit type.  */
+
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 # if SFFI_TYPE_LONGDOUBLE != 4
 #  error SFFI_TYPE_LONGDOUBLE out of date
@@ -43,13 +17,7 @@
 
 #ifdef SPARC64
 
-/* Flatten the contents of a structure to the parts that are passed in
-   floating point registers.  The return is a bit mask wherein bit N
-   set means bytes [4*n, 4*n+3] are passed in %fN.
 
-   We encode both the (running) size (maximum 32) and mask (maxumum 255)
-   into one integer.  The size is placed in the low byte, so that align
-   and addition work correctly.  The mask is placed in the second byte.  */
 
 static int
 sffi_struct_float_mask (sffi_type *outer_type, int size_mask)
@@ -87,13 +55,13 @@ sffi_struct_float_mask (sffi_type *outer_type, int size_mask)
 	      && tt != SFFI_TYPE_DOUBLE
 	      && tt != SFFI_TYPE_LONGDOUBLE)
 	    break;
-	  /* FALLTHRU */
+	  
 	case SFFI_TYPE_FLOAT:
 	case SFFI_TYPE_DOUBLE:
 	case SFFI_TYPE_LONGDOUBLE:
-	  m = (1 << (z / 4)) - 1;	/* compute mask for type */
-	  o = (size_mask >> 2) & 0x3f;	/* extract word offset */
-	  size_mask |= m << (o + 8);	/* insert mask into place */
+	  m = (1 << (z / 4)) - 1;	
+	  o = (size_mask >> 2) & 0x3f;	
+	  size_mask |= m << (o + 8);	
 	  break;
 	}
       size_mask += z;
@@ -105,8 +73,7 @@ sffi_struct_float_mask (sffi_type *outer_type, int size_mask)
   return size_mask;
 }
 
-/* Merge floating point data into integer data.  If the structure is
-   entirely floating point, simply return a pointer to the fp data.  */
+
 
 static void *
 sffi_struct_float_merge (int size_mask, void *vi, void *vf)
@@ -132,7 +99,7 @@ sffi_struct_float_merge (int size_mask, void *vi, void *vf)
     }
 }
 
-/* Similar, but place the data into VD in the end.  */
+
 
 void SFFI_HIDDEN
 sffi_struct_float_copy (int size_mask, void *vd, void *vi, void *vf)
@@ -157,7 +124,7 @@ sffi_struct_float_copy (int size_mask, void *vd, void *vi, void *vf)
   memcpy (vd, vi, size);
 }
 
-/* Perform machine dependent cif processing */
+
 
 static sffi_status
 sffi_prep_cif_machdep_core(sffi_cif *cif)
@@ -167,7 +134,7 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
   size_t bytes = 0;
   int i, n, flags;
 
-  /* Set the return type flag */
+  
   switch (rtt)
     {
     case SFFI_TYPE_VOID:
@@ -199,8 +166,7 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
 
 	  flags = (size_mask << SPARC_SIZEMASK_SHIFT) | SPARC_RET_STRUCT;
 
-	  /* For special cases of all-int or all-fp, we can return
-	     the value directly without popping through a struct copy.  */
+	  
 	  if (fp_mask == 0)
 	    {
 	      if (rtype->alignment >= 8)
@@ -218,9 +184,9 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
 	      case 2: flags = SPARC_RET_F_2; break;
 	      case 3: flags = SP_V9_RET_F_3; break;
 	      case 4: flags = SPARC_RET_F_4; break;
-	      /* 5 word structures skipped; handled via RET_STRUCT.  */
+	      
 	      case 6: flags = SPARC_RET_F_6; break;
-	      /* 7 word structures skipped; handled via RET_STRUCT.  */
+	      
 	      case 8: flags = SPARC_RET_F_8; break;
 	      }
 	}
@@ -266,18 +232,18 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
 	{
 	case SFFI_TYPE_COMPLEX:
 	case SFFI_TYPE_STRUCT:
-	  /* Large structs passed by reference.  */
+	  
 	  if (z > 16)
 	    {
 	      a = z = 8;
 	      break;
 	    }
-	  /* Small structs may be passed in integer or fp regs or both.  */
+	  
 	  if (bytes >= 16*8)
 	    break;
 	  if ((sffi_struct_float_mask (ty, 0) & 0xff00) == 0)
 	    break;
-	  /* FALLTHRU */
+	  
 	case SFFI_TYPE_FLOAT:
 	case SFFI_TYPE_DOUBLE:
 	case SFFI_TYPE_LONGDOUBLE:
@@ -288,15 +254,14 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
       bytes += SFFI_ALIGN(z, 8);
     }
 
-  /* Sparc call frames require that space is allocated for 6 args,
-     even if they aren't used. Make that space if necessary. */
+  
   if (bytes < 6 * 8)
     bytes = 6 * 8;
 
-  /* The stack must be 2 word aligned, so round bytes up appropriately. */
+  
   bytes = SFFI_ALIGN(bytes, 16);
 
-  /* Include the call frame to prep_args.  */
+  
   bytes += 8*16 + 8*8;
 
   cif->bytes = bytes;
@@ -321,8 +286,7 @@ sffi_prep_cif_machdep_var(sffi_cif *cif, unsigned nfixedargs, unsigned ntotalarg
 extern void sffi_call_v9(sffi_cif *cif, void (*fn)(void), void *rvalue,
 			void **avalue, size_t bytes, void *closure) SFFI_HIDDEN;
 
-/* sffi_prep_args is called by the assembly routine once stack space
-   has been allocated for the function's arguments */
+
 
 int SFFI_HIDDEN
 sffi_prep_args_v9(sffi_cif *cif, unsigned long *argp, void *rvalue, void **avalue)
@@ -335,21 +299,18 @@ sffi_prep_args_v9(sffi_cif *cif, unsigned long *argp, void *rvalue, void **avalu
     {
       if (flags & SPARC_FLAG_RET_IN_MEM)
 	{
-	  /* Since we pass the pointer to the callee, we need a value.
-	     We allowed for this space in sffi_call, before sffi_call_v8
-	     alloca'd the space.  */
+	  
 	  rvalue = (char *)argp + cif->bytes;
 	}
       else
 	{
-	  /* Otherwise, we can ignore the return value.  */
+	  
 	  flags = SPARC_RET_VOID;
 	}
     }
 
 #ifdef USING_PURIFY
-  /* Purify will probably complain in our assembly routine,
-     unless we zero out this memory. */
+  
   memset(argp, 0, 6*8);
 #endif
 
@@ -404,7 +365,7 @@ sffi_prep_args_v9(sffi_cif *cif, unsigned long *argp, void *rvalue, void **avalu
 	  z = ty->size;
 	  if (z > 16)
 	    {
-	      /* For structures larger than 16 bytes we pass reference.  */
+	      
 	      *argp++ = (unsigned long)a;
 	      break;
 	    }
@@ -436,9 +397,7 @@ sffi_call_int(sffi_cif *cif, void (*fn)(void), void *rvalue,
   if (rvalue == NULL && (cif->flags & SPARC_FLAG_RET_IN_MEM))
     bytes += SFFI_ALIGN (cif->rtype->size, 16);
 
-  /* If we have any large structure arguments, make a copy so we are passing
-     by value.  The pointer array is cloned first: the caller owns avalue[]
-     and may reuse it for another call, so it must not be modified.  */
+  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
@@ -499,13 +458,12 @@ sffi_prep_closure_loc (sffi_closure* closure,
   if (cif->abi != SFFI_V9)
     return SFFI_BAD_ABI;
 
-  /* Trampoline address is equal to the closure address.  We take advantage
-     of that to reduce the trampoline size by 8 bytes. */
+  
   fn = (unsigned long) sffi_closure_v9;
-  tramp[0] = 0x83414000;	/* rd	%pc, %g1	*/
-  tramp[1] = 0xca586010;	/* ldx	[%g1+16], %g5	*/
-  tramp[2] = 0x81c14000;	/* jmp	%g5		*/
-  tramp[3] = 0x01000000;	/* nop			*/
+  tramp[0] = 0x83414000;	
+  tramp[1] = 0xca586010;	
+  tramp[2] = 0x81c14000;	
+  tramp[3] = 0x01000000;	
   *((unsigned long *) &tramp[4]) = fn;
 
   closure->cif = cif;
@@ -548,18 +506,17 @@ sffi_closure_sparc_inner_v9(sffi_cif *cif,
 
   avalue = alloca(nargs * sizeof(void *));
 
-  /* Copy the caller's structure return address so that the closure
-     returns the data directly to the caller.  */
+  
   if (flags & SPARC_FLAG_RET_IN_MEM)
     {
       rvalue = (void *) gpr[0];
-      /* Skip the structure return address.  */
+      
       argn = 1;
     }
   else
     argn = 0;
 
-  /* Grab the addresses of the arguments from the stack frame.  */
+  
   for (i = 0; i < nargs; i++, argn = argx)
     {
       int named = i < nfixedargs;
@@ -583,7 +540,7 @@ sffi_closure_sparc_inner_v9(sffi_cif *cif,
 		  int size_mask = sffi_struct_float_mask (ty, 0);
 		  int argn_mask = (0xffff00 >> argn) & 0xff00;
 
-		  /* Eliminate fp registers off the end.  */
+		  
 		  size_mask = (size_mask & 0xff) | (size_mask & argn_mask);
 		  a = sffi_struct_float_merge (size_mask, gpr+argn, fpr+argn);
 		}
@@ -629,10 +586,10 @@ sffi_closure_sparc_inner_v9(sffi_cif *cif,
       avalue[i] = a;
     }
 
-  /* Invoke the closure.  */
+  
   fun (cif, rvalue, avalue, user_data);
 
-  /* Tell sffi_closure_sparc how to perform return type promotions.  */
+  
   return flags;
 }
-#endif /* SPARC64 */
+#endif 

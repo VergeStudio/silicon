@@ -20,11 +20,11 @@ import :facade;
 
 export namespace silicon::scheduler {
 
-/// @brief 基于工作窃取的 CPU 线程池调度器。
-///
-/// 使用 pimpl：所有数据成员位于 thread_pool::impl，定义在模块实现单元
-/// （thread_pool.cpp）。模板便捷重载（schedule<return_type>、
-/// resume<range_type>）在此内联定义。
+
+
+
+
+
 class CORE_API thread_pool final {
     struct private_constructor {
         explicit private_constructor() = default;
@@ -67,7 +67,7 @@ class CORE_API thread_pool final {
 
     ~thread_pool();
 
-    /// @brief 线程池中的线程数（thread_pool 独有）。
+
     [[nodiscard]] std::size_t thread_count() const noexcept ;
 
     [[nodiscard]] schedule_operation schedule() ;
@@ -101,9 +101,9 @@ class CORE_API thread_pool final {
     std::size_t size() const noexcept ;
     bool empty() const noexcept { return size() == 0; }
 
-    /// @brief 队列中等待的任务数（thread_pool 独有）。
+
     std::size_t queue_size() const noexcept ;
-    /// @brief 任务队列是否为空（thread_pool 独有）。
+
     [[nodiscard]] bool queue_empty() const noexcept { return queue_size() == 0; }
 
   private:
@@ -113,4 +113,4 @@ class CORE_API thread_pool final {
     std::size_t resume_range_impl(std::vector<std::coroutine_handle<>> &) noexcept ;
 };
 
-} // namespace silicon::scheduler
+}

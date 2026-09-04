@@ -1,13 +1,8 @@
-/*	Area:			sffi_call, closure_call
-	Purpose:		Check large structure returns.
-	Limitations:	none.
-	PR:				none.
-	Originator:		Blake Chaffin	6/18/2007
-*/
 
-/* { dg-do run { xfail strongarm*-*-* xscale*-*-* } } */
-/* { dg-options -mlong-double-128 { target powerpc64*-*-linux-gnu* } } */
-/* { dg-options -Wformat=0 { target moxie*-*-elf or1k-*-* } } */
+
+
+
+
 
 #include <inttypes.h>
 
@@ -295,7 +290,7 @@ int main (void)
 	CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 50, &ret_struct_type, argTypes) == SFFI_OK);
 
 	sffi_call(&cif, SFFI_FN(test_large_fn), &retVal, argValues);
-	/* { dg-output "1 2 3 4 5 6 7 8 9 10 11 0x12345678 1 2 3 4 5 6 7 8 9 10 11 0x12345678 1 2 3 4 5 6 7 8 9 10 11 0x12345678 1 2 3 4 5 6 7 8 9 10 11 0x12345678 1 2: 2 3 4 5 6 7 8 9 10 11 12 0x12345679 3 4 5 6 7 8 9 10 11 12 13 0x1234567a 4 5 6 7 8 9 10 11 12 13 14 0x1234567b 5 6 7 8 9 10 11 12 13 14 15 0x1234567c 6 7" } */
+	
 	printf("res: %" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
 		"%" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
 		"%" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
@@ -308,7 +303,7 @@ int main (void)
 	       retVal.ee, retVal.ff, retVal.gg, retVal.hh, retVal.ii, (long)(intptr_t)retVal.jj,
 		retVal.kk, retVal.ll, retVal.mm, retVal.nn, retVal.oo, retVal.pp,
 	       retVal.qq, retVal.rr, retVal.ss, retVal.tt, retVal.uu, (long)(intptr_t)retVal.vv, retVal.ww, retVal.xx);
-	/* { dg-output "\nres: 2 3 4 5 6 7 8 9 10 11 12 0x12345679 3 4 5 6 7 8 9 10 11 12 13 0x1234567a 4 5 6 7 8 9 10 11 12 13 14 0x1234567b 5 6 7 8 9 10 11 12 13 14 15 0x1234567c 6 7" } */
+	
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_large_fn, NULL, code) == SFFI_OK);
 
@@ -323,7 +318,7 @@ int main (void)
 		ui8, si8, ui16, si16, ui32, si32, ui64, si64, f, d, ld, p,
 		ui8, si8, ui16, si16, ui32, si32, ui64, si64, f, d, ld, p,
 		ui8, si8);
-	/* { dg-output "\n1 2 3 4 5 6 7 8 9 10 11 0x12345678 1 2 3 4 5 6 7 8 9 10 11 0x12345678 1 2 3 4 5 6 7 8 9 10 11 0x12345678 1 2 3 4 5 6 7 8 9 10 11 0x12345678 1 2: 2 3 4 5 6 7 8 9 10 11 12 0x12345679 3 4 5 6 7 8 9 10 11 12 13 0x1234567a 4 5 6 7 8 9 10 11 12 13 14 0x1234567b 5 6 7 8 9 10 11 12 13 14 15 0x1234567c 6 7" } */
+	
 	printf("res: %" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
 		"%" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
 		"%" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
@@ -336,7 +331,7 @@ int main (void)
 	       retVal.ee, retVal.ff, retVal.gg, retVal.hh, retVal.ii, (long)(intptr_t)retVal.jj,
 		retVal.kk, retVal.ll, retVal.mm, retVal.nn, retVal.oo, retVal.pp,
 	       retVal.qq, retVal.rr, retVal.ss, retVal.tt, retVal.uu, (long)(intptr_t)retVal.vv, retVal.ww, retVal.xx);
-	/* { dg-output "\nres: 2 3 4 5 6 7 8 9 10 11 12 0x12345679 3 4 5 6 7 8 9 10 11 12 13 0x1234567a 4 5 6 7 8 9 10 11 12 13 14 0x1234567b 5 6 7 8 9 10 11 12 13 14 15 0x1234567c 6 7" } */
+	
 
     return 0;
 }

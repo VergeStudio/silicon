@@ -12,10 +12,10 @@ struct latch::impl {
   public:
     explicit impl(std::int64_t count) noexcept: m_count(count), m_event(count <= 0) {}
 
-    /// The number of tasks to wait for completion before triggering the event to resume.
+
     std::atomic<std::int64_t> m_count;
-    /// The event to trigger when the latch counter reaches zero, this resumes the coroutine
-    /// that is co_await'ing on the latch.
+
+
     event m_event;
 };
 
@@ -43,4 +43,4 @@ auto latch::operator co_await() const noexcept -> event::awaiter {
     return m_p->m_event.operator co_await();
 }
 
-} // namespace silicon::coroutine
+}

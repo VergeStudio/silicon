@@ -1,10 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check passing of multiple signed short/char values.
-   Limitations:	none.
-   PR:		PR13221.
-   Originator:	<andreast@gcc.gnu.org> 20031129  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static signed short test_func_fn(signed char a1, signed short a2,
@@ -72,22 +68,22 @@ int main (void)
   cl_arg_types[3] = &sffi_type_sshort;
   cl_arg_types[4] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &sffi_type_sshort, cl_arg_types) == SFFI_OK);
 
   sffi_call(&cif, SFFI_FN(test_func_fn), &res_call, args_dbl);
-  /* { dg-output "1 32765 127 -128: 32765" } */
+  
   printf("res: %d\n", (signed short)res_call);
-  /* { dg-output "\nres: 32765" } */
+  
   CHECK((signed short)res_call == 32765);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, test_func_gn, NULL, code)  == SFFI_OK);
 
   res_closure = (*((test_type)code))(1, 32765, 127, -128);
-  /* { dg-output "\n1 32765 127 -128: 32765" } */
+  
   printf("res: %d\n", res_closure);
-  /* { dg-output "\nres: 32765" } */
+  
   CHECK(res_closure == 32765);
 
   exit(0);

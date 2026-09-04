@@ -1,11 +1,7 @@
-/* Area:	closure_call
-   Purpose:	Check return value long long.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
-/* { dg-options "-Wno-format" { target alpha*-dec-osf* } } */
+
+
+
 #include "ffitest.h"
 
 static void cls_ret_ulonglong_fn(sffi_cif* cif __UNUSED__, void* resp,
@@ -29,20 +25,20 @@ int main (void)
   cl_arg_types[0] = &sffi_type_uint64;
   cl_arg_types[1] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_uint64, cl_arg_types) == SFFI_OK);
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_ret_ulonglong_fn, NULL, code)  == SFFI_OK);
   res = (*((cls_ret_ulonglong)code))(214LL);
-  /* { dg-output "214: 1152921504606846761" } */
+  
   printf("res: %" PRIdLL "\n", res);
-  /* { dg-output "\nres: 1152921504606846761" } */
+  
   CHECK(res == 1152921504606846761LL);
 
   res = (*((cls_ret_ulonglong)code))(9223372035854775808LL);
-  /* { dg-output "\n9223372035854775808: 8070450533247928831" } */
+  
   printf("res: %" PRIdLL "\n", res);
-  /* { dg-output "\nres: 8070450533247928831" } */
+  
   CHECK(res == 8070450533247928831LL);
 
   exit(0);

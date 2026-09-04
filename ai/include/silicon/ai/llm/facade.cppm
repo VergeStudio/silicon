@@ -11,8 +11,8 @@ module;
 #include <system_error>
 #include <vector>
 
-// proxy 的 dispatch 宏走头文件通道，本模块定义门面须在全局模块片段显式
-// 包含，随后再 import silicon.proxy（宏不随 C++20 模块导出）。
+
+
 #include <silicon/proxy/proxy_macros.h>
 
 #include <tuple>
@@ -28,12 +28,12 @@ export import silicon.ai.llm.types;
 
 export namespace silicon::ai::llm {
 
-// ── 类型擦除门面（silicon.proxy）─────────────
-//
-// 目标类型无需继承任何基类，只要拥有匹配签名的成员即自动满足门面（鸭子
-// 类型）。既有的具体类 scripted_provider / http_provider /
-// json_protocol_adapter，以及测试中的 echo_tool / const_provider 均直接接入，
-// 不再耦合任何继承体系。跨 DLL/ABI 边界以「胖指针 + vtable 值」替代虚表。
+
+
+
+
+
+
 
 PRO_DEF_MEM_DISPATCH(MemToolName, name);
 PRO_DEF_MEM_DISPATCH(MemToolDescription, description);
@@ -48,57 +48,57 @@ PRO_DEF_MEM_DISPATCH(MemProviderRegRegister, register_provider);
 PRO_DEF_MEM_DISPATCH(MemProviderRegGet, get_provider);
 PRO_DEF_MEM_DISPATCH(MemProviderRegList, list_providers);
 
-/// 工具门面：满足 `std::string_view name() const` /
-/// `std::string_view description() const` / `tool_output execute(tool_call)`。
+
+
 struct tool_facade
-    : silicon::proxy::facade_builder                                 //
-      ::add_convention<MemToolName, std::string_view() const>        //
-      ::add_convention<MemToolDescription, std::string_view() const> //
-      ::add_convention<MemToolExecute, tool_output(tool_call)>       //
-      ::support_copy<silicon::proxy::constraint_level::kNontrivial>  //
+    : silicon::proxy::facade_builder
+      ::add_convention<MemToolName, std::string_view() const>
+      ::add_convention<MemToolDescription, std::string_view() const>
+      ::add_convention<MemToolExecute, tool_output(tool_call)>
+      ::support_copy<silicon::proxy::constraint_level::kNontrivial>
       ::build {};
 
-/// 提供方门面：满足 `result<chat_response> chat(conversation const&,
-/// model_request_options const&)`。
+
+
 struct provider_facade
-    : silicon::proxy::facade_builder                                                                                //
-      ::add_convention<MemProviderChat, result<chat_response>(const conversation &, const model_request_options &)> //
-      ::support_copy<silicon::proxy::constraint_level::kNontrivial>                                                 //
+    : silicon::proxy::facade_builder
+      ::add_convention<MemProviderChat, result<chat_response>(const conversation &, const model_request_options &)>
+      ::support_copy<silicon::proxy::constraint_level::kNontrivial>
       ::build {};
 
-/// 协议适配器门面：满足 encode_request / decode_response 两个成员。
+
 struct protocol_adapter_facade
-    : silicon::proxy::facade_builder                                                                                                               //
-      ::add_convention<MemAdapterEncode, std::string(const conversation &, const model_request_options &, const std::vector<std::string> &) const> //
-      ::add_convention<MemAdapterDecode, result<chat_response>(std::string_view) const>                                                            //
+    : silicon::proxy::facade_builder
+      ::add_convention<MemAdapterEncode, std::string(const conversation &, const model_request_options &, const std::vector<std::string> &) const>
+      ::add_convention<MemAdapterDecode, result<chat_response>(std::string_view) const>
       ::build {};
 
-/// 拥有所有权的类型擦除句柄（值语义；小对象内联，无堆分配）。
+
 using tool_proxy = silicon::proxy::proxy<tool_facade>;
 using provider_proxy = silicon::proxy::proxy<provider_facade>;
 using protocol_adapter_proxy = silicon::proxy::proxy<protocol_adapter_facade>;
 
-/// 非拥有观察视图，等价于裸指针但不要求继承。
+
 using tool_view = silicon::proxy::proxy_view<tool_facade>;
 using provider_view = silicon::proxy::proxy_view<provider_facade>;
 
-/// 工具注册表门面：注册/查询/计数，全部以 tool_proxy 承载工具。
+
 struct tool_registry_facade
-    : silicon::proxy::facade_builder                                      //
-      ::add_convention<MemToolRegRegister, bool(tool_proxy)>              //
-      ::add_convention<MemToolRegGet, tool_proxy(std::string_view) const> //
-      ::add_convention<MemToolRegCount, std::size_t() const>              //
+    : silicon::proxy::facade_builder
+      ::add_convention<MemToolRegRegister, bool(tool_proxy)>
+      ::add_convention<MemToolRegGet, tool_proxy(std::string_view) const>
+      ::add_convention<MemToolRegCount, std::size_t() const>
       ::build {};
 
-/// 提供方注册表门面：注册/查询/列举，全部以 provider_proxy 承载提供方。
+
 struct provider_registry_facade
-    : silicon::proxy::facade_builder                                              //
-      ::add_convention<MemProviderRegRegister, bool(std::string, provider_proxy)> //
-      ::add_convention<MemProviderRegGet, provider_proxy(std::string_view) const> //
-      ::add_convention<MemProviderRegList, std::vector<std::string>() const>      //
+    : silicon::proxy::facade_builder
+      ::add_convention<MemProviderRegRegister, bool(std::string, provider_proxy)>
+      ::add_convention<MemProviderRegGet, provider_proxy(std::string_view) const>
+      ::add_convention<MemProviderRegList, std::vector<std::string>() const>
       ::build {};
 
-/// 就地构造任意满足门面的目标类型并擦除为 proxy；句柄按值持有。
+
 template<class T, class... Args>
 [[nodiscard]] tool_proxy make_tool(Args &&...args) {
     return silicon::proxy::make_proxy<tool_facade, T>(std::forward<Args>(args)...);
@@ -112,9 +112,9 @@ template<class T, class... Args>
     return silicon::proxy::make_proxy<protocol_adapter_facade, T>(std::forward<Args>(args)...);
 }
 
-// ── 具体实现（鸭子类型满足上方门面，零抽象基类耦合） ─────────────
 
-/// 内存工具注册表：重复 name 注册返回 false（不替换）。
+
+
 class AI_API tool_registry {
 
     struct impl;
@@ -128,7 +128,7 @@ class AI_API tool_registry {
     std::size_t tool_count() const;
 };
 
-/// 内存提供方注册表：重复 id 注册返回 false。
+
 class AI_API provider_registry {
 
     struct impl;
@@ -142,8 +142,8 @@ class AI_API provider_registry {
     std::vector<std::string> list_providers() const;
 };
 
-/// OpenAI 风格 JSON 协议适配器：conversation/Options -> 请求 JSON；
-/// 线路 JSON -> chat_response（choices[0].message.content 等）。
+
+
 class AI_API json_protocol_adapter {
   public:
     std::string encode_request(
@@ -154,8 +154,8 @@ class AI_API json_protocol_adapter {
     result<chat_response> decode_response(std::string_view) const;
 };
 
-/// 脚本化提供方：FIFO 返回预置响应，用于确定性 TDD。
-/// 队列耗尽返回 llm_error，绝不抛异常。
+
+
 class AI_API scripted_provider {
 
     struct impl;
@@ -170,9 +170,9 @@ class AI_API scripted_provider {
     result<chat_response> chat(const conversation &, const model_request_options &);
 };
 
-/// OpenAI 兼容 HTTP provider：通过本地 curl 调用 {base_url}/chat/completions。
-/// 配置来自环境变量（无 key 时 chat 返回 llm_error，由调用方提示用户）。
-/// 选用 OpenAI 兼容协议，可对接 OpenAI / DeepSeek / Ollama / vLLM / LM Studio 等。
+
+
+
 class AI_API http_provider {
 
     struct impl;
@@ -182,7 +182,7 @@ class AI_API http_provider {
 
     struct http_result {
 
-        struct impl; // 完整定义下沉至 llm.cpp（http_result 非模版）
+        struct impl;
         std::shared_ptr<impl> impl_;
 
       public:
@@ -199,7 +199,7 @@ class AI_API http_provider {
         const std::string &body() const;
     };
 
-    // 用临时文件承载请求体，避开 JSON 中的引号转义问题；跨平台用 -H 传头。
+
     http_result post_json(const std::string &, const std::string &) const;
 
   public:
@@ -210,4 +210,4 @@ class AI_API http_provider {
     result<chat_response> chat(const conversation &, const model_request_options &);
 };
 
-} // namespace silicon::ai::llm
+}

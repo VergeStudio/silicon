@@ -1,16 +1,10 @@
-/* Area:		sffi_call, closure_call
-   Purpose:		Check structure returning with different structure size.
-				Depending on the ABI. Check bigger struct which overlaps
-				the gp and fp register count on Darwin/AIX/ppc64.
-   Limitations:	none.
-   PR:			none.
-   Originator:	Blake Chaffin	6/21/2007	*/
 
-/* { dg-do run { xfail strongarm*-*-* xscale*-*-*  } } */
+
+
 #include "ffitest.h"
 
-/* 13 FPRs: 104 bytes */
-/* 14 FPRs: 112 bytes */
+
+
 
 typedef struct struct_116byte {
 	double a;
@@ -128,21 +122,21 @@ int main (void)
 	args_dbl[4] = NULL;
 
 	sffi_call(&cif, SFFI_FN(cls_struct_116byte_fn), &res_dbl, args_dbl);
-	/* { dg-output "22 15 17 25 6 13 19 18 22 15 17 25 6 26 16" } */
+	
 	printf("res: %g %g %g %g %g %g %g %g %g %g %g %g %g %g %d\n", res_dbl.a, res_dbl.b,
 		res_dbl.c, res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h, res_dbl.i,
 		res_dbl.j, res_dbl.k, res_dbl.l, res_dbl.m, res_dbl.n, res_dbl.o);
-	/* { dg-output "\nres: 22 15 17 25 6 13 19 18 22 15 17 25 6 26 16" } */
+	
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_116byte_gn, NULL, code) == SFFI_OK);
 
 	res_dbl = ((struct_116byte(*)(struct_116byte, struct_116byte,
 		struct_116byte, struct_116byte))(code))(e_dbl, f_dbl, g_dbl, h_dbl);
-	/* { dg-output "\n22 15 17 25 6 13 19 18 22 15 17 25 6 26 16" } */
+	
 	printf("res: %g %g %g %g %g %g %g %g %g %g %g %g %g %g %d\n", res_dbl.a, res_dbl.b,
 		res_dbl.c, res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h, res_dbl.i,
 		res_dbl.j, res_dbl.k, res_dbl.l, res_dbl.m, res_dbl.n, res_dbl.o);
-	/* { dg-output "\nres: 22 15 17 25 6 13 19 18 22 15 17 25 6 26 16" } */
+	
 
 	exit(0);
 }

@@ -1,13 +1,8 @@
-/* Area:		sffi_call, closure_call
-   Purpose:		Check long double arguments.
-   Limitations:	none.
-   PR:			none.
-   Originator:	Blake Chaffin	*/
 
-/* This test is known to PASS on armv7l-unknown-linux-gnueabihf, so I have
-   remove the xfail for arm*-*-* below, until we know more.  */
-/* { dg-do run { xfail strongarm*-*-* xscale*-*-* } } */
-/* { dg-options -mlong-double-128 { target powerpc64*-*-linux-gnu* } } */
+
+
+
+
 
 #include "ffitest.h"
 
@@ -96,9 +91,9 @@ int main(void)
 	args[8] = NULL;
 
 	sffi_call(&cif, SFFI_FN(cls_ldouble_fn), &res, args);
-	/* { dg-output "1 2 3 4 5 6 7 8: 36" } */
+	
 	printf("res: %Lg\n", res);
-	/* { dg-output "\nres: 36" } */
+	
 	CHECK(res == 36);
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_ldouble_gn, NULL, code) == SFFI_OK);
@@ -106,9 +101,9 @@ int main(void)
 	res = ((long double(*)(long double, long double, long double, long double,
 		long double, long double, long double, long double))(code))(arg1, arg2,
 		arg3, arg4, arg5, arg6, arg7, arg8);
-	/* { dg-output "\n1 2 3 4 5 6 7 8: 36" } */
+	
 	printf("res: %Lg\n", res);
-	/* { dg-output "\nres: 36" } */
+	
 	CHECK(res == 36);
 
 	return 0;

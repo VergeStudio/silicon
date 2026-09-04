@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check float arguments with different orders.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 #include "float.h"
@@ -39,7 +35,7 @@ int main (void)
   args[2] = &sffi_type_longdouble;
   values[2] = &ld;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3,
 		     &sffi_type_double, args) == SFFI_OK);
 
@@ -60,7 +56,7 @@ int main (void)
   args[2] = &sffi_type_float;
   values[2] = &f;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3,
 		     &sffi_type_double, args) == SFFI_OK);
 

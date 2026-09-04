@@ -1,6 +1,6 @@
 module;
 
-// 标准库头必须置于全局模块片段（module 声明之前）
+
 #include <cstdint>
 #include <stdexcept>
 #include <string>
@@ -32,4 +32,4 @@ auto config_value::as_string_opt() const noexcept -> const std::string * {
     return nullptr;
 }
 
-} // namespace silicon::config
+}

@@ -1,30 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2022 Xu Chenghua <xuchenghua@loongson.cn>
-                         2022 Cheng Lulu <chenglulu@loongson.cn>
-   Based on RISC-V port
 
-   LoongArch Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -49,14 +23,7 @@
 #define STKALIGN 16
 #define MAXCOPYARG (2 * sizeof (double))
 
-/* call_context registers
-   - 8 floating point parameter/result registers.
-   - 8 integer parameter/result registers.
-   - 2 registers used by the assembly code to in-place construct its own
-     stack frame
-     - frame register
-     - return register
-*/
+
 typedef struct call_context
 {
 #if !defined(__loongarch_soft_float)
@@ -70,13 +37,13 @@ typedef struct call_builder
   call_context *aregs;
   int used_integer;
   int used_float;
-  size_t *used_stack;	    /* Stack pointer.  */
-  size_t *stack;	    /* Place for arguments pass by reference.  */
-  size_t next_struct_area;  /* Offset for arguments pass by reference.  */
+  size_t *used_stack;	    
+  size_t *stack;	    
+  size_t next_struct_area;  
 } call_builder;
 
-/* Integer (not pointer) less than ABI GRLEN.  */
-/* SFFI_TYPE_INT does not appear to be used.  */
+
+
 #if __SIZEOF_POINTER__ == 8
 # define IS_INT(type) ((type) >= SFFI_TYPE_UINT8 && (type) <= SFFI_TYPE_SINT64)
 #else
@@ -113,9 +80,7 @@ flatten_struct (sffi_type *in, sffi_type **out, sffi_type **out_end)
   return out;
 }
 
-/* Structs with at most two fields after flattening, one of which is of
-   floating point type, are passed in multiple registers if sufficient
-   registers are available.  */
+
 static float_struct_info
 struct_passed_as_elements (call_builder *cb, sffi_type *top)
 {
@@ -153,8 +118,7 @@ struct_passed_as_elements (call_builder *cb, sffi_type *top)
 }
 #endif
 
-/* Allocates a single register, float register, or GRLEN-sized stack slot to a
-   datum.  */
+
 static void
 marshal_atom (call_builder *cb, int type, void *data)
 {
@@ -173,7 +137,7 @@ marshal_atom (call_builder *cb, int type, void *data)
     case SFFI_TYPE_SINT16:
       value = *(int16_t *) data;
       break;
-    /* 32-bit quantities are always sign-extended in the ABI.  */
+    
     case SFFI_TYPE_UINT32:
       value = *(int32_t *) data;
       break;
@@ -257,8 +221,7 @@ unmarshal_atom (call_builder *cb, int type, void *data)
     }
 }
 
-/* Allocate and copy a structure that is passed by value on the stack and
-   return a pointer to it.  */
+
 static void *
 allocate_and_copy_struct_to_stack (call_builder *cb, void *data,
 				   sffi_type *type)
@@ -271,7 +234,7 @@ allocate_and_copy_struct_to_stack (call_builder *cb, void *data,
   return memcpy ((char *)cb->stack + dest, data, type->size);
 }
 
-/* Adds an argument to a call, or a not by reference return value.  */
+
 static void
 marshal (call_builder *cb, sffi_type *type, int var, void *data)
 {
@@ -300,7 +263,7 @@ marshal (call_builder *cb, sffi_type *type, int var, void *data)
   double promoted;
   if (var && type->type == SFFI_TYPE_FLOAT)
     {
-      /* C standard requires promoting float -> double for variable arg.  */
+      
       promoted = *(float *) data;
       type = &sffi_type_double;
       data = &promoted;
@@ -308,7 +271,7 @@ marshal (call_builder *cb, sffi_type *type, int var, void *data)
 #endif
 
   if (type->size > 2 * __SIZEOF_POINTER__)
-    /* Pass by reference.  */
+    
     {
       allocate_and_copy_struct_to_stack (cb, data, type);
       data = (char *)cb->stack + cb->next_struct_area;
@@ -318,10 +281,9 @@ marshal (call_builder *cb, sffi_type *type, int var, void *data)
     marshal_atom (cb, type->type, data);
   else
     {
-      /* Overlong integers, soft-float floats, and structs without special
-	 float handling are treated identically from this point on.  */
+      
 
-      /* Variadics are aligned even in registers.  */
+      
       if (type->alignment > __SIZEOF_POINTER__)
 	{
 	  if (var)
@@ -338,8 +300,7 @@ marshal (call_builder *cb, sffi_type *type, int var, void *data)
     }
 }
 
-/* For arguments passed by reference returns the pointer, otherwise the arg
-   is copied (up to MAXCOPYARG bytes).  */
+
 static void *
 unmarshal (call_builder *cb, sffi_type *type, int var, void *data)
 {
@@ -377,7 +338,7 @@ unmarshal (call_builder *cb, sffi_type *type, int var, void *data)
 
   if (type->size > 2 * __SIZEOF_POINTER__)
     {
-      /* Pass by reference.  */
+      
       unmarshal_atom (cb, SFFI_TYPE_POINTER, (char *) &pointer);
       return pointer;
     }
@@ -388,10 +349,9 @@ unmarshal (call_builder *cb, sffi_type *type, int var, void *data)
     }
   else
     {
-      /* Overlong integers, soft-float floats, and structs without special
-	 float handling are treated identically from this point on.  */
+      
 
-      /* Variadics are aligned even in registers.  */
+      
       if (type->alignment > __SIZEOF_POINTER__)
 	{
 	  if (var)
@@ -424,7 +384,7 @@ passed_by_ref (call_builder *cb, sffi_type *type, int var)
   return type->size > 2 * __SIZEOF_POINTER__;
 }
 
-/* Perform machine dependent cif processing.  */
+
 sffi_status
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
@@ -432,8 +392,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
   return SFFI_OK;
 }
 
-/* Perform machine dependent cif processing when we have a variadic
-   function.  */
+
 sffi_status
 sffi_prep_cif_machdep_var (sffi_cif *cif, unsigned int nfixedargs,
 			  unsigned int ntotalargs)
@@ -442,7 +401,7 @@ sffi_prep_cif_machdep_var (sffi_cif *cif, unsigned int nfixedargs,
   return SFFI_OK;
 }
 
-/* Low level routine for calling functions.  */
+
 extern void sffi_call_asm (void *stack, struct call_context *regs,
 			  void (*fn) (void), void *closure) SFFI_HIDDEN;
 
@@ -452,8 +411,7 @@ sffi_call_int (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
 {
   size_t arg_bytes = SFFI_ALIGN (cif->bytes, STKALIGN);
 
-  /* This is a conservative estimate, assuming a complex return value and
-     that all remaining arguments are long long / __int128 */
+  
   size_t extra_bytes = cif->nargs <= 3 ? 0 :
       SFFI_ALIGN(2 * sizeof(size_t) * (cif->nargs - 3), STKALIGN);
 
@@ -462,14 +420,11 @@ sffi_call_int (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
     rval_bytes = SFFI_ALIGN (cif->rtype->size, STKALIGN);
   size_t alloc_size = arg_bytes + extra_bytes + rval_bytes + sizeof (call_context);
 
-  /* The assembly code will deallocate all stack data at lower addresses
-     than the argument region, so we need to allocate the frame and the
-     return value after the arguments in a single allocation.  */
+  
   size_t alloc_base;
-  /* Argument region must be 16-byte aligned in LP64 ABIs.  */
+  
   if (_Alignof(max_align_t) >= STKALIGN)
-    /* Since sizeof long double is normally 16, the compiler will
-       guarantee alloca alignment to at least that much.  */
+    
     alloc_base = (size_t) alloca (alloc_size);
   else
     alloc_base = SFFI_ALIGN (alloca (alloc_size + STKALIGN - 1), STKALIGN);
@@ -534,12 +489,11 @@ sffi_prep_closure_loc (sffi_closure *closure, sffi_cif *cif,
     }
 #endif
 
-  /* Fill the dynamic trampoline.  We will call sffi_closure_inner with codeloc,
-     not closure, but as long as the memory is readable it should work.  */
-  tramp[0] = 0x1800000c; /* pcaddi $t0, 0 (i.e. $t0 <- tramp) */
-  tramp[1] = 0x28c0418d; /* ld.d   $t1, $t0, 16 */
-  tramp[2] = 0x4c0001a0; /* jirl   $zero, $t1, 0 */
-  tramp[3] = 0x03400000; /* nop */
+  
+  tramp[0] = 0x1800000c; 
+  tramp[1] = 0x28c0418d; 
+  tramp[2] = 0x4c0001a0; 
+  tramp[3] = 0x03400000; 
   tramp[4] = fn;
   tramp[5] = fn >> 32;
 
@@ -570,19 +524,14 @@ sffi_prep_go_closure (sffi_go_closure *closure, sffi_cif *cif,
   return SFFI_OK;
 }
 
-/* Called by the assembly code with aregs pointing to saved argument registers
-   and stack pointing to the stacked arguments.  Return values passed in
-   registers will be reloaded from aregs.  */
+
 void SFFI_HIDDEN
 sffi_closure_inner (sffi_cif *cif,
 		   void (*fun) (sffi_cif *, void *, void **, void *),
 		   void *user_data, size_t *stack, call_context *aregs)
 {
   void **avalue = alloca (cif->nargs * sizeof (void *));
-  /* Storage for arguments which will be copied by unmarshal().  We could
-     theoretically avoid the copies in many cases and use at most 128 bytes
-     of memory, but allocating disjoint storage for each argument is
-     simpler.  */
+  
   char *astorage = alloca (cif->nargs * MAXCOPYARG);
   void *rvalue;
   call_builder cb;
@@ -620,8 +569,7 @@ sffi_tramp_arch (size_t *tramp_size, size_t *map_size)
   extern void *trampoline_code_table;
 
   *tramp_size = 16;
-  /* A mapping size of 64K is chosen to cover the page sizes of 4K, 16K, and
-     64K.  */
+  
   *map_size = 1 << 16;
   return &trampoline_code_table;
 }

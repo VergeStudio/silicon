@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check return value unsigned char.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static unsigned char return_uc(unsigned char uc)
@@ -24,7 +20,7 @@ int main (void)
   args[0] = &sffi_type_uchar;
   values[0] = &uc;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_uchar, args) == SFFI_OK);
 

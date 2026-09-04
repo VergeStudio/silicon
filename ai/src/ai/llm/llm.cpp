@@ -24,7 +24,7 @@ import silicon.core;
 
 namespace silicon::ai::llm {
 
-// ── http_provider::http_result PIMPL ────────────────────────────
+
 
 struct http_provider::http_result::impl {
   public:
@@ -46,7 +46,7 @@ const int &http_provider::http_result::status() const { return impl_->status_; }
 std::string &http_provider::http_result::body() { return impl_->body_; }
 const std::string &http_provider::http_result::body() const { return impl_->body_; }
 
-// ── 注册表 / provider PIMPL ─────────────────────────────────────
+
 
 struct tool_registry::impl {
   public:
@@ -267,4 +267,4 @@ result<chat_response> http_provider::chat(const conversation &conv, const model_
 }
 
 
-} // namespace silicon::ai::llm
+}

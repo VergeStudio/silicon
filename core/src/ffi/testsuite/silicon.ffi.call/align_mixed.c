@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check for proper argument alignment.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<twalljava@java.net> (from many_win32.c) */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 
@@ -30,7 +26,7 @@ int main(void)
   void *values[4] = {&ia[0], &fa[0], &ia[1], &fa[1]};
   float f, ff;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 4,
 		     &sffi_type_float, args) == SFFI_OK);
 

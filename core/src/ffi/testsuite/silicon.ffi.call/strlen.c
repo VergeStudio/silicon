@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check strlen function call.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static unsigned int ABI_ATTR my_strlen(char *s)
@@ -23,7 +19,7 @@ int main (void)
   args[0] = &sffi_type_pointer;
   values[0] = (void*) &s;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 1,
 		     &sffi_type_uint, args) == SFFI_OK);
 

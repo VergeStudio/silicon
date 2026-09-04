@@ -1,25 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Pass many small (8-byte) structs by value.
-   Limitations:	none.
-   PR:		none.
-   Originator:	secscan regression (PA-RISC 32-bit slot under-count).
 
-   Regression test: on PA-RISC 32-bit (SFFI_PA32), sffi_size_stack_pa32 reserves
-   one stack slot per struct (pa/ffi.c: "z += 1"), but sffi_prep_args_pa32
-   consumes two slots for a 5-8 byte struct passed inline.  sffi_call_pa32 sets
-   the argument base to sp + cif->bytes and sffi_prep_args_pa32 writes each
-   argument at (base - slot*4), so once the marshaller's slot count exceeds
-   cif->bytes/4 the writes spill below sp -- first into the 64-byte register
-   save area, then over sffi_call_pa32's own saved return pointer.
 
-   A few small structs only overflow into harmless scratch (the call still
-   returns correctly), so this uses enough 8-byte structs that the overflow
-   reaches the saved return pointer and corrupts the return path.  On a correct
-   backend all arguments marshal within the allocated frame and the call simply
-   returns the expected sums; the test passes everywhere except an unfixed
-   SFFI_PA32.  */
 
-/* { dg-do run } */
 #include "ffitest.h"
 
 typedef struct { int a; int b; } small_struct;

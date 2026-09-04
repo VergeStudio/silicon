@@ -1,31 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi64.c - Copyright (c) 2011, 2018, 2022, 2026  Anthony Green
-             Copyright (c) 2013  The Written Word, Inc.
-             Copyright (c) 2008, 2010  Red Hat, Inc.
-             Copyright (c) 2002, 2007  Bo Thorsen <bo@suse.de>
 
-   x86-64 Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -64,27 +37,19 @@ union big_int_union
 
 struct register_args
 {
-  /* Registers for argument passing.  */
+  
   UINT64 gpr[MAX_GPR_REGS];
   union big_int_union sse[MAX_SSE_REGS];
-  UINT64 rax;	/* ssecount */
-  UINT64 r10;	/* static chain */
+  UINT64 rax;	
+  UINT64 r10;	
 };
 
 extern void sffi_call_unix64 (void *args, unsigned long bytes, unsigned flags,
 			     void *raddr, void (*fnaddr)(void)) SFFI_HIDDEN;
 
-/* All reference to register classes here is identical to the code in
-   gcc/config/i386/i386.c. Do *not* change one without the other.  */
 
-/* Register class used for passing given 64bit part of the argument.
-   These represent classes as documented by the PS ABI, with the
-   exception of SSESF, SSEDF classes, that are basically SSE class,
-   just gcc will use SF or DFmode move instead of DImode to avoid
-   reformatting penalties.
 
-   Similary we play games with INTEGERSI_CLASS to use cheaper SImode moves
-   whenever possible (upper half does contain padding).  */
+
 enum x86_64_reg_class
   {
     X86_64_NO_CLASS,
@@ -104,13 +69,7 @@ enum x86_64_reg_class
 
 #define SSE_CLASS_P(X)	((X) >= X86_64_SSE_CLASS && X <= X86_64_SSEUP_CLASS)
 
-/* On most x86-64 targets `long double` is the 80-bit x87 type: classified
-   X87/X87UP, passed in memory, returned in st(0).  But some targets (notably
-   x86_64 Android, and anything built with -mlong-double-128) make `long double`
-   the IEEE binary128 quad type, which the psABI passes and returns in SSE
-   registers exactly like __float128 (class SSE/SSEUP -> one %xmm register).
-   Detect that at compile time and classify long double accordingly.  A mantissa
-   of 113 bits uniquely identifies binary128 (x87 extended is 64).  */
+
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE \
     && defined(__LDBL_MANT_DIG__) && __LDBL_MANT_DIG__ == 113
 # define SFFI_LONGDOUBLE_BINARY128 1
@@ -118,32 +77,28 @@ enum x86_64_reg_class
 # define SFFI_LONGDOUBLE_BINARY128 0
 #endif
 
-/* x86-64 register passing implementation.  See x86-64 ABI for details.  Goal
-   of this code is to classify each 8bytes of incoming argument by the register
-   class and assign registers accordingly.  */
 
-/* Return the union class of CLASS1 and CLASS2.
-   See the x86-64 PS ABI for details.  */
+
+
 
 static enum x86_64_reg_class
 merge_classes (enum x86_64_reg_class class1, enum x86_64_reg_class class2)
 {
-  /* Rule #1: If both classes are equal, this is the resulting class.  */
+  
   if (class1 == class2)
     return class1;
 
-  /* Rule #2: If one of the classes is NO_CLASS, the resulting class is
-     the other class.  */
+  
   if (class1 == X86_64_NO_CLASS)
     return class2;
   if (class2 == X86_64_NO_CLASS)
     return class1;
 
-  /* Rule #3: If one of the classes is MEMORY, the result is MEMORY.  */
+  
   if (class1 == X86_64_MEMORY_CLASS || class2 == X86_64_MEMORY_CLASS)
     return X86_64_MEMORY_CLASS;
 
-  /* Rule #4: If one of the classes is INTEGER, the result is INTEGER.  */
+  
   if ((class1 == X86_64_INTEGERSI_CLASS && class2 == X86_64_SSESF_CLASS)
       || (class2 == X86_64_INTEGERSI_CLASS && class1 == X86_64_SSESF_CLASS))
     return X86_64_INTEGERSI_CLASS;
@@ -151,8 +106,7 @@ merge_classes (enum x86_64_reg_class class1, enum x86_64_reg_class class2)
       || class2 == X86_64_INTEGER_CLASS || class2 == X86_64_INTEGERSI_CLASS)
     return X86_64_INTEGER_CLASS;
 
-  /* Rule #5: If one of the classes is X87, X87UP, or COMPLEX_X87 class,
-     MEMORY is used.  */
+  
   if (class1 == X86_64_X87_CLASS
       || class1 == X86_64_X87UP_CLASS
       || class1 == X86_64_COMPLEX_X87_CLASS
@@ -161,18 +115,11 @@ merge_classes (enum x86_64_reg_class class1, enum x86_64_reg_class class2)
       || class2 == X86_64_COMPLEX_X87_CLASS)
     return X86_64_MEMORY_CLASS;
 
-  /* Rule #6: Otherwise class SSE is used.  */
+  
   return X86_64_SSE_CLASS;
 }
 
-/* Classify the argument of type TYPE and mode MODE.
-   CLASSES will be filled by the register class used to pass each word
-   of the operand.  The number of words is returned.  In case the parameter
-   should be passed in memory, 0 is returned. As a special case for zero
-   sized containers, classes[0] will be NO_CLASS and 1 is returned.
 
-   See the x86-64 PS ABI for details.
-*/
 static size_t
 classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 		   size_t byte_offset)
@@ -230,7 +177,7 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
     case SFFI_TYPE_LONGDOUBLE:
 #if SFFI_LONGDOUBLE_BINARY128
-      /* IEEE binary128: one %xmm register, like __float128.  */
+      
       classes[0] = X86_64_SSE_CLASS;
       classes[1] = X86_64_SSEUP_CLASS;
 #else
@@ -248,15 +195,14 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 	unsigned int i;
 	enum x86_64_reg_class subclasses[MAX_CLASSES];
 
-	/* If the struct is larger than 32 bytes, pass it on the stack.  */
+	
 	if (type->size > 32)
 	  return 0;
 
 	for (i = 0; i < words; i++)
 	  classes[i] = X86_64_NO_CLASS;
 
-	/* Zero sized arrays or structures are NO_CLASS.  We return 0 to
-	   signalize memory class, so handle it as special case.  */
+	
 	if (!words)
 	  {
     case SFFI_TYPE_VOID:
@@ -264,7 +210,7 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 	    return 1;
 	  }
 
-	/* Merge the fields of structure.  */
+	
 	for (ptr = type->elements; *ptr != NULL; ptr++)
 	  {
 	    size_t num, pos;
@@ -287,10 +233,7 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 
 	if (words > 2)
 	  {
-	    /* When size > 16 bytes, if the first one isn't
-	       X86_64_SSE_CLASS or any other ones aren't
-	       X86_64_SSEUP_CLASS, everything should be passed in
-	       memory.  */
+	    
 	    if (classes[0] != X86_64_SSE_CLASS)
 	      return 0;
 
@@ -299,31 +242,28 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 		return 0;
 	  }
 
-	/* Final merger cleanup.  */
+	
 	for (i = 0; i < words; i++)
 	  {
-	    /* If one class is MEMORY, everything should be passed in
-	       memory.  */
+	    
 	    if (classes[i] == X86_64_MEMORY_CLASS)
 	      return 0;
 
-	    /* The X86_64_SSEUP_CLASS should be always preceded by
-	       X86_64_SSE_CLASS or X86_64_SSEUP_CLASS.  */
+	    
 	    if (i > 1 && classes[i] == X86_64_SSEUP_CLASS
 		&& classes[i - 1] != X86_64_SSE_CLASS
 		&& classes[i - 1] != X86_64_SSEUP_CLASS)
 	      {
-		/* The first one should never be X86_64_SSEUP_CLASS.  */
+		
 		SFFI_ASSERT (i != 0);
 		classes[i] = X86_64_SSE_CLASS;
 	      }
 
-	    /*  If X86_64_X87UP_CLASS isn't preceded by X86_64_X87_CLASS,
-		everything should be passed in memory.  */
+	    
 	    if (i > 1 && classes[i] == X86_64_X87UP_CLASS
 		&& (classes[i - 1] != X86_64_X87_CLASS))
 	      {
-		/* The first one should never be X86_64_X87UP_CLASS.  */
+		
 		SFFI_ASSERT (i != 0);
 		return 0;
 	      }
@@ -364,7 +304,7 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 	  case SFFI_TYPE_LONGDOUBLE:
 #if SFFI_LONGDOUBLE_BINARY128
-	    /* _Complex binary128 is 32 bytes -> passed/returned in memory.  */
+	    
 	    return 0;
 #else
 	    classes[0] = X86_64_COMPLEX_X87_CLASS;
@@ -377,9 +317,7 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
   abort();
 }
 
-/* Examine the argument and return set number of register required in each
-   class.  Return zero iff parameter should be passed in memory, otherwise
-   the number of registers.  */
+
 
 static size_t
 examine_argument (sffi_type *type, enum x86_64_reg_class classes[MAX_CLASSES],
@@ -423,7 +361,7 @@ examine_argument (sffi_type *type, enum x86_64_reg_class classes[MAX_CLASSES],
   return n;
 }
 
-/* Perform machine dependent cif processing.  */
+
 
 #ifndef __ILP32__
 extern sffi_status
@@ -494,7 +432,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
     case SFFI_TYPE_LONGDOUBLE:
 #if SFFI_LONGDOUBLE_BINARY128
-      flags = UNIX64_RET_XMM128;	/* returned in %xmm0 (16 bytes) */
+      flags = UNIX64_RET_XMM128;	
 #else
       flags = UNIX64_RET_X87;
 #endif
@@ -504,10 +442,9 @@ sffi_prep_cif_machdep (sffi_cif *cif)
       n = examine_argument (cif->rtype, classes, 1, &ngpr, &nsse);
       if (n == 0)
 	{
-	  /* The return value is passed in memory.  A pointer to that
-	     memory is the first argument.  Allocate a register for it.  */
+	  
 	  gprcount++;
-	  /* We don't have to do anything in asm for the return.  */
+	  
 	  flags = UNIX64_RET_VOID | UNIX64_FLAG_RET_IN_MEM;
 	}
       else
@@ -556,7 +493,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 	case SFFI_TYPE_LONGDOUBLE:
 #if SFFI_LONGDOUBLE_BINARY128
-	  /* _Complex binary128 (32 bytes) is returned in memory.  */
+	  
 	  gprcount++;
 	  flags = UNIX64_RET_VOID | UNIX64_FLAG_RET_IN_MEM;
 #else
@@ -577,9 +514,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
       return SFFI_BAD_TYPEDEF;
     }
 
-  /* Go over all arguments and determine the way they should be passed.
-     If it's in a register and there is space for it, let that be so. If
-     not, add it's size to the stack byte count.  */
+  
   for (bytes = 0, i = 0, avn = cif->nargs; i < avn; i++)
     {
       if (examine_argument (cif->arg_types[i], classes, 0, &ngpr, &nsse) == 0
@@ -609,8 +544,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
   return SFFI_OK;
 }
 
-/* n.b. sffi_call_unix64 will steal the alloca'd `stack` variable here for use
-   _as its own stack_ - so we need to compile this function without ASAN */
+
 SFFI_ASAN_NO_SANITIZE
 static void
 sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
@@ -622,11 +556,10 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
   int gprcount, ssecount, ngpr, nsse, i, avn, flags;
   struct register_args *reg_args;
 
-  /* Can't call 32-bit mode from 64-bit mode.  */
+  
   SFFI_ASSERT (cif->abi == SFFI_UNIX64);
 
-  /* If the return value is a struct and we don't have a return value
-     address then we need to make one.  Otherwise we can ignore it.  */
+  
   flags = cif->flags;
   if (rvalue == NULL)
     {
@@ -639,7 +572,7 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
   arg_types = cif->arg_types;
   avn = cif->nargs;
 
-  /* Allocate the space for the arguments, plus 4 words of temp space.  */
+  
   stack = alloca (sizeof (struct register_args) + cif->bytes + 4*8);
   reg_args = (struct register_args *) stack;
   argp = stack + sizeof (struct register_args);
@@ -648,8 +581,7 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 
   gprcount = ssecount = 0;
 
-  /* If the return value is passed in memory, add the pointer as the
-     first integer argument.  */
+  
   if (flags & UNIX64_FLAG_RET_IN_MEM)
     reg_args->gpr[gprcount++] = (unsigned long) rvalue;
 
@@ -664,11 +596,11 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 	{
 	  long align = arg_types[i]->alignment;
 
-	  /* Stack arguments are *always* at least 8 byte aligned.  */
+	  
 	  if (align < 8)
 	    align = 8;
 
-          /* Pass this argument in memory.  */
+          
           argp = (void *) SFFI_ALIGN (argp, align);
           memcpy (argp, avalue[i], size);
 
@@ -676,7 +608,7 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
         }
       else
 	{
-	  /* The argument is passed entirely in registers.  */
+	  
 	  char *a = (char *) avalue[i];
 	  unsigned int j;
 
@@ -687,18 +619,13 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 		case X86_64_NO_CLASS:
 		  break;
 		case X86_64_SSEUP_CLASS:
-		  /* The upper 8 bytes of the same %xmm register written by
-		     the preceding SSE class (e.g. the high half of a
-		     binary128 long double).  */
+		  
 		  memcpy ((char *) &reg_args->sse[ssecount - 1] + 8, a,
 			  size < 8 ? size : 8);
 		  break;
 		case X86_64_INTEGER_CLASS:
 		case X86_64_INTEGERSI_CLASS:
-		  /* Sign-extend integer arguments passed in general
-		     purpose registers, to cope with the fact that
-		     LLVM incorrectly assumes that this will be done
-		     (the x86-64 PS ABI does not specify this). */
+		  
 		  switch (arg_types[i]->type)
 		    {
 		    case SFFI_TYPE_SINT8:
@@ -736,61 +663,45 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 }
 
 #ifndef __ILP32__
-/* =====================================================================
-   Precompiled argument-placement plan, used by the sffi_call_plan API.
 
-   sffi_prep_cif_machdep classifies the signature once, but sffi_call_int then
-   re-derives the same per-argument placement on every call (~650 instructions
-   for a 3-argument call).  A "plan" captures that placement as a flat move
-   list, built once, so the register_args + stack buffer can be filled with no
-   re-classification before handing off to the unchanged sffi_call_unix64.  For
-   the common case (only 64-bit GP arguments) a direct thunk loads the values
-   straight into the argument registers, skipping the buffer entirely.
-
-   A plan is built by sffi_call_plan_alloc and applied by sffi_call_plan_invoke;
-   the caller owns it and reuses it across calls.
-
-   Scalar, pointer, int128, float and double arguments are handled; any struct,
-   complex, or x87 long double argument has no plan, so the caller's invoke
-   falls back to sffi_call. */
 
 enum sffi_move_op
 {
-  SFFI_MOVE_SE8, SFFI_MOVE_SE16, SFFI_MOVE_SE32,  /* sign-extend N bytes -> gpr   */
-  SFFI_MOVE_GP64,                               /* copy a full 8-byte word -> gpr */
-  SFFI_MOVE_GP,                                 /* zero gpr, copy len(<8) bytes  */
-  SFFI_MOVE_SSE64, SFFI_MOVE_SSE32,              /* copy 8/4 bytes -> sse slot    */
-  SFFI_MOVE_STACK                               /* copy len bytes -> stack       */
+  SFFI_MOVE_SE8, SFFI_MOVE_SE16, SFFI_MOVE_SE32,  
+  SFFI_MOVE_GP64,                               
+  SFFI_MOVE_GP,                                 
+  SFFI_MOVE_SSE64, SFFI_MOVE_SSE32,              
+  SFFI_MOVE_STACK                               
 };
 
 typedef struct
 {
-  unsigned src_idx;     /* avalue[] index                                  */
-  unsigned src_off;     /* byte offset within avalue[src_idx] (chunk * 8)  */
-  unsigned dst_off;     /* byte offset within the register_args+stack buf  */
-  unsigned len;         /* bytes for SFFI_MOVE_GP / SFFI_MOVE_STACK          */
+  unsigned src_idx;     
+  unsigned src_off;     
+  unsigned dst_off;     
+  unsigned len;         
   unsigned char op;
 } sffi_move;
 
 typedef struct
 {
   unsigned nmoves;
-  unsigned ssecount;    /* -> reg_args->rax                                */
-  unsigned bytes;       /* stack-arg area size (== cif->bytes)             */
-  unsigned flags;       /* == cif->flags                                   */
-  unsigned ret_in_mem;  /* nonzero -> reg_args->gpr[0] = rvalue            */
-  unsigned fast;        /* nonzero -> lean trampoline eligible             */
-  unsigned retcode;     /* UNIX64_RET_* (low byte of flags) for the store  */
-  int      thunk_n;     /* >=0 -> sffi_gp_thunks[thunk_n], else -1          */
+  unsigned ssecount;    
+  unsigned bytes;       
+  unsigned flags;       
+  unsigned ret_in_mem;  
+  unsigned fast;        
+  unsigned retcode;     
+  int      thunk_n;     
   sffi_move moves[];
 } sffi_plan;
 
-/* Return of the lean trampoline / direct thunks: callee's rax in .i, xmm0 in .d. */
+
 struct sffi_ret2 { UINT64 i; double d; };
 extern struct sffi_ret2 sffi_plan_fast_call (struct register_args *img,
 					   void (*fn) (void)) SFFI_HIDDEN;
 
-/* Count-based direct thunks: load avalue[0..N-1] into arg registers, call. */
+
 extern struct sffi_ret2 sffi_plan_gp0 (void **, void (*)(void)) SFFI_HIDDEN;
 extern struct sffi_ret2 sffi_plan_gp1 (void **, void (*)(void)) SFFI_HIDDEN;
 extern struct sffi_ret2 sffi_plan_gp2 (void **, void (*)(void)) SFFI_HIDDEN;
@@ -802,7 +713,7 @@ static struct sffi_ret2 (*const sffi_gp_thunks[7]) (void **, void (*)(void)) =
   { sffi_plan_gp0, sffi_plan_gp1, sffi_plan_gp2, sffi_plan_gp3,
     sffi_plan_gp4, sffi_plan_gp5, sffi_plan_gp6 };
 
-/* Store the callee return value, replicating the unix64.S store_table widths. */
+
 static inline void
 store_ret (void *rvalue, unsigned retcode, struct sffi_ret2 r)
 {
@@ -821,7 +732,7 @@ store_ret (void *rvalue, unsigned retcode, struct sffi_ret2 r)
     }
 }
 
-/* Build the move-list for CIF, or NULL if not plan-able (caller falls back). */
+
 static sffi_plan *
 build_plan (sffi_cif *cif)
 {
@@ -830,12 +741,12 @@ build_plan (sffi_cif *cif)
   unsigned nm, gprcount, ssecount;
   size_t argp_off;
   sffi_plan *plan;
-  int all_gp64 = 1;	/* every arg is exactly one 64-bit GP move? */
+  int all_gp64 = 1;	
 
   if (cif->abi != SFFI_UNIX64)
     return NULL;
 
-  /* Reject arg types this cut doesn't encode; returns are handled by flags. */
+  
   for (i = 0; i < avn; i++)
     {
       int t = cif->arg_types[i]->type;
@@ -847,7 +758,7 @@ build_plan (sffi_cif *cif)
 #endif
     }
 
-  /* One self-contained allocation: header + moves, released with plain free(). */
+  
   plan = malloc (sizeof (sffi_plan) + sizeof (sffi_move) * (2 * avn + 1));
   if (plan == NULL)
     return NULL;
@@ -856,7 +767,7 @@ build_plan (sffi_cif *cif)
   argp_off = 0;
   plan->ret_in_mem = (cif->flags & UNIX64_FLAG_RET_IN_MEM) ? 1 : 0;
   if (plan->ret_in_mem)
-    gprcount++;				/* sret pointer occupies gpr[0] */
+    gprcount++;				
 
   for (i = 0; i < avn; i++)
     {
@@ -894,10 +805,10 @@ build_plan (sffi_cif *cif)
 	    {
 	    case X86_64_NO_CLASS:
 	    case X86_64_SSEUP_CLASS:
-	      continue;			/* nothing placed for this 8-byte */
+	      continue;			
 	    case X86_64_INTEGER_CLASS:
 	    case X86_64_INTEGERSI_CLASS:
-	      m.dst_off = gprcount * 8;	/* offsetof(register_args,gpr) == 0 */
+	      m.dst_off = gprcount * 8;	
 	      switch (at->type)
 		{
 		case SFFI_TYPE_SINT8:  m.op = SFFI_MOVE_SE8;  all_gp64 = 0; break;
@@ -928,7 +839,7 @@ build_plan (sffi_cif *cif)
 	      all_gp64 = 0;
 	      break;
 	    default:
-	      free (plan);		/* X87 etc. in registers: bail */
+	      free (plan);		
 	      return NULL;
 	    }
 	  plan->moves[nm++] = m;
@@ -939,14 +850,10 @@ build_plan (sffi_cif *cif)
   plan->ssecount = ssecount;
   plan->bytes = cif->bytes;
   plan->flags = cif->flags;
-  plan->retcode = cif->flags & 0xff;	/* UNIX64_RET_* */
-  /* Lean-trampoline eligible: no spilled stack args and a simple return
-     (VOID..XMM64, codes 0..9; RET_IN_MEM has low byte VOID).  Struct-in-regs
-     (>=12) and x87 (10,11) returns stay on sffi_call_unix64. */
+  plan->retcode = cif->flags & 0xff;	
+  
   plan->fast = (cif->bytes == 0 && plan->retcode <= UNIX64_RET_XMM64) ? 1 : 0;
-  /* Pure-GP64 direct thunk: every arg is one 64-bit GP value (so a plain load
-     per arg is exact), <=6 of them, no sret, simple return -> load avalue
-     straight into the arg registers, no register image. */
+  
   plan->thunk_n =
     (all_gp64 && !plan->ret_in_mem && nm == avn && avn <= MAX_GPR_REGS
      && plan->fast)
@@ -954,7 +861,7 @@ build_plan (sffi_cif *cif)
   return plan;
 }
 
-/* Execute PLAN: rebuild register_args + stack buffer, then sffi_call_unix64. */
+
 SFFI_ASAN_NO_SANITIZE
 static inline __attribute__ ((always_inline)) void
 plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
@@ -976,7 +883,7 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
 
   if (plan->thunk_n >= 0)
     {
-      /* Pure-GP64: load avalue straight into arg regs, no image at all. */
+      
       struct sffi_ret2 r = sffi_gp_thunks[plan->thunk_n] (avalue, fn);
       if (rvalue != NULL)
 	store_ret (rvalue, plan->retcode, r);
@@ -984,13 +891,13 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
     }
 
   if (plan->fast)
-    reg_args = &local;			/* no stack args: fixed local image */
+    reg_args = &local;			
   else
     {
       stack = alloca (sizeof (struct register_args) + plan->bytes + 4 * 8);
       reg_args = (struct register_args *) stack;
     }
-  reg_args->r10 = 0;			/* closure (none for sffi_call) */
+  reg_args->r10 = 0;			
   if (plan->ret_in_mem)
     reg_args->gpr[0] = (UINT64) (uintptr_t) rvalue;
 
@@ -1001,7 +908,7 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
       char *dst = (char *) reg_args + m->dst_off;
       switch (m->op)
 	{
-	/* x86-64: unaligned scalar loads from avalue[] are fine. */
+	
 	case SFFI_MOVE_SE8:   *(UINT64 *) dst = (UINT64) (SINT64) *(SINT8 *)  src; break;
 	case SFFI_MOVE_SE16:  *(UINT64 *) dst = (UINT64) (SINT64) *(SINT16 *) src; break;
 	case SFFI_MOVE_SE32:  *(UINT64 *) dst = (UINT64) (SINT64) *(SINT32 *) src; break;
@@ -1016,8 +923,7 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
 
   if (plan->fast)
     {
-      /* No stack args; lean trampoline + return store replicating the
-	 unix64.S store_table widths.  ret_in_mem already wrote gpr[0]. */
+      
       struct sffi_ret2 r = sffi_plan_fast_call (reg_args, fn);
       if (rvalue != NULL)
 	store_ret (rvalue, plan->retcode, r);
@@ -1028,15 +934,11 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
 		   flags, rvalue, fn);
 }
 
-/* Reusable call plan: an opaque, caller-owned handle wrapping a prebuilt plan.
-   sffi_call_plan_invoke applies it directly, skipping the per-call argument
-   classification sffi_call does every time.  Signatures with no fast path
-   (FAST is NULL) fall back to sffi_call.  The plan is immutable after alloc, so
-   it carries no per-thread state and can be invoked from any thread.  */
+
 struct sffi_call_plan
 {
   sffi_cif  *cif;
-  sffi_plan *fast;		/* prebuilt plan, or NULL -> fall back to sffi_call */
+  sffi_plan *fast;		
 };
 
 sffi_call_plan *
@@ -1046,7 +948,7 @@ sffi_call_plan_alloc (sffi_cif *cif)
   if (plan == NULL)
     return NULL;
   plan->cif  = cif;
-  plan->fast = build_plan (cif);	/* NULL if this signature has no fast path */
+  plan->fast = build_plan (cif);	
   return plan;
 }
 
@@ -1082,9 +984,7 @@ sffi_call (sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   int i, nargs = cif->nargs;
   const int max_reg_struct_size = cif->abi == SFFI_GNUW64 ? 8 : 16;
 
-  /* If we have any large structure arguments, make a copy so we are passing
-     by value.  The pointer array is cloned first: the caller owns avalue[]
-     and may reuse it for another call, so it must not be modified.  */
+  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
@@ -1135,7 +1035,7 @@ sffi_call_go (sffi_cif *cif, void (*fn)(void), void *rvalue,
   sffi_call_int (cif, fn, rvalue, avalue, closure);
 }
 
-#endif /* SFFI_GO_CLOSURES */
+#endif 
 
 extern void sffi_closure_unix64(void) SFFI_HIDDEN;
 extern void sffi_closure_unix64_sse(void) SFFI_HIDDEN;
@@ -1161,13 +1061,13 @@ sffi_prep_closure_loc (sffi_closure* closure,
 		      void *codeloc)
 {
   static const unsigned char trampoline[24] = {
-    /* endbr64 */
+    
     0xf3, 0x0f, 0x1e, 0xfa,
-    /* leaq  -0xb(%rip),%r10   # 0x0  */
+    
     0x4c, 0x8d, 0x15, 0xf5, 0xff, 0xff, 0xff,
-    /* jmpq  *0x7(%rip)        # 0x18 */
+    
     0xff, 0x25, 0x07, 0x00, 0x00, 0x00,
-    /* nopl  0(%rax) */
+    
     0x0f, 0x1f, 0x80, 0x00, 0x00, 0x00, 0x00
   };
   void (*dest)(void);
@@ -1188,7 +1088,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 #if defined(SFFI_EXEC_STATIC_TRAMP)
   if (sffi_tramp_is_present(closure))
     {
-      /* Initialize the static trampoline's parameters. */
+      
       if (dest == sffi_closure_unix64_sse)
         dest = sffi_closure_unix64_sse_alt;
       else
@@ -1198,7 +1098,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
     }
 #endif
 
-  /* Initialize the dynamic trampoline. */
+  
   memcpy (tramp, trampoline, sizeof(trampoline));
   *(UINT64 *)(tramp + sizeof (trampoline)) = (uintptr_t)dest;
 
@@ -1234,8 +1134,7 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 
   if (flags & UNIX64_FLAG_RET_IN_MEM)
     {
-      /* On return, %rax will contain the address that was passed
-	 by the caller in %rdi.  */
+      
       void *r = (void *)(uintptr_t)reg_args->gpr[gprcount++];
       *(void **)rvalue = r;
       rvalue = r;
@@ -1255,22 +1154,21 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 	{
 	  long align = arg_types[i]->alignment;
 
-	  /* Stack arguments are *always* at least 8 byte aligned.  */
+	  
 	  if (align < 8)
 	    align = 8;
 
-	  /* Pass this argument in memory.  */
+	  
 	  argp = (void *) SFFI_ALIGN (argp, align);
 	  avalue[i] = argp;
 	  argp += arg_types[i]->size;
 	}
-      /* If the argument is in a single register, or two consecutive
-	 integer registers, then we can use that address directly.  */
+      
       else if (n == 1
 	       || (n == 2 && !(SSE_CLASS_P (classes[0])
 			       || SSE_CLASS_P (classes[1]))))
 	{
-	  /* The argument is in a single register.  */
+	  
 	  if (SSE_CLASS_P (classes[0]))
 	    {
 	      avalue[i] = &reg_args->sse[ssecount];
@@ -1282,7 +1180,7 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 	      gprcount += n;
 	    }
 	}
-      /* Otherwise, allocate space to make them consecutive.  */
+      
       else
 	{
 	  char *a = alloca (n * 8);
@@ -1292,9 +1190,7 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 	  for (j = 0; j < n; j++, a += 8)
 	    {
 	      if (classes[j] == X86_64_SSEUP_CLASS)
-		/* The high half of the same %xmm register as the preceding
-		   SSE class (e.g. the upper bits of a binary128 long double);
-		   it does not consume another register.  */
+		
 		memcpy (a, (char *) &reg_args->sse[ssecount - 1] + 8, 8);
 	      else if (SSE_CLASS_P (classes[j]))
 		memcpy (a, &reg_args->sse[ssecount++], 8);
@@ -1304,10 +1200,10 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 	}
     }
 
-  /* Invoke the closure.  */
+  
   fun (cif, rvalue, avalue, user_data);
 
-  /* Tell assembly how to perform return type promotions.  */
+  
   return flags;
 }
 
@@ -1342,7 +1238,7 @@ sffi_prep_go_closure (sffi_go_closure* closure, sffi_cif* cif,
   return SFFI_OK;
 }
 
-#endif /* SFFI_GO_CLOSURES */
+#endif 
 
 #if defined(SFFI_EXEC_STATIC_TRAMP)
 void *
@@ -1356,4 +1252,4 @@ sffi_tramp_arch (size_t *tramp_size, size_t *map_size)
 }
 #endif
 
-#endif /* __x86_64__ */
+#endif 

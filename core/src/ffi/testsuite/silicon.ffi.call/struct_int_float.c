@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Demonstrate structures with integers corrupting earlier floats
-   Limitations:	none.
-   PR:		#848
-   Originator:	kellda  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct
@@ -55,7 +51,7 @@ int main (void)
   args[5] = &ts_type;
   values[5] = &ts_arg[5];
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 6, &sffi_type_float, args) == SFFI_OK);
 
   ts_arg[0].i = 1;

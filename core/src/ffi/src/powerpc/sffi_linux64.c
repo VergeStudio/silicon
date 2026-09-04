@@ -1,32 +1,4 @@
-/* -----------------------------------------------------------------------
-   sffi_linux64.c - Copyright (C) 2013 IBM
-                   Copyright (C) 2011, 2026 Anthony Green
-                   Copyright (C) 2011 Kyle Moffett
-                   Copyright (C) 2008 Red Hat, Inc
-                   Copyright (C) 2007, 2008 Free Software Foundation, Inc
-                   Copyright (c) 1998 Geoffrey Keating
 
-   PowerPC Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR
-   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-   OTHER DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include "sffi.h"
 #include <tramp.h>
@@ -37,7 +9,7 @@
 #include "sffi_powerpc.h"
 
 
-/* About the LINUX64 ABI.  */
+
 enum {
   NUM_GPR_ARG_REGISTERS64 = 8,
   NUM_FPR_ARG_REGISTERS64 = 13,
@@ -47,7 +19,7 @@ enum { ASM_NEEDS_REGISTERS64 = 4 };
 
 
 #if HAVE_LONG_DOUBLE_VARIANT && SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
-/* Adjust size of sffi_type_longdouble.  */
+
 void SFFI_HIDDEN
 sffi_prep_types_linux64 (sffi_abi abi)
 {
@@ -74,22 +46,19 @@ discover_homogeneous_aggregate (sffi_abi abi,
     {
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
     case SFFI_TYPE_LONGDOUBLE:
-      /* 64-bit long doubles are equivalent to doubles. */
+      
       if ((abi & SFFI_LINUX_LONG_DOUBLE_128) == 0)
         {
           *elnum = 1;
           return SFFI_TYPE_DOUBLE;
         }
-      /* IBM extended precision values use unaligned pairs
-         of FPRs, but according to the ABI must be considered
-         distinct from doubles. They are also limited to a
-         maximum of four members in a homogeneous aggregate. */
+      
       else if ((abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) == 0)
         {
           *elnum = 2;
           return SFFI_TYPE_LONGDOUBLE;
         }
-      /* Fall through. */
+      
 #endif
     case SFFI_TYPE_FLOAT:
     case SFFI_TYPE_DOUBLE:
@@ -98,11 +67,7 @@ discover_homogeneous_aggregate (sffi_abi abi,
 
 #ifdef SFFI_TARGET_HAS_COMPLEX_TYPE
     case SFFI_TYPE_COMPLEX:
-      /* Count complex of an FP base as two elements of that base, so a
-	 struct containing complex members is recognised as an HFA.  This
-	 only affects SFFI_TYPE_COMPLEX *inside* structs; the top-level
-	 complex arg path has its own case in the cif/args/closure loops
-	 and never reaches the SFFI_TYPE_STRUCT branches.  */
+      
       {
 	unsigned int inner_elnum = 0;
 	unsigned int inner
@@ -148,7 +113,7 @@ discover_homogeneous_aggregate (sffi_abi abi,
 }
 
 
-/* Perform machine dependent cif processing */
+
 static sffi_status
 sffi_prep_cif_linux64_core (sffi_cif *cif)
 {
@@ -159,39 +124,37 @@ sffi_prep_cif_linux64_core (sffi_cif *cif)
   unsigned elt, elnum, rtype;
 
 #if SFFI_TYPE_LONGDOUBLE == SFFI_TYPE_DOUBLE
-  /* If compiled without long double support... */
+  
   if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_128) != 0 ||
       (cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
     return SFFI_BAD_ABI;
 #elif !defined(__VEC__)
-  /* If compiled without vector register support (used by assembly)... */
+  
   if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
     return SFFI_BAD_ABI;
 #else
-  /* If the IEEE128 flag is set, but long double is only 64 bits wide... */
+  
   if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_128) == 0 &&
       (cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
     return SFFI_BAD_ABI;
 #endif
 
-  /* The machine-independent calculation of cif->bytes doesn't work
-     for us.  Redo the calculation.  */
+  
 #if _CALL_ELF == 2
-  /* Space for backchain, CR, LR, TOC and the asm's temp regs.  */
+  
   bytes = (4 + ASM_NEEDS_REGISTERS64) * sizeof (long);
 
-  /* Space for the general registers.  */
+  
   bytes += NUM_GPR_ARG_REGISTERS64 * sizeof (long);
 #else
-  /* Space for backchain, CR, LR, cc/ld doubleword, TOC and the asm's temp
-     regs.  */
+  
   bytes = (6 + ASM_NEEDS_REGISTERS64) * sizeof (long);
 
-  /* Space for the mandatory parm save area and general registers.  */
+  
   bytes += 2 * NUM_GPR_ARG_REGISTERS64 * sizeof (long);
 #endif
 
-  /* Return value handling.  */
+  
   rtype = cif->rtype->type;
 #if _CALL_ELF == 2
 homogeneous:
@@ -207,11 +170,11 @@ homogeneous:
         }
       if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_128) != 0)
 	flags |= FLAG_RETURNS_128BITS;
-      /* Fall through.  */
+      
 #endif
     case SFFI_TYPE_DOUBLE:
       flags |= FLAG_RETURNS_64BITS;
-      /* Fall through.  */
+      
     case SFFI_TYPE_FLOAT:
       flags |= FLAG_RETURNS_FP;
       break;
@@ -239,7 +202,7 @@ homogeneous:
 #endif
       intarg_count++;
       flags |= FLAG_RETVAL_REFERENCE;
-      /* Fall through.  */
+      
     case SFFI_TYPE_VOID:
       flags |= FLAG_RETURNS_NOTHING;
       break;
@@ -251,14 +214,12 @@ homogeneous:
         {
         case SFFI_TYPE_FLOAT:
         case SFFI_TYPE_DOUBLE:
-          /* float/double _Complex are returned in (f1, f2), matching
-             the assembly path for a 2-element FP HFA.  */
+          
           flags |= FLAG_RETURNS_SMST;
           goto homogeneous;
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
         case SFFI_TYPE_LONGDOUBLE:
-          /* Only the 64-bit long double case is wired up; IBM-128 and
-             IEEE-binary128 _Complex are left as a follow-up.  */
+          
           if ((cif->abi & (SFFI_LINUX_LONG_DOUBLE_128
                            | SFFI_LINUX_LONG_DOUBLE_IEEE128)) != 0)
             return SFFI_BAD_TYPEDEF;
@@ -272,10 +233,7 @@ homogeneous:
         case SFFI_TYPE_SINT32: case SFFI_TYPE_UINT32:
         case SFFI_TYPE_SINT64: case SFFI_TYPE_UINT64:
         case SFFI_TYPE_POINTER:
-          /* Integer-typed _Complex: real returned in r3, imag in r4.
-             Take the .Lsmall_struct return path (FLAG_RETURNS_SMST
-             without FP/VEC) and let the bounce-buffer logic in
-             sffi_call_int repack the two halves.  */
+          
           flags |= FLAG_RETURNS_SMST;
           break;
         default:
@@ -285,7 +243,7 @@ homogeneous:
 #endif
 
     default:
-      /* Returns 32-bit integer, or similar.  Nothing to do here.  */
+      
       break;
     }
 
@@ -300,7 +258,7 @@ homogeneous:
           if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
             {
               vecarg_count++;
-              /* Align to 16 bytes, plus the 16-byte argument. */
+              
               intarg_count = (intarg_count + 3) & ~0x1;
               if (vecarg_count > NUM_VEC_ARG_REGISTERS64)
                 flags |= FLAG_ARG_NEEDS_PSAVE;
@@ -311,7 +269,7 @@ homogeneous:
 	      fparg_count++;
 	      intarg_count++;
 	    }
-	  /* Fall through.  */
+	  
 #endif
 	case SFFI_TYPE_DOUBLE:
 	case SFFI_TYPE_FLOAT:
@@ -367,8 +325,7 @@ homogeneous:
 	case SFFI_TYPE_SINT16:
 	case SFFI_TYPE_UINT8:
 	case SFFI_TYPE_SINT8:
-	  /* Everything else is passed as a 8-byte word in a GPR, either
-	     the object itself or a pointer to it.  */
+	  
 	  intarg_count++;
 	  if (intarg_count > NUM_GPR_ARG_REGISTERS64)
 	    flags |= FLAG_ARG_NEEDS_PSAVE;
@@ -376,11 +333,7 @@ homogeneous:
 
 #ifdef SFFI_TARGET_HAS_COMPLEX_TYPE
 	case SFFI_TYPE_COMPLEX:
-	  /* Each half of a _Complex argument is passed independently: an FP
-	     half in its own FPR (and its own GPR shadow slot); an integer
-	     half in its own GPR slot.  This matches GCC's split_complex_arg
-	     under ELFv2, and is what differentiates _Complex from a
-	     same-sized struct{T;T;} which uses fewer GPR shadow slots.  */
+	  
 	  elt = (*ptr)->elements[0]->type;
 	  switch (elt)
 	    {
@@ -430,16 +383,16 @@ homogeneous:
   if (vecarg_count != 0)
     flags |= FLAG_VEC_ARGUMENTS;
 
-  /* Space for the FPR registers, if needed.  */
+  
   if (fparg_count != 0)
     bytes += NUM_FPR_ARG_REGISTERS64 * sizeof (double);
-  /* Space for the vector registers, if needed, aligned to 16 bytes. */
+  
   if (vecarg_count != 0) {
     bytes = (bytes + 15) & ~0xF;
     bytes += NUM_VEC_ARG_REGISTERS64 * sizeof (float128);
   }
 
-  /* Stack space.  */
+  
 #if _CALL_ELF == 2
   if ((flags & FLAG_ARG_NEEDS_PSAVE) != 0)
     bytes += intarg_count * sizeof (long);
@@ -448,7 +401,7 @@ homogeneous:
     bytes += (intarg_count - NUM_GPR_ARG_REGISTERS64) * sizeof (long);
 #endif
 
-  /* The stack space allocated needs to be a multiple of 16 bytes.  */
+  
   bytes = (bytes + 15) & ~0xF;
 
   cif->flags = flags;
@@ -465,10 +418,9 @@ sffi_prep_cif_linux64 (sffi_cif *cif)
 #if _CALL_ELF != 2
   else if (cif->abi == SFFI_COMPAT_LINUX64)
     {
-      /* This call is from old code.  Don't touch cif->nfixedargs
-	 since old code will be using a smaller cif.  */
+      
       cif->flags |= FLAG_COMPAT;
-      /* Translate to new abi value.  */
+      
       cif->abi = SFFI_LINUX | SFFI_LINUX_LONG_DOUBLE_128;
     }
 #endif
@@ -487,10 +439,9 @@ sffi_prep_cif_linux64_var (sffi_cif *cif,
 #if _CALL_ELF != 2
   else if (cif->abi == SFFI_COMPAT_LINUX64)
     {
-      /* This call is from old code.  Don't touch cif->nfixedargs
-	 since old code will be using a smaller cif.  */
+      
       cif->flags |= FLAG_COMPAT;
-      /* Translate to new abi value.  */
+      
       cif->abi = SFFI_LINUX | SFFI_LINUX_LONG_DOUBLE_128;
     }
 #endif
@@ -503,41 +454,7 @@ sffi_prep_cif_linux64_var (sffi_cif *cif,
 }
 
 
-/* sffi_prep_args64 is called by the assembly routine once stack space
-   has been allocated for the function's arguments.
 
-   The stack layout we want looks like this:
-
-   |   Ret addr from sffi_call_LINUX64	8bytes	|	higher addresses
-   |--------------------------------------------|
-   |   CR save area			8bytes	|
-   |--------------------------------------------|
-   |   Previous backchain pointer	8	|	stack pointer here
-   |--------------------------------------------|<+ <<<	on entry to
-   |   Saved r28-r31			4*8	| |	sffi_call_LINUX64
-   |--------------------------------------------| |
-   |   GPR registers r3-r10		8*8	| |
-   |--------------------------------------------| |
-   |   FPR registers f1-f13 (optional)	13*8	| |
-   |--------------------------------------------| |
-   |   VEC registers v2-v13 (optional)  12*16   | |
-   |--------------------------------------------| |
-   |   Parameter save area		        | |
-   |--------------------------------------------| |
-   |   TOC save area			8	| |
-   |--------------------------------------------| |	stack	|
-   |   Linker doubleword		8	| |	grows	|
-   |--------------------------------------------| |	down	V
-   |   Compiler doubleword		8	| |
-   |--------------------------------------------| |	lower addresses
-   |   Space for callee's LR		8	| |
-   |--------------------------------------------| |
-   |   CR save area			8	| |
-   |--------------------------------------------| |	stack pointer here
-   |   Current backchain pointer	8	|-/	during
-   |--------------------------------------------|   <<<	sffi_call_LINUX64
-
-*/
 
 void SFFI_HIDDEN
 sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
@@ -555,23 +472,20 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
     size_t p;
   } valp;
 
-  /* 'stacktop' points at the previous backchain pointer.  */
+  
   valp stacktop;
 
-  /* 'next_arg' points at the space for gpr3, and grows upwards as
-     we use GPR registers, then continues at rest.  */
+  
   valp gpr_base;
   valp gpr_end;
   valp rest;
   valp next_arg;
 
-  /* 'fpr_base' points at the space for f1, and grows upwards as
-     we use FPR registers.  */
+  
   valp fpr_base;
   unsigned int fparg_count;
 
-  /* 'vec_base' points at the space for v2, and grows upwards as
-     we use vector registers.  */
+  
   valp vec_base;
   unsigned int vecarg_count;
 
@@ -606,7 +520,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 #endif
   fpr_base.d = gpr_base.d - NUM_FPR_ARG_REGISTERS64;
   fparg_count = 0;
-  /* Place the vector args below the FPRs, if used, else the GPRs. */
+  
   if (ecif->cif->flags & FLAG_FP_ARGUMENTS)
     vec_base.p = fpr_base.p & ~0xF;
   else
@@ -615,7 +529,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
   vecarg_count = 0;
   next_arg.ul = gpr_base.ul;
 
-  /* Check that everything starts aligned properly.  */
+  
   SFFI_ASSERT (((unsigned long) (char *) stack & 0xF) == 0);
   SFFI_ASSERT (((unsigned long) stacktop.c & 0xF) == 0);
   SFFI_ASSERT (((unsigned long) gpr_base.c & 0xF) == 0);
@@ -623,11 +537,11 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
   SFFI_ASSERT (((unsigned long) vec_base.c & 0xF) == 0);
   SFFI_ASSERT ((bytes & 0xF) == 0);
 
-  /* Deal with return values that are actually pass-by-reference.  */
+  
   if (flags & FLAG_RETVAL_REFERENCE)
     *next_arg.ul++ = (unsigned long) (char *) ecif->rvalue;
 
-  /* Now for the arguments.  */
+  
   p_argv.v = ecif->avalue;
   nargs = ecif->cif->nargs;
 #if _CALL_ELF != 2
@@ -695,7 +609,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 	      SFFI_ASSERT (flags & FLAG_FP_ARGUMENTS);
 	      break;
 	    }
-	  /* Fall through.  */
+	  
 #endif
 	case SFFI_TYPE_DOUBLE:
 #if _CALL_ELF != 2
@@ -755,8 +669,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 	case SFFI_TYPE_COMPLEX:
 	  elt = (*ptr)->elements[0]->type;
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
-	  /* 64-bit long double is equivalent to double; the IBM-128 and
-	     IEEE-binary128 variants were rejected in prep_cif.  */
+	  
 	  if (elt == SFFI_TYPE_LONGDOUBLE)
 	    elt = SFFI_TYPE_DOUBLE;
 #endif
@@ -802,8 +715,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 	    }
 	  else
 	    {
-	      /* Integer-typed _Complex: each half consumes one GPR slot,
-		 sign-/zero-extended to a doubleword.  */
+	      
 	      char *cval = (char *) *p_argv.v;
 	      size_t hsize = (*ptr)->elements[0]->size;
 	      unsigned int j;
@@ -941,8 +853,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 		  char *where = next_arg.c;
 
 #ifndef __LITTLE_ENDIAN__
-		  /* Structures with size less than eight bytes are passed
-		     left-padded.  */
+		  
 		  if ((*ptr)->size < 8)
 		    where += 8 - (*ptr)->size;
 #endif
@@ -1022,7 +933,7 @@ sffi_prep_closure_loc_linux64 (sffi_closure *closure,
 #ifdef SFFI_EXEC_STATIC_TRAMP
   if (sffi_tramp_is_present(closure))
     {
-      /* Initialize the static trampoline's parameters. */
+      
       void (*dest)(void) = sffi_closure_LINUX64;
       sffi_tramp_set_parms (closure->ftramp, dest, closure);
     }
@@ -1031,17 +942,17 @@ sffi_prep_closure_loc_linux64 (sffi_closure *closure,
     {
 #if _CALL_ELF == 2
       unsigned int *tramp = (unsigned int *) &closure->tramp[0];
-      tramp[0] = 0xe96c0018;	/* 0:	ld	11,2f-0b(12)	*/
-      tramp[1] = 0xe98c0010;	/*	ld	12,1f-0b(12)	*/
-      tramp[2] = 0x7d8903a6;	/*	mtctr	12		*/
-      tramp[3] = 0x4e800420;	/*	bctr			*/
-				/* 1:	.quad	function_addr	*/
-				/* 2:	.quad	context		*/
+      tramp[0] = 0xe96c0018;	
+      tramp[1] = 0xe98c0010;	
+      tramp[2] = 0x7d8903a6;	
+      tramp[3] = 0x4e800420;	
+				
+				
       *(void **) &tramp[4] = (void *) sffi_closure_LINUX64;
       *(void **) &tramp[6] = codeloc;
       flush_icache ((char *) tramp, (char *) codeloc, 4 * 4);
 #else
-      /* Copy function address and TOC from sffi_closure_LINUX64 OPD.  */
+      
       void **tramp = (void **) &closure->tramp[0];
       memcpy (&tramp[0], (void **) sffi_closure_LINUX64, sizeof (void *));
       tramp[1] = codeloc;
@@ -1066,11 +977,10 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
                             sffi_dblfl *pfr,
                             float128 *pvec)
 {
-  /* rvalue is the pointer to space for return value in closure assembly */
-  /* pst is the pointer to parameter save area
-     (r3-r10 are stored into its first 8 slots by sffi_closure_LINUX64) */
-  /* pfr is the pointer to where f1-f13 are stored in sffi_closure_LINUX64 */
-  /* pvec is the pointer to where v2-v13 are stored in sffi_closure_LINUX64 */
+  
+  
+  
+  
 
   void **avalue;
   sffi_type **arg_types;
@@ -1081,8 +991,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 
   avalue = alloca (cif->nargs * sizeof (void *));
 
-  /* Copy the caller's structure return value address so that the
-     closure returns the data directly to the caller.  */
+  
   if (cif->rtype->type == SFFI_TYPE_STRUCT
       && (cif->flags & FLAG_RETURNS_SMST) == 0)
     {
@@ -1099,7 +1008,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
     nfixedargs = cif->nfixedargs;
   arg_types = cif->arg_types;
 
-  /* Grab the addresses of the arguments from the stack frame.  */
+  
   while (i < avn)
     {
       unsigned int elt, elnum;
@@ -1159,10 +1068,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 		size_t p;
 	      } to, from;
 
-	      /* Repackage the aggregate from its parts.  The
-		 aggregate size is not greater than the space taken by
-		 the registers so store back to the register/parameter
-		 save arrays.  */
+	      
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
               if (elt == SFFI_TYPE_LONGDOUBLE &&
                   (cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
@@ -1240,8 +1146,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	  else
 	    {
 #ifndef __LITTLE_ENDIAN__
-	      /* Structures with size less than eight bytes are passed
-		 left-padded.  */
+	      
 	      if (arg_types[i]->size < 8)
 		avalue[i] = (char *) pst + 8 - arg_types[i]->size;
 	      else
@@ -1275,8 +1180,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 		{
 		  if (pfr < end_pfr && i < nfixedargs)
 		    {
-		      /* Passed partly in f13 and partly on the stack.
-			 Move it all to the stack.  */
+		      
 		      *pst = *(unsigned long *) pfr;
 		      pfr++;
 		    }
@@ -1285,14 +1189,14 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	      pst += 2;
 	      break;
 	    }
-	  /* Fall through.  */
+	  
 #endif
 	case SFFI_TYPE_DOUBLE:
 #if _CALL_ELF != 2
 	do_double:
 #endif
-	  /* On the outgoing stack all values are aligned to 8 */
-	  /* there are 13 64bit floating point registers */
+	  
+	  
 
 	  if (pfr < end_pfr && i < nfixedargs)
 	    {
@@ -1310,8 +1214,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 #endif
 	  if (pfr < end_pfr && i < nfixedargs)
 	    {
-	      /* Float values are stored as doubles in the
-		 sffi_closure_LINUX64 code.  Fix them here.  */
+	      
 	      pfr->f = (float) pfr->d;
 	      avalue[i] = pfr;
 	      pfr++;
@@ -1329,9 +1232,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 
 #ifdef SFFI_TARGET_HAS_COMPLEX_TYPE
 	case SFFI_TYPE_COMPLEX:
-	  /* Reassemble each _Complex argument from successive registers (or
-	     parameter-save slots when registers are exhausted) into a
-	     contiguous in-memory value for the closure.  */
+	  
 	  {
 	    unsigned int j;
 	    elt = arg_types[i]->elements[0]->type;
@@ -1379,8 +1280,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	      }
 	    else
 	      {
-		/* Integer-typed _Complex: each half lives in its own GPR
-		   slot, right-justified on BE, low-address on LE.  */
+		
 		size_t hsize = arg_types[i]->elements[0]->size;
 		char *cval = alloca (2 * hsize);
 		for (j = 0; j < 2; j++)
@@ -1409,7 +1309,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 
   (*fun) (cif, rvalue, avalue, user_data);
 
-  /* Tell sffi_closure_LINUX64 how to perform return type promotions.  */
+  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -1454,12 +1354,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	  return PPC64_LD_FLOAT_HOMOG;
 	if (inner == SFFI_TYPE_DOUBLE)
 	  return PPC64_LD_DOUBLE_HOMOG;
-	/* Integer-typed _Complex: the user wrote the natural packed
-	   complex layout into rvalue (real@0, imag@hsize).  Repack into
-	   two sign-/zero-extended doublewords so the closure assembly
-	   can do `ld r3, 0(rvalue); ld r4, 8(rvalue)` and the GCC caller
-	   recovers real in r3 and imag in r4.  The RETVAL stack area is
-	   large enough (64 or 128 bytes) to hold the 16-byte repack.  */
+	
 	{
 	  char *rv = rvalue;
 	  unsigned long re, im;
@@ -1509,11 +1404,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	{
 	  if ((cif->flags & (FLAG_RETURNS_FP | FLAG_RETURNS_VEC)) == 0)
 	    {
-	      /* A struct smaller than a dword is returned in the low bits
-		 of r3 right justified.  Larger structs are passed left
-		 justified in r3 and r4.  The return value area on the
-		 stack will have the structs as they are usually stored
-		 in memory. */
+	      
 	      switch (cif->rtype->size)
 		{
 		case 0:

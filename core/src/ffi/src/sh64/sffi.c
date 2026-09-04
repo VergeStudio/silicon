@@ -1,29 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2003, 2004, 2006, 2007, 2012 Kaz Kojima
-           Copyright (c) 2008, 2026 Anthony Green
-   
-   SuperH SHmedia Foreign Function Interface 
 
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -40,7 +15,7 @@ return_type (sffi_type *arg)
   if (arg->type != SFFI_TYPE_STRUCT)
     return arg->type;
 
-  /* gcc uses r2 if the result can be packed in on register.  */
+  
   if (arg->size <= sizeof (UINT8))
     return SFFI_TYPE_UINT8;
   else if (arg->size <= sizeof (UINT16))
@@ -53,8 +28,7 @@ return_type (sffi_type *arg)
   return SFFI_TYPE_STRUCT;
 }
 
-/* sffi_prep_args is called by the assembly routine once stack space
-   has been allocated for the function's arguments */
+
 
 void sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -152,7 +126,7 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   return;
 }
 
-/* Perform machine dependent cif processing */
+
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
   int i, j;
@@ -215,7 +189,7 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 	}
     }
 
-  /* Set the return type flag */
+  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_STRUCT:
@@ -238,20 +212,20 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
   return SFFI_OK;
 }
 
-/*@-declundef@*/
-/*@-exportheader@*/
-extern void sffi_call_SYSV(void (*)(char *, extended_cif *), 
-			  /*@out@*/ extended_cif *, 
-			  unsigned, unsigned, long long,
-			  /*@out@*/ unsigned *, 
-			  void (*fn)(void));
-/*@=declundef@*/
-/*@=exportheader@*/
 
-void sffi_call(/*@dependent@*/ sffi_cif *cif, 
+
+extern void sffi_call_SYSV(void (*)(char *, extended_cif *), 
+			   extended_cif *, 
+			  unsigned, unsigned, long long,
+			   unsigned *, 
+			  void (*fn)(void));
+
+
+
+void sffi_call( sffi_cif *cif, 
 	      void (*fn)(void), 
-	      /*@out@*/ void *rvalue, 
-	      /*@dependent@*/ void **avalue)
+	       void *rvalue, 
+	       void **avalue)
 {
   extended_cif ecif;
   UINT64 trvalue;
@@ -259,8 +233,8 @@ void sffi_call(/*@dependent@*/ sffi_cif *cif,
   ecif.cif = cif;
   ecif.avalue = avalue;
   
-  /* If the return value is a struct and we don't have a return	*/
-  /* value address then we need to make one		        */
+  
+  
 
   if (cif->rtype->type == SFFI_TYPE_STRUCT
       && return_type (cif->rtype) != SFFI_TYPE_STRUCT)
@@ -306,13 +280,7 @@ sffi_prep_closure_loc (sffi_closure *closure,
     return SFFI_BAD_ABI;
 
   tramp = (unsigned int *) &closure->tramp[0];
-  /* Since sffi_closure is an aligned object, the ffi trampoline is
-     called as an SHcompact code.  Sigh.
-     SHcompact part:
-     mova @(1,pc),r0; add #1,r0; jmp @r0; nop;
-     SHmedia part:
-     movi fnaddr >> 16,r1; shori fnaddr,r1; ptabs/l r1,tr0
-     movi cxt >> 16,r1; shori cxt,r1; blink tr0,r63  */
+  
 #ifdef __LITTLE_ENDIAN__
   tramp[0] = 0x7001c701;
   tramp[1] = 0x0009402b;
@@ -331,20 +299,14 @@ sffi_prep_closure_loc (sffi_closure *closure,
   closure->fun = fun;
   closure->user_data = user_data;
 
-  /* Flush the icache.  */
+  
   __asm__ volatile ("ocbwb %0,0; synco; icbi %1,0; synci" : : "r" (tramp),
 		"r"(codeloc));
 
   return SFFI_OK;
 }
 
-/* Basically the trampoline invokes sffi_closure_SYSV, and on 
- * entry, r3 holds the address of the closure.
- * After storing the registers that could possibly contain
- * parameters to be passed into the stack frame and setting
- * up space for a return value, sffi_closure_SYSV invokes the 
- * following helper function to do most of the work.
- */
+
 
 int
 sffi_closure_helper_SYSV (sffi_closure *closure, UINT64 *rvalue, 
@@ -360,8 +322,7 @@ sffi_closure_helper_SYSV (sffi_closure *closure, UINT64 *rvalue,
   cif = closure->cif;
   avalue = alloca (cif->nargs * sizeof (void *));
 
-  /* Copy the caller's structure return value address so that the closure
-     returns the data directly to the caller.  */
+  
   if (return_type (cif->rtype) == SFFI_TYPE_STRUCT)
     {
       rvalue = (UINT64 *) *pgr;
@@ -374,7 +335,7 @@ sffi_closure_helper_SYSV (sffi_closure *closure, UINT64 *rvalue,
   cif = closure->cif;
   avn = cif->nargs;
 
-  /* Grab the addresses of the arguments from the stack frame.  */
+  
   for (i = 0, p_arg = cif->arg_types; i < avn; i++, p_arg++)
     {
       size_t z;
@@ -463,7 +424,7 @@ sffi_closure_helper_SYSV (sffi_closure *closure, UINT64 *rvalue,
 
   (closure->fun) (cif, rvalue, avalue, closure->user_data);
 
-  /* Tell sffi_closure_SYSV how to perform return type promotions.  */
+  
   return return_type (cif->rtype);
 }
 

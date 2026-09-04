@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network::tls::server.
+
 
 module;
 
@@ -80,10 +80,10 @@ silicon::scheduler::task<silicon::network::tls::client> server::accept(std::chro
     auto tls_client = tls::client{m_scheduler, m_tls_ctx, std::move(s), client_endpoint};
 
     auto hstatus = co_await tls_client.handshake(timeout);
-    (void)hstatus; // user must check result.
+    (void)hstatus;
     co_return std::move(tls_client);
 };
 
-} // namespace silicon::network::tls
+}
 
-#endif // #ifdef SILICON_FEATURE_TLS
+#endif

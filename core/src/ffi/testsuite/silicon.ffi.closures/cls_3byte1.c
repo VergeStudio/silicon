@@ -1,12 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Especially with small structures which may fit in one
-		register. Depending on the ABI. Check overlapping.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_3byte {
@@ -84,18 +78,18 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_3byte_fn), &res_dbl, args_dbl);
-  /* { dg-output "12 119 1 15: 13 134" } */
+  
   printf("res: %d %d\n", res_dbl.a, res_dbl.b);
-  /* { dg-output "\nres: 13 134" } */
+  
   CHECK(res_dbl.a == 13);
   CHECK(res_dbl.b == 134);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_3byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_3byte(*)(cls_struct_3byte, cls_struct_3byte))(code))(g_dbl, f_dbl);
-  /* { dg-output "\n12 119 1 15: 13 134" } */
+  
   printf("res: %d %d\n", res_dbl.a, res_dbl.b);
-  /* { dg-output "\nres: 13 134" } */
+  
   CHECK(res_dbl.a == 13);
   CHECK(res_dbl.b == 134);
 

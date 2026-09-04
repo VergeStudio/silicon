@@ -39,18 +39,18 @@ export import silicon.di.error;
 import silicon.proxy;
 
 
-// Logical functional partitioning of the single self-contained :facade
-// partition. The di subdirectories form a strongly-connected include
-// component, so C++20 + xmake require everything in ONE translation
-// unit. These banners only annotate the original per-directory
-// boundaries (DFS include order preserved) for maintainability.
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
 
-// --- core/config.h ---
+
+
+
+
+
+
+
+
+
 
 #if !defined(SILICON_DI_CONSTRUCTOR_DETECTION_ARGS)
 #define SILICON_DI_CONSTRUCTOR_DETECTION_ARGS 32
@@ -83,11 +83,11 @@ import silicon.proxy;
 #endif
 
 
-// ==============================================================================
-// ==  type  —  type traits, descriptors, type lists & maps
-// ==============================================================================
 
-// --- type/type_descriptor.h ---
+
+
+
+
 
 
 
@@ -302,12 +302,12 @@ inline void append_type_name(std::string& name, type_descriptor descriptor) {
     append_described_type_name(name, descriptor);
 }
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
+
+
+
 
 export namespace silicon::di {
 
@@ -402,14 +402,14 @@ std::error_code make_type_index_out_of_range_exception(
 }
 
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  registration  —  type registration, annotations & requirements
-// ==============================================================================
 
-// --- registration/annotated.h ---
+
+
+
+
 
 
 
@@ -472,14 +472,14 @@ struct annotated_traits<annotated<T, Tag>*> {
     using type = T*;
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
 
-// --- core/keyed.h ---
+
+
+
+
 
 
 
@@ -598,14 +598,14 @@ struct keyed_binding_identity : Binding {
 
 
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  type  —  type traits, descriptors, type lists & maps
-// ==============================================================================
 
-// --- type/type_list.h ---
+
+
+
+
 
 
 
@@ -723,9 +723,9 @@ void for_each(type_list<Types...>, Function&& fn) {
     (fn(type_list_iterator<Types>{}), ...);
 }
 
-} // export namespace silicon::di
+}
 
-// --- type/type_traits.h ---
+
 
 
 
@@ -1056,9 +1056,9 @@ struct wrapper_storage_types_impl<
     Handle, std::enable_if_t<type_traits<Handle>::enabled &&
                              type_traits<Handle>::is_pointer_like>> {
   private:
-    // Walk the wrapper chain once and collect all derived interface types
-    // together instead of recursing over the same chain separately for each
-    // result list.
+
+
+
     using next =
         wrapper_storage_types_impl<typename type_traits<Handle>::value_type>;
     using copyable_handle_types = std::conditional_t<
@@ -1313,7 +1313,7 @@ struct type_traits<std::unique_ptr<T, Deleter>,
         if constexpr (type_traits<T>::enabled && !std::is_pointer_v<T>)
             return std::unique_ptr<T, Deleter>(
                 new T(make_nested<T>(std::forward<Args>(args)...)));
-        // Work around direct-initialization in smart-pointer-backed factories.
+
         else if constexpr (std::is_constructible_v<T, Args...>)
             return std::unique_ptr<T, Deleter>(
                 new T(std::forward<Args>(args)...));
@@ -1428,7 +1428,7 @@ struct type_traits<std::shared_ptr<T>, std::enable_if_t<!std::is_array_v<T>>> {
         if constexpr (type_traits<T>::enabled && !std::is_pointer_v<T>)
             return std::make_shared<T>(
                 make_nested<T>(std::forward<Args>(args)...));
-        // Work around direct-initialization in std::make_shared().
+
         else if constexpr (std::is_constructible_v<T, Args...>)
             return std::make_shared<T>(std::forward<Args>(args)...);
         else
@@ -1514,9 +1514,9 @@ template <typename T, typename... Args> T make_nested(Args&&... args) {
 }
 
 
-} // export namespace silicon::di
+}
 
-// --- type/normalized_type.h ---
+
 
 
 
@@ -1563,14 +1563,14 @@ struct normalized_type<keyed<T, Key>, void>
     : std::decay<keyed<typename normalized_type<T>::type, Key>> {};
 
 template <class T> using normalized_type_t = typename normalized_type<T>::type;
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  registration  —  type registration, annotations & requirements
-// ==============================================================================
 
-// --- registration/collection_traits.h ---
+
+
+
+
 
 
 
@@ -1643,14 +1643,14 @@ struct collection_traits<std::map<Key, Value, Compare, Allocator>> {
 
 
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
 
-// --- core/binding_collection.h ---
+
+
+
+
 
 
 
@@ -1687,9 +1687,9 @@ std::size_t append_binding_collection(T& results,
     return count;
 }
 
-// --- expected 返回类型封装 ---
-// di 的 resolve 入口可能返回 T&（引用），而 std::expected<T&, E> 标准不允许；
-// 用 as_expected_t 把引用统一包成 reference_wrapper<T>，其余类型原样包入 expected。
+
+
+
 template <typename T>
 using as_expected_t = std::expected<
     std::conditional_t<std::is_reference_v<T>,
@@ -1724,21 +1724,21 @@ as_expected_t<T> construct_binding_collection(PrimaryCountFn&& primary_count,
     return results;
 }
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  type  —  type traits, descriptors, type lists & maps
-// ==============================================================================
 
-// --- type/complete_type.h ---
+
+
+
+
 
 
 export namespace silicon::di {
 
-// Detect completeness through overload resolution instead of a partial
-// specialization. MSVC x64 accepts the specialization-based probe for some
-// forward declarations that still need to be rejected during registration.
+
+
+
 template <typename T, std::size_t = sizeof(T)>
 std::true_type is_complete_impl(int);
 
@@ -1755,14 +1755,14 @@ template <typename T>
 inline constexpr bool requires_complete_type_v =
     !std::is_void_v<T> && !std::is_function_v<T>;
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
 
-// --- core/auto_constructible.h ---
+
+
+
+
 
 
 
@@ -1781,14 +1781,14 @@ struct default_auto_constructible<T, true>
 template <typename T>
 struct is_auto_constructible : default_auto_constructible<T> {};
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  type  —  type traits, descriptors, type lists & maps
-// ==============================================================================
 
-// --- type/rebind_type.h ---
+
+
+
+
 
 
 
@@ -2042,14 +2042,14 @@ template <class T> struct is_exact_lookup<const T*> : is_exact_lookup<T> {};
 template <class T>
 inline constexpr bool is_exact_lookup_v = is_exact_lookup<T>::value;
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  storage  —  storage policies (shared / unique / external / cyclical)
-// ==============================================================================
 
-// --- storage/interface_storage_traits.h ---
+
+
+
+
 
 
 
@@ -2098,14 +2098,14 @@ template <typename Storage, typename InterfaceList>
 inline constexpr bool use_interface_as_stored_leaf_v =
     use_interface_as_stored_leaf<Storage, InterfaceList>::value;
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  factory  —  constructor detection, callable & function injection
-// ==============================================================================
 
-// --- factory/constructor_traits.h ---
+
+
+
+
 
 
 
@@ -2225,21 +2225,21 @@ struct construction_dispatch<
 };
 
 
-} // export namespace silicon::di
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-// --- factory/constructor_typedef.h ---
+
 
 
 
 export namespace silicon::di {
 
-// Keep typedef detection in this header lightweight so opt-in construction
-// annotations can include it without pulling in the heavier construction
-// backend machinery from constructor_traits.h.
+
+
+
 template <typename T, typename = void>
 struct has_constructor_typedef : std::false_type {};
 
@@ -2267,9 +2267,9 @@ struct constructor_typedef : constructor_typedef_impl<T> {
         constructor_kind::kConcrete;
 };
 
-} // export namespace silicon::di
+}
 
-// --- factory/constructor_detection.h ---
+
 
 
 
@@ -2305,9 +2305,9 @@ template <class DisabledType, typename Tag> struct opaque_constructor_argument;
 
 template <class DisabledType>
 struct constructor_argument<DisabledType, automatic> {
-    // Value and rvalue probes imply materialization, so they must not
-    // participate for forward declarations. Otherwise constructor deduction
-    // would pull incomplete dependencies into class-trait inspection.
+
+
+
     template <
         typename T,
         typename = typename std::enable_if_t<
@@ -2316,9 +2316,9 @@ struct constructor_argument<DisabledType, automatic> {
     >
     operator T&&() const;
 
-    // Lvalue-reference probes stay available for incomplete types. They model
-    // borrowed dependencies that can be satisfied by lookup without trying to
-    // construct the forward-declared type.
+
+
+
     template <
         typename T,
         typename = typename std::enable_if_t< !std::is_same_v<DisabledType, std::decay_t<T>> >
@@ -2390,8 +2390,8 @@ class constructor_argument_impl<DisabledType, Context, Container, automatic> {
             is_complete<std::decay_t<T>>::value>
     >
     operator T() {
-        // A prvalue `T` still satisfies `T&&` constructor parameters, so
-        // constructor injection can stay on the regular value path here.
+
+
         return context_.template resolve<T>(container_);
     }
 
@@ -2455,9 +2455,9 @@ struct direct_initialization<T, Arg>
     : std::conjunction<direct_initialization_impl<T, void, Arg>,
                        std::negation<std::is_same<std::decay_t<Arg>, T>>> {};
 #else
-// Detection should not treat `T(T&)` as a meaningful dependency-taking
-// constructor. Filtering the copy-construction shape here keeps both list and
-// direct initialization probes aligned.
+
+
+
 template <typename T, typename... Args>
 inline constexpr bool is_non_copy_constructor_argument_v =
     sizeof...(Args) != 1 || (!std::is_same_v<T, std::decay_t<Args>> && ...);
@@ -2498,9 +2498,9 @@ inline constexpr bool always_false_v = false;
 template <typename T, size_t>
 using repeated_type = T;
 
-// Keep one shared detector/search shape and vary only the per-arity probe.
-// Non-MSVC compilers handle a lighter constexpr probe well, while MSVC still
-// needs the older type-based form to preserve behavior.
+
+
+
 #if defined(_MSC_VER)
 template <typename T, typename Tag,
           template <class, class> class ConstructorArg,
@@ -2528,8 +2528,8 @@ template <typename T, typename Tag,
           template <class, class> class ConstructorArg,
           template <typename...> typename IsConstructible, size_t... Is>
 constexpr bool constructor_probe(std::index_sequence<Is...>) {
-    // Non-MSVC compilers handle the lighter repeated-type placeholder probe
-    // well, which avoids an extra wrapper class per arity check.
+
+
     return IsConstructible<T, repeated_type<ConstructorArg<T, Tag>, Is>...>::value;
 }
 
@@ -2541,9 +2541,9 @@ inline constexpr bool constructor_probe_v =
         std::make_index_sequence<Arity>{});
 #endif
 
-// Everything above feeds the same high-to-low arity search below, so the
-// selected constructor semantics stay shared even though the probe body differs
-// by compiler.
+
+
+
 template <typename T, typename Tag,
           template <typename...> typename IsConstructible, size_t Arity,
           bool Match = constructor_probe_v<T, Tag, constructor_argument,
@@ -2571,7 +2571,7 @@ template <typename T, typename Tag,
 using constructor_arity_detector =
     constructor_arity_detector_impl<T, Tag, IsConstructible, Arity>;
 
-// Searches constructor arity in the inclusive range [0, N].
+
 template <typename T, typename Tag, template <typename...> typename IsConstructible,
           size_t N = SILICON_DI_CONSTRUCTOR_DETECTION_ARGS>
 struct constructor_detection_impl;
@@ -2587,9 +2587,9 @@ template <typename T, typename Tag, size_t Arity> struct constructor_methods {
     template <typename Type, typename Context, typename Container, size_t... Is>
     static auto construct_impl(Context& ctx, Container& container,
                                std::index_sequence<Is...>) {
-        // `Is...` only drives the pack expansion; the runtime construction
-        // path still receives `Arity` copies of the same constructor argument
-        // adapter without first materializing a type_list of placeholders.
+
+
+
         return construction_dispatch<Type, T>::construct(
             ((void)Is, constructor_argument_impl<T, Context, Container, Tag>(
                            ctx, container))...);
@@ -2676,10 +2676,10 @@ struct constructor_detection_dispatch<T, Tag, Arity,
 template <typename T, typename Tag, template <typename...> typename IsConstructible,
           size_t N>
 struct constructor_detection_impl {
-    // The detector owns policy: pick the highest matching arity once, then let
-    // the runtime path instantiate only that winning constructor shape.
-    // Search from high to low so the first match is the winning constructor
-    // arity without materializing the full `[0, N]` probe set up front.
+
+
+
+
     static constexpr size_t detected_arity =
         constructor_arity_detector<T, Tag, IsConstructible, N>::value;
     static constexpr bool detected =
@@ -2736,9 +2736,9 @@ struct constructor_detection {
     }
 };
 
-} // export namespace silicon::di
+}
 
-// --- factory/constructor.h ---
+
 
 
 
@@ -2768,25 +2768,25 @@ template <typename T, typename... Args> struct constructor<T(Args...)> {
     }
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  storage  —  storage policies (shared / unique / external / cyclical)
-// ==============================================================================
 
-// --- storage/storage.h ---
+
+
+
+
 
 
 export namespace silicon::di {
 
 template <typename StorageTag, typename Type, typename U> struct conversions;
-// Primary (forward) declaration carries default arguments so that the
-// sentinel type `storage<void>` is a well-formed (incomplete) type-id. This is
-// required for clang: MSVC accepts `storage<void>` from defaults supplied on a
-// later definition, but clang requires the defaults on the first declaration.
-// `storage<void>` is only ever used inside std::is_same_v sentinels, so an
-// incomplete type is sufficient.
+
+
+
+
+
+
 template <typename StorageTag, typename Type = void, typename StoredType = void,
           typename Factory = void, typename Conversions = void>
 class storage;
@@ -2802,14 +2802,14 @@ template <typename Storage, typename Type, typename TypeInterface>
 inline constexpr bool storage_interface_requirements_v =
     storage_interface_requirements<Storage, Type, TypeInterface>::value;
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  registration  —  type registration, annotations & requirements
-// ==============================================================================
 
-// --- registration/requirements.h ---
+
+
+
+
 
 
 
@@ -3001,14 +3001,14 @@ struct registration_requirements<Storage, type_list<TypeInterfaces...>, Type> {
     }
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  factory  —  constructor detection, callable & function injection
-// ==============================================================================
 
-// --- factory/callable.h ---
+
+
+
+
 
 
 
@@ -3224,9 +3224,9 @@ template <typename Signature = void, typename T> auto callable(T&& fn) {
         std::forward<T>(fn));
 }
 
-} // export namespace silicon::di
+}
 
-// --- factory/function.h ---
+
 
 
 export namespace silicon::di {
@@ -3247,14 +3247,14 @@ template <typename T, T fn> struct function_decl {
 
 template <auto fn> struct function : function_decl<decltype(fn), fn> {};
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
 
-// --- core/factory_traits.h ---
+
+
+
+
 
 
 
@@ -3348,16 +3348,16 @@ struct factory_traits<callable_factory<Signature, T>> {
     static constexpr bool is_compile_time_bindable = false;
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  registration  —  type registration, annotations & requirements
-// ==============================================================================
 
-// --- registration/type_registration.h ---
 
-// #include "silicon/di/core/config.h"
+
+
+
+
+
 
 
 export namespace silicon::di {
@@ -3580,8 +3580,7 @@ template <typename T, typename Head, typename... Tail>
 struct get_type<T, type_list<Head, Tail...>> {
     using type = std::conditional_t<
         std::is_same_v<T, typename Head::template rebind_t<void>> &&
-            !std::is_same_v<Head, T>, /* &&... is needed for interface deduction
-                                       */
+            !std::is_same_v<Head, T>, 
         Head, typename get_type<T, type_list<Tail...>>::type>;
 };
 
@@ -3749,41 +3748,41 @@ using registration_key_t = std::conditional_t<
 
 
 
-// TODO:
-// the default factory is hardcoded
+
+
 
 template <typename... Args> struct type_registration {
   private:
-    // Parse the explicit registration wrappers once, then derive any defaults
-    // from that cached result instead of rescanning Args... for each role.
+
+
     using parsed_args = parse_registration_args_t<Args...>;
 
   public:
-    // Scope has to be scpecified as there is no way how to deduce it
+
     using scope_type = registration_scope_t<parsed_args>;
     static_assert((is_supported_registration_arg_v<Args> && ...),
                   "type_registration expects scope/storage/factory/interfaces/key/conversions/dependencies/bindings wrappers");
     static_assert(!std::is_same_v<scope_type, scope<void>>,
                   "failed to deduce a scope type");
 
-    // Storage can be deduced from Factory
+
     using storage_type = registration_storage_t<parsed_args>;
     static_assert(!std::is_same_v<storage_type, storage<void>>,
                   "failed to deduce a storage type");
 
-    // Factory can be deduced from Storage
+
     using factory_type = registration_factory_t<parsed_args>;
     static_assert(!std::is_same_v<factory_type, factory<void>>,
                   "failed to deduce a factory type");
 
-    // Interface can be deduced from Storage or Factory
+
     using interface_type = registration_interface_t<parsed_args>;
     static_assert(!std::is_same_v<interface_type, interfaces<void>>,
                   "failed to deduce an interface type");
 
     using key_type = registration_key_t<parsed_args>;
 
-    // Conversions are deduced from Storage and Scope
+
     using conversions_type = registration_conversions_t<parsed_args>;
     static_assert(!std::is_same_v<conversions_type, conversions_marker<void>>,
                   "failed to deduce a conversions type");
@@ -3792,14 +3791,14 @@ template <typename... Args> struct type_registration {
     using bindings_type = typename parsed_args::bindings_type;
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
 
-// --- core/binding_model.h ---
+
+
+
+
 
 
 
@@ -3890,9 +3889,9 @@ using binding_expansion =
     binding_expansion_impl<BindingModel, typename BindingModel::interface_types>;
 
 
-} // export namespace silicon::di
+}
 
-// --- core/binding_selection.h ---
+
 
 
 
@@ -4003,9 +4002,9 @@ make_runtime_selection(Visitor&& visit_candidates) {
 }
 
 
-} // export namespace silicon::di
+}
 
-// --- core/binding_resolution_policy.h ---
+
 
 
 #ifdef _MSC_VER
@@ -4257,13 +4256,13 @@ template <typename LookupRequest> struct missing_binding_source {
     }
 };
 
-} // export namespace silicon::di
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-// --- core/none.h ---
+
 
 
 export namespace silicon::di {
@@ -4274,14 +4273,14 @@ template <typename T> struct is_none : std::bool_constant<false> {};
 template <> struct is_none<none_t> : std::bool_constant<true> {};
 template <typename T> inline constexpr auto is_none_v = is_none<T>::value;
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  factory  —  constructor detection, callable & function injection
-// ==============================================================================
 
-// --- factory/invoke.h ---
+
+
+
+
 
 
 
@@ -4296,14 +4295,14 @@ template <typename T> struct factory_invoke {
     }
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  memory  —  allocators, arena & object lifetime
-// ==============================================================================
 
-// --- memory/allocator.h ---
+
+
+
+
 
 
 
@@ -4345,14 +4344,14 @@ struct allocator_traits {
         std::allocator_traits<Allocator>::deallocate(alloc, ptr, n);
     }
 };
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  index  —  index collections (array / map / unordered_map)
-// ==============================================================================
 
-// --- index/index.h ---
+
+
+
+
 
 
 
@@ -4400,8 +4399,8 @@ struct index_impl<type_list<Entries...>, Value, Allocator> {
     index_impl(Allocator&) {}
 
     template <typename T> struct index_ptr : allocator_base<Allocator> {
-        // TODO: this pattern already exists in the constructor-backed
-        // instance holder; try to merge them.
+
+
         index_ptr(Allocator& al) : allocator_base<Allocator>(al) {
             auto alloc = allocator_traits::rebind<T>(this->get_allocator());
             try {
@@ -4471,21 +4470,21 @@ struct index<std::tuple<Entries...>, Value, Allocator>
                              Allocator>::index_impl;
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  memory  —  allocators, arena & object lifetime
-// ==============================================================================
 
-// --- memory/aligned_storage.h ---
+
+
+
+
 
 
 export namespace silicon::di {
 template <std::size_t Len, std::size_t Alignment> struct aligned_storage {
     struct type {
-        // TODO: force the storage type to be initialized to avoid warning
-        // https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3074r2.html
+
+
         type() {}
     private:
         alignas(Alignment) std::uint8_t data[Len];
@@ -4502,9 +4501,9 @@ template <std::size_t MinLen, typename... Ts> struct aligned_union {
     using type = typename aligned_storage<length, alignment>::type;
 };
 
-} // export namespace silicon::di
+}
 
-// --- memory/static_allocator.h ---
+
 
 
 
@@ -4557,9 +4556,9 @@ template <typename Allocator>
 inline constexpr bool is_static_allocator_v =
     is_static_allocator<Allocator>::value;
 
-} // export namespace silicon::di
+}
 
-// --- memory/arena_allocator.h ---
+
 
 
 export namespace silicon::di {
@@ -4577,7 +4576,7 @@ template< typename Allocator = std::allocator<uint8_t> > class arena
 
     static constexpr std::size_t MaxBlockSize = 1<<21;
 
-    // TODO: all the state here is quite big
+
 
     struct block {
         block* next;
@@ -4600,8 +4599,8 @@ template< typename Allocator = std::allocator<uint8_t> > class arena
     bool request_block(intptr_t bytes) {
         assert(state_.block_size_ > 0);
 
-        // For large blocks, glibc's malloc is aligning large allocations
-        // to the multiples of page size, also keeping space for chunk size.
+
+
         auto header_size = allocator_traits_type::header_size();
         auto page_size = allocator_traits_type::page_size();
         intptr_t size = ((
@@ -4789,19 +4788,19 @@ bool operator != (const arena_allocator<T, Arena, AlignmentT>& x, const arena_al
 }
 
 
-// ==============================================================================
-// ==  resolution  —  type resolution, conversion cache & recursion guards
-// ==============================================================================
 
-// --- resolution/resolving_frame_fwd.h ---
+
+
+
+
 
 export namespace silicon::di {
 
 class resolving_frame;
 
-} // export namespace silicon::di
+}
 
-// --- resolution/resolving_frame.h ---
+
 
 
 export namespace silicon::di {
@@ -4830,14 +4829,14 @@ class resolving_frame {
 
 
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
 
-// --- core/context_base.h ---
+
+
+
+
 
 
 
@@ -4850,7 +4849,7 @@ struct context_destructible {
     void (*dtor)(void*);
 };
 
-// context_closure 接口：类型擦除门面
+
 PRO_DEF_MEM_DISPATCH(MemClosureReset, reset);
 PRO_DEF_MEM_DISPATCH(MemClosureArena, arena_storage);
 PRO_DEF_MEM_DISPATCH(MemClosureAddDtor, add_destructor);
@@ -4870,7 +4869,7 @@ template<class T, class... Args>
     return silicon::proxy::make_proxy<context_closure_facade, T>(std::forward<Args>(args)...);
 }
 
-// 适配器：把具体 closure 的 do_* 实现桥接到 context_closure_facade
+
 template<class Closure>
 struct closure_strategy {
     Closure* self;
@@ -4879,8 +4878,8 @@ struct closure_strategy {
     void add_destructor(void* instance, void (*dtor)(void*)) { self->do_add_destructor(instance, dtor); }
 };
 
-// 保留 context_closure_base 作为闭包节点类型（被 closures_ 以 context_closure_base* 持有，
-// 多态调用 reset()/arena_storage()/add_destructor()），内部以类型擦除 strategy_ 承载具体实现。
+
+
 struct context_closure_base {
     context_closure_proxy strategy_{};
     void reset() { strategy_->reset(); }
@@ -4892,8 +4891,8 @@ struct context_closure : context_closure_base {
     CORE_API context_closure()
         : arena_(arena_buffer_)
         , destructibles_(arena_) {
-        // 在构造函数体内（complete-class 上下文）初始化 strategy_，
-        // 此时 do_* 已声明，closure_strategy<context_closure> 可被完整实例化。
+
+
         strategy_ = make_context_closure<closure_strategy<context_closure>>(this);
     }
 
@@ -4910,9 +4909,9 @@ struct context_closure : context_closure_base {
             }
         }
         destructibles_.clear();
-        // `destructibles_` stores its capacity inside `arena_`. Rebuild the
-        // vector before rewinding the arena so the vector destructor never
-        // observes capacity backed by invalidated storage.
+
+
+
         using destructibles_type = decltype(destructibles_);
         destructibles_.~destructibles_type();
         arena_.reset();
@@ -5103,9 +5102,9 @@ class context_state : public context_path_state {
     }
 
     CORE_API void push(context_closure_base* c) {
-        // A closure represents one owner of preserved temporaries. Recursive
-        // shared resolution must be stopped by the type guard before the same
-        // factory tries to reactivate its closure while it is already active.
+
+
+
         assert(!contains(c));
         closures_.emplace_back(c);
     }
@@ -5143,7 +5142,7 @@ class context_state : public context_path_state {
 };
 
 
-} // export namespace silicon::di
+}
 
 
 export namespace silicon::di {
@@ -5158,10 +5157,10 @@ inline resolving_frame::resolving_frame(context_path_state& context,
     : context_(&context)
     , parent_(context.active_resolving_frame_)
     , type_(type) {
-    // The frame object itself is the linked stack node for the active
-    // resolution path, so entering the scope just makes this the new head.
-    // GCC can warn here when the frame lives inside a stack RAII guard even
-    // though the destructor restores parent_ before that guard leaves scope.
+
+
+
+
     context_->active_resolving_frame_ = this;
 }
 #if defined(__GNUC__) && !defined(__clang__)
@@ -5170,8 +5169,8 @@ inline resolving_frame::resolving_frame(context_path_state& context,
 
 inline resolving_frame::~resolving_frame() {
     if (context_) {
-        // Frames unwind strictly LIFO; restoring parent_ pops this node from
-        // the active type path without touching any arena-backed state.
+
+
         assert(context_->active_resolving_frame_ == this);
         context_->active_resolving_frame_ = parent_;
     }
@@ -5215,14 +5214,14 @@ resolving_frame context_path_state::track_type() {
 }
 
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  type  —  type traits, descriptors, type lists & maps
-// ==============================================================================
 
-// --- type/type_conversion_traits.h ---
+
+
+
+
 
 
 
@@ -5243,14 +5242,14 @@ template <typename Target, typename Source>
 struct type_conversion_traits<Target*, Source*> {
     static Target* convert(Source* source) { return static_cast<Target*>(source); }
 };
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  resolution  —  type resolution, conversion cache & recursion guards
-// ==============================================================================
 
-// --- resolution/conversion_cache.h ---
+
+
+
+
 
 
 
@@ -5320,10 +5319,10 @@ template <typename... Types> struct conversion_cache
     }
 };
 
-// TODO: the idea was that conversions will act as a cache of pointers
-// context-owned instances. That would require pushing and popping of
-// the context on each resolution. Right now, conversions are like
-// "expanded variant".
+
+
+
+
 template <typename... Args> struct conversion_cache<type_list<Args...>>
     : conversion_cache<Args...>
 {}; 
@@ -5332,9 +5331,9 @@ template <> struct conversion_cache<type_list<>> {
     void reset() {}
 };
 
-} // export namespace silicon::di
+}
 
-// --- resolution/runtime_binding_interface.h ---
+
 
 
 export namespace silicon::di {
@@ -5380,8 +5379,8 @@ template <typename Container> class runtime_binding_interface {
   public:
     virtual ~runtime_binding_interface() = default;
 
-    // 绑定层统一返回 as_expected_t<void*>：能力缺失（如请求 T* 但存储仅
-    // 支持 T&）以错误码向上传播，而非异常/终止。
+
+
     virtual as_expected_t<void*> get_value(
         runtime_context&,
         const instance_request<typename Container::rtti_type>& request,
@@ -5401,14 +5400,14 @@ template <typename Container> class runtime_binding_interface {
 
     virtual void destroy() = 0;
 };
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  memory  —  allocators, arena & object lifetime
-// ==============================================================================
 
-// --- memory/object_lifetime.h ---
+
+
+
+
 
 
 
@@ -5424,14 +5423,14 @@ template <typename Type> void destroy_object_value(Type& value) {
     }
 }
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  storage  —  storage policies (shared / unique / external / cyclical)
-// ==============================================================================
 
-// --- storage/materialized_source.h ---
+
+
+
+
 
 
 
@@ -5650,18 +5649,18 @@ pointer_source<Source> make_resolved_source(Source* source) {
 }
 
 
-} // export namespace silicon::di
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
 
-// ==============================================================================
-// ==  resolution  —  type resolution, conversion cache & recursion guards
-// ==============================================================================
 
-// --- resolution/type_conversion.h ---
+
+
+
+
 
 
 
@@ -5680,9 +5679,9 @@ inline constexpr bool is_same_handle_shape_v =
 
 template <typename Target, typename Source>
 inline constexpr bool is_rebindable_handle_v =
-    // Identical handle types should reuse the already materialized source
-    // instead of re-entering factory.resolve<Target>(), which can re-trigger
-    // shared recursion handling while the source instance is still resolving.
+
+
+
     !std::is_same_v<Target, Source> && is_same_handle_shape_v<Target, Source> &&
     type_traits<Source>::enabled && type_traits<Source>::is_pointer_like &&
     type_traits<Source>::template is_rebindable<Target>;
@@ -6093,7 +6092,7 @@ Target* resolve_borrowed_materialized_alternative_pointer(
 }
 
 
-// TODO: this file is really terrible, I need to look at how to deduplicate it
+
 
 template <typename Target, typename SourceCapability, typename = void>
 struct type_conversion {
@@ -6103,9 +6102,9 @@ struct type_conversion {
                        type_descriptor registered_type);
 };
 
-// 基类上转：rvalue 源（unique/值语义存储）解析到基类引用或基类值时，
-// 向上转型取基类引用，避免按值 move 派生对象后丢失上转能力
-// （否则 get_address_as 会误入构造抽象基类分支）。
+
+
+
 template <typename Target, typename Source>
 struct type_conversion<
     Target, rvalue_source<Source>,
@@ -6735,13 +6734,13 @@ struct type_conversion<
         return materialized_pointer(source);
     }
 };
-} // export namespace silicon::di
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-// --- resolution/recursion_guard.h ---
+
 
 
 export namespace silicon::di {
@@ -6752,8 +6751,8 @@ struct recursion_guard {
     template <typename Context>
     explicit recursion_guard(Context& context)
         : frame_guard_(context.template track_type<T>()) {
-        // Track the active type path first so recursion errors can report
-        // the full resolution chain, including the repeated type.
+
+
         if (visited_) {
             ec_ = make_type_recursion_exception<T>(context);
             ok_ = false;
@@ -6775,7 +6774,7 @@ struct recursion_guard {
         }
     }
 
-    /// 解析是否成功进入（未被递归检测拦截）。调用方应检查并传播 error()。
+
     bool ok() const { return ok_; }
     std::error_code error() const { return ec_; }
 
@@ -6808,8 +6807,8 @@ template <typename T> class recursion_guard_wrapper {
     template <typename Context>
     recursion_guard_wrapper(Context& context, bool enabled) {
         if (enabled) {
-            // The wrapped recursion_guard owns a self-linking resolving_frame,
-            // so it must stay at a fixed address for the whole guarded scope.
+
+
             new (&storage_) recursion_guard<T>(context);
             active_ = true;
         }
@@ -6836,14 +6835,14 @@ template <typename T> class recursion_guard_wrapper {
     bool active_ = false;
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  storage  —  storage policies (shared / unique / external / cyclical)
-// ==============================================================================
 
-// --- storage/type_storage_traits.h ---
+
+
+
+
 
 
 
@@ -7135,14 +7134,14 @@ struct type_storage_traits<
             ? 1
             : 0;
 };
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  type  —  type traits, descriptors, type lists & maps
-// ==============================================================================
 
-// --- type/request_traits.h ---
+
+
+
+
 
 
 
@@ -7180,14 +7179,14 @@ template <typename Request, bool RemoveRvalueReferences>
 using resolve_expected_result_t =
     as_expected_t<resolve_result_t<Request, RemoveRvalueReferences>>;
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  core  —  binding model, binding collection & context
-// ==============================================================================
 
-// --- core/binding_resolution.h ---
+
+
+
+
 
 
 
@@ -7632,9 +7631,9 @@ inline constexpr bool can_wrap_normalized_request_v =
     !std::is_pointer_v<std::decay_t<Request>> &&
     !std::is_same_v<normalized_type_t<Request>, std::decay_t<Request>>;
 
-// Rvalue requests are not "construct me a normalized value" requests. They
-// are asking the routed storage to publish a movable result, so they must
-// reject normalized/wrapper construction instead of silently degrading to `T`.
+
+
+
 template <typename Request>
 inline constexpr bool rvalue_request_requires_explicit_conversion_v =
     std::is_rvalue_reference_v<Request>;
@@ -7665,11 +7664,11 @@ terminate_missing_rvalue_conversion(bool has_normalized_request,
                                 MakeNotFound&& make_not_found) {
     static_assert(rvalue_request_requires_explicit_conversion_v<Request>);
 
-    // di 已统一错误体系：make_* 现在返回 std::error_code。
-    // 此 [[noreturn]] 包装器用于 rvalue 显式转换缺失的硬失败路径，
-    // 调用方已声明 as_expected_t<...> 返回类型；为避免在调用点连锁改写，
-    // 这里直接用 std::terminate 落地，并通过 std::unexpected 取出 error_code
-    // 的诊断信息输出到 stderr。
+
+
+
+
+
     std::error_code ec = has_normalized_request
                              ? std::forward<MakeNotConvertible>(
                                    make_not_convertible)()
@@ -7712,8 +7711,8 @@ template <typename Request, typename ResolveExact, typename ResolveNormalized>
 as_expected_t<request_result_t<Request>>
 construct_request_or_wrap_normalized(ResolveExact&& resolve_exact,
                                      ResolveNormalized&& resolve_normalized) {
-    // expected 语义：仅当精确解析以 kTypeNotConvertible 失败且支持
-    // normalized 降级时，改用 normalized 类型解析并构造；其余失败原样返回。
+
+
     auto exact = std::forward<ResolveExact>(resolve_exact)();
     if (!exact && can_wrap_normalized_request_v<Request> &&
         exact.error() == make_error_code(di_error::kTypeNotConvertible)) {
@@ -7726,18 +7725,18 @@ construct_request_or_wrap_normalized(ResolveExact&& resolve_exact,
     }
     return exact;
 }
-} // export namespace silicon::di
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
 
-// ==============================================================================
-// ==  runtime  —  runtime container traits & registry
-// ==============================================================================
 
-// --- runtime/context.h ---
+
+
+
+
 
 
 export namespace silicon::di {
@@ -7746,8 +7745,8 @@ class runtime_context : public context_state {
   public:
     template <typename T, typename Container>
     T resolve(Container& container) {
-        // 依赖解析（构造函数/工厂/invoke 的参数注入）走容器 expected 入口；
-        // 该层无法向上传播错误码，失败按硬失败落地（与 rvalue 转换缺失一致）。
+
+
         if constexpr (is_keyed_v<T>) {
             using request_type = keyed_type_t<T>;
             using key_type = keyed_key_t<T>;
@@ -7792,20 +7791,20 @@ class runtime_context : public context_state {
     }
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  resolution  —  type resolution, conversion cache & recursion guards
-// ==============================================================================
 
-// --- resolution/runtime_binding.h ---
+
+
+
+
 
 
 
 
 export namespace silicon::di {
-// TODO: this is bit convoluted, ideally merge resolver with runtime binding
+
 
 template <typename InstanceContainer, typename Storage,
           typename ResolutionContainer = InstanceContainer>
@@ -7881,9 +7880,9 @@ inline constexpr bool runtime_binding_has_conversion_cache_v =
 
 
 
-// TODO: the container here is just for RTTI, but it is needed to get the
-// inner container type and that is very hard. Perhaps pass RTTI and inner
-// container directly?
+
+
+
 template <typename Container, typename Type, typename Storage, typename State>
 class runtime_binding
     : public runtime_binding_interface<Container>,
@@ -7951,8 +7950,8 @@ class runtime_binding
     };
 
     context_closure closure_;
-    // `state_` must be destroyed before binding state so shared storage can
-    // tear down cached instances before preserved construction temporaries.
+
+
     State state_;
 
     state_type& state_ref() { return state_traits::ref(state_); }
@@ -7989,10 +7988,10 @@ class runtime_binding
             return std::unexpected(address.error());
         }
         void* ptr = *address;
-        // Request caching is intentionally stricter than conversion caching.
-        // shared_cyclical shared_ptr storage, for example, can keep converted
-        // handles alive in the storage while still deferring publication of a
-        // request result until the outer resolve has committed successfully.
+
+
+
+
         if constexpr (Storage::conversions::is_stable) {
             cache(ptr);
         }
@@ -8055,8 +8054,8 @@ template <typename T, typename Context>
         }
 
         using Target = std::remove_reference_t<resolved_type_t<T, Type>>;
-        // 值能力 optional<U> 替换到抽象接口得到 optional<abstract>，
-        // 无法物化，按类型不可转换报错，避免实例化非法构造。
+
+
         if constexpr (optional_abstract_element<Target>::value) {
             return std::unexpected(make_type_not_convertible_exception(
                 requested_type, registered_type, context));
@@ -8102,7 +8101,7 @@ template <typename T, typename Context>
     }
 };
 
-// This is much faster than unique_ptr + deleter
+
 template <typename T> struct runtime_binding_ptr {
     using destroy_fn = void (*)(T*);
 
@@ -8159,12 +8158,12 @@ template <typename T> struct runtime_binding_ptr {
     destroy_fn destroy_ = &default_destroy;
 };
 
-} // export namespace silicon::di
-
-// --- resolution/type_cache.h ---
+}
 
 
-// #include <unordered_map>
+
+
+
 
 export namespace silicon::di {
 template <typename Value, typename RTTI, typename Allocator>
@@ -8193,9 +8192,9 @@ struct dynamic_type_cache {
     std::map<typename RTTI::type_index, Value,
              std::less<typename RTTI::type_index>, allocator_type>
         values_;
-    // std::unordered_map< typename RTTI::type_index, Value, typename
-    // RTTI::type_index::hasher, std::equal_to< typename RTTI::type_index >,
-    // map_allocator_type > values_;
+
+
+
 
     static Value empty_;
 };
@@ -8264,14 +8263,14 @@ struct static_type_cache {
     node_type* nodes_ = nullptr;
     size_t size_ = 0;
 };
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  rtti  —  runtime type info & typeid providers
-// ==============================================================================
 
-// --- rtti/rtti.h ---
+
+
+
+
 
 
 export namespace silicon::di {
@@ -8281,7 +8280,7 @@ export namespace silicon::di {
     template< typename T > class rtti;
 }
 
-// --- rtti/static_provider.h ---
+
 
 
 
@@ -8289,8 +8288,8 @@ export namespace silicon::di {
 
 template<> class rtti<static_provider> {
     template <typename T> struct type_index_tag {
-        // TODO: This will not work across modules.
-        // Should probably detect it first, handle it next.
+
+
         static constexpr size_t tag{};
     };
 
@@ -8316,7 +8315,7 @@ template<> class rtti<static_provider> {
         return reinterpret_cast<size_t>(&type_index_tag<T>::tag);
     }
 };
-} // export namespace silicon::di
+}
 
 namespace std {
     template<> struct hash<typename silicon::di::rtti<silicon::di::static_provider>::type_index> {
@@ -8326,7 +8325,7 @@ namespace std {
     };
 }
 
-// --- rtti/typeid_provider.h ---
+
 
 
 
@@ -8357,7 +8356,7 @@ template<> class rtti<typeid_provider> {
     }
 };
 
-} // export namespace silicon::di
+}
 
 namespace std {
     template<> struct hash<typename silicon::di::rtti<silicon::di::typeid_provider>::type_index> {
@@ -8368,14 +8367,14 @@ namespace std {
 }
 
 
-// ==============================================================================
-// ==  type  —  type traits, descriptors, type lists & maps
-// ==============================================================================
-
-// --- type/type_map.h ---
 
 
-// #include <unordered_map>
+
+
+
+
+
+
 
 export namespace silicon::di {
 template <typename Value, typename RTTI, typename Allocator>
@@ -8418,9 +8417,9 @@ struct dynamic_type_map {
     std::map<typename RTTI::type_index, Value,
              std::less<typename RTTI::type_index>, allocator_type>
         values_;
-    // std::unordered_map< typename RTTI::type_index, Value, typename
-    //    std::hash< typename RTTI::type_index>, std::equal_to< typename RTTI::type_index >,
-    //    allocator_type > values2_;
+
+
+
 };
 
 template <typename Value, typename Tag> struct static_type_map_node {
@@ -8551,14 +8550,14 @@ struct static_type_map {
     node_type* nodes_;
     size_t size_;
 };
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  runtime  —  runtime container traits & registry
-// ==============================================================================
 
-// --- runtime/container_traits.h ---
+
+
+
+
 
 
 
@@ -8602,9 +8601,9 @@ inline constexpr bool is_tagged_container_v =
                     Traits>;
 
 
-} // export namespace silicon::di
+}
 
-// --- runtime/registration_api.h ---
+
 
 
 
@@ -8651,8 +8650,8 @@ template <typename Derived> class runtime_registration_api {
         using registration = type_registration<TypeArgs...>;
         return register_type<TypeArgs...>(callable(
             [this, collection_fn = std::forward<Fn>(fn)]() mutable {
-                // 工厂接口产出裸集合；集合构造失败无法经工厂签名向上传播，
-                // 按硬失败落地。
+
+
                 auto made = self().template construct_collection<
                     typename registration::storage_type::type>(collection_fn);
                 if (!made) {
@@ -8672,14 +8671,14 @@ template <typename Derived> class runtime_registration_api {
 };
 
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  static  —  static container graph, registry & resolution
-// ==============================================================================
 
-// --- static/registry.h ---
+
+
+
+
 
 
 
@@ -9499,9 +9498,9 @@ using static_registry_bindings_t =
 
 template <typename InterfaceBindings, typename... BindingModels>
 struct static_registry_dependency_diagnostics
-    // Keep dependency booleans available on the source itself so static-only
-    // and static/runtime paths can branch on them. Emit the detailed
-    // diagnostics only when a static graph path instantiates this helper.
+
+
+
     : binding_declared_dependency_diagnostic<BindingModels,
                                              InterfaceBindings>...,
       binding_inferred_dependency_diagnostic<BindingModels,
@@ -9600,9 +9599,9 @@ template <typename... Registrations> struct static_registry {
                                                interface_bindings>;
 };
 
-} // export namespace silicon::di
+}
 
-// --- static/graph.h ---
+
 
 
 
@@ -10901,9 +10900,9 @@ struct static_graph<static_registry<Registrations...>, void>
                                          static_registry_type>;
 };
 
-} // export namespace silicon::di
+}
 
-// --- static/activation_set.h ---
+
 
 
 
@@ -11252,11 +11251,11 @@ struct static_binding_resolver {
 
         void* ptr = nullptr;
         if constexpr (!std::is_void_v<capability>) {
-            // Stay on the normal materialization path even for identity
-            // pointer/reference requests. Some storages publish the stored
-            // instance through pointer-like source capabilities, so taking the
-            // address of `storage.resolve(...)` would capture the address of a
-            // stack-local pointer variable instead of the bound object.
+
+
+
+
+
             ptr = resolve_request_address<Request, capability>(context);
         } else {
             return std::unexpected(make_type_not_convertible_exception(
@@ -11686,13 +11685,13 @@ using binding_scope_ref =
     basic_static_activation_set_ref<true, StorageState, Registrations...>;
 
 
-} // export namespace silicon::di
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-// --- static/local_resolution.h ---
+
 
 
 
@@ -11846,14 +11845,14 @@ class binding_resolution<Host, static_registry<Registrations...>>
 };
 
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  runtime  —  runtime container traits & registry
-// ==============================================================================
 
-// --- runtime/registry.h ---
+
+
+
+
 
 
 
@@ -12554,8 +12553,8 @@ class runtime_registry : public allocator_base<Allocator> {
             auto resolved =
                 resolve_collection_type<resolve_type>(*entry.binding, context);
             if (!resolved) {
-                // 追加回调无法向上传播错误码，失败按硬失败落地
-                // （与依赖解析/工厂路径一致）。
+
+
                 std::cerr << "silicon::di: collection element resolution "
                              "failed: "
                           << resolved.error().message() << "\n";
@@ -12988,14 +12987,14 @@ void runtime_registry<ContainerTraits, Allocator, ParentRegistry,
     }
 }
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================================
-// ==  umbrella  —  container entry points (container / runtime_container / static_container)
-// ==============================================================================================
 
-// --- runtime_container.h ---
+
+
+
+
 
 
 export namespace silicon::di {
@@ -13176,14 +13175,14 @@ class runtime_container
     parent_container_type* parent_ = nullptr;
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  static  —  static container graph, registry & resolution
-// ==============================================================================
 
-// --- static/context.h ---
+
+
+
+
 
 
 
@@ -13364,9 +13363,9 @@ class basic_static_context : public context_path_state {
 template <typename StaticRegistry>
 using static_context = basic_static_context<StaticRegistry, false>;
 
-} // export namespace silicon::di
+}
 
-// --- static/container_traits.h ---
+
 
 
 
@@ -13421,9 +13420,9 @@ template <typename T>
 using bindings_wrapper_registry_t = typename bindings_wrapper_registry<T>::type;
 
 
-} // export namespace silicon::di
+}
 
-// --- static/resolution.h ---
+
 
 
 
@@ -13497,21 +13496,21 @@ construct_static_binding_value(ResolveNormalized&& resolve_normalized) {
 }
 
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  storage  —  storage policies (shared / unique / external / cyclical)
-// ==============================================================================
 
-// --- storage/resettable.h ---
+
+
+
+
 
 
 export namespace silicon::di {
-// 鸭子类型即满足，无需 proxy 门面（无类型擦除消费者）。
-} // export namespace silicon::di
 
-// --- storage/external.h ---
+}
+
+
 
 
 
@@ -13780,9 +13779,9 @@ class storage<external, Type, StoredType, Factory, Conversions>
     void reset() {}
 };
 
-} // export namespace silicon::di
+}
 
-// --- storage/shared.h ---
+
 
 
 
@@ -13799,10 +13798,10 @@ template <typename Type> struct storage_materialization_traits<shared, Type> {
 
     template <typename Storage>
     static bool preserves_closure(const Storage& storage) {
-        // Only unresolved shared storage needs the factory closure to stay on
-        // the active context stack while address-based conversions are
-        // materialized. Once the instance is resolved, there are no temporary
-        // construction artifacts left to preserve.
+
+
+
+
         return !storage.is_resolved();
     }
 
@@ -14155,9 +14154,9 @@ template <typename Type, typename StoredType, typename Factory,
           typename Conversions>
 class storage<shared, Type, StoredType, Factory, Conversions>
     {
-    // TODO
-    // static_assert(std::is_trivially_destructible_v< Type > ==
-    // std::is_trivially_destructible_v< storage_instance< Type, shared > >);
+
+
+
     storage_instance<shared, Type, StoredType, Factory> instance_;
 
   public:
@@ -14180,9 +14179,9 @@ class storage<shared, Type, StoredType, Factory, Conversions>
     void reset() { instance_.reset(); }
 };
 
-} // export namespace silicon::di
+}
 
-// --- storage/shared_cyclical.h ---
+
 
 
 
@@ -14264,7 +14263,7 @@ template <typename Base, typename Derived> struct is_virtual_base_of {
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
-    // If this equals, it means Base is already a virtual base of Derived
+
     static constexpr bool value = sizeof(test) == sizeof(Derived);
 };
 
@@ -14276,8 +14275,8 @@ inline constexpr bool is_virtual_base_of_v =
 template <typename Type, typename U> struct conversions<shared_cyclical, Type, U>
     : type_storage_traits<shared_cyclical, Type, U> {};
 
-// Disallow virtual bases as interfaces as in cyclical storage, we can't
-// properly calculate the cast when the object is not constructed
+
+
 template <typename Type, typename StoredType, typename Factory,
           typename Conversions, typename Derived, typename Base>
 struct storage_interface_requirements<
@@ -14368,9 +14367,9 @@ class storage_instance<shared_cyclical, Type, StoredType, Factory>
               std::forward<Args>(args)...) {}
 };
 
-// This path is intentionally std::shared_ptr-specific. We need to publish a
-// copyable owning handle before the pointee is constructed so cyclical
-// dependencies can observe a stable address during construction.
+
+
+
 template <typename Type, typename StoredType, typename Factory>
 class storage_instance<shared_cyclical, std::shared_ptr<Type>,
                        std::shared_ptr<StoredType>, Factory> : Factory {
@@ -14466,11 +14465,11 @@ class storage<shared_cyclical, Type, StoredType, Factory, Conversions>
     template <typename Context, typename Container>
     decltype(auto) resolve(Context& context, Container& container) {
         if (instance_.empty()) {
-            // shared_cyclical publishes its owning handle before the pointee
-            // is fully constructed so the graph can close over a stable
-            // address. Rebound shared_ptr interface handles therefore belong
-            // to the storage too and must roll back with the instance if the
-            // first resolve throws.
+
+
+
+
+
             context.template construct<rollback>(this);
 
             instance_.resolve(context);
@@ -14498,17 +14497,17 @@ class storage<shared_cyclical, Type, StoredType, Factory, Conversions>
     bool is_resolved() const { return !instance_.empty(); }
 
     void reset() {
-        // Graph objects can keep references to rebound shared_ptr interface
-        // handles stored in `conversions_`. Destroy the object graph first so
-        // those references stay valid for any destructor work.
+
+
+
         instance_.reset();
         conversions_.clear();
     }
 };
 
-} // export namespace silicon::di
+}
 
-// --- storage/unique.h ---
+
 
 
 
@@ -14558,8 +14557,8 @@ struct resolution_traits<
     unique, Type, U,
     std::enable_if_t<!type_traits<Type>::enabled && !std::is_reference_v<Type> &&
                      !std::is_array_v<Type> && !is_alternative_type_v<Type>>> {
-    // 抽象 U 无法以值形式物化（std::optional<U> 非法），值/转换能力退化为空，
-    // 按值请求抽象类型在解析期报 type_not_convertible 错误。
+
+
     using value_types =
         std::conditional_t<std::is_abstract_v<U>, type_list<>,
                            type_list<std::optional<U>>>;
@@ -14764,14 +14763,14 @@ class storage<unique, Type[N], StoredType, Factory, Conversions> : Factory {
     }
 };
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================================
-// ==  umbrella  —  container entry points (container / runtime_container / static_container)
-// ==============================================================================================
 
-// --- static_container.h ---
+
+
+
+
 
 
 
@@ -15164,13 +15163,13 @@ class static_container
     using base_type::base_type;
 };
 
-} // export namespace silicon::di
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-// --- container.h ---
+
 
 
 
@@ -15229,8 +15228,8 @@ class container_with_static_bindings<static_registry<Registrations...>,
     : public runtime_registration_api<
           container_with_static_bindings<
               static_registry<Registrations...>, ParentContainer>> {
-    // 显式限定：类属 detail 命名空间，非限定 friend 指向外层 silicon::di 的类型
-    // 属 Microsoft 扩展（-Werror,-Wmicrosoft-unqualified-friend）。
+
+
     friend class silicon::di::runtime_context;
 
     using static_registry_type_ = static_registry<Registrations...>;
@@ -16499,7 +16498,7 @@ class container : public container_base_t<Params...> {
   public:
     using container_base_type::container_base_type;
 };
-} // export namespace silicon::di
+}
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -16507,11 +16506,11 @@ class container : public container_base_t<Params...> {
 
 
 
-// ==============================================================================
-// ==  index  —  index collections (array / map / unordered_map)
-// ==============================================================================
 
-// --- index/array.h ---
+
+
+
+
 
 
 
@@ -16519,7 +16518,7 @@ class container : public container_base_t<Params...> {
 export namespace silicon::di {
 namespace index_type {
 template <size_t N> struct array {};
-} // namespace index_type
+}
 
 template <typename Key, typename Value, typename Allocator, size_t N>
 struct index_collection<Key, Value, Allocator, index_type::array<N>> {
@@ -16548,9 +16547,9 @@ struct index_collection<Key, Value, Allocator, index_type::array<N>> {
     std::array<Value, N> array_{};
 };
 
-} // export namespace silicon::di
+}
 
-// --- index/map.h ---
+
 
 
 
@@ -16558,7 +16557,7 @@ struct index_collection<Key, Value, Allocator, index_type::array<N>> {
 export namespace silicon::di {
 namespace index_type {
 struct map {};
-} // namespace index_type
+}
 
 template <typename Key, typename Value, typename Allocator>
 struct index_collection<Key, Value, Allocator, index_type::map> {
@@ -16582,9 +16581,9 @@ struct index_collection<Key, Value, Allocator, index_type::map> {
 
     std::map<Key, Value, std::less<Key>, allocator_type> map_;
 };
-} // export namespace silicon::di
+}
 
-// --- index/unordered_map.h ---
+
 
 
 
@@ -16592,7 +16591,7 @@ struct index_collection<Key, Value, Allocator, index_type::map> {
 export namespace silicon::di {
 namespace index_type {
 struct unordered_map {};
-} // namespace index_type
+}
 
 template <typename Key, typename Value, typename Allocator>
 struct index_collection<Key, Value, Allocator, index_type::unordered_map> {
@@ -16618,16 +16617,16 @@ struct index_collection<Key, Value, Allocator, index_type::unordered_map> {
                        allocator_type>
         map_;
 };
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  registration  —  type registration, annotations & requirements
-// ==============================================================================
 
-// --- registration/constructor.h ---
 
-// Intentionally without any includes
+
+
+
+
+
 
 export namespace silicon::di {
 
@@ -16637,14 +16636,14 @@ template <typename...> struct constructor;
         ::silicon::di::constructor<__VA_ARGS__>;                                     \
     __VA_ARGS__
 
-} // export namespace silicon::di
+}
 
 
-// ==============================================================================
-// ==  type  —  type traits, descriptors, type lists & maps
-// ==============================================================================
 
-// --- type/type_name.h ---
+
+
+
+
 
 
 
@@ -16656,4 +16655,4 @@ template <typename T> std::string type_name() {
     return name;
 }
 
-} // export namespace silicon::di
+}

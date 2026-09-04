@@ -7,21 +7,21 @@ module;
 #include <system_error>
 
 #include <tuple>
-// proxy dispatch 宏头：宏不随 C++20 模块导出，必须在全局模块片段文本包含
+
 #include <silicon/proxy/proxy_macros.h>
 
 #include <silicon/common.h>
 export module silicon.tui;
 
-// 原此处 import silicon.core；core.cppm 伞模块 re-export tui 后会形成
-// core -> tui -> core 环路，且本单元实际只消费 silicon.proxy，故删除。
+
+
 import silicon.proxy;
 
 export import silicon.tui.error;
 
 export namespace silicon::tui {
 
-// ── 终端抽象（silicon.proxy type-erased 门面）──
+
 
 PRO_DEF_MEM_DISPATCH(MemTerminalType, terminal_type);
 PRO_DEF_MEM_DISPATCH(MemTerminalWidth, width);
@@ -63,7 +63,7 @@ class CORE_API default_terminal {
 };
 #endif
 
-// ── PTY 抽象（silicon.proxy type-erased 门面）──
+
 
 PRO_DEF_MEM_DISPATCH(MemPtyCreate, create);
 PRO_DEF_MEM_DISPATCH(MemPtyWrite, write);
@@ -90,7 +90,7 @@ template <class T>
     return silicon::proxy::make_proxy_view<pty_facade>(target);
 }
 
-// ── TUI 渲染器（silicon.proxy type-erased 门面）──
+
 
 PRO_DEF_MEM_DISPATCH(MemRendererRender, render);
 PRO_DEF_MEM_DISPATCH(MemRendererClear, clear);
@@ -113,4 +113,4 @@ template <class T>
     return silicon::proxy::make_proxy_view<tui_renderer_facade>(target);
 }
 
-} // namespace silicon::tui
+}

@@ -1,22 +1,6 @@
-/*
- * Copyright 1993 Bill Triggs <Bill.Triggs@inrialpes.fr>
- * Copyright 1995-2017 Bruno Haible <bruno@clisp.org>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 
-/* { dg-do run { xfail gccbug } } */
+
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,9 +9,9 @@
 #include "alignof.h"
 #include <stdarg.h>
 
-/* SILICON_FFI testsuite local changes -------------------------------- */
+
 #ifdef DGTEST
-/* Redefine exit(1) as a test failure */
+
 #define exit(V) (void)((V) ? (abort(), 1) : exit(0))
 int count = 0;
 char rbuf1[2048];
@@ -60,7 +44,7 @@ int _fprintf(FILE *stream, const char *format, ...)
 }
 #define fprintf _fprintf
 #endif
-/* --------------------------------------------------------------- */
+
 
 #include "testcases.c"
 
@@ -68,12 +52,12 @@ int _fprintf(FILE *stream, const char *format, ...)
 #define ABI_NUM SFFI_DEFAULT_ABI
 #endif
 
-/* Definitions that ought to be part of SILICON_FFI. */
+
 static sffi_type sffi_type_char;
 #define sffi_type_slonglong sffi_type_sint64
 #define sffi_type_ulonglong sffi_type_uint64
 
-/* SILICON_FFI does not support arrays inside structs. */
+
 #define SKIP_EXTRA_STRUCTS
 
 #define SFFI_PREP_CIF(cif,argtypes,rettype) \
@@ -81,32 +65,28 @@ static sffi_type sffi_type_char;
 #define SFFI_PREP_CIF_NOARGS(cif,rettype) \
   if (sffi_prep_cif(&(cif),ABI_NUM,0,&rettype,NULL) != SFFI_OK) abort()
 
-#if defined(__sparc__) && defined(__sun) && defined(__SUNPRO_C) /* SUNWspro cc */
-/* SunPRO cc miscompiles the simulator function for X_BcdB: d.i[1] is
- * temporarily stored in %l2 and put onto the stack from %l2, but in between
- * the copy of X has used %l2 as a counter without saving and restoring its
- * value.
- */
+#if defined(__sparc__) && defined(__sun) && defined(__SUNPRO_C) 
+
 #define SKIP_X
 #endif
 #if defined(__mipsn32__) && !defined(__GNUC__)
-/* The X test crashes for an unknown reason. */
+
 #define SKIP_X
 #endif
 
 
-/* These functions simulate the behaviour of the functions defined in testcases.c. */
 
-/* void tests */
-void v_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+
+void v_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&v_v) { fprintf(out,"wrong data for v_v\n"); exit(1); }
   fprintf(out,"void f(void):\n");
   fflush(out);
 }
 
-/* int tests */
-void i_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+void i_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&i_v) { fprintf(out,"wrong data for i_v\n"); exit(1); }
  {int r=99;
@@ -114,7 +94,7 @@ void i_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, 
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void i_i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void i_i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&i_i) { fprintf(out,"wrong data for i_i\n"); exit(1); }
   int a = *(int*)(*args++);
@@ -123,7 +103,7 @@ void i_i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, 
   fflush(out);
   *(sffi_arg*)retp = r;
 }
-void i_i2_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void i_i2_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&i_i2) { fprintf(out,"wrong data for i_i2\n"); exit(1); }
  {int a = *(int*)(*args++);
@@ -133,7 +113,7 @@ void i_i2_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void i_i4_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void i_i4_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&i_i4) { fprintf(out,"wrong data for i_i4\n"); exit(1); }
  {int a = *(int*)(*args++);
@@ -145,7 +125,7 @@ void i_i4_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void i_i8_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void i_i8_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&i_i8) { fprintf(out,"wrong data for i_i8\n"); exit(1); }
  {int a = *(int*)(*args++);
@@ -161,7 +141,7 @@ void i_i8_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void i_i16_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void i_i16_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&i_i16) { fprintf(out,"wrong data for i_i16\n"); exit(1); }
  {int a = *(int*)(*args++);
@@ -187,8 +167,8 @@ void i_i16_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   *(sffi_arg*)retp = r;
 }}
 
-/* float tests */
-void f_f_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+void f_f_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f) { fprintf(out,"wrong data for f_f\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -197,7 +177,7 @@ void f_f_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, 
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f2_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f2_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f2) { fprintf(out,"wrong data for f_f2\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -207,7 +187,7 @@ void f_f2_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f4_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f4_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f4) { fprintf(out,"wrong data for f_f4\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -219,7 +199,7 @@ void f_f4_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f8_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f8_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f8) { fprintf(out,"wrong data for f_f8\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -235,7 +215,7 @@ void f_f8_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f16_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f16_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f16) { fprintf(out,"wrong data for f_f16\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -259,7 +239,7 @@ void f_f16_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f24_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f24_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f24) { fprintf(out,"wrong data for f_f24\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -292,8 +272,8 @@ void f_f24_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   *(float*)retp = r;
 }}
 
-/* double tests */
-void d_d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+void d_d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d) { fprintf(out,"wrong data for d_d\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -302,7 +282,7 @@ void d_d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, 
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d2_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d2_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d2) { fprintf(out,"wrong data for d_d2\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -312,7 +292,7 @@ void d_d2_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d4_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d4_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d4) { fprintf(out,"wrong data for d_d4\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -324,7 +304,7 @@ void d_d4_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d8_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d8_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d8) { fprintf(out,"wrong data for d_d8\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -340,7 +320,7 @@ void d_d8_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d16_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d16_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d16) { fprintf(out,"wrong data for d_d16\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -365,8 +345,8 @@ void d_d16_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   *(double*)retp = r;
 }}
 
-/* pointer tests */
-void vp_vpdpcpsp_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+void vp_vpdpcpsp_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&vp_vpdpcpsp) { fprintf(out,"wrong data for vp_vpdpcpsp\n"); exit(1); }
  {void* a = *(void* *)(*args++);
@@ -379,8 +359,8 @@ void vp_vpdpcpsp_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/
   *(void* *)retp = ret;
 }}
 
-/* mixed number tests */
-void uc_ucsil_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+void uc_ucsil_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&uc_ucsil) { fprintf(out,"wrong data for uc_ucsil\n"); exit(1); }
  {uchar a = *(unsigned char *)(*args++);
@@ -392,7 +372,7 @@ void uc_ucsil_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *a
   fflush(out);
   *(sffi_arg *)retp = r;
 }}
-void d_iidd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_iidd_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_iidd) { fprintf(out,"wrong data for d_iidd\n"); exit(1); }
  {int a = *(int*)(*args++);
@@ -404,7 +384,7 @@ void d_iidd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *arg
   fflush(out);
   *(double*)retp = r;
 }}
-void d_iiidi_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_iiidi_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_iiidi) { fprintf(out,"wrong data for d_iiidi\n"); exit(1); }
  {int a = *(int*)(*args++);
@@ -417,7 +397,7 @@ void d_iiidi_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(double*)retp = r;
 }}
-void d_idid_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_idid_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_idid) { fprintf(out,"wrong data for d_idid\n"); exit(1); }
  {int a = *(int*)(*args++);
@@ -429,7 +409,7 @@ void d_idid_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *arg
   fflush(out);
   *(double*)retp = r;
 }}
-void d_fdi_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_fdi_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_fdi) { fprintf(out,"wrong data for d_fdi\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -440,7 +420,7 @@ void d_fdi_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void us_cdcd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void us_cdcd_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&us_cdcd) { fprintf(out,"wrong data for us_cdcd\n"); exit(1); }
  {char a = *(char*)(*args++);
@@ -452,7 +432,7 @@ void us_cdcd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(sffi_arg *)retp = r;
 }}
-void ll_iiilli_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void ll_iiilli_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&ll_iiilli) { fprintf(out,"wrong data for ll_iiilli\n"); exit(1); }
  {int a = *(int*)(*args++);
@@ -465,7 +445,7 @@ void ll_iiilli_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *
   fflush(out);
   *(long long *)retp = r;
 }}
-void ll_flli_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void ll_flli_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&ll_flli) { fprintf(out,"wrong data for ll_flli\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -476,7 +456,7 @@ void ll_flli_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(long long *)retp = r;
 }}
-void f_fi_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_fi_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_fi) { fprintf(out,"wrong data for f_fi\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -486,7 +466,7 @@ void f_fi_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f2i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f2i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f2i) { fprintf(out,"wrong data for f_f2i\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -497,7 +477,7 @@ void f_f2i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f3i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f3i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f3i) { fprintf(out,"wrong data for f_f3i\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -509,7 +489,7 @@ void f_f3i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f4i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f4i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f4i) { fprintf(out,"wrong data for f_f4i\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -522,7 +502,7 @@ void f_f4i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f7i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f7i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f7i) { fprintf(out,"wrong data for f_f7i\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -538,7 +518,7 @@ void f_f7i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f8i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f8i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f8i) { fprintf(out,"wrong data for f_f8i\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -555,7 +535,7 @@ void f_f8i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f12i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f12i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f12i) { fprintf(out,"wrong data for f_f12i\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -576,7 +556,7 @@ void f_f12i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *arg
   fflush(out);
   *(float*)retp = r;
 }}
-void f_f13i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f13i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f13i) { fprintf(out,"wrong data for f_f13i\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -598,7 +578,7 @@ void f_f13i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *arg
   fflush(out);
   *(float*)retp = r;
 }}
-void d_di_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_di_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_di) { fprintf(out,"wrong data for d_di\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -608,7 +588,7 @@ void d_di_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d2i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d2i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d2i) { fprintf(out,"wrong data for d_d2i\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -619,7 +599,7 @@ void d_d2i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d3i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d3i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d3i) { fprintf(out,"wrong data for d_d3i\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -631,7 +611,7 @@ void d_d3i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d4i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d4i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d4i) { fprintf(out,"wrong data for d_d4i\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -644,7 +624,7 @@ void d_d4i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d7i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d7i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d7i) { fprintf(out,"wrong data for d_d7i\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -660,7 +640,7 @@ void d_d7i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d8i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d8i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d8i) { fprintf(out,"wrong data for d_d8i\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -677,7 +657,7 @@ void d_d8i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d12i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d12i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d12i) { fprintf(out,"wrong data for d_d12i\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -698,7 +678,7 @@ void d_d12i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *arg
   fflush(out);
   *(double*)retp = r;
 }}
-void d_d13i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d13i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d13i) { fprintf(out,"wrong data for d_d13i\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -721,8 +701,8 @@ void d_d13i_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *arg
   *(double*)retp = r;
 }}
 
-/* small structure return tests */
-void S1_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+void S1_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S1_v) { fprintf(out,"wrong data for S1_v\n"); exit(1); }
  {Size1 r = Size1_1;
@@ -730,7 +710,7 @@ void S1_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(Size1*)retp = r;
 }}
-void S2_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void S2_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S2_v) { fprintf(out,"wrong data for S2_v\n"); exit(1); }
  {Size2 r = Size2_1;
@@ -738,7 +718,7 @@ void S2_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(Size2*)retp = r;
 }}
-void S3_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void S3_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S3_v) { fprintf(out,"wrong data for S3_v\n"); exit(1); }
  {Size3 r = Size3_1;
@@ -746,7 +726,7 @@ void S3_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(Size3*)retp = r;
 }}
-void S4_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void S4_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S4_v) { fprintf(out,"wrong data for S4_v\n"); exit(1); }
  {Size4 r = Size4_1;
@@ -754,7 +734,7 @@ void S4_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(Size4*)retp = r;
 }}
-void S7_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void S7_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S7_v) { fprintf(out,"wrong data for S7_v\n"); exit(1); }
  {Size7 r = Size7_1;
@@ -762,7 +742,7 @@ void S7_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(Size7*)retp = r;
 }}
-void S8_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void S8_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S8_v) { fprintf(out,"wrong data for S8_v\n"); exit(1); }
  {Size8 r = Size8_1;
@@ -770,7 +750,7 @@ void S8_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args,
   fflush(out);
   *(Size8*)retp = r;
 }}
-void S12_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void S12_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S12_v) { fprintf(out,"wrong data for S12_v\n"); exit(1); }
  {Size12 r = Size12_1;
@@ -778,7 +758,7 @@ void S12_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(Size12*)retp = r;
 }}
-void S15_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void S15_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S15_v) { fprintf(out,"wrong data for S15_v\n"); exit(1); }
  {Size15 r = Size15_1;
@@ -786,7 +766,7 @@ void S15_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(Size15*)retp = r;
 }}
-void S16_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void S16_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S16_v) { fprintf(out,"wrong data for S16_v\n"); exit(1); }
  {Size16 r = Size16_1;
@@ -795,8 +775,8 @@ void S16_v_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   *(Size16*)retp = r;
 }}
 
-/* structure tests */
-void I_III_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+void I_III_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&I_III) { fprintf(out,"wrong data for I_III\n"); exit(1); }
  {Int a = *(Int*)(*args++);
@@ -808,7 +788,7 @@ void I_III_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(Int*)retp = r;
 }}
-void C_CdC_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void C_CdC_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&C_CdC) { fprintf(out,"wrong data for C_CdC\n"); exit(1); }
  {Char a = *(Char*)(*args++);
@@ -820,7 +800,7 @@ void C_CdC_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(Char*)retp = r;
 }}
-void F_Ffd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void F_Ffd_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&F_Ffd) { fprintf(out,"wrong data for F_Ffd\n"); exit(1); }
  {Float a = *(Float*)(*args++);
@@ -832,7 +812,7 @@ void F_Ffd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(Float*)retp = r;
 }}
-void D_fDd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void D_fDd_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&D_fDd) { fprintf(out,"wrong data for D_fDd\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -844,7 +824,7 @@ void D_fDd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(Double*)retp = r;
 }}
-void D_Dfd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void D_Dfd_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&D_Dfd) { fprintf(out,"wrong data for D_Dfd\n"); exit(1); }
  {Double a = *(Double*)(*args++);
@@ -856,7 +836,7 @@ void D_Dfd_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(Double*)retp = r;
 }}
-void J_JiJ_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void J_JiJ_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&J_JiJ) { fprintf(out,"wrong data for J_JiJ\n"); exit(1); }
  {J a = *(J*)(*args++);
@@ -869,7 +849,7 @@ void J_JiJ_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   *(J*)retp = r;
 }}
 #ifndef SKIP_EXTRA_STRUCTS
-void T_TcT_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void T_TcT_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&T_TcT) { fprintf(out,"wrong data for T_TcT\n"); exit(1); }
  {T a = *(T*)(*args++);
@@ -881,7 +861,7 @@ void T_TcT_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(T*)retp = r;
 }}
-void X_BcdB_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void X_BcdB_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&X_BcdB) { fprintf(out,"wrong data for X_BcdB\n"); exit(1); }
  {B a = *(B*)(*args++);
@@ -899,8 +879,8 @@ void X_BcdB_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *arg
 }}
 #endif
 
-/* gpargs boundary tests */
-void l_l0K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+
+void l_l0K_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&l_l0K) { fprintf(out,"wrong data for l_l0K\n"); exit(1); }
  {K b = *(K*)(*args++);
@@ -910,7 +890,7 @@ void l_l0K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void l_l1K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void l_l1K_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&l_l1K) { fprintf(out,"wrong data for l_l1K\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -921,7 +901,7 @@ void l_l1K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void l_l2K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void l_l2K_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&l_l2K) { fprintf(out,"wrong data for l_l2K\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -933,7 +913,7 @@ void l_l2K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void l_l3K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void l_l3K_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&l_l3K) { fprintf(out,"wrong data for l_l3K\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -946,7 +926,7 @@ void l_l3K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void l_l4K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void l_l4K_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&l_l4K) { fprintf(out,"wrong data for l_l4K\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -960,7 +940,7 @@ void l_l4K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void l_l5K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void l_l5K_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&l_l5K) { fprintf(out,"wrong data for l_l5K\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -975,7 +955,7 @@ void l_l5K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void l_l6K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void l_l6K_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&l_l6K) { fprintf(out,"wrong data for l_l6K\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -991,7 +971,7 @@ void l_l6K_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-void f_f17l3L_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void f_f17l3L_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&f_f17l3L) { fprintf(out,"wrong data for f_f17l3L\n"); exit(1); }
  {float a = *(float*)(*args++);
@@ -1020,7 +1000,7 @@ void f_f17l3L_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *a
   fflush(out);
   *(float*)retp = r;
 }}
-void d_d17l3L_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_d17l3L_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d17l3L) { fprintf(out,"wrong data for d_d17l3L\n"); exit(1); }
  {double a = *(double*)(*args++);
@@ -1049,7 +1029,7 @@ void d_d17l3L_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *a
   fflush(out);
   *(double*)retp = r;
 }}
-void ll_l2ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void ll_l2ll_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&ll_l2ll) { fprintf(out,"wrong data for ll_l2ll\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1061,7 +1041,7 @@ void ll_l2ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(long long *)retp = r;
 }}
-void ll_l3ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void ll_l3ll_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&ll_l3ll) { fprintf(out,"wrong data for ll_l3ll\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1074,7 +1054,7 @@ void ll_l3ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(long long *)retp = r;
 }}
-void ll_l4ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void ll_l4ll_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&ll_l4ll) { fprintf(out,"wrong data for ll_l4ll\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1088,7 +1068,7 @@ void ll_l4ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(long long *)retp = r;
 }}
-void ll_l5ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void ll_l5ll_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&ll_l5ll) { fprintf(out,"wrong data for ll_l5ll\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1103,7 +1083,7 @@ void ll_l5ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(long long *)retp = r;
 }}
-void ll_l6ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void ll_l6ll_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&ll_l6ll) { fprintf(out,"wrong data for ll_l6ll\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1119,7 +1099,7 @@ void ll_l6ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(long long *)retp = r;
 }}
-void ll_l7ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void ll_l7ll_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&ll_l7ll) { fprintf(out,"wrong data for ll_l7ll\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1136,7 +1116,7 @@ void ll_l7ll_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *ar
   fflush(out);
   *(long long *)retp = r;
 }}
-void d_l2d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_l2d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_l2d) { fprintf(out,"wrong data for d_l2d\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1148,7 +1128,7 @@ void d_l2d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_l3d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_l3d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_l3d) { fprintf(out,"wrong data for d_l3d\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1161,7 +1141,7 @@ void d_l3d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_l4d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_l4d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_l4d) { fprintf(out,"wrong data for d_l4d\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1175,7 +1155,7 @@ void d_l4d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_l5d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_l5d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_l5d) { fprintf(out,"wrong data for d_l5d\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1190,7 +1170,7 @@ void d_l5d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_l6d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_l6d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_l6d) { fprintf(out,"wrong data for d_l6d\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1206,7 +1186,7 @@ void d_l6d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
   fflush(out);
   *(double*)retp = r;
 }}
-void d_l7d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args, void* data)
+void d_l7d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_l7d) { fprintf(out,"wrong data for d_l7d\n"); exit(1); }
  {long a1 = *(long*)(*args++);
@@ -1225,13 +1205,7 @@ void d_l7d_simulator (sffi_cif* cif, void* retp, /*const*/ void* /*const*/ *args
 }}
 
 
-/*
- * The way we run these tests - first call the function directly, then
- * through vacall() - there is the danger that arguments or results seem
- * to be passed correctly, but what we are seeing are in fact the vestiges
- * (traces) or the previous call. This may seriously fake the test.
- * Avoid this by clearing the registers between the first and the second call.
- */
+
 long clear_traces_i (long a, long b, long c, long d, long e, long f, long g, long h,
                      long i, long j, long k, long l, long m, long n, long o, long p)
 { return 0; }
@@ -1268,7 +1242,7 @@ int main (void)
   out = stdout;
 
 #if (!defined(DGTEST)) || DGTEST == 1  
-  /* void tests */
+  
   v_v();
   clear_traces();
   ALLOC_CALLBACK();
@@ -1281,7 +1255,7 @@ int main (void)
   FREE_CALLBACK();
 #endif
 
-  /* int tests */
+  
   { int ir;
 
 #if (!defined(DGTEST)) || DGTEST == 2
@@ -1392,7 +1366,7 @@ int main (void)
 #endif
   }
 
-  /* float tests */
+  
   { float fr;
 
 #if (!defined(DGTEST)) || DGTEST == 8  
@@ -1505,7 +1479,7 @@ int main (void)
 
   }
 
-  /* double tests */
+  
   { double dr;
 
 #if (!defined(DGTEST)) || DGTEST == 14
@@ -1599,7 +1573,7 @@ int main (void)
 #endif
   }
 
-  /* pointer tests */
+  
   { void* vpr;
 
 #if (!defined(DGTEST)) || DGTEST == 19 
@@ -1621,7 +1595,7 @@ int main (void)
 #endif
   }
 
-  /* mixed number tests */
+  
   { uchar ucr;
     ushort usr;
     float fr;
@@ -2043,7 +2017,7 @@ int main (void)
 #endif
   }
 
-  /* small structure return tests */
+  
 #if (!defined(DGTEST)) || DGTEST == 43
   {
     Size1 r = S1_v();
@@ -2270,7 +2244,7 @@ int main (void)
 #endif
 
   
-  /* structure tests */
+  
   { Int Ir;
     Char Cr;
     Float Fr;
@@ -2479,7 +2453,7 @@ int main (void)
   }
 
   
-  /* gpargs boundary tests */
+  
   {
     sffi_type* sffi_type_K_elements[] = { &sffi_type_slong, &sffi_type_slong, &sffi_type_slong, &sffi_type_slong, NULL };
     sffi_type sffi_type_K;

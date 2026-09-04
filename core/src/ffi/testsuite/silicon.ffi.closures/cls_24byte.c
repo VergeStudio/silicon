@@ -1,11 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Depending on the ABI. Check overlapping.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_24byte {
@@ -118,9 +113,9 @@ int main (void)
   args_dbl[4] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_24byte_fn), &res_dbl, args_dbl);
-  /* { dg-output "9 2 6 5 1 2 3 7 4 5 7 9 8 6 1 4: 22 15 17 25" } */
+  
   printf("res: %g %g %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  /* { dg-output "\nres: 22 15 17 25" } */
+  
   CHECK_DOUBLE_EQ(res_dbl.a, 22);
   CHECK_DOUBLE_EQ(res_dbl.b, 15);
   CHECK(res_dbl.c == 17);
@@ -133,9 +128,9 @@ int main (void)
 				   cls_struct_24byte,
 				   cls_struct_24byte))
 	     (code))(e_dbl, f_dbl, g_dbl, h_dbl);
-  /* { dg-output "\n9 2 6 5 1 2 3 7 4 5 7 9 8 6 1 4: 22 15 17 25" } */
+  
   printf("res: %g %g %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  /* { dg-output "\nres: 22 15 17 25" } */
+  
   CHECK_DOUBLE_EQ(res_dbl.a, 22);
   CHECK_DOUBLE_EQ(res_dbl.b, 15);
   CHECK(res_dbl.c == 17);

@@ -22,7 +22,7 @@ import silicon.proxy;
 
 export namespace silicon::logger {
 
-// logger 接口：类型擦除门面
+
 PRO_DEF_MEM_DISPATCH(MemLoggerTrace, trace);
 PRO_DEF_MEM_DISPATCH(MemLoggerDebug, debug);
 PRO_DEF_MEM_DISPATCH(MemLoggerInfo, info);
@@ -66,8 +66,8 @@ CORE_API void warning(const std::string_view &, std::source_location &&location 
 CORE_API void error(const std::string_view &, std::source_location &&location = std::source_location::current());
 CORE_API void critical(const std::string_view &, std::source_location &&location = std::source_location::current());
 
-} // namespace silicon::logger
+}
 
-// default_logger 的单一定义源位于分区 :default_logger（default_logger.cppm），
-// 鸭子类型满足 logger_facade，无需继承抽象基类；分区由本接口 `export import` 重导出，
-// 避免与实现单元产生 ODR 双定义。log_level 同理来自分区 :ilogger（ilogger.cppm）。
+
+
+

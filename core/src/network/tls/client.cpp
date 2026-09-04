@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network::tls::client.
+
 
 module;
 
@@ -85,10 +85,10 @@ client::client(
       m_socket(std::move(socket)),
       m_connect_status(connection_status::kConnected),
       m_tls_info(tls_connection_type::accept) {
-    // scheduler is assumed good since it comes from a tls::server.
-    // tls_ctx is assumed good since it comes from a tls::server.
 
-    // Force the socket to be non-blocking.
+
+
+
     m_socket.blocking(silicon::network::socket::blocking_t::no);
 }
 
@@ -102,7 +102,7 @@ client::client(client &&other) noexcept
 }
 
 client::~client() {
-    // If the user didn't shutdown the client block on shutting down to clean up resources.
+
     if(!m_shutdown.load(std::memory_order::acquire)) {
         silicon::scheduler::sync_wait(shutdown(std::chrono::seconds{30}));
     }
@@ -121,18 +121,18 @@ auto client::operator=(client &&other) noexcept -> client & {
 }
 
 silicon::scheduler::task<connection_status> client::connect(std::chrono::milliseconds timeout) {
-    // Only allow the user to connect per tcp client once, if they need to re-connect they should
-    // make a new tls::client.
+
+
     if(m_connect_status.has_value()) {
         co_return m_connect_status.value();
     }
 
-    // tls context isn't setup and is required.
+
     if(m_tls_ctx == nullptr) {
         co_return connection_status::kContextRequired;
     }
 
-    // This enforces the connection status is aways set on the client object upon returning.
+
     auto return_value = [this](connection_status s) -> connection_status {
         m_connect_status = s;
         return s;
@@ -142,8 +142,8 @@ silicon::scheduler::task<connection_status> client::connect(std::chrono::millise
     if(cret == 0) {
         co_return return_value(co_await handshake(timeout));
     } else if(cret == -1) {
-        // If the connect is happening in the background poll for write on the socket to trigger
-        // when the connection is established.
+
+
         if(m_socket.in_progress()) {
             auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), silicon::scheduler::poll_op::write, timeout);
             if(pstatus == silicon::scheduler::poll_status::write) {
@@ -154,7 +154,7 @@ silicon::scheduler::task<connection_status> client::connect(std::chrono::millise
                 }
 
                 if(result == 0) {
-                    // TODO: delta the already used time and remove from the handshake timeout.
+
                     co_return return_value(co_await handshake(timeout));
                 }
             } else if(pstatus == silicon::scheduler::poll_status::timeout) {
@@ -180,7 +180,7 @@ silicon::scheduler::task<connection_status> client::handshake(std::chrono::milli
 
     if(m_tls_info.m_tls_connection_type == tls_connection_type::connect) {
         SSL_set_connect_state(tls);
-    } else // ssl_connection_type::accept
+    } else
     {
         SSL_set_accept_state(tls);
     }
@@ -195,13 +195,13 @@ silicon::scheduler::task<connection_status> client::handshake(std::chrono::milli
         } else if(err == SSL_ERROR_WANT_READ) {
             op = silicon::scheduler::poll_op::read;
         } else {
-            // char error_buffer[256];
-            // ERR_error_string(err, error_buffer);
-            // std::cerr << "ssl_handleshake error=[" << error_buffer << "]\n";
+
+
+
             co_return connection_status::kHandshakeFailed;
         }
 
-        // TODO: adjust timeout based on elapsed time so far.
+
         auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), op, timeout);
         switch(pstatus) {
             case silicon::scheduler::poll_status::timeout:
@@ -213,7 +213,7 @@ silicon::scheduler::task<connection_status> client::handshake(std::chrono::milli
             case silicon::scheduler::poll_status::cancelled:
                 co_return connection_status::kUnexpectedClose;
             default:
-                // event triggered, continue handshake.
+
                 break;
         }
     }
@@ -227,10 +227,10 @@ silicon::scheduler::task<void> client::tls_shutdown_and_free(std::chrono::millis
     while(true) {
         ERR_clear_error();
         auto r = SSL_shutdown(tls_ptr);
-        if(r == 1) // shutdown complete
+        if(r == 1)
         {
             co_return;
-        } else if(r == 0) // shutdown in progress
+        } else if(r == 0)
         {
             silicon::scheduler::poll_op op{silicon::scheduler::poll_op::read_write};
             auto err = SSL_get_error(tls_ptr, r);
@@ -250,16 +250,16 @@ silicon::scheduler::task<void> client::tls_shutdown_and_free(std::chrono::millis
                 case silicon::scheduler::poll_status::cancelled:
                     co_return;
                 default:
-                    // continue shutdown.
+
                     break;
             }
-        } else // r < 0 error
+        } else
         {
             co_return;
         }
     }
 }
 
-} // namespace silicon::network::tls
+}
 
-#endif // #ifdef SILICON_FEATURE_TLS
+#endif

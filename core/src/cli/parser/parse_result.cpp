@@ -1,5 +1,5 @@
-// 实现单元：silicon.cli.parser.parse_result
-// parse_result 的 PIMPL 状态与全部方法体（原 header-only 的 parser_types.h 部分）。
+
+
 module;
 
 #include <map>
@@ -13,9 +13,9 @@ module silicon.cli.parser.parse_result;
 namespace silicon::cli {
 
 struct parse_result::impl {
-    std::string command_;                      // 子命令名（若无则为空）
-    std::map<std::string, std::string> flags_; // --key value 或 --flag → "true"
-    std::vector<std::string> positional_;      // 位置参数
+    std::string command_;
+    std::map<std::string, std::string> flags_;
+    std::vector<std::string> positional_;
 };
 
 parse_result::parse_result(): impl_(std::make_shared<impl>()) {}
@@ -44,4 +44,4 @@ std::vector<std::string> &parse_result::positional() { return impl_->positional_
 
 const std::vector<std::string> &parse_result::positional() const { return impl_->positional_; }
 
-} // namespace silicon::cli
+}

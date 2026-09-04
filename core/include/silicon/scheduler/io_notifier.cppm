@@ -30,29 +30,29 @@ import :time;
 
 import :poll_info;
 
-// timer_handle 仅以引用形式出现在 watch_timer / unwatch_timer 的签名中（不完整类型即可），
-// 故只需前向声明，无需 import 整个 :timer_handle 分区（避免分区间循环依赖）。
+
+
 namespace silicon::scheduler {
 export class timer_handle;
 }
 
 export namespace silicon::scheduler {
 
-/// 平台无关的 I/O 就绪通知器。
-///
-/// 每个平台只暴露**同一个** `io_notifier` 类，对外提供完全一致的接口；
-/// 平台专属后端（Windows=IOCP / BSD·macOS=kqueue / Linux=epoll）隐藏在私有的嵌套
-/// `struct impl`（PIMPL）之中。`impl` 的实体定义位于同名 `.cpp` 实现单元
-/// （io_notifier_iocp.cpp / io_notifier_kqueue.cpp / io_notifier_epoll.cpp），因此
-/// HANDLE / WSANETWORKEVENTS / kevent / epoll_event 等平台专属状态**绝不出现在本接口单元**。
-/// 任何触及 impl 成员的方法都必须在各自平台的 `.cpp` 中**非内联**实现。
+
+
+
+
+
+
+
+
 class CORE_API io_notifier {
     struct impl;
     std::unique_ptr<impl> m_p;
 
     friend class timer_handle;
 
-    // 单次 epoll_wait / kevent 的最大事件数；Windows 的 IOCP 完成包数量级不同，取较大值。
+
     static constexpr std::size_t m_max_events =
 #if defined(SILICON_PLATFORM_WINDOWS)
         64;
@@ -65,8 +65,8 @@ class CORE_API io_notifier {
   public:
     io_notifier();
 
-    /// 底层 IO 通知器是否成功建立（epoll/kqueue/IOCP 句柄有效）。
-    /// 构造不再抛异常：失败时处于无效状态，须由调用方显式检查。
+
+
     [[nodiscard]] bool is_valid() const noexcept;
 
     io_notifier(const io_notifier &) = delete;
@@ -91,11 +91,11 @@ class CORE_API io_notifier {
     void next_events(std::vector<std::pair<poll_info *, poll_status>> &,
                      std::chrono::milliseconds) ;
 
-    /// 向底层通知器投递一条唤醒完成包（completion worker 唤醒事件驱动线程）。
-    /// Windows/IOCP 以 PostQueuedCompletionStatus 实现（completion 引擎的
-    /// wake_driver 依赖它——Windows 事件循环禁接 CRT schedule pipe）；
-    /// epoll/kqueue 后端无等价设施（completion worker 走内部 completion pipe
-    /// + 哨兵 udata 唤醒），恒返回 false。
+
+
+
+
+
     bool post(void *) ;
 
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -105,4 +105,4 @@ class CORE_API io_notifier {
 #endif
 };
 
-} // namespace silicon::scheduler
+}

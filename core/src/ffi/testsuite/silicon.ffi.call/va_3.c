@@ -1,19 +1,12 @@
-/* Area:		sffi_call
-   Purpose:		Test function with multiple fixed args and variable argument list.
-   Limitations:	none.
-   PR:			none.
-   Originator:	        ARM Ltd., Oracle */
 
-/* { dg-do run } */
-/* { dg-output "" { xfail avr32*-*-* m68k-*-* } } */
+
+
+
 
 #include "ffitest.h"
 #include <stdarg.h>
 
-/*
- * This is a modified version of va_2.c that has fixed arguments with "small" types that
- * are not allowed as variable arguments, but they should be still allowed as fixed args.
- */
+
 
 static int
 test_fn (char a1, float a2, int n, ...)
@@ -44,8 +37,7 @@ test_fn (char a1, float a2, int n, ...)
   ul = va_arg (ap, unsigned long);
   sl = va_arg (ap, signed long);
 
-  f = va_arg (ap, double);	/* C standard promotes float->double
-				   when anonymous */
+  f = va_arg (ap, double);	
   d = va_arg (ap, double);
 
   printf ("%d %f uc=%u sc=%d %u %d %u %d %lu %ld %f %f\n",
@@ -145,9 +137,9 @@ main (void)
   args[13] = NULL;
 
   sffi_call(&cif, SFFI_FN(test_fn), &res, args);
-  /* { dg-output "1 2.000000 uc=9 sc=10 11 12 13 14 15 16 2.120000 3.130000" } */
+  
   printf("res: %d\n", (int) res);
-  /* { dg-output "\nres: 42" } */
+  
   CHECK(res == 42);
 
   return 0;

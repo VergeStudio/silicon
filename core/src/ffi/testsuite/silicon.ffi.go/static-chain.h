@@ -14,6 +14,6 @@
 #    define STATIC_CHAIN_REG "r10"
 #elif defined(__i386__)
 #    ifndef ABI_NUM
-#        define STATIC_CHAIN_REG "ecx" /* SFFI_DEFAULT_ABI only */
+#        define STATIC_CHAIN_REG "ecx" 
 #    endif
 #endif

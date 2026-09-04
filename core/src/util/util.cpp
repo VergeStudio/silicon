@@ -18,4 +18,4 @@ std::uint64_t generate_unique_id() {
     return unique_id.fetch_add(1, std::memory_order_relaxed);
 }
 
-} // namespace silicon::util
+}

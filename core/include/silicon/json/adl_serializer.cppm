@@ -1,15 +1,15 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
@@ -26,11 +26,11 @@ import :detail.meta.identity_tag;
 
 SILICON_JSON_NAMESPACE_BEGIN
 
-/// @sa https://json.silicon.me/api/adl_serializer/
+
 export template<typename ValueType, typename>
 struct adl_serializer {
-    /// @brief convert a JSON value to any value type
-    /// @sa https://json.silicon.me/api/adl_serializer/from_json/
+
+
     template<typename BasicJsonType, typename TargetType = ValueType>
     static auto from_json(BasicJsonType &&j, TargetType &val) noexcept(
             noexcept(::silicon::json::impl::from_json(std::forward<BasicJsonType>(j), val))
@@ -39,8 +39,8 @@ struct adl_serializer {
         ::silicon::json::impl::from_json(std::forward<BasicJsonType>(j), val);
     }
 
-    /// @brief convert a JSON value to any value type
-    /// @sa https://json.silicon.me/api/adl_serializer/from_json/
+
+
     template<typename BasicJsonType, typename TargetType = ValueType>
     static auto from_json(BasicJsonType &&j) noexcept(
             noexcept(::silicon::json::impl::from_json(std::forward<BasicJsonType>(j), detail::identity_tag<TargetType>{}))
@@ -49,8 +49,8 @@ struct adl_serializer {
         return ::silicon::json::impl::from_json(std::forward<BasicJsonType>(j), detail::identity_tag<TargetType>{});
     }
 
-    /// @brief convert any value type to a JSON value
-    /// @sa https://json.silicon.me/api/adl_serializer/to_json/
+
+
     template<typename BasicJsonType, typename TargetType = ValueType>
     static auto to_json(BasicJsonType &j, TargetType &&val) noexcept(
             noexcept(::silicon::json::impl::to_json(j, std::forward<TargetType>(val)))

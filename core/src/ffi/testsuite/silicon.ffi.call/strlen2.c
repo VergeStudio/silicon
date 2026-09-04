@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check strlen function call with additional arguments.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 
@@ -26,7 +22,7 @@ int main (void)
   values[0] = (void*) &s;
   values[1] = (void*) &v2;
   
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 2,
 		       &sffi_type_sint, args) == SFFI_OK);
   

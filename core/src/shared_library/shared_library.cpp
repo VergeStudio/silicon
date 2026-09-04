@@ -13,7 +13,7 @@ import silicon.library.error;
 
 namespace silicon::library {
 
-// ── 平台无关的公共成员（原在各平台实现单元重复定义，统一收拢于此） ──────
+
 shared_library::shared_library() : impl_(std::make_unique<impl>()) {
 }
 
@@ -44,4 +44,4 @@ std::string shared_library::get_os_name(const std::string &name) {
 }
 
 
-} // namespace silicon::library
+}

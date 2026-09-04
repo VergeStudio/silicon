@@ -1,4 +1,4 @@
-/* { dg-do run } */
+
 #include "ffitest.h"
 
 typedef struct
@@ -36,14 +36,14 @@ int main (void)
   ts1_type_elements[3] = NULL;
 
   test_structure_1 ts1_arg;
-  /* This is a hack to get a properly aligned result buffer */
+  
   test_structure_1 *ts1_result =
     (test_structure_1 *) malloc (sizeof(test_structure_1));
 
   args[0] = &ts1_type;
   values[0] = &ts1_arg;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &ts1_type, args) == SFFI_OK);
 

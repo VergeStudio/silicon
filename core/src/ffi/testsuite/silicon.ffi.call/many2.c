@@ -1,10 +1,6 @@
-/* Area:        sffi_call
-   Purpose:     Check uint8_t arguments.
-   Limitations: none.
-   PR:          PR45677.
-   Originator:  Dan Witte <dwitte@gmail.com> 20100916  */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 

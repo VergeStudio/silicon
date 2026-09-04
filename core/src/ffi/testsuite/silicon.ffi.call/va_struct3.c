@@ -1,11 +1,7 @@
-/* Area:		sffi_call
-   Purpose:		Test passing struct in variable argument lists.
-   Limitations:	none.
-   PR:			none.
-   Originator:	ARM Ltd. */
 
-/* { dg-do run } */
-/* { dg-output "" { xfail avr32*-*-* } } */
+
+
+
 
 #include "ffitest.h"
 #include <stdarg.h>
@@ -128,9 +124,9 @@ main (void)
   args[4] = NULL;
 
   sffi_call(&cif, SFFI_FN(test_fn), &res, args);
-  /* { dg-output "5 6 10 11 12 13 14 7 8" } */
+  
   printf("res: %d %d %d %d %d\n", res.a, res.b, res.c, res.d, res.e);
-  /* { dg-output "\nres: 15 17 19 21 14" } */
+  
   CHECK(res.a == 15);
   CHECK(res.b == 17);
   CHECK(res.c == 19);

@@ -1,10 +1,6 @@
-/* Area:        sffi_call
-   Purpose:     Tests if sffi_call reads data beyond end.
-   Limitations: needs mmap.
-   PR:          887
-   Originator:  Mikulas Patocka <mikulas@twibright.com>  */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 

@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network::tls::recv_status to_string.
+
 
 module;
 
@@ -57,6 +57,6 @@ auto to_string(recv_status status) -> const std::string & {
     return recv_status_unknown;
 }
 
-} // namespace silicon::network::tls
+}
 
-#endif // #ifdef SILICON_FEATURE_TLS
+#endif

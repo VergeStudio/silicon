@@ -1,13 +1,13 @@
-// Interface partition silicon.network:facade
-//
-// Holds the platform-independent core public API of silicon::network:
-// connect_status, hostname, io_status, recv_status, send_status, ip_address,
-// i_socket, socket_address and socket (plus the make_socket / make_accept_socket
-// factories). All declarations are exported so consumers and the sibling
-// partitions (:dns/:tcp/:udp/:tls) can name these types.
-//
-// Network types that reference silicon::coroutine scheduling primitives
-// (poll_op / poll_status) pull them in via `import silicon.coroutine;`.
+
+
+
+
+
+
+
+
+
+
 
 module;
 
@@ -50,40 +50,36 @@ import silicon.error;
 
 export namespace silicon::network {
 
-/// 统一错误返回类型：转发至 silicon.error 的集中别名。
-/// 错误码来源：silicon::network::network_error 枚举（make_error_code）或
-/// silicon::network::system_error(errno)（POSIX errno / WSA 语义）。
+
+
+
 template<typename T>
 using result = silicon::error::result<T>;
 
 
-/// 从 POSIX errno 值构造 std::error_code（generic_category）。
+
 [[nodiscard]] inline std::error_code system_error(int errno_value) noexcept {
     return {errno_value, std::generic_category()};
 }
 
-/// 从 std::errc 枚举构造 std::error_code（generic_category）。
+
 [[nodiscard]] inline std::error_code system_error(std::errc e) noexcept {
     return std::make_error_code(e);
 }
 
 
 enum class connect_status {
-    /// The connection has been established.
+
     kConnected,
-    /// The given ip address could not be parsed or is invalid.
+
     kInvalidIpAddress,
-    /// The connection operation timed out.
+
     kTimeout,
-    /// There was an error, use errno to get more information on the specific error.
+
     kError
 };
 
-/**
- * @param status String representation of the connection status.
- * @return 字符串视图（指向静态存储）；枚举值非法时返回
- *         network_error::kInvalidConnectStatus。
- */
+
 CORE_API auto to_string(const connect_status &) -> result<std::string_view>;
 
 class CORE_API hostname {
@@ -96,7 +92,7 @@ class CORE_API hostname {
   public:
     hostname() = default;
     explicit hostname(std::string hn): m_p(std::make_shared<impl>()) { m_p->m_hostname = std::move(hn); }
-    // 值类型语义：拷贝做深拷贝，不与源对象共享实现
+
     hostname(const hostname &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     hostname(hostname &&) noexcept = default;
     hostname & operator=(const hostname &o) {
@@ -147,9 +143,7 @@ struct io_status {
 
     explicit operator bool() const { return is_ok(); }
 
-    /**
-     * Returns a human-readable description of the error.
-     */
+    
     [[nodiscard]] std::string message() const ;
 };
 
@@ -157,18 +151,18 @@ std::string_view to_string(io_status::kind) ;
 io_status make_io_status_from_native(int) ;
 auto make_io_status_from_poll_status(silicon::scheduler::poll_status) -> io_status;
 
-// ── Platform-specific helpers (defined in io_status_linux.cpp / io_status_win.cpp) ──
+
 [[nodiscard]] std::string message_impl(int);
 io_status make_io_status_from_native_impl(int) ;
 
 enum class recv_status : int64_t {
     kOk = 0,
-    /// The peer closed the socket.
+
     kClosed = -1,
-    /// The udp socket has not been bind()'ed to a local port.
+
     kUdpNotBound = -2,
     kTryAgain = EAGAIN,
-    // Note: that only the tcp::client will return this, a tls::client returns the specific ssl_would_block_* status'.
+
     kWouldBlock = EWOULDBLOCK,
     kBadFileDescriptor = EBADF,
     kConnectionRefused = ECONNREFUSED,
@@ -210,8 +204,8 @@ enum class domain_t : int {
     kIpv6 = AF_INET6
 };
 
-/// @return 字符串视图（指向静态存储）；枚举值非法时返回
-///         network_error::kInvalidDomain。
+
+
 auto to_string(domain_t) -> result<std::string_view>;
 
 class CORE_API ip_address {
@@ -221,8 +215,8 @@ class CORE_API ip_address {
 
     ip_address() = default;
 
-    /// 由二进制地址构造。长度超出对应域上限时返回
-    /// network_error::kInvalidIpAddress。
+
+
     static auto from_binary(std::span<const uint8_t> binary_address,
                             domain_t domain = domain_t::kIpv4) -> result<ip_address> {
         if(domain == domain_t::kIpv4 && binary_address.size() > ipv4_len) {
@@ -238,7 +232,7 @@ class CORE_API ip_address {
         return addr;
     }
 
-    // 值类型语义：拷贝做深拷贝，不与源对象共享实现
+
     ip_address(const ip_address &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     ip_address(ip_address &&) noexcept = default;
     ip_address & operator=(const ip_address &o) {
@@ -257,8 +251,8 @@ class CORE_API ip_address {
         }
     }
 
-    /// 解析点分/冒号十六进制文本地址。解析失败返回
-    /// network_error::kInvalidIpAddress。
+
+
     static auto from_string(std::string_view address, domain_t domain = domain_t::kIpv4) -> result<ip_address> {
         ip_address addr{};
         addr.m_p->m_domain = domain;
@@ -271,7 +265,7 @@ class CORE_API ip_address {
         return addr;
     }
 
-    /// 转为文本表示。转换失败返回 system_error(errno)。
+
     auto to_string() const -> result<std::string> {
         std::string output;
         if(m_p->m_domain == domain_t::kIpv4) {
@@ -307,15 +301,15 @@ class CORE_API ip_address {
     std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 };
 
-/// @brief 类型擦除门面：网络套接字的可擦除接口。
-///
-/// 任何满足下列成员的类型（含 network::socket）都自动满足该门面，无需继承：
-///   bool is_ok() const;
-///   bool blocking(int);
-///   bool shutdown(int);
-///   void close();
-///   int native_handle() const;
-/// 句柄语义见 socket_proxy（拥有所有权，值语义）与 socket_view（非拥有观察）。
+
+
+
+
+
+
+
+
+
 PRO_DEF_MEM_DISPATCH(MemSocketIsOk, is_ok);
 PRO_DEF_MEM_DISPATCH(MemSocketBlocking, blocking);
 PRO_DEF_MEM_DISPATCH(MemSocketShutdown, shutdown);
@@ -323,38 +317,36 @@ PRO_DEF_MEM_DISPATCH(MemSocketClose, close);
 PRO_DEF_MEM_DISPATCH(MemSocketNativeHandle, native_handle);
 
 struct socket_facade
-    : silicon::proxy::facade_builder                                //
-      ::add_convention<MemSocketIsOk, bool() const>                //
-      ::add_convention<MemSocketBlocking, bool(int)>               //
-      ::add_convention<MemSocketShutdown, bool(int)>               //
-      ::add_convention<MemSocketClose, void()>                     //
-      ::add_convention<MemSocketNativeHandle, int() const>         //
+    : silicon::proxy::facade_builder
+      ::add_convention<MemSocketIsOk, bool() const>
+      ::add_convention<MemSocketBlocking, bool(int)>
+      ::add_convention<MemSocketShutdown, bool(int)>
+      ::add_convention<MemSocketClose, void()>
+      ::add_convention<MemSocketNativeHandle, int() const>
       ::build {};
 
-/// 拥有所有权的类型擦除套接字句柄（值语义；小对象内联，无堆分配）。
+
 using socket_proxy = silicon::proxy::proxy<socket_facade>;
 
-/// 非拥有观察视图，等价于 `i_socket*` 但不要求继承。
+
 using socket_view = silicon::proxy::proxy_view<socket_facade>;
 
-/// 就地构造任意满足 socket_facade 的目标类型并擦除为 socket_proxy。
-/// 注意：network::make_socket(opts, ...) 仍返回值类型 result<socket>，
-/// 此处工厂名 make_socket_proxy 以规避重载冲突。
+
+
+
 template<class T, class... Args>
 [[nodiscard]] socket_proxy make_socket_proxy(Args &&...args) {
     return silicon::proxy::make_proxy<socket_facade, T>(std::forward<Args>(args)...);
 }
 
-/// 为已存在的对象创建非拥有视图；调用方负责保证生命周期。
+
 template<class T>
     requires silicon::proxy::proxiable_target<T, socket_facade>
 [[nodiscard]] socket_view make_socket_view(T &target) noexcept {
     return silicon::proxy::make_proxy_view<socket_facade>(target);
 }
 
-/**
- * Represents IP address and port.
- */
+
 class CORE_API socket_address {
     struct impl {
       public:
@@ -364,8 +356,8 @@ class CORE_API socket_address {
     std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 
   public:
-    /// 由文本 ip + 端口构造。文本解析失败时返回
-    /// network_error::kInvalidIpAddress。
+
+
     static auto create(std::string_view ip, std::uint16_t port,
                        domain_t domain = domain_t::kIpv4) -> result<socket_address> {
         auto addr = ip_address::from_string(ip, domain);
@@ -381,7 +373,7 @@ class CORE_API socket_address {
             sin->sin_family = AF_INET;
             sin->sin_port = htons(port);
 
-            // BSD-specific field, redundant for input
+
 #    if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
             sin->sin_len = sizeof(sockaddr_in);
 #    endif
@@ -393,7 +385,7 @@ class CORE_API socket_address {
             sin6->sin6_family = AF_INET6;
             sin6->sin6_port = htons(port);
 
-            // BSD-specific field
+
 #    if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
             sin6->sin6_len = sizeof(sockaddr_in6);
 #    endif
@@ -401,12 +393,12 @@ class CORE_API socket_address {
             std::memcpy(&sin6->sin6_addr, ip.data().data(), sizeof(in6_addr));
             len = sizeof(sockaddr_in6);
 
-            // TODO: link-local addresses
-            // sin6->sin6_scope_id = ip.scope_id();
+
+
         }
     }
 
-    // 值类型语义：拷贝做深拷贝，不与源对象共享实现
+
     socket_address(const socket_address &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     socket_address(socket_address &&) noexcept = default;
     socket_address & operator=(const socket_address &o) {
@@ -416,32 +408,20 @@ class CORE_API socket_address {
     socket_address & operator=(socket_address &&) noexcept = default;
     ~socket_address() = default;
 
-    /**
-     * @brief Gets a pointer to underlying sockaddr structure.
-     * Suitable for systemcalls like connect(), bind() or sendto().
-     * @return A pair containing the const sockaddr pointer and its length.
-     */
+    
     [[nodiscard]] std::pair<const sockaddr *, socklen_t> data() const & {
         return {reinterpret_cast<const sockaddr *>(&m_p->m_storage), m_p->m_len};
     }
 
-    /// Prevent usage on temporary objects to avoid dangling pointers.
+
     std::pair<const sockaddr *, socklen_t> data() const && = delete;
 
-    /**
-     * @brief Provides access to the storage for modification.
-     * Suitable for system calls like accept() or recvfrom().
-     * @return A pair containing the sockaddr pointer and a pointer to its length.
-     * @see make_unitialised()
-     */
+    
     [[nodiscard]] std::pair<sockaddr *, socklen_t *> native_mutable_data() & {
         return {reinterpret_cast<sockaddr *>(&m_p->m_storage), &m_p->m_len};
     }
 
-    /**
-     * @brief Extracts the ip_address from the endpoint.
-     * @return ip_address；地址族不受支持时返回 network_error::kInvalidDomain。
-     */
+    
     [[nodiscard]] result<ip_address> ip() const {
         if(m_p->m_storage.ss_family == AF_INET) {
             auto *sin = reinterpret_cast<const sockaddr_in *>(&m_p->m_storage);
@@ -458,10 +438,7 @@ class CORE_API socket_address {
         return std::unexpected(make_error_code(network_error::kInvalidDomain));
     }
 
-    /**
-     * @brief Extracts the address family from the endpoint.
-     * @return domain_t；地址族不受支持时返回 network_error::kInvalidDomain。
-     */
+    
     [[nodiscard]] result<domain_t> domain() const {
         if(m_p->m_storage.ss_family == AF_INET) {
             return domain_t::kIpv4;
@@ -472,10 +449,7 @@ class CORE_API socket_address {
         return std::unexpected(make_error_code(network_error::kInvalidDomain));
     }
 
-    /**
-     * @brief Extracts the the port from the endpoint.
-     * @return 主机字节序端口号；地址族不受支持时返回 network_error::kInvalidDomain。
-     */
+    
     [[nodiscard]] auto port() const -> result<std::uint16_t> {
         if(m_p->m_storage.ss_family == AF_INET) {
             return ntohs(reinterpret_cast<const sockaddr_in *>(&m_p->m_storage)->sin_port);
@@ -486,7 +460,7 @@ class CORE_API socket_address {
         return std::unexpected(make_error_code(network_error::kInvalidDomain));
     }
 
-    /// 相等比较。任一端地址族非法时视为不相等（运算符无法返回 expected）。
+
     bool operator==(const socket_address &other) const {
         if(m_p->m_len != other.m_p->m_len) { return false; }
         auto d = domain(), od = other.domain();
@@ -497,12 +471,10 @@ class CORE_API socket_address {
         return a && oa && *a == *oa;
     }
 
-    /**
-     * @brief Creates an empty endpoint for late initialisation.
-     */
+    
     static socket_address make_uninitialised() { return socket_address{}; }
 
-    /// 转为 "ip:port" 文本。地址族非法或 ip 转换失败时返回对应错误码。
+
     auto to_string() const -> result<std::string> {
         auto addr = ip();
         if(!addr) { return std::unexpected(addr.error()); }
@@ -514,49 +486,49 @@ class CORE_API socket_address {
     }
 
   private:
-    // It's private to avoid default empty initialisation and to make use more explicit make_uninitialised
+
     socket_address() = default;
 };
 
-/// 流输出。地址族非法时输出错误描述而非抛异常。
+
 inline std::ostream & operator<<(std::ostream &os, const socket_address &ep) {
     auto text = ep.to_string();
     return os << (text ? *text : std::string{"<invalid socket_address: "} + text.error().message() + ">");
 }
 
-// ── Platform-specific helpers (defined in socket_linux.cpp / socket_win.cpp) ──
-/// 复制底层句柄：POSIX 用 dup()；Windows 的 SOCKET 无 dup 语义，返回同一句柄值。
+
+
 int socket_duplicate_handle(int) ;
-/// 监听套接字绑定前的地址/端口复用选项设置。
-/// Windows 实现刻意**不设**任何选项：Winsock 的 SO_REUSEADDR 语义与 POSIX 不同，
-/// 它允许任意进程绑定同一监听端口（端口劫持），故保持独占绑定。
+
+
+
 bool socket_enable_address_reuse(int) ;
 
 class CORE_API socket final {
   public:
     enum class type_t {
-        /// udp datagram socket
+
         udp,
-        /// tcp streaming socket
+
         tcp
     };
 
     enum class blocking_t {
-        /// This socket should block on system calls.
+
         yes,
-        /// This socket should not block on system calls.
+
         no
     };
 
     struct options {
-        /// The type of socket.
+
         type_t type;
-        /// If the socket should be blocking or non-blocking.
+
         blocking_t blocking;
     };
 
-    /// 映射为操作系统 socket 类型常量；枚举非法时返回
-    /// network_error::kInvalidSocketType。
+
+
     static result<int> type_to_os(type_t) ;
 
     socket() = default;
@@ -569,90 +541,46 @@ class CORE_API socket final {
 
     ~socket() { close(); }
 
-    /**
-     * This function returns true if the socket's file descriptor is a valid number, however it does
-     * not imply if the socket is still usable.
-     * @return True if the socket file descriptor is > 0.
-     */
+    
     [[nodiscard]] bool is_ok() const { return m_fd != -1; }
 
     explicit operator bool() const { return is_ok(); }
 
-    /**
-     * @param block Sets the socket to the given blocking mode.
-     */
+    
     bool blocking(blocking_t) ;
     bool blocking(int block) { return blocking(static_cast<blocking_t>(block)); }
 
-    /**
-     * @param how Shuts the socket down with the given operations.
-     * @return Returns true if the sockets given operations were shutdown.
-     */
+    
     bool shutdown(silicon::scheduler::poll_op = silicon::scheduler::poll_op::read_write) ;
     bool shutdown(int how) { return shutdown(static_cast<silicon::scheduler::poll_op>(how)); }
 
-    /**
-     * Closes the socket and sets this socket to an invalid state.
-     */
+    
     void close() ;
 
-    /**
-     * @return The native handle (file descriptor) for this socket.
-     */
+    
     int native_handle() const { return m_fd; }
 
-    /**
-     * Accepts a pending incoming connection on a listening (accept) socket.
-     * @param client_endpoint Receives the address of the connected peer.
-     * @return The newly accepted socket. Check is_ok() to detect failure.
-     */
+    
     socket accept(socket_address &) ;
 
-    /**
-     * @return The last platform-specific socket error code for this socket
-     *         (errno on POSIX, WSAGetLastError() on Windows).
-     */
+    
     int last_error() const ;
 
-    /**
-     * Initiates a connection on this socket to the given endpoint. On a non-blocking socket
-     * the connection is typically established in the background; use in_progress() to detect
-     * that case.
-     * @param endpoint The remote address to connect to.
-     * @return 0 if the connection completed immediately, non-zero otherwise (check in_progress()).
-     */
+    
     int connect(const socket_address &) ;
 
-    /**
-     * @return True if the most recent connect() is still being established asynchronously
-     *         (EINPROGRESS on POSIX, WSAEWOULDBLOCK on Windows).
-     */
+    
     bool in_progress() const ;
 
   private:
     int m_fd{-1};
 };
 
-/**
- * Creates a socket with the given socket options, this typically is used for creating sockets to
- * use within client objects, e.g. tcp::client and udp::client.
- * @param opts See socket::options for more details.
- * TODO: docs
- */
+
 auto make_socket(const socket::options &, domain_t) -> result<socket>;
 
-/**
- * Creates a socket that can accept connections or packets with the given socket options, address,
- * port and backlog.  This is used for creating sockets to use within server objects, e.g.
- * tcp::server and udp::server.
- * @param opts See socket::options for more details
- * @param address The ip address to bind to.  If the type of socket is tcp then it will also listen.
- * @param port The port to bind to.
- * @param backlog If the type of socket is tcp then the backlog of connections to allow.  Does nothing
- *                for udp types.
- * TODO: docs
- */
+
 auto make_accept_socket(const socket::options &, const network::socket_address &,
                         int32_t) -> result<socket>;
 
-} // namespace silicon::network
+}

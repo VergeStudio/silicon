@@ -10,8 +10,8 @@ module;
 
 
 module silicon.scheduler;
-// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
-// 实现单元自引用，故以 _MSC_VER 守卫。
+
+
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
@@ -44,4 +44,4 @@ void poll_info::poll_awaiter::await_suspend(std::coroutine_handle<> awaiting_cor
 
 silicon::scheduler::poll_status poll_info::poll_awaiter::await_resume() noexcept { return m_pi.m_p->m_poll_status; }
 
-} // namespace silicon::scheduler
+}

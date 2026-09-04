@@ -1,47 +1,6 @@
-/*
- * Copyright (c) 2013 Miodrag Vallat.  <miod@openbsd.org>
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * ``Software''), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
- * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
 
-/*
- * m88k Foreign Function Interface
- *
- * This file attempts to provide all the FFI entry points which can reliably
- * be implemented in C.
- *
- * Only OpenBSD/m88k is currently supported; other platforms (such as
- * Motorola's SysV/m88k) could be supported with the following tweaks:
- *
- * - non-OpenBSD systems use an `outgoing parameter area' as part of the
- *   88BCS calling convention, which is not supported under OpenBSD from
- *   release 3.6 onwards.  Supporting it should be as easy as taking it
- *   into account when adjusting the stack, in the assembly code.
- *
- * - the logic deciding whether a function argument gets passed through
- *   registers, or on the stack, has changed several times in OpenBSD in
- *   edge cases (especially for structs larger than 32 bytes being passed
- *   by value). The code below attemps to match the logic used by the
- *   system compiler of OpenBSD 5.3, i.e. gcc 3.3.6 with many m88k backend
- *   fixes.
- */
+
+
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -61,12 +20,9 @@ void sffi_cacheflush_OBSD (unsigned int, unsigned int);
 #define CIF_FLAGS_INT		(1 << 0)
 #define CIF_FLAGS_DINT		(1 << 1)
 
-/*
- * Foreign Function Interface API
- */
 
-/* sffi_prep_args is called by the assembly routine once stack space has
-   been allocated for the function's arguments.  */
+
+
 
 void *
 sffi_prep_args (void *stack, extended_cif *ecif)
@@ -100,13 +56,7 @@ sffi_prep_args (void *stack, extended_cif *ecif)
       t = (*p_arg)->type;
       a = (*p_arg)->alignment;
 
-      /*
-       * Figure out whether the argument can be passed through registers
-       * or on the stack.
-       * The rule is that registers can only receive simple types not larger
-       * than 64 bits, or structs the exact size of a register and aligned to
-       * the size of a register.
-       */
+      
       if (t == SFFI_TYPE_STRUCT)
 	{
 	  if (z == sizeof (int) && a == sizeof (int) && regused < 8)
@@ -118,7 +68,7 @@ sffi_prep_args (void *stack, extended_cif *ecif)
 	{
 	  if (z > sizeof (int) && regused < 8 - 1)
 	    {
-	      /* align to an even register pair */
+	      
 	      if (regused & 1)
 		{
 		  regp++;
@@ -131,7 +81,7 @@ sffi_prep_args (void *stack, extended_cif *ecif)
 	    argp = stackp;
 	}
 
-      /* Enforce proper stack alignment of 64-bit types */
+      
       if (argp == stackp && a > sizeof (int))
 	{
 	  stackp = (char *) SFFI_ALIGN(stackp, a);
@@ -175,14 +125,13 @@ sffi_prep_args (void *stack, extended_cif *ecif)
 	  SFFI_ASSERT (0);
 	}
 
-      /* Align if necessary.  */
+      
       if ((sizeof (int) - 1) & z)
 	z = SFFI_ALIGN(z, sizeof (int));
 
       p_argv++;
 
-      /* Be careful, once all registers are filled, and about to continue
-         on stack, regp == stackp.  Therefore the check for regused as well. */
+      
       if (argp == (char *)regp && regused < 8)
 	{
 	  regp += z / sizeof (int);
@@ -195,11 +144,11 @@ sffi_prep_args (void *stack, extended_cif *ecif)
   return struct_value_ptr;
 }
 
-/* Perform machine dependent cif processing */
+
 sffi_status
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
-  /* Set the return type flag */
+  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -236,8 +185,7 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
   ecif.cif = cif;
   ecif.avalue = avalue;
 
-  /* If the return value is a struct and we don't have a return value
-     address then we need to make one.  */
+  
 
   if (rvalue == NULL
       && cif->rtype->type == SFFI_TYPE_STRUCT
@@ -259,9 +207,7 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
     }
 }
 
-/*
- * Closure API
- */
+
 
 static void
 sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
@@ -286,13 +232,7 @@ sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
       t = (*p_arg)->type;
       a = (*p_arg)->alignment;
 
-      /*
-       * Figure out whether the argument has been passed through registers
-       * or on the stack.
-       * The rule is that registers can only receive simple types not larger
-       * than 64 bits, or structs the exact size of a register and aligned to
-       * the size of a register.
-       */
+      
       if (t == SFFI_TYPE_STRUCT)
 	{
 	  if (z == sizeof (int) && a == sizeof (int) && regused < 8)
@@ -304,7 +244,7 @@ sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
 	{
 	  if (z > sizeof (int) && regused < 8 - 1)
 	    {
-	      /* align to an even register pair */
+	      
 	      if (regused & 1)
 		{
 		  regp++;
@@ -317,7 +257,7 @@ sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
 	    argp = stackp;
 	}
 
-      /* Enforce proper stack alignment of 64-bit types */
+      
       if (argp == stackp && a > sizeof (int))
 	{
 	  stackp = (char *) SFFI_ALIGN(stackp, a);
@@ -329,14 +269,13 @@ sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
       else
 	*p_argv = (void *) argp;
 
-      /* Align if necessary */
+      
       if ((sizeof (int) - 1) & z)
 	z = SFFI_ALIGN(z, sizeof (int));
 
       p_argv++;
 
-      /* Be careful, once all registers are exhausted, and about to fetch from
-	 stack, regp == stackp.  Therefore the check for regused as well. */
+      
       if (argp == (char *)regp && regused < 8)
 	{
 	  regp += z / sizeof (int);
@@ -379,15 +318,15 @@ sffi_prep_closure_loc (sffi_closure* closure, sffi_cif* cif,
   else
     fn = &sffi_closure_OBSD;
 
-  /* or.u %r10, %r0, %hi16(fn) */
+  
   tramp[0] = 0x5d400000 | (((unsigned int)fn) >> 16);
-  /* or.u %r13, %r0, %hi16(closure) */
+  
   tramp[1] = 0x5da00000 | ((unsigned int)closure >> 16);
-  /* or %r10, %r10, %lo16(fn) */
+  
   tramp[2] = 0x594a0000 | (((unsigned int)fn) & 0xffff);
-  /* jmp.n %r10 */
+  
   tramp[3] = 0xf400c40a;
-  /* or %r13, %r13, %lo16(closure) */
+  
   tramp[4] = 0x59ad0000 | ((unsigned int)closure & 0xffff);
 
   sffi_cacheflush_OBSD((unsigned int)codeloc, SFFI_TRAMPOLINE_SIZE);

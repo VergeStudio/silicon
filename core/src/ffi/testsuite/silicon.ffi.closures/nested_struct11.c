@@ -1,13 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check parameter passing with nested structs
-		of a single type.  This tests the special cases
-		for homogeneous floating-point aggregates in the
-		AArch64 PCS.
-   Limitations:	none.
-   PR:		none.
-   Originator:  ARM Ltd.  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct A {
@@ -127,8 +120,8 @@ int main (void)
 		       arg_types) == SFFI_OK);
 
   sffi_call (&cif, SFFI_FN (C_fn), &result, args);
-  /* { dg-output "1, 1, 1, 1, 1, 1\n" } */
-  /* { dg-output "1.0, 2.0, 4.0, 8.0, 1.0, 2.0, 4.0, 8.0" } */
+  
+  
   CHECK_FLOAT_EQ(result.a.a_x, source.a.a_x);
   CHECK_FLOAT_EQ(result.a.a_y, source.a.a_y);
   CHECK_FLOAT_EQ(result.b.b_x, source.b.b_x);

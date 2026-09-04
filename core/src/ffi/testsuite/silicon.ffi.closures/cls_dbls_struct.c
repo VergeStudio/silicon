@@ -1,10 +1,6 @@
-/* Area:		sffi_call, closure_call
-   Purpose:		Check double arguments in structs.
-   Limitations:	none.
-   PR:			none.
-   Originator:	Blake Chaffin 6/23/2007	*/
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 
@@ -52,17 +48,17 @@ int main(void)
 
 	cl_arg_types[0] = &ts1_type;
 
-	/* Initialize the cif */
+	
 	CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 				 &sffi_type_void, cl_arg_types) == SFFI_OK);
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, closure_test_gn, NULL, code) == SFFI_OK);
 
 	((void (*)(Dbls))(code))(arg);
-	/* { dg-output "1.0 2.0" } */
+	
 
 	closure_test_fn(arg);
-	/* { dg-output "\n1.0 2.0" } */
+	
 
 	return 0;
 }

@@ -1,10 +1,10 @@
-// network 模块测试：覆盖纯地址/端点 API（socket_address / ip_address / hostname）
-// 与错误返回路径。不含需 io_scheduler 事件循环的实时 socket I/O（tcp/udp/tls 收发
-// 另见集成测试）。
-//
-// 本测试刻意不调用 inject_network_error_category：network_error 的专属 category 现已
-// 由 error.cppm 在模块静态初始化期自注册默认实例，故未注入的消费方也能安全走错误路径
-// （不再 std::terminate）。若自注册失效，下面依赖错误返回路径的用例会崩溃。
+
+
+
+
+
+
+
 #include <array>
 #include <span>
 #include <string>
@@ -84,7 +84,7 @@ TEST_CASE("to_string(connect_status) 返回有效字符串视图") {
 
 TEST_CASE("hostname 值语义：深拷贝独立、按内容比较") {
     hostname h1{"example.com"};
-    hostname h2 = h1; // 深拷贝
+    hostname h2 = h1;
     CHECK(h1 == h2);
 
     hostname h3{"other.org"};

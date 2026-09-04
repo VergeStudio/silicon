@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check return value double, with many arguments
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 #include <stdlib.h>
@@ -58,7 +54,7 @@ int main (void)
 	  }
     }
 
-    /* Initialize the cif */
+    
     CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 19,
 		       &sffi_type_double, args) == SFFI_OK);
 

@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network (recv_status to_string).
+
 
 module;
 
@@ -33,9 +33,9 @@ auto to_string(recv_status status) -> const std::string & {
             return recv_status_closed;
         case recv_status::kUdpNotBound:
             return recv_status_udp_not_bound;
-// BSD/macOS 上 EAGAIN 与 EWOULDBLOCK 同值（均为 35），枚举值重复会导致
-// switch 重复 case。二者不同值的平台才需要该分支（本单元不引入 <cerrno>，
-// 故宏未定义时同样跳过——此时 EAGAIN/EWOULDBLOCK 必同值）。
+
+
+
 #if defined(EWOULDBLOCK) && defined(EAGAIN) && (EWOULDBLOCK != EAGAIN)
         case recv_status::kWouldBlock:
             return recv_status_would_block;
@@ -65,4 +65,4 @@ auto to_string(recv_status status) -> const std::string & {
     return recv_status_unknown;
 }
 
-} // namespace silicon::network
+}

@@ -5,7 +5,7 @@ module;
 #include <expected>
 #include <iostream>
 #include <memory>
-#include <system_error> // std::system_category：替代被 MSVC 弃用的 strerror
+#include <system_error>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -13,8 +13,8 @@ module;
 #include <map>
 #include <optional>
 
-// 平台头必须置于全局模块片段（module 声明之前）；
-// 在 module purview 内文本包含会与 BMI 中的声明产生附着冲突。
+
+
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    include <io.h>
 #    include <fcntl.h>
@@ -38,8 +38,8 @@ class pipe_t::impl {
 
 pipe_t::pipe_t(): m_p(std::make_unique<impl>())
 {
-    // Using pipe instead of pipe2 since macos does not have support for pipe2.
-    // 构造不再抛异常：失败时将 fd 保留为默认 -1，由调用方通过 is_valid() 检查。
+
+
 #if defined(SILICON_PLATFORM_WINDOWS)
     if (_pipe(m_p->m_fds.data(), 256, _O_BINARY) != 0)
     {
@@ -47,7 +47,7 @@ pipe_t::pipe_t(): m_p(std::make_unique<impl>())
         return;
     }
 
-    // Set the pipe file descriptors to be non-blocking.
+
     for (const auto& fd : m_p->m_fds)
     {
         HANDLE hPipe = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
@@ -61,7 +61,7 @@ pipe_t::pipe_t(): m_p(std::make_unique<impl>())
         return;
     }
 
-    // Set the pipe file descriptors to be non-blocking.
+
     for (const auto& fd : m_p->m_fds)
     {
         int flags = fcntl(fd, F_GETFL);
@@ -181,4 +181,4 @@ void pipe_t::close() {
     }
 }
 
-} // namespace silicon::scheduler
+}

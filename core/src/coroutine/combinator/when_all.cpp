@@ -10,12 +10,12 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-/// Implementation state of silicon::coroutine::when_all_latch.
+
 struct when_all_latch::impl {
   public:
-    /// The number of tasks that are being waited on.
+
     std::atomic<std::size_t> m_count;
-    /// The when_all_task awaiting to be resumed upon all task completions.
+
     std::coroutine_handle<> m_awaiting_coroutine{nullptr};
 };
 
@@ -54,4 +54,4 @@ void when_all_latch::notify_awaitable_completed() noexcept {
     }
 }
 
-} // namespace silicon::coroutine
+}

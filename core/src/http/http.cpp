@@ -26,7 +26,7 @@ std::size_t fake_http_client::call_count() const {
 }
 
 http_response curl_http_client::request(const http_request &req) const {
-    // 构建 curl 命令（简略版，仅支持 GET/POST）
+
     std::string cmd = "curl -s -w '\\n%{http_code}' -m " + std::to_string(req.timeout_ms() / 1000);
     if(req.method() == "POST") {
         cmd += " -X POST";
@@ -56,7 +56,7 @@ http_response curl_http_client::request(const http_request &req) const {
     pclose(pipe);
 #endif
 
-    // 最后一行是 status code
+
     auto nl_pos = all.rfind('\n');
     if(nl_pos != std::string::npos && nl_pos > 0) {
         resp.body() = all.substr(0, --nl_pos);
@@ -66,4 +66,4 @@ http_response curl_http_client::request(const http_request &req) const {
     return resp;
 }
 
-} // namespace silicon::http
+}

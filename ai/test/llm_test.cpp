@@ -9,7 +9,7 @@ import silicon.proxy;
 
 using namespace silicon::ai::llm;
 
-// ── 测试夹具：具体类型（鸭子类型满足 facade，无需继承 i_*） ────────
+
 
 class echo_tool {
   public:
@@ -39,7 +39,7 @@ class const_provider {
 };
 
 
-// ── tool_registry ────────────────────────────────────────────────
+
 
 TEST_CASE("tool_registry 注册并按 name 查询") {
     tool_registry reg;
@@ -67,7 +67,7 @@ TEST_CASE("tool_registry get_tool 未知 name 返回空句柄") {
     CHECK_FALSE(reg.get_tool("missing"));
 }
 
-// ── provider_registry ────────────────────────────────────────────
+
 
 TEST_CASE("provider_registry 注册/查询/列举") {
     provider_registry reg;
@@ -91,7 +91,7 @@ TEST_CASE("provider_registry 重复 id 注册返回 false") {
     CHECK(reg.list_providers().size() == 1);
 }
 
-// ── scripted_provider ──────────────────────────────────────────
+
 
 TEST_CASE("scripted_provider 按 FIFO 返回预置响应") {
     scripted_provider p;
@@ -119,7 +119,7 @@ TEST_CASE("scripted_provider 队列耗尽返回 llm_error") {
     CHECK(r.error().message() == "llm provider unavailable");
 }
 
-// ── json_protocol_adapter ───────────────────────────────────────
+
 
 TEST_CASE("json_protocol_adapter::encode_request 含 model/messages/tools") {
     json_protocol_adapter adapter;
@@ -166,7 +166,7 @@ TEST_CASE("json_protocol_adapter::decode_response 非法 JSON 返回 llm_error")
     CHECK(r.error().message() == "invalid llm response");
 }
 
-// ── DI 验证：组合根注入的对象被模块统一引用 ─────────────────────
+
 namespace {
     struct di_probe_category : std::error_category {
         const char *name() const noexcept override { return "di-probe"; }
@@ -174,15 +174,15 @@ namespace {
     };
 }
 
-// 本用例位于文件末尾：注入的 probe 仅在函数作用域内有效，其后不再有
-// 其他用例依赖 category 实体，避免悬垂引用。若模块未走注入路径而使用
-// fallback（name="silicon.ai"），此用例将失败 —— 故它端到端验证 DI。
+
+
+
 TEST_CASE("DI: 模块统一引用组合根注入的 category 实例") {
     di_probe_category probe;
     inject_llm_error_category(probe);
 
     scripted_provider p;
-    auto r = p.chat({}, {}); // 队列耗尽 → 返回 llm_error
+    auto r = p.chat({}, {});
     REQUIRE_FALSE(r);
     CHECK(std::string(r.error().category().name()) == "di-probe");
 }

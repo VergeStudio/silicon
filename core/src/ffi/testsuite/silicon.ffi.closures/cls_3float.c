@@ -1,11 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Depending on the ABI. Check overlapping.
-   Limitations:>none.
-   PR:		none.
-   Originator:	<compnerd@compnerd.org> 20171026	 */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 
@@ -90,9 +85,9 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_3float_fn), &res_dbl, args_dbl);
-  /* { dg-output "1 2 3 1 2 3: 2 4 6" } */
+  
   printf("res: %g %g %g\n", res_dbl.f, res_dbl.g, res_dbl.h);
-  /* { dg-output "\nres: 2 4 6" } */
+  
   CHECK_FLOAT_EQ(res_dbl.f, 2);
   CHECK_FLOAT_EQ(res_dbl.g, 4);
   CHECK_FLOAT_EQ(res_dbl.h, 6);
@@ -102,9 +97,9 @@ int main (void)
 
   res_dbl = ((cls_struct_3float(*)(cls_struct_3float,
 				   cls_struct_3float))(code))(g_dbl, f_dbl);
-  /* { dg-output "\n1 2 3 1 2 3: 2 4 6" } */
+  
   printf("res: %g %g %g\n", res_dbl.f, res_dbl.g, res_dbl.h);
-  /* { dg-output "\nres: 2 4 6" } */
+  
   CHECK_FLOAT_EQ(res_dbl.f, 2);
   CHECK_FLOAT_EQ(res_dbl.g, 4);
   CHECK_FLOAT_EQ(res_dbl.h, 6);

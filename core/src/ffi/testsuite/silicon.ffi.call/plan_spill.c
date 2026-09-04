@@ -1,16 +1,9 @@
-/* Area:	sffi_call_plan
-   Purpose:	Check that a reusable call plan reproduces sffi_call when
-		arguments spill past the argument registers onto the stack.
-		This drives the non-fast plan path (a move list handed to
-		sffi_call_unix64) for GP spill, SSE spill, and a mix of both.
-   Limitations:	none.
-   PR:		none.
-   Originator:	sffi_call_plan tests  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
-/* 10 integers: 6 in registers, 4 spilled to the stack. */
+
 static long long gp10(long long a1, long long a2, long long a3, long long a4,
 		      long long a5, long long a6, long long a7, long long a8,
 		      long long a9, long long a10)
@@ -19,7 +12,7 @@ static long long gp10(long long a1, long long a2, long long a3, long long a4,
        + a6 * 6 + a7 * 7 + a8 * 8 + a9 * 9 + a10 * 10;
 }
 
-/* 12 doubles: 8 in SSE registers, 4 spilled to the stack. */
+
 static double sse12(double a1, double a2, double a3, double a4,
 		    double a5, double a6, double a7, double a8,
 		    double a9, double a10, double a11, double a12)
@@ -28,7 +21,7 @@ static double sse12(double a1, double a2, double a3, double a4,
        + a7 * 7 + a8 * 8 + a9 * 9 + a10 * 10 + a11 * 11 + a12 * 12;
 }
 
-/* 8 ints + 8 doubles: both classes spill. */
+
 static double mix16(long i1, long i2, long i3, long i4,
 		    long i5, long i6, long i7, long i8,
 		    double d1, double d2, double d3, double d4,
@@ -42,7 +35,7 @@ static double mix16(long i1, long i2, long i3, long i4,
 
 int main (void)
 {
-  /* GP spill. */
+  
   {
     sffi_cif cif;
     sffi_type *args[10];
@@ -71,7 +64,7 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  /* SSE spill. */
+  
   {
     sffi_cif cif;
     sffi_type *args[12];
@@ -100,7 +93,7 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  /* Both classes spill. */
+  
   {
     sffi_cif cif;
     sffi_type *args[16];

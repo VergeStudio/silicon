@@ -25,4 +25,4 @@ std::string date_source::current_date() const {
     return std::string(buf);
 }
 
-} // namespace silicon::time
+}

@@ -7,4 +7,4 @@ export namespace silicon::coroutine {
 struct void_value {
 };
 
-} // namespace silicon::coroutine
+}

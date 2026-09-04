@@ -1,7 +1,7 @@
 module;
 
-// 模块化补齐：原经传递 include 获得的标准头，模块单元须显式包含。
-// 标准库头必须置于全局模块片段：接口单元全局片段中的 #include 对实现单元不可达。
+
+
 #include <array>
 #include <atomic>
 #include <coroutine>
@@ -13,9 +13,9 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-// ===========================================================================
-// ring_buffer::produce_operation
-// ===========================================================================
+
+
+
 
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::produce_operation::produce_operation(ring_buffer<element, num_elements> &rb, element e)
@@ -26,23 +26,23 @@ template<typename element, size_t num_elements>
 bool ring_buffer<element, num_elements>::produce_operation::await_ready() noexcept {
     auto &mutex = m_rb.m_p->m_mutex;
 
-    // Produce operations can only proceed if running.
+
     if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
         m_result = ring_buffer_result::produce::kStopped;
         static_cast<void>(mutex.unlock());
-        return true; // Will be awoken with produce::stopped
+        return true;
     }
 
     if(m_rb.m_p->m_used.load(std::memory_order::acquire) < num_elements) {
-        // There is guaranteed space to store
+
         auto slot = m_rb.m_p->m_front.fetch_add(1, std::memory_order::acq_rel) % num_elements;
         m_rb.m_p->m_elements[slot] = std::move(m_e);
         m_rb.m_p->m_used.fetch_add(1, std::memory_order::release);
         static_cast<void>(mutex.unlock());
-        return true; // Will be awoken with produce::produced
+        return true;
     }
 
-    return false; // ring buffer full, suspend
+    return false;
 }
 
 template<typename element, size_t num_elements>
@@ -58,9 +58,9 @@ auto ring_buffer<element, num_elements>::produce_operation::await_resume() -> ri
     return m_result;
 }
 
-// ===========================================================================
-// ring_buffer::consume_operation
-// ===========================================================================
+
+
+
 
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::consume_operation::consume_operation(ring_buffer<element, num_elements> &rb)
@@ -70,7 +70,7 @@ template<typename element, size_t num_elements>
 bool ring_buffer<element, num_elements>::consume_operation::await_ready() noexcept {
     auto &mutex = m_rb.m_p->m_mutex;
 
-    // Consume operations proceed until stopped.
+
     if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = ring_buffer_result::consume::kStopped;
         static_cast<void>(mutex.unlock());
@@ -86,7 +86,7 @@ bool ring_buffer<element, num_elements>::consume_operation::await_ready() noexce
         return true;
     }
 
-    return false; // ring buffer is empty, suspend.
+    return false;
 }
 
 template<typename element, size_t num_elements>
@@ -101,15 +101,15 @@ template<typename element, size_t num_elements>
 auto ring_buffer<element, num_elements>::consume_operation::await_resume() -> silicon::scheduler::expected<element, ring_buffer_result::consume> {
     if(m_e.has_value()) {
         return silicon::scheduler::expected<element, ring_buffer_result::consume>(std::move(m_e).value());
-    } else // state is stopped
+    } else
     {
         return silicon::scheduler::unexpected<ring_buffer_result::consume>(m_result);
     }
 }
 
-// ===========================================================================
-// ring_buffer
-// ===========================================================================
+
+
+
 
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::ring_buffer()
@@ -119,7 +119,7 @@ ring_buffer<element, num_elements>::ring_buffer()
 
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::~ring_buffer() {
-    // Wake up anyone still using the ring buffer.
+
     silicon::scheduler::sync_wait(shutdown());
 }
 
@@ -194,14 +194,14 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::notify_consum
 
 template<typename element, size_t num_elements>
 silicon::scheduler::task<void> ring_buffer<element, num_elements>::shutdown() {
-    // Only wake up waiters once.
+
     auto expected = m_p->m_running_state.load(std::memory_order::acquire);
     if(expected == running_state_t::kStopped) {
         co_return;
     }
 
     auto lk = co_await m_p->m_mutex.scoped_lock();
-    // Only let one caller do the wake-ups, this can go from running or draining to stopped
+
     if(!m_p->m_running_state.compare_exchange_strong(expected, running_state_t::kStopped, std::memory_order::acq_rel, std::memory_order::relaxed)) {
         co_return;
     }
@@ -233,7 +233,7 @@ template<typename element, size_t num_elements>
 template<silicon::scheduler::concepts::executor executor_type>
 silicon::scheduler::task<void> ring_buffer<element, num_elements>::shutdown_drain(std::unique_ptr<executor_type> &e) {
     auto lk = co_await m_p->m_mutex.scoped_lock();
-    // Do not allow any more produces, the state must be in running to drain.
+
     auto expected = running_state_t::kRunning;
     if(!m_p->m_running_state.compare_exchange_strong(expected, running_state_t::kDraining, std::memory_order::acq_rel, std::memory_order::relaxed)) {
         co_return;
@@ -259,9 +259,9 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::shutdown_drai
 template<typename element, size_t num_elements>
 bool ring_buffer<element, num_elements>::is_shutdown() const { return m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning; }
 
-// ===========================================================================
-// ring_buffer internal resume helpers
-// ===========================================================================
+
+
+
 
 template<typename element, size_t num_elements>
 silicon::scheduler::task<void> ring_buffer<element, num_elements>::try_resume_producers() {
@@ -304,4 +304,4 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::try_resume_co
     }
 }
 
-} // namespace silicon::coroutine
+}

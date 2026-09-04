@@ -29,10 +29,7 @@
 #endif
 
 #if defined(SFFI_EXEC_STATIC_TRAMP)
-/*
- * For the trampoline code table mapping, a mapping size of 4K (base page size)
- * is chosen.
- */
+
 #    define X86_TRAMP_MAP_SHIFT 12
 #    define X86_TRAMP_MAP_SIZE (1 << X86_TRAMP_MAP_SHIFT)
 #    ifdef ENDBR_PRESENT

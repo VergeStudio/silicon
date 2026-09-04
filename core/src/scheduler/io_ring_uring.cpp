@@ -1,9 +1,9 @@
-// Linux 后端：io_uring（liburing）。
-// 仅当 xmake 选项 --io_ring=y 且平台为 Linux 时参与构建；否则本文件编译为空
-// TU。守卫与 io_ring_ioring.cpp 的 Windows 守卫互斥，恰好一个文件定义同组符号。
-//
-// 平台无关的 io_ring 接口在 :io_ring 分区；本文件只提供 impl 实体与各方法的
-// Linux 实现。未启用时消费方应回退 :io_notifier 的 epoll 路径。
+
+
+
+
+
+
 
 module;
 
@@ -13,8 +13,8 @@ module;
 #include <optional>
 
 #if defined(SILICON_PLATFORM_LINUX) && defined(SILICON_FEATURE_IO_RING)
-#    include <linux/time_types.h> // __kernel_timespec（io_uring_wait_cqe_timeout）
-#    include <sys/types.h>        // off_t
+#    include <linux/time_types.h>
+#    include <sys/types.h>
 #    include <liburing.h>
 #endif
 
@@ -36,7 +36,7 @@ io_ring::io_ring(io_ring_config cfg): m_p(std::make_unique<impl>()) {
     struct io_uring_params params{};
     if(cfg.sq_poll) { params.flags |= IORING_SETUP_SQPOLL; }
 
-    // 初始化失败不抛异常：交由 is_valid() 表达，消费方回退 epoll。
+
     m_p->valid = (io_uring_queue_init_params(depth, &m_p->ring, &params) == 0);
 }
 
@@ -53,15 +53,15 @@ auto io_ring::active_backend() const noexcept -> backend {
     return is_valid() ? backend::io_uring : backend::none;
 }
 
-// io_uring 覆盖本类全部操作；个别 op 的内核门槛（如 IORING_OP_ASYNC_CANCEL
-// 需 5.5+）由提交失败时的 CQE 负 errno 体现，此处不重复做版本探测。
+
+
 bool io_ring::supports(op) const noexcept { return is_valid(); }
 
 bool io_ring::submit_read(fd_t fd, void *buf, std::uint32_t len, std::uint64_t offset, std::uint64_t user_data) {
     if(!is_valid()) { return false; }
 
     auto *sqe = io_uring_get_sqe(&m_p->ring);
-    if(sqe == nullptr) { return false; } // SQ 已满：调用方应先 submit()
+    if(sqe == nullptr) { return false; }
 
     io_uring_prep_read(sqe, fd, buf, len, static_cast<off_t>(offset));
     io_uring_sqe_set_data(sqe, reinterpret_cast<void *>(user_data));
@@ -108,7 +108,7 @@ auto io_ring::wait_completion(std::chrono::milliseconds timeout) -> std::optiona
     ts.tv_nsec = (timeout.count() % 1000) * 1000000LL;
 
     if(io_uring_wait_cqe_timeout(&m_p->ring, &cqe, &ts) != 0 || cqe == nullptr) {
-        return std::nullopt; // 超时或被信号中断
+        return std::nullopt;
     }
 
     completion done{
@@ -135,6 +135,6 @@ auto io_ring::peek_completion() -> std::optional<completion> {
     return done;
 }
 
-} // namespace silicon::scheduler
+}
 
-#endif // SILICON_PLATFORM_LINUX && SILICON_FEATURE_IO_RING
+#endif

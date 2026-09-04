@@ -1,10 +1,6 @@
-/* Area:       sffi_call, closure_call
-   Purpose:    Single argument structs have a different ABI in emscripten.
-   Limitations:        none.
-   PR:         none.
-   Originator: <hood@mit.edu>  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct A {
@@ -74,7 +70,7 @@ int main (void)
 
   res_dbl = B_fn(e_dbl, f_dbl);
   printf("0 res: %d\n", res_dbl.y.a);
-  /* { dg-output "0 res: 43750" } */
+  
 
 
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 2, &cls_struct_type1,
@@ -87,14 +83,14 @@ int main (void)
 
   sffi_call(&cif, SFFI_FN(B_fn), &res_dbl, args_dbl);
   printf("1 res: %d\n", res_dbl.y.a);
-  /* { dg-output "\n1 res: 43750" } */
+  
   CHECK( res_dbl.y.a == (e_dbl + f_dbl.y.a));
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, B_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((B(*)(int, B))(code))(e_dbl, f_dbl);
   printf("2 res: %d\n", res_dbl.y.a);
-  /* { dg-output "\n2 res: 43750" } */
+  
   CHECK( res_dbl.y.a == (e_dbl + f_dbl.y.a));
 
   exit(0);

@@ -1,15 +1,15 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
@@ -46,7 +46,7 @@ class json_ref {
     json_ref(Args &&...args)
         : owned_value(std::forward<Args>(args)...) {}
 
-    // class should be movable only
+
     json_ref(json_ref &&) noexcept = default;
     json_ref(const json_ref &) = delete;
     json_ref &operator=(const json_ref &) = delete;
@@ -73,5 +73,5 @@ class json_ref {
     value_type const *value_ref = nullptr;
 };
 
-} // namespace detail
+}
 SILICON_JSON_NAMESPACE_END

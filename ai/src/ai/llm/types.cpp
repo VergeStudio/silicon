@@ -10,12 +10,12 @@ module silicon.ai.llm.types;
 
 namespace silicon::ai::llm {
 
-// ── chat_response PIMPL（impl 完整定义，接口单元仅前向声明） ────────
+
 
 struct chat_response::impl {
   public:
     std::string content_;
-    std::string finish_reason_; // "stop" / "length" / "tool_calls"
+    std::string finish_reason_;
     int32_t prompt_tokens_ = 0;
     int32_t completion_tokens_ = 0;
 };
@@ -38,11 +38,11 @@ const int32_t &chat_response::prompt_tokens() const { return impl_->prompt_token
 int32_t &chat_response::completion_tokens() { return impl_->completion_tokens_; }
 const int32_t &chat_response::completion_tokens() const { return impl_->completion_tokens_; }
 
-// ── message PIMPL（impl 完整定义，接口单元仅前向声明） ────────────
+
 
 struct message::impl {
   public:
-    std::string role_; // "user" / "assistant" / "system" / "tool"
+    std::string role_;
     std::string content_;
     std::string tool_call_id_;
 };
@@ -69,7 +69,7 @@ const std::string &message::content() const { return impl_->content_; }
 std::string &message::tool_call_id() { return impl_->tool_call_id_; }
 const std::string &message::tool_call_id() const { return impl_->tool_call_id_; }
 
-// ── model_request_options PIMPL ─────────────────────────────────
+
 
 struct model_request_options::impl {
   public:
@@ -97,13 +97,13 @@ const int32_t &model_request_options::max_tokens() const { return impl_->max_tok
 std::map<std::string, std::string, std::less<>> &model_request_options::extra() { return impl_->extra_; }
 const std::map<std::string, std::string, std::less<>> &model_request_options::extra() const { return impl_->extra_; }
 
-// ── tool_call PIMPL ──────────────────────────────────────────────
+
 
 struct tool_call::impl {
   public:
     std::string id_;
     std::string name_;
-    std::string arguments_; // JSON string
+    std::string arguments_;
 };
 
 tool_call::tool_call(): impl_(std::make_shared<impl>()) {}
@@ -128,7 +128,7 @@ const std::string &tool_call::name() const { return impl_->name_; }
 std::string &tool_call::arguments() { return impl_->arguments_; }
 const std::string &tool_call::arguments() const { return impl_->arguments_; }
 
-// ── tool_output PIMPL ───────────────────────────────────────────
+
 
 struct tool_output::impl {
   public:
@@ -153,4 +153,4 @@ const bool &tool_output::truncated() const { return impl_->truncated_; }
 std::string &tool_output::managed_output_path() { return impl_->managed_output_path_; }
 const std::string &tool_output::managed_output_path() const { return impl_->managed_output_path_; }
 
-} // namespace silicon::ai::llm
+}

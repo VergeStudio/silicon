@@ -17,7 +17,7 @@ double mix3(std::int32_t a, double b, float c) {
 
 const char *greet() { return "hello-ffi"; }
 
-// 闭包回调：把两个 int 参数相乘写入返回值，并加上 user_data 里的偏移。
+
 void mul_closure(ffi::cif *, void *ret, void **args, void *user_data) {
     auto a = *static_cast<int *>(args[0]);
     auto b = *static_cast<int *>(args[1]);
@@ -25,7 +25,7 @@ void mul_closure(ffi::cif *, void *ret, void **args, void *user_data) {
     *static_cast<ffi::sarg *>(ret) = static_cast<ffi::sarg>(a * b + bias);
 }
 
-} // namespace
+}
 
 TEST_CASE("ffi 版本信息") {
     CHECK(ffi::version_number() == 30701UL);

@@ -14,7 +14,7 @@
 #define UNIX64_RET_ST_RAX_XMM0 13
 #define UNIX64_RET_ST_XMM0_XMM1 14
 #define UNIX64_RET_ST_RAX_RDX 15
-#define UNIX64_RET_XMM128 16 /* binary128 long double in %xmm0 */
+#define UNIX64_RET_XMM128 16 
 
 #define UNIX64_RET_LAST 16
 
@@ -23,10 +23,7 @@
 #define UNIX64_SIZE_SHIFT 12
 
 #if defined(SFFI_EXEC_STATIC_TRAMP)
-/*
- * For the trampoline code table mapping, a mapping size of 4K (base page size)
- * is chosen.
- */
+
 #    define UNIX64_TRAMP_MAP_SHIFT 12
 #    define UNIX64_TRAMP_MAP_SIZE (1 << UNIX64_TRAMP_MAP_SHIFT)
 #    ifdef ENDBR_PRESENT

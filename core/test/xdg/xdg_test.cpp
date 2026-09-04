@@ -18,11 +18,11 @@ TEST_CASE("xdg dir collections follow platform defaults") {
     auto cd = config_dirs();
     auto dd = data_dirs();
 #if defined(SILICON_PLATFORM_WINDOWS)
-    // Windows 无系统级 XDG 目录概念，按设计返回空集合。
+
     CHECK(cd.empty());
     CHECK(dd.empty());
 #else
-    // POSIX 默认包含 /etc/xdg 与 /usr/local/share:/usr/share。
+
     CHECK(cd.size() >= 1);
     CHECK(dd.size() >= 1);
 #endif

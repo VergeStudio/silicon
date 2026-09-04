@@ -1,38 +1,8 @@
-/* -----------------------------------------------------------------------
-   sffi_powerpc.h - Copyright (C) 2013 IBM
-                   Copyright (C) 2011, 2026 Anthony Green
-                   Copyright (C) 2011 Kyle Moffett
-                   Copyright (C) 2008 Red Hat, Inc
-                   Copyright (C) 2007, 2008 Free Software Foundation, Inc
-                   Copyright (c) 1998 Geoffrey Keating
 
-   PowerPC Foreign Function Interface
 
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
 
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
 
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR
-   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-   OTHER DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
-/*
- * Closure jump table indexes
- */
-
-/* Common to ppc32 and ppc64 */
 #define PPC_LD_NONE 0
 #define PPC_LD_R3 1
 #define PPC_LD_R3R4 2
@@ -51,10 +21,10 @@
 #    define PPC_LD_PTR PPC_LD_R3
 #    define PPC_LD_I64 PPC_LD_R3R4
 
-/* Needed for soft-float long-double. */
+
 #    define PPC32_LD_R3R6 10
 
-/* Needed for SFFI_SYSV small structure returns.  */
+
 #    ifdef __LITTLE_ENDIAN__
 #        define PPC32_SYSV_LD_STRUCT_3 PPC32_LD_R3
 #        define PPC32_SYSV_LD_STRUCT_5 PPC32_LD_R3R4
@@ -67,14 +37,14 @@
 #        define PPC32_SYSV_LD_STRUCT_7 14
 #    endif
 
-#else /* POWERPC64 */
+#else 
 
 #    define PPC_LD_U32 10
 #    define PPC_LD_S32 11
 #    define PPC_LD_PTR PPC_LD_R3
 #    define PPC_LD_I64 PPC_LD_R3
 
-/* Used by ELFv2 for homogenous structure returns.  */
+
 #    define PPC64_LD_VECTOR 12
 #    define PPC64_LD_VECTOR_HOMOG 13
 #    define PPC64_LD_FLOAT_HOMOG 14
@@ -91,28 +61,28 @@
 #        define PPC64_LD_STRUCT_7 19
 #    endif
 
-#endif /* POWERPC64 */
+#endif 
 
 #ifndef SILICON_FFI_ASM
 
 enum {
-    /* The assembly depends on these exact flags.  */
-    /* These go in cr7 */
-    FLAG_RETURNS_SMST = 1 << (31 - 31), /* Used for SFFI_SYSV small structs.  */
+    
+    
+    FLAG_RETURNS_SMST = 1 << (31 - 31), 
     FLAG_RETURNS_NOTHING = 1 << (31 - 30),
     FLAG_RETURNS_FP = 1 << (31 - 29),
     FLAG_RETURNS_VEC = 1 << (31 - 28),
 
-    /* These go in cr6 */
+    
     FLAG_RETURNS_64BITS = 1 << (31 - 27),
     FLAG_RETURNS_128BITS = 1 << (31 - 26),
 
-    FLAG_COMPAT = 1 << (31 - 8), /* Not used by assembly */
+    FLAG_COMPAT = 1 << (31 - 8), 
 
-    /* These go in cr1 */
-    FLAG_ARG_NEEDS_COPY = 1 << (31 - 7),        /* Used by sysv code */
-    FLAG_ARG_NEEDS_PSAVE = FLAG_ARG_NEEDS_COPY, /* Used by linux64 code */
-    FLAG_FP_ARGUMENTS = 1 << (31 - 6),          /* cr1.eq; specified by ABI */
+    
+    FLAG_ARG_NEEDS_COPY = 1 << (31 - 7),        
+    FLAG_ARG_NEEDS_PSAVE = FLAG_ARG_NEEDS_COPY, 
+    FLAG_FP_ARGUMENTS = 1 << (31 - 6),          
     FLAG_4_GPR_ARGUMENTS = 1 << (31 - 5),
     FLAG_RETVAL_REFERENCE = 1 << (31 - 4),
     FLAG_VEC_ARGUMENTS = 1 << (31 - 3),
@@ -151,4 +121,4 @@ void SFFI_HIDDEN sffi_prep_args64(extended_cif *, unsigned long *const);
 sffi_status SFFI_HIDDEN sffi_prep_closure_loc_linux64(sffi_closure *, sffi_cif *, void (*)(sffi_cif *, void *, void **, void *), void *, void *);
 int SFFI_HIDDEN sffi_closure_helper_LINUX64(sffi_cif *, void (*)(sffi_cif *, void *, void **, void *), void *, void *, unsigned long *, sffi_dblfl *, float128 *);
 
-#endif /* !SILICON_FFI_ASM */
+#endif 

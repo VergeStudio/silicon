@@ -1,12 +1,7 @@
-/*	Area:			sffi_call, closure_call
-	Purpose:		Check structure alignment of long double.
-	Limitations:	none.
-	PR:				none.
-	Originator:		Blake Chaffin	6/18/2007
-*/
 
-/* { dg-do run { xfail strongarm*-*-* } } */
-/* { dg-options -mlong-double-128 { target powerpc64*-*-linux-gnu* } } */
+
+
+
 
 #include "ffitest.h"
 
@@ -119,10 +114,10 @@ int main (void)
 	args_dbl[2] = NULL;
 
 	sffi_call(&cif, SFFI_FN(cls_struct_align_fn), &res_dbl, args_dbl);
-	/* { dg-output "1 2 3 4 5 6 7 8 9 10 11 12 13 14: 9 11 13 15 17 19 21" } */
+	
 	printf("res: %Lg %Lg %Lg %Lg %Lg %g %Lg\n", res_dbl.a, res_dbl.b,
 		res_dbl.c, res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g);
-	/* { dg-output "\nres: 9 11 13 15 17 19 21" } */
+	
 	CHECK(res_dbl.a == 9);
 	CHECK(res_dbl.b == 11);
 	CHECK(res_dbl.c == 13);
@@ -134,10 +129,10 @@ int main (void)
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_align_gn, NULL, code) == SFFI_OK);
 
 	res_dbl = ((cls_struct_align(*)(cls_struct_align, cls_struct_align))(code))(g_dbl, f_dbl);
-	/* { dg-output "\n1 2 3 4 5 6 7 8 9 10 11 12 13 14: 9 11 13 15 17 19 21" } */
+	
 	printf("res: %Lg %Lg %Lg %Lg %Lg %g %Lg\n", res_dbl.a, res_dbl.b,
 		res_dbl.c, res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g);
-	/* { dg-output "\nres: 9 11 13 15 17 19 21" } */
+	
 	CHECK(res_dbl.a == 9);
 	CHECK(res_dbl.b == 11);
 	CHECK(res_dbl.c == 13);

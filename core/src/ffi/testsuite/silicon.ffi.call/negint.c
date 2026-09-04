@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check that negative integers are passed correctly.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 
@@ -32,7 +28,7 @@ int main (void)
   args[2] = &sffi_type_schar;
   values[2] = &sc;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3,
 		     &sffi_type_sint, args) == SFFI_OK);
 

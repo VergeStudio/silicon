@@ -1,31 +1,4 @@
-/* -----------------------------------------------------------------*-C-*-
-   sffitarget.h - Copyright (c) 2012, 2014, 2018, 2026  Anthony Green
-                 Copyright (c) 1996-2003, 2010  Red Hat, Inc.
-                 Copyright (C) 2008  Free Software Foundation, Inc.
 
-   Target configuration macros for x86 and x86-64.
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-
-   ----------------------------------------------------------------------- */
 
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
@@ -34,9 +7,9 @@
 #    error "Please do not include sffitarget.h directly into your source.  Use sffi.h instead."
 #endif
 
-/* ---- System specific configurations ----------------------------------- */
 
-/* For code common to all platforms on x86 and x86_64. */
+
+
 #define X86_ANY
 
 #if defined(X86_64) && defined(__i386__)
@@ -46,7 +19,7 @@
 
 #ifdef X86_WIN64
 #    define SFFI_SIZEOF_ARG 8
-#    define USE_BUILTIN_FFS 0 /* not yet implemented in mingw-64 */
+#    define USE_BUILTIN_FFS 0 
 #endif
 
 #define SFFI_TARGET_SPECIFIC_STACK_SPACE_ALLOCATION
@@ -58,7 +31,7 @@
 #    define SFFI_TARGET_HAS_INT128
 #endif
 
-/* ---- Generic type definitions ----------------------------------------- */
+
 
 #ifndef SILICON_FFI_ASM
 #    ifdef X86_WIN64
@@ -84,8 +57,8 @@ typedef signed long sffi_sarg;
 typedef enum sffi_abi {
 #    if defined(X86_WIN64)
     SFFI_FIRST_ABI = 0,
-    SFFI_WIN64,  /* sizeof(long double) == 8  - microsoft compilers */
-    SFFI_GNUW64, /* sizeof(long double) == 16 - GNU compilers */
+    SFFI_WIN64,  
+    SFFI_GNUW64, 
     SFFI_LAST_ABI,
 #        ifdef __GNUC__
     SFFI_DEFAULT_ABI = SFFI_GNUW64
@@ -128,7 +101,7 @@ typedef enum sffi_abi {
 } sffi_abi;
 #endif
 
-/* ---- Definitions for closures ----------------------------------------- */
+
 
 #define SFFI_CLOSURES 1
 #define SFFI_GO_CLOSURES 1
@@ -139,15 +112,13 @@ typedef enum sffi_abi {
 #define SFFI_TYPE_MS_STRUCT (SFFI_TYPE_LAST + 4)
 
 #if defined(X86_64) || defined(X86_WIN64) || (defined(__x86_64__) && defined(X86_DARWIN))
-/* 4 bytes of ENDBR64 + 7 bytes of LEA + 6 bytes of JMP + 7 bytes of NOP
-   + 8 bytes of pointer.  */
+
 #    define SFFI_TRAMPOLINE_SIZE 32
 #    define SFFI_NATIVE_RAW_API 0
 #else
-/* 4 bytes of ENDBR32 + 5 bytes of MOV + 5 bytes of JMP + 2 unused
-   bytes.  */
+
 #    define SFFI_TRAMPOLINE_SIZE 16
-#    define SFFI_NATIVE_RAW_API 1 /* x86 has native raw api support */
+#    define SFFI_NATIVE_RAW_API 1 
 #endif
 
 #if !defined(GENERATE_sffi_MAP) && defined(__CET__)

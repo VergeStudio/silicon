@@ -1,37 +1,11 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2004  Renesas Technology
-           Copyright (c) 2008  Red Hat, Inc.
-           Copyright (c) 2022, 2026  Anthony Green
 
-   M32R Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL RENESAS TECHNOLOGY BE LIABLE FOR ANY CLAIM, DAMAGES OR
-   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-   OTHER DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
 
 #include <stdlib.h>
 
-/* sffi_prep_args is called by the assembly routine once stack
-   space has been allocated for the function's arguments.  */
+
 
 void sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -60,7 +34,7 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
     {
       size_t z;
 
-      /* Align if necessary.  */
+      
       if (((*p_arg)->alignment - 1) & (unsigned) argp)
 	argp = (char *) SFFI_ALIGN (argp, (*p_arg)->alignment);
 
@@ -124,7 +98,7 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
 	        }
 	      else
 	        {
-		  /* Double or long long 64bit.  */
+		  
 	          memcpy (argp, *p_argv, z);
 	        }
 	    }
@@ -136,11 +110,11 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   return;
 }
 
-/* Perform machine dependent cif processing.  */
+
 sffi_status
 sffi_prep_cif_machdep(sffi_cif *cif)
 {
-  /* Set the return type flag.  */
+  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -185,8 +159,7 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   ecif.cif = cif;
 
-  /* If the return value is a struct and we don't have
-     a return value address then we need to make one.  */
+  
   if ((rvalue == NULL) &&
       (cif->rtype->type == SFFI_TYPE_STRUCT))
     {
@@ -195,9 +168,7 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   else
     ecif.rvalue = rvalue;
 
-  /* If we have any large structure arguments, make a copy so we are passing
-     by value.  The pointer array is cloned first: the caller owns avalue[]
-     and may reuse it for another call, so it must not be modified.  */
+  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];

@@ -1,10 +1,6 @@
-/* Area:        sffi_call
-   Purpose:     Check zero-extension of pointers on x32.
-   Limitations: none.
-   PR:          887
-   Originator:  Mikulas Patocka <mikulas@twibright.com>  */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 

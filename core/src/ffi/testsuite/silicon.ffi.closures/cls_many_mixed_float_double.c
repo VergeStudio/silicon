@@ -1,10 +1,6 @@
-/* Area:	closure_call
-   Purpose:	Check register allocation for closure calls with many float and double arguments
-   Limitations:	none.
-   PR:		none.
-   Originator:	<david.schneider@picle.org> */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 #include <float.h>
 #include <math.h>

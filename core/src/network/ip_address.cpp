@@ -1,7 +1,7 @@
-// Implementation unit for silicon::network (domain_t to_string).
-//
-// NOTE: ip_address itself is fully inline in the :core partition; only this
-// free helper lives here.
+
+
+
+
 
 module;
 
@@ -24,4 +24,4 @@ auto to_string(domain_t domain) -> result<std::string_view> {
     return std::unexpected(make_error_code(network_error::kInvalidDomain));
 }
 
-} // namespace silicon::network
+}

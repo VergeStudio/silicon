@@ -1,10 +1,6 @@
-/* Area:	closure_call
-   Purpose:	Check return value float.
-   Limitations:	none.
-   PR:		41908.
-   Originator:	<rfm@gnu.org> 20091102	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_combined {
@@ -70,6 +66,6 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_combined_gn, NULL, code) == SFFI_OK);
 
   ((void(*)(cls_struct_combined)) (code))(g_dbl);
-  /* { dg-output "4 5 1 8" } */
+  
   exit(0);
 }

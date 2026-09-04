@@ -1,13 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Depending on the ABI. Darwin/AIX do double-word
-		alignment of the struct if the first element is a double.
-		Check that it does here.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030914	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_9byte {
@@ -84,18 +77,18 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_9byte_fn), &res_dbl, args_dbl);
-  /* { dg-output "7 8 1 9: 8 17" } */
+  
   printf("res: %g %d\n", res_dbl.a, res_dbl.b);
-  /* { dg-output "\nres: 8 17" } */
+  
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 17);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_9byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_9byte(*)(cls_struct_9byte, cls_struct_9byte))(code))(h_dbl, j_dbl);
-  /* { dg-output "\n7 8 1 9: 8 17" } */
+  
   printf("res: %g %d\n", res_dbl.a, res_dbl.b);
-  /* { dg-output "\nres: 8 17" } */
+  
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 17);
 

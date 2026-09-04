@@ -1,20 +1,11 @@
-/* Area:	sffi_call_plan
-   Purpose:	Check that a reusable call plan reproduces sffi_call for struct
-		returns.  A struct return does not disable planning (only a
-		struct *argument* does), so this drives both the in-memory
-		return path (RET_IN_MEM, including a NULL rvalue) and the
-		register-pair struct return path, plus a large struct argument
-		that forces the sffi_call by-value copy fallback.
-   Limitations:	none.
-   PR:		none.
-   Originator:	sffi_call_plan tests  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static int call_count = 0;
 
-/* 24 bytes: returned in memory (a hidden pointer in the first argument). */
+
 struct big3 { double a, b, c; };
 
 static struct big3 make_big3(double a, double b, double c)
@@ -27,15 +18,13 @@ static struct big3 make_big3(double a, double b, double c)
   return r;
 }
 
-/* A struct larger than 16 bytes passed by value forces sffi_call to make a
-   copy; build_plan has no fast path for a struct argument, so this exercises
-   the plan's fallback to sffi_call. */
+
 static double sum_big3(struct big3 s)
 {
   return s.a + s.b + s.c;
 }
 
-/* 16 bytes: returned in a register pair (RAX:RDX on x86-64). */
+
 struct pair2 { long x, y; };
 
 static struct pair2 make_pair2(long x, long y)
@@ -68,7 +57,7 @@ int main (void)
   pair2_t.type = SFFI_TYPE_STRUCT;
   pair2_t.elements = pair2_elements;
 
-  /* In-memory struct return with scalar arguments. */
+  
   {
     sffi_cif cif;
     sffi_type *args[3];
@@ -97,9 +86,7 @@ int main (void)
     CHECK_DOUBLE_EQ(rp.b, b + 2.0);
     CHECK_DOUBLE_EQ(rp.c, c + 3.0);
 
-    /* A NULL rvalue for an in-memory struct return must not crash: SILICON_FFI
-       supplies scratch space and discards the result, but the callee still
-       runs.  Confirm the call actually happened. */
+    
     before = call_count;
     sffi_call_plan_invoke(plan, SFFI_FN(make_big3), NULL, values);
     CHECK(call_count == before + 1);
@@ -107,7 +94,7 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  /* Large struct argument: no fast path, falls back to sffi_call. */
+  
   {
     sffi_cif cif;
     sffi_type *args[1];
@@ -133,7 +120,7 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  /* Register-pair struct return. */
+  
   {
     sffi_cif cif;
     sffi_type *args[2];

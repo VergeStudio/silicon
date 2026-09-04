@@ -1,7 +1,7 @@
 #include <silicon/test/test.h>
 
-// 本 TU 自身定义协程（co_await），须直接可见 std::coroutine_traits，
-// 不能只依赖 import silicon.coroutine。
+
+
 #include <coroutine>
 #include <memory>
 #include <optional>
@@ -64,7 +64,7 @@ TEST_CASE("channel: 满时 send 挂起，消费者腾槽后按 FIFO 入槽") {
 
     sync_wait(when_all(sender_a(), sender_b(), consumer()));
 
-    // FIFO：先挂起的 sender_a 先入槽。
+
     REQUIRE(produced.size() == 2);
     CHECK(produced[0] == 2);
     CHECK(produced[1] == 3);
@@ -75,7 +75,7 @@ TEST_CASE("channel: 无缓冲同步交接（capacity 0）") {
     channel<int> ch{0};
     CHECK(ch.capacity() == 0);
     CHECK(ch.empty());
-    CHECK(ch.full()); // 无缓冲无槽位，恒视为满
+    CHECK(ch.full());
 
     std::optional<int> got;
     auto receiver = [&]() -> task<void> {
@@ -114,7 +114,7 @@ TEST_CASE("channel: 无缓冲多接收者 FIFO 公平") {
 
     sync_wait(when_all(receiver(1), receiver(2), sender(10), sender(20)));
 
-    // FIFO：先挂起的 receiver(1) 先被喂。
+
     REQUIRE(order.size() == 2);
     CHECK(order[0] == 1);
     CHECK(order[1] == 2);
@@ -180,7 +180,7 @@ TEST_CASE("channel: close 唤醒挂起的消费者与生产者") {
     CHECK(got_closed);
     CHECK(!got.has_value());
 
-    // 挂起的生产者被唤醒返回 kClosed。
+
     channel<int> ch2{1};
     CHECK(sync_wait(ch2.send(1)) == cr::send::kSent);
     bool sender_closed = false;

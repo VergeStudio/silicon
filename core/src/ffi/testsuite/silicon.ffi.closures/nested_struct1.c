@@ -1,11 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Contains structs as parameter of the struct itself.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_16byte1 {
@@ -134,7 +129,7 @@ int main (void)
   args_dbl[4] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_combined_fn), &res_dbl, args_dbl);
-  /* { dg-output "9 2 6 1 2 3 4 5 6 3 1 8 3 2 4: 15 10 13 10 12 13" } */
+  
   CHECK( res_dbl.d.a == (e_dbl.a + f_dbl.dd + g_dbl.d.a));
   CHECK( res_dbl.d.b == (e_dbl.b + f_dbl.ff + g_dbl.d.b));
   CHECK( res_dbl.d.c == (e_dbl.c + f_dbl.ii + g_dbl.d.c));
@@ -149,13 +144,13 @@ int main (void)
 				     cls_struct_combined,
 				     cls_struct_16byte1))
 	     (code))(e_dbl, f_dbl, g_dbl, h_dbl);
-  /* { dg-output "\n9 2 6 1 2 3 4 5 6 3 1 8 3 2 4: 15 10 13 10 12 13" } */
+  
   CHECK( res_dbl.d.a == (e_dbl.a + f_dbl.dd + g_dbl.d.a));
   CHECK( res_dbl.d.b == (e_dbl.b + f_dbl.ff + g_dbl.d.b));
   CHECK( res_dbl.d.c == (e_dbl.c + f_dbl.ii + g_dbl.d.c));
   CHECK( res_dbl.e.ii == (e_dbl.c + f_dbl.ii + g_dbl.e.ii));
   CHECK( res_dbl.e.dd == (e_dbl.a + f_dbl.dd + g_dbl.e.dd));
   CHECK( res_dbl.e.ff == (e_dbl.b + f_dbl.ff + g_dbl.e.ff));
-  /*  CHECK( 1 == 0); */
+  
   exit(0);
 }

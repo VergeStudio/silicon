@@ -1,11 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Depending on the ABI. Check overlapping.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20050708	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_6byte {
@@ -110,10 +105,10 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_6byte_fn), &res_dbl, args_dbl);
-  /* { dg-output "127 120 1 3 4 5 12 128 9 3 4 5: 139 248 10 6 8 10" } */
+  
   printf("res: %d %d %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f);
-  /* { dg-output "\nres: 139 248 10 6 8 10" } */
+  
 
   res_dbl.a = 0;
   res_dbl.b = 0;
@@ -125,10 +120,10 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_6byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_6byte(*)(cls_struct_6byte, cls_struct_6byte))(code))(g_dbl, f_dbl);
-  /* { dg-output "\n127 120 1 3 4 5 12 128 9 3 4 5: 139 248 10 6 8 10" } */
+  
   printf("res: %d %d %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f);
-  /* { dg-output "\nres: 139 248 10 6 8 10" } */
+  
 
   CHECK(res_dbl.a == 139);
   CHECK(res_dbl.b == 248);

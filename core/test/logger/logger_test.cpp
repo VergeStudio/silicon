@@ -1,10 +1,10 @@
-// logger 模块测试：覆盖 log_level 枚举契约、init 成功/幂等、各级别日志函数可调用、
-// set_log_level 切换，以及 logger error category 自注册（未注入消费方也能构造 error_code，
-// 不再 terminate——与 silicon.network / silicon.config 一致）。
-//
-// 注：init 失败路径经 make_error_code(logger_error::kInitFailed) 构造错误码，会引用
-// logger_category()；该 category 现已由 error.cppm 在模块静态初始化期自注册默认实例，
-// 故失败路径不再 std::terminate。
+
+
+
+
+
+
+
 #include <cstdint>
 #include <string>
 
@@ -34,7 +34,7 @@ TEST_CASE("init 成功后返回 expected success，且各级别日志函数可�
     warning("warn msg");
     error("error msg");
     critical("critical msg");
-    CHECK(true); // 抵达即未崩溃
+    CHECK(true);
 
     stop();
 }
@@ -63,7 +63,7 @@ TEST_CASE("set_log_level 切换级别且不崩溃") {
 
 TEST_CASE("logger error category 自注册：非注入消费方也能构造 error_code（不再 terminate）") {
     auto ec = make_error_code(logger_error::kInitFailed);
-    CHECK(ec); // 已置错误
+    CHECK(ec);
     CHECK(ec.value() == static_cast<int>(logger_error::kInitFailed));
     CHECK(std::string(ec.category().name()) == "silicon.logger");
     CHECK(ec.message() == "logger init failed");

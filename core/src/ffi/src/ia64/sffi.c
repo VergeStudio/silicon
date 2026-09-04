@@ -1,30 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 1998, 2007, 2008, 2012 Red Hat, Inc.
-	   Copyright (c) 2000 Hewlett Packard Company
-	   Copyright (c) 2011, 2026 Anthony Green
-   
-   IA64 Foreign Function Interface 
 
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -35,35 +9,31 @@
 
 #include "ia64_flags.h"
 
-/* A 64-bit pointer value.  In LP64 mode, this is effectively a plain
-   pointer.  In ILP32 mode, it's a pointer that's been extended to 
-   64 bits by "addp4".  */
+
 #ifdef __hpux
 typedef void *PTR64;
-#else // some other unix
+#else
 typedef void *PTR64 __attribute__((mode(DI)));
 #endif
 
-/* Memory image of fp register contents.  This is the implementation
-   specific format used by ldf.fill/stf.spill.  All we care about is
-   that it wants a 16 byte aligned slot.  */
+
 typedef struct
 {
   UINT64 x[2] __attribute__((aligned(16)));
 } fpreg;
 
 
-/* The stack layout given to sffi_call_unix and sffi_closure_unix_inner.  */
+
 
 struct ia64_args
 {
-  fpreg fp_regs[8];	/* Contents of 8 fp arg registers.  */
-  UINT64 gp_regs[8];	/* Contents of 8 gp arg registers.  */
-  UINT64 other_args[];	/* Arguments passed on stack, variable size.  */
+  fpreg fp_regs[8];	
+  UINT64 gp_regs[8];	
+  UINT64 other_args[];	
 };
 
 
-/* Adjust ADDR, a pointer to an 8 byte slot, to point to the low LEN bytes.  */
+
 
 static inline void *
 endian_adjust (void *addr, size_t len)
@@ -75,10 +45,7 @@ endian_adjust (void *addr, size_t len)
 #endif
 }
 
-/* Store VALUE to ADDR in the current cpu implementation's fp spill format.
-   This is a macro instead of a function, so that it works for all 3 floating
-   point types without type conversions.  Type conversion to long double breaks
-   the denorm support.  */
+
 
 #ifdef __hpux
 #define stf_spill(addr, value)
@@ -87,8 +54,7 @@ endian_adjust (void *addr, size_t len)
   __asm__ ("stf.spill %0 = %1%P0" : "=m" (*addr) : "f"(value));
 #endif
 
-/* Load a value from ADDR, which is in the current cpu implementation's
-   fp spill format.  As above, this must also be a macro.  */
+
 
 #ifdef __hpux
 #define ldf_fill(result, addr)
@@ -97,8 +63,7 @@ endian_adjust (void *addr, size_t len)
   __asm__ ("ldf.fill %0 = %1%P1" : "=f"(result) : "m"(*addr));
 #endif
 
-/* Return the size of the C type associated with with TYPE.  Which will
-   be one of the SFFI_IA64_TYPE_HFA_* values.  */
+
 
 static size_t
 hfa_type_size (int type)
@@ -116,8 +81,7 @@ hfa_type_size (int type)
     }
 }
 
-/* Load from ADDR a value indicated by TYPE.  Which will be one of
-   the SFFI_IA64_TYPE_HFA_* values.  */
+
 
 static void
 hfa_type_load (fpreg *fpaddr, int type, void *addr)
@@ -138,8 +102,7 @@ hfa_type_load (fpreg *fpaddr, int type, void *addr)
     }
 }
 
-/* Load VALUE into ADDR as indicated by TYPE.  Which will be one of
-   the SFFI_IA64_TYPE_HFA_* values.  */
+
 
 static void
 hfa_type_store (int type, void *addr, fpreg *fpaddr)
@@ -172,9 +135,7 @@ hfa_type_store (int type, void *addr, fpreg *fpaddr)
     }
 }
 
-/* Is TYPE a struct containing floats, doubles, or extended doubles,
-   all of the same fp type?  If so, return the element type.  Return
-   SFFI_TYPE_VOID if not.  */
+
 
 static int
 hfa_element_type (sffi_type *type, int nested)
@@ -184,22 +145,19 @@ hfa_element_type (sffi_type *type, int nested)
   switch (type->type)
     {
     case SFFI_TYPE_FLOAT:
-      /* We want to return VOID for raw floating-point types, but the
-	 synthetic HFA type if we're nested within an aggregate.  */
+      
       if (nested)
 	element = SFFI_IA64_TYPE_HFA_FLOAT;
       break;
 
     case SFFI_TYPE_DOUBLE:
-      /* Similarly.  */
+      
       if (nested)
 	element = SFFI_IA64_TYPE_HFA_DOUBLE;
       break;
 
     case SFFI_TYPE_LONGDOUBLE:
-      /* Similarly, except that that HFA is true for double extended,
-	 but not quad precision.  Both have sizeof == 16, so tell the
-	 difference based on the precision.  */
+      
       if (LDBL_MANT_DIG == 64 && nested)
 	element = SFFI_IA64_TYPE_HFA_LDOUBLE;
       break;
@@ -230,28 +188,24 @@ hfa_element_type (sffi_type *type, int nested)
 }
 
 
-/* Perform machine dependent cif processing. */
+
 
 static sffi_status
 sffi_prep_cif_machdep_core(sffi_cif *cif)
 {
   int flags;
 
-  /* Adjust cif->bytes to include space for the bits of the ia64_args frame
-     that precedes the integer register portion.  The estimate that the
-     generic bits did for the argument space required is good enough for the
-     integer component.  */
+  
   cif->bytes += offsetof(struct ia64_args, gp_regs[0]);
   if (cif->bytes < sizeof(struct ia64_args))
     cif->bytes = sizeof(struct ia64_args);
 
-  /* Set the return type flag. */
+  
   flags = cif->rtype->type;
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_LONGDOUBLE:
-      /* Leave SFFI_TYPE_LONGDOUBLE as meaning double extended precision,
-	 and encode quad precision as a two-word integer structure.  */
+      
       if (LDBL_MANT_DIG != 64)
 	flags = SFFI_IA64_TYPE_SMALL_STRUCT | (16 << 8);
       break;
@@ -310,11 +264,11 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   SFFI_ASSERT (cif->abi == SFFI_UNIX);
 
-  /* If we have no spot for a return value, make one.  */
+  
   if (rvalue == NULL && cif->rtype->type != SFFI_TYPE_VOID)
     rvalue = alloca (cif->rtype->size);
     
-  /* Allocate the stack frame.  */
+  
   stack = alloca (cif->bytes);
 
   gpcount = fpcount = 0;
@@ -416,20 +370,7 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   sffi_call_unix (stack, rvalue, fn, cif->flags);
 }
 
-/* Closures represent a pair consisting of a function pointer, and
-   some user data.  A closure is invoked by reinterpreting the closure
-   as a function pointer, and branching to it.  Thus we can make an
-   interpreted function callable as a C function: We turn the
-   interpreter itself, together with a pointer specifying the
-   interpreted procedure, into a closure.
 
-   For IA64, function pointer are already pairs consisting of a code
-   pointer, and a gp pointer.  The latter is needed to access global
-   variables.  Here we set up such a pair as the first two words of
-   the closure (in the "trampoline" area), but we replace the gp
-   pointer with a pointer to the closure itself.  We also add the real
-   gp pointer to the closure.  This allows the function entry code to
-   both retrieve the user data, and to restore the correct gp pointer.  */
 
 extern void sffi_closure_unix ();
 
@@ -440,8 +381,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 		      void *user_data,
 		      void *codeloc)
 {
-  /* The layout of a function descriptor.  A C function pointer really 
-     points to one of these.  */
+  
   struct ia64_fd
   {
     UINT64 code_pointer;
@@ -450,9 +390,9 @@ sffi_prep_closure_loc (sffi_closure* closure,
 
   struct sffi_ia64_trampoline_struct
   {
-    UINT64 code_pointer;	/* Pointer to sffi_closure_unix.  */
-    UINT64 fake_gp;		/* Pointer to closure, installed as gp.  */
-    UINT64 real_gp;		/* Real gp value.  */
+    UINT64 code_pointer;	
+    UINT64 fake_gp;		
+    UINT64 real_gp;		
   };
 
   struct sffi_ia64_trampoline_struct *tramp;
@@ -489,8 +429,7 @@ sffi_closure_unix_inner (sffi_closure *closure, struct ia64_args *stack,
   nfixedargs = cif->nfixedargs;
   avalue = alloca (avn * sizeof (void *));
 
-  /* If the structure return value is passed in memory get that location
-     from r8 so as to pass the value directly back to the caller.  */
+  
   if (cif->flags == SFFI_TYPE_STRUCT)
     rvalue = r8;
 

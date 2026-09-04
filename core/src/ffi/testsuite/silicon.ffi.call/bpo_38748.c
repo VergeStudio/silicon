@@ -1,8 +1,6 @@
-/* Area:	bpo-38748
-   Purpose:	test for stdcall alignment problem
-   Source:      github.com/python/cpython/pull/26204 */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 #include "sffi_common.h"
@@ -25,7 +23,7 @@ int main(void)
   UINT64 l2 = 2;
   void *values[2] = {&l1, &l2};
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 2,
 		     &sffi_type_uint32, args) == SFFI_OK);
 

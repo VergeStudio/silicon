@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network::tcp::server.
+
 
 module;
 
@@ -15,7 +15,7 @@ import silicon.scheduler;
 
 namespace silicon::network::tcp {
 
-// ── pImpl: data + (manual) move so readiness / cancel-trigger keep defaults ──
+
 struct server::impl {
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     options m_options;
@@ -35,8 +35,8 @@ server::impl::impl(silicon::scheduler::io_scheduler *scheduler, options opts, ne
     : m_scheduler(scheduler),
       m_options(std::move(opts)),
       m_accept_socket(std::move(accept_socket)) {
-    // m_cancel_trigger and m_is_read_ready intentionally keep their defaults,
-    // matching the pre-pImpl move semantics.
+
+
 }
 
 server::impl::impl(impl &&other) noexcept
@@ -56,7 +56,7 @@ auto server::impl::operator=(impl &&other) noexcept -> impl & {
 
 server::impl::~impl() = default;
 
-// ── public / factory surface ─────────────────────────────────────────────────
+
 auto server::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint, options opts)
         -> network::result<server> {
     if(scheduler == nullptr) {
@@ -104,19 +104,19 @@ auto server::shutdown() {
 }
 
 silicon::scheduler::task<silicon::scheduler::expected<network::tcp::client, io_status>> server::accept(std::chrono::milliseconds timeout) {
-    // Fast path
+
     if(impl_->m_is_read_ready) {
         auto client = accept_now();
         if(!client && client.error().try_again()) {
-            // Failed to read, marking as unready and goint to poll
+
             impl_->m_is_read_ready = false;
         } else {
-            // Operation was successful (error is a success too)
+
             co_return client;
         }
     }
 
-    // Waiting for readiness
+
     auto pstatus = co_await poll(timeout);
     if(pstatus != silicon::scheduler::poll_status::read) {
         co_return silicon::scheduler::unexpected<io_status>{make_io_status_from_poll_status(pstatus)};
@@ -146,4 +146,4 @@ silicon::scheduler::expected<silicon::network::tcp::client, io_status> server::a
     return tcp::client{impl_->m_scheduler, std::move(accepted), client_endpoint};
 }
 
-} // namespace silicon::network::tcp
+}

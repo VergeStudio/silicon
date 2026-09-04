@@ -1,48 +1,9 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2013 Tensilica, Inc.
 
-   XTENSA Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
 
-/*
-                                 |----------------------------------------|
-                                 |                                        |
-    on entry to sffi_call ---->   |----------------------------------------|
-                                 | caller stack frame for registers a0-a3 |
-                                 |----------------------------------------|
-                                 |                                        |
-                                 |         additional arguments           |
-    entry of the function --->   |----------------------------------------|
-                                 |    copy of function arguments a2-a7    |
-                                 | -  -  -  -  -  -  -  -  -  -  -  -  -  |
-                                 |                                        |
 
-    The area below the entry line becomes the new stack frame for the function.
-
-*/
 
 
 #define SFFI_TYPE_STRUCT_REGS SFFI_TYPE_LAST
@@ -68,14 +29,13 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
     case SFFI_TYPE_DOUBLE:
     case SFFI_TYPE_UINT64:
     case SFFI_TYPE_SINT64:
-      cif->flags = SFFI_TYPE_UINT64; // cif->rtype->type;
+      cif->flags = SFFI_TYPE_UINT64;
       break;
     case SFFI_TYPE_STRUCT:
-      cif->flags = SFFI_TYPE_STRUCT; //_REGS;
-      /* Up to 16 bytes are returned in registers */
+      cif->flags = SFFI_TYPE_STRUCT;
+      
       if (cif->rtype->size > 4 * 4) {
-        /* returned structure is referenced by a register; use 8 bytes
-           (including 4 bytes for potential additional alignment) */
+        
         cif->flags = SFFI_TYPE_STRUCT;	
         cif->bytes += 8;
       }
@@ -86,10 +46,7 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
       break;
   }
 
-  /* Round up stack size needed for arguments.
-     Allocate SFFI_REGISTER_ARGS_SPACE bytes when there are only arguments
-     passed in registers, round space reserved for arguments passed on stack
-     up to ABI-specified alignment.  */
+  
   if (cif->bytes < SFFI_REGISTER_NARGS * 4)
     cif->bytes = SFFI_REGISTER_ARGS_SPACE;
   else
@@ -118,13 +75,13 @@ void sffi_prep_args(extended_cif *ecif, unsigned char* stack)
     double **d;
   } p_argv;
 
-  /* Verify that everything is aligned up properly */
+  
   SFFI_ASSERT (((unsigned long) stack & 0x7) == 0);
 
   p_argv.v = ecif->avalue;
   addr = (unsigned long*)stack;
 
-  /* structures with a size greater than 16 bytes are passed in memory */
+  
   if (ecif->cif->rtype->type == SFFI_TYPE_STRUCT && ecif->cif->rtype->size > 16)
   {
     *addr++ = (unsigned long)ecif->rvalue;
@@ -175,7 +132,7 @@ void sffi_prep_args(extended_cif *ecif, unsigned char* stack)
         offs = (unsigned long) addr - (unsigned long) stack;
         size = (*ptr)->size;
 
-        /* Entire structure must fit the argument registers or referenced */
+        
         if (offs < SFFI_REGISTER_NARGS * 4
             && offs + size > SFFI_REGISTER_NARGS * 4)
           addr = (unsigned long*) (stack + SFFI_REGISTER_NARGS * 4);
@@ -202,11 +159,7 @@ void sffi_call(sffi_cif* cif, void(*fn)(void), void *rvalue, void **avalue)
   ecif.cif = cif;
   ecif.avalue = avalue;
 
-  /* Note that for structures that are returned in registers (size <= 16 bytes)
-     we allocate a temporary buffer and use memcpy to copy it to the final 
-     destination. The reason is that the target address might be misaligned or
-     the length not a multiple of 4 bytes. Handling all those cases would be
-     very complex.  */
+  
 
   if (flags == SFFI_TYPE_STRUCT && (rsize <= 16 || rvalue == NULL))
   {
@@ -240,12 +193,12 @@ sffi_prep_closure_loc (sffi_closure* closure,
   if (cif->abi != SFFI_SYSV)
     return SFFI_BAD_ABI;
 
-  /* copye trampoline to stack and patch 'sffi_closure_SYSV' pointer */
+  
   memcpy(closure->tramp, sffi_trampoline, SFFI_TRAMPOLINE_SIZE);
   *(unsigned int*)(&closure->tramp[8]) = (unsigned int)sffi_closure_SYSV;
 
-  // Do we have this function?
-  // __builtin___clear_cache(closer->tramp, closer->tramp + SFFI_TRAMPOLINE_SIZE)
+
+
   sffi_cacheflush(closure->tramp, closure->tramp + SFFI_TRAMPOLINE_SIZE);
 
   closure->cif = cif;
@@ -285,7 +238,7 @@ sffi_closure_SYSV_inner(sffi_closure *closure, void **values, void *rvalue)
     if (arg_types[i]->alignment == 8 && (areg & 1) != 0)
       areg++;
 
-    // skip the entry a1, * framework, see sffi_trampoline
+
     if (areg == SFFI_REGISTER_NARGS)
       areg = (SFFI_REGISTER_ARGS_SPACE + 32) / 4;
 

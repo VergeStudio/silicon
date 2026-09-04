@@ -29,4 +29,4 @@
 #    define ENDF(X)
 #endif
 
-#endif /* ASMNAMES_H */
+#endif 

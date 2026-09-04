@@ -1,13 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check structures.
-   Limitations:	none.
-   PR:		none.
-   Originator:	Sergei Trofimovich <slyfox@gentoo.org>
 
-   The test originally discovered in ruby's bindings
-   for ffi in https://bugs.gentoo.org/634190  */
 
-/* { dg-do run } */
+
 #include "ffitest.h"
 
 struct s {
@@ -44,8 +37,8 @@ int main() {
   r.f32 = 999.999;
   r.s8  = 0x51;
 
-  // Here we emulate the following call:
-  //r = make_s();
+
+
 
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 0, &rtype, NULL) == SFFI_OK);
   sffi_call(&cif, SFFI_FN(make_s), &r, NULL);

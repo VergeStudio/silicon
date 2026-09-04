@@ -16,7 +16,7 @@ export module silicon.config.config_value;
 
 export namespace silicon::config {
 
-// Forward declare for recursive variant
+
 class config_value;
 
 using config_value_data = std::variant<
@@ -44,7 +44,7 @@ class CORE_API config_value {
     config_value(double);
     config_value(std::string);
 
-    // 值类型语义：拷贝做深拷贝，不与源对象共享实现
+
     config_value(const config_value &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     config_value & operator=(const config_value &o) {
         if(this != &o) { impl_ = std::make_shared<impl>(*o.impl_); }
@@ -66,4 +66,4 @@ class CORE_API config_value {
     [[nodiscard]] auto as_string_opt() const noexcept -> const std::string *;
 };
 
-} // namespace silicon::config
+}

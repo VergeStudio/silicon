@@ -1,6 +1,6 @@
 module;
 
-// 模块化补齐：原经传递 include 获得的标准头，模块单元须显式包含。
+
 #include <utility>
 #include <memory>
 
@@ -17,7 +17,7 @@ module;
 #elif defined(SILICON_PLATFORM_WINDOWS)
 #    include <winsock2.h>
 #    include <windows.h>
-#    include <io.h> // ::_write
+#    include <io.h>
 #endif
 #if !defined(SILICON_PLATFORM_WINDOWS)
 #    include <unistd.h>
@@ -33,29 +33,29 @@ import :fd;
 export namespace silicon::scheduler {
 #if defined(SILICON_PLATFORM_LINUX)
 enum class poll_op : uint64_t {
-    /// Poll for read operations.
+
     read = EPOLLIN,
-    /// Poll for write operations.
+
     write = EPOLLOUT,
-    /// Poll for read and write operations.
+
     read_write = EPOLLIN | EPOLLOUT
 };
 #elif defined(SILICON_PLATFORM_BSD) || defined(SILICON_PLATFORM_APPLE)
 enum class poll_op : int64_t {
-    /// Poll for read operations.
+
     read = EVFILT_READ,
-    /// Poll for write operations.
+
     write = EVFILT_WRITE,
-    /// Poll for read and write operations.
+
     read_write = -5,
 };
 #elif defined(SILICON_PLATFORM_WINDOWS)
 enum class poll_op : uint64_t {
-    /// Poll for read operations.
+
     read = 0x01,
-    /// Poll for write operations.
+
     write = 0x02,
-    /// Poll for read and write operations.
+
     read_write = 0x03,
 };
 #endif
@@ -71,17 +71,17 @@ inline bool poll_op_writeable(poll_op op) {
 auto to_string(poll_op) -> const std::string &;
 
 enum class poll_status {
-    /// The poll operation was was successful with a read-event.
+
     read,
-    /// The poll operation was was successful with a write-event.
+
     write,
-    /// The poll operation timed out.
+
     timeout,
-    /// The file descriptor had an error while polling.
+
     error,
-    /// The file descriptor has been closed by the remote or an internal error/close.
+
     closed,
-    /// The poll operation was cancelled by a 'poll_stop_source'.
+
     cancelled,
 };
 
@@ -91,9 +91,9 @@ class CORE_API poll_stop_token {
   public:
     explicit poll_stop_token(fd_t);
 
-    // poll_stop_token is logically a value (wraps a single fd), so keep it copyable
-    // by cloning the underlying int rather than deleting copy (which would force a
-    // move-only cascade through std::optional<poll_stop_token> users).
+
+
+
     poll_stop_token(const poll_stop_token &other);
 
     ~poll_stop_token();
@@ -103,7 +103,7 @@ class CORE_API poll_stop_token {
     [[nodiscard]] fd_t native_handle() const ;
 
   private:
-    /// Implementation state, fully hidden in the implementation unit.
+
     struct impl;
     std::unique_ptr<impl> m_p;
 };
@@ -125,9 +125,9 @@ class CORE_API poll_stop_source {
     void signal_stop() ;
 
   private:
-    /// Implementation state, fully hidden in the implementation unit.
+
     struct impl;
     std::unique_ptr<impl> m_p;
 };
 
-} // namespace silicon::scheduler
+}

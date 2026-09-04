@@ -1,11 +1,11 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <silicon/test/test.h>
 
-// ── 组合根（composition root）────────────────────────────────────
-// 顶层 exe 拥有 cli 专属 error_category 的唯一实例，并经 DI 注入；
-// 下层（silicon.cli 模块内部）统一经 cli_category() 引用同一对象，
-// 满足 std::error_category「全局唯一地址」契约，跨模块 / 跨 DLL 一致。
-// 真实实例在最上层 exe 构造，其他模块/库/DLL 皆经注入句柄收到同一对象。
+
+
+
+
+
 import silicon.cli.error;
 
 namespace {

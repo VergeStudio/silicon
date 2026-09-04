@@ -1,4 +1,4 @@
-/* { dg-do run } */
+
 
 #include "static-chain.h"
 
@@ -6,9 +6,7 @@
 
 #include "ffitest.h"
 
-/* Blatent assumption here that the prologue doesn't clobber the
-   static chain for trivial functions.  If this is not true, don't
-   define STATIC_CHAIN_REG, and we'll test what we can via other tests.  */
+
 void *doit(void)
 {
   register void *chain __asm__(STATIC_CHAIN_REG);
@@ -29,6 +27,6 @@ int main()
   return 0;
 }
 
-#else /* UNSUPPORTED */
+#else 
 int main() { return 0; }
 #endif

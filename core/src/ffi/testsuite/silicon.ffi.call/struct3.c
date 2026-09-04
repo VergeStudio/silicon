@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check structures.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct
@@ -42,7 +38,7 @@ int main (void)
   args[0] = &ts3_type;
   values[0] = &ts3_arg;
   
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 1,
 		     &ts3_type, args) == SFFI_OK);
   

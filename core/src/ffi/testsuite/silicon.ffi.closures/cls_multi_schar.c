@@ -1,10 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check passing of multiple signed char values.
-   Limitations:	none.
-   PR:		PR13221.
-   Originator:	<hos@tamanegi.org> 20031129  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static signed char test_func_fn(signed char a1, signed char a2)
@@ -56,22 +52,22 @@ int main (void)
   cl_arg_types[1] = &sffi_type_schar;
   cl_arg_types[2] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 2,
 		     &sffi_type_schar, cl_arg_types) == SFFI_OK);
 
   sffi_call(&cif, SFFI_FN(test_func_fn), &res_call, args_dbl);
-  /* { dg-output "2 125: 127" } */
+  
   printf("res: %d\n", (signed char)res_call);
-  /* { dg-output "\nres: 127" } */
+  
   CHECK((signed char)res_call == 127);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, test_func_gn, NULL, code)  == SFFI_OK);
 
   res_closure = (*((test_type)code))(2, 125);
-  /* { dg-output "\n2 125: 127" } */
+  
   printf("res: %d\n", res_closure);
-  /* { dg-output "\nres: 127" } */
+  
   CHECK(res_closure == 127);
 
   exit(0);

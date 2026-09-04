@@ -1,10 +1,6 @@
-/* Area:		sffi_call
-   Purpose:		Test passing struct in variable argument lists.
-   Limitations:	none.
-   PR:			none.
-   Originator:	        ARM Ltd. */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 #include <stdarg.h>

@@ -23,7 +23,7 @@ import silicon.logger.error;
 
 namespace silicon::logger {
 
-// Pimpl implementation — spdlog types live here, invisible to module consumers
+
 struct global_logger::impl {
     std::shared_ptr<spdlog::logger> spdlog_logger{nullptr};
     const std::string_view pattern{"%^[%Y-%m-%d %H:%M:%S.%e][%t][%l]%v%$"};
@@ -129,4 +129,4 @@ void global_logger::critical(const std::string_view &msg, std::source_location &
     impl_->spdlog_logger->critical(std::format("[{}:{}] {}", location.file_name(), location.line(), msg.data()));
 }
 
-} // namespace silicon::logger
+}

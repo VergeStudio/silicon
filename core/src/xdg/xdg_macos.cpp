@@ -1,7 +1,7 @@
-// 实现单元（macOS 分支）：silicon.xdg
-// 仅提供平台差异辅助；8 个导出 API 的统一框架在 xdg.cpp（平台公共层）。
-// 守卫 SILICON_PLATFORM_APPLE。macOS 遵循 XDG Base Directory 规范的 ~/Library 回退约定；
-// home 解析含 getpwuid 回退（无 HOME 环境变量时）。
+
+
+
+
 module;
 
 #include <cstdlib>
@@ -51,6 +51,6 @@ std::string config_dirs_default() { return "/etc/xdg"; }
 
 std::string data_dirs_default() { return "/usr/local/share:/usr/share"; }
 
-} // namespace silicon::xdg
+}
 
-#endif // defined(SILICON_PLATFORM_APPLE)
+#endif

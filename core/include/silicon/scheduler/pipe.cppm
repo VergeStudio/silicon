@@ -19,11 +19,11 @@ class CORE_API pipe_t {
     explicit pipe_t();
     ~pipe_t();
 
-    /// 管道是否成功建立（底层 `_pipe`/`::pipe` 调用成功且未处于无效状态）。
-    /// 构造不再抛异常：失败时 `pipe_t` 处于无效状态，须由调用方显式检查。
+
+
     [[nodiscard]] bool is_valid() const noexcept;
 
-    /// 工厂：创建事件管道，失败时返回 `unexpected(scheduler_error::kPipeCreateFailed)`。
+
     [[nodiscard]] static std::expected<pipe_t, std::error_code> create();
 
     pipe_t(const pipe_t &other);
@@ -45,4 +45,4 @@ class CORE_API pipe_t {
     std::unique_ptr<impl> m_p;
 };
 
-} // namespace silicon::scheduler
+}

@@ -1,6 +1,6 @@
-// scheduler 模块测试：覆盖 task / sync_wait / task_event / task_group、四种调度器
-// （inline / run_loop / thread_pool / parallel）、类型擦除门面 scheduler_facade，
-// 以及调度原语（错误码 / pipe / awaiter_list）。
+
+
+
 #include <atomic>
 #include <chrono>
 #include <coroutine>
@@ -23,11 +23,11 @@ namespace coro = silicon::scheduler;
 
 namespace {
 
-// —— 测试用协程 ——
-// task<T>（T 非引用）的返回值存放在协程帧内，sync_wait 的返回类型是引用
-// （awaiter_return_type 为 const T& / T&&），会在 sync_wait_task 析构、协程帧
-// 销毁后悬空。故取值一律用 resume() + promise().result()（task 对象存活期内读取），
-// sync_wait 只用于 void 返回与按值返回的 awaitable。
+
+
+
+
+
 
 auto make_value_task(int v) -> sched::task<int> {
     co_return v;
@@ -77,8 +77,8 @@ auto await_delay(sched::io_scheduler &ios, std::chrono::milliseconds delay, bool
     co_return;
 }
 
-// 按值返回的 awaitable：用于覆盖 sync_wait 的按值返回分支（返回类型为 int，
-// 与协程帧内存储的引用型返回区分开）。
+
+
 struct value_awaiter {
     int value;
 
@@ -87,13 +87,13 @@ struct value_awaiter {
     int await_resume() const noexcept { return value; }
 };
 
-// awaiter 单向链表的元素类型：须含 m_next 与 m_awaiting_coroutine 两个成员。
+
 struct list_entry {
     std::coroutine_handle<> m_awaiting_coroutine{};
     list_entry *m_next{nullptr};
 };
 
-} // namespace
+}
 
 TEST_CASE("scheduler 错误码走 silicon.scheduler category") {
     const std::error_code ec = sched::make_error_code(sched::scheduler_error::kShuttingDown);
@@ -113,7 +113,7 @@ TEST_CASE("task<T>：默认构造为空，resume 后取到返回值") {
 
     auto t = make_value_task(7);
     CHECK(t.is_ready() == false);
-    CHECK(t.resume() == false); // 协程体内无挂起点，一次 resume 跑到结束
+    CHECK(t.resume() == false);
     CHECK(t.is_ready());
     CHECK(t.promise().result() == 7);
 }
@@ -174,7 +174,7 @@ TEST_CASE("inline_scheduler：在当前线程同步执行提交的任务") {
 
     int value = 0;
     CHECK(s.spawn_detached(set_value_task(value, 5)));
-    CHECK(value == 5); // 内联执行：spawn 返回前任务已经跑完
+    CHECK(value == 5);
     CHECK(s.empty());
     CHECK(s.size() == 0);
 
@@ -204,7 +204,7 @@ TEST_CASE("run_loop：finish 后 run() 排空队列再返回") {
     CHECK(loop.spawn_detached(set_value_task(c, 3)));
 
     CHECK(loop.empty() == false);
-    CHECK(a == 0); // 未调用 run()，入队的任务尚未执行
+    CHECK(a == 0);
 
     loop.finish();
     CHECK(loop.is_shutdown());
@@ -231,8 +231,8 @@ TEST_CASE("thread_pool：创建成功并并发执行提交的任务") {
         for(int i = 0; i < 8; ++i) {
             CHECK(group.start(increment_task(counter)));
         }
-        // group.size() 在并发下是竞态值：任务可能已被工作线程跑完并计数归零，
-        // 故只断言 sync_wait 之后的稳定状态。
+
+
         coro::sync_wait(wait_group(group));
         CHECK(counter.load() == 8);
         CHECK(group.empty());
@@ -298,7 +298,7 @@ TEST_CASE("scheduler_view：以非拥有视图擦除既有调度器") {
     CHECK(view.has_value());
 
     std::atomic<int> counter{0};
-    CHECK(view->resume(sched::task<void>{}.handle()) == false); // 空句柄不入队
+    CHECK(view->resume(sched::task<void>{}.handle()) == false);
     auto joined = view->spawn_joinable(increment_task(counter));
     coro::sync_wait(std::move(joined));
     CHECK(counter.load() == 1);
@@ -350,8 +350,8 @@ TEST_CASE("io_scheduler：schedule_after 在到期后恢复协程") {
     const auto elapsed = std::chrono::steady_clock::now() - before;
 
     CHECK(resumed);
-    // 到期时间按毫秒截断，定时器不会提前触发：只断言「不早于请求时长的一半」，
-    // 避免把调度抖动误判为失败。
+
+
     CHECK(elapsed >= std::chrono::milliseconds{25});
 
     ios.shutdown();
@@ -367,7 +367,7 @@ TEST_CASE("io_scheduler：manual 模式下 process_events 驱动定时恢复") {
     auto &ios = *created.value();
     CHECK(ios.is_shutdown() == false);
 
-    // manual 模式无后台事件循环线程，须由调用方反复 process_events 驱动定时器。
+
     bool resumed = false;
     auto task = ios.spawn_joinable(await_delay(ios, std::chrono::milliseconds{20}, resumed));
     for(int i = 0; i < 50 && !resumed; ++i) {
@@ -434,9 +434,9 @@ TEST_CASE("awaiter_list：pop_all 摘取整条链表且可反转") {
 }
 
 TEST_CASE("io_scheduler：completion read_at 默认契约（无后端时立即降级）") {
-    // completion 引擎（io_ring）是 readiness 之外的独立引擎：未编译后端或后端
-    // 初始化失败时，read_at/write_at 对常规文件必须立即返回 kNoCompletionBackend，
-    // 不得挂起、不得阻塞，调度器其余能力不受影响。
+
+
+
     auto created = sched::io_scheduler::create(sched::io_scheduler::options{
         .thread_strategy = sched::io_scheduler::thread_strategy_t::spawn,
         .pool = {.thread_count = 1},
@@ -445,7 +445,7 @@ TEST_CASE("io_scheduler：completion read_at 默认契约（无后端时立即�
     REQUIRE(created.has_value());
     auto &ios = *created.value();
 
-    // 常规文件 fd（跨平台：CRT tmpfile + fileno/_fileno）。
+
     struct temp_file {
         std::FILE *file{nullptr};
         int fd{-1};
@@ -469,12 +469,12 @@ TEST_CASE("io_scheduler：completion read_at 默认契约（无后端时立即�
     REQUIRE(tf.fd >= 0);
     REQUIRE(tf.write_byte('X'));
 
-    // 先跑一次真实 read_at 触发惰性探测（后端可用则完成一次读）。
+
     char buffer[1]{};
     auto read_probe = coro::sync_wait(ios.read_at(tf.fd, buffer, 1, 0));
 
-    // 仅在确实无后端时断言默认降级契约；有后端（io_ring=y 的 Linux/Windows CI）
-    // 时 read_at 走真路径，该契约不适用。
+
+
     if(ios.completion_backend() == sched::io_ring::backend::none) {
         REQUIRE_FALSE(read_probe.has_value());
         CHECK(read_probe.error() == sched::make_error_code(sched::scheduler_error::kNoCompletionBackend));

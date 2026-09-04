@@ -1,10 +1,6 @@
-/* Area:       sffi_call, closure_call
-   Purpose:    Single argument structs have a different ABI in emscripten.
-   Limitations:        none.
-   PR:         none.
-   Originator: <hood@mit.edu>  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct A {
@@ -75,7 +71,7 @@ int main (void)
 
   res_dbl = B_fn(e_dbl, f_dbl);
   printf("0 res: %d %d\n", res_dbl.y.a, res_dbl.y.b);
-  /* { dg-output "0 res: 43750 4598" } */
+  
 
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 2, &cls_struct_type1,
                     dbl_arg_types) == SFFI_OK);
@@ -86,7 +82,7 @@ int main (void)
 
   sffi_call(&cif, SFFI_FN(B_fn), &res_dbl, args_dbl);
   printf("1 res: %d %d\n", res_dbl.y.a, res_dbl.y.b);
-  /* { dg-output "\n1 res: 43750 4598" } */
+  
   CHECK( res_dbl.y.a == (f_dbl.y.a + e_dbl));
   CHECK( res_dbl.y.b == (f_dbl.y.b - e_dbl));
 
@@ -94,7 +90,7 @@ int main (void)
 
   res_dbl = ((B(*)(int, B))(code))(e_dbl, f_dbl);
   printf("2 res: %d %d\n", res_dbl.y.a, res_dbl.y.b);
-  /* { dg-output "\n2 res: 43750 4598" } */
+  
   CHECK( res_dbl.y.a == (f_dbl.y.a + e_dbl));
   CHECK( res_dbl.y.b == (f_dbl.y.b - e_dbl));
 

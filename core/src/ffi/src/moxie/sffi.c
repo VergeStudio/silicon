@@ -1,36 +1,11 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (C) 2012, 2013, 2018, 2021, 2022, 2026  Anthony Green
 
-   Moxie Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
 
 #include <stdlib.h>
 
-/* sffi_prep_args is called by the assembly routine once stack space
-   has been allocated for the function's arguments */
+
 
 void *sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -103,7 +78,7 @@ void *sffi_prep_args(char *stack, extended_cif *ecif)
   return (stack + ((count > 24) ? 24 : SFFI_ALIGN_DOWN(count, 8)));
 }
 
-/* Perform machine dependent cif processing */
+
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
   if (cif->rtype->type == SFFI_TYPE_STRUCT)
@@ -134,8 +109,8 @@ void sffi_call(sffi_cif *cif,
 
   ecif.cif = cif;
 
-  /* If the return value is a struct and we don't have a return	*/
-  /* value address then we need to make one		        */
+  
+  
 
   if ((rvalue == NULL) &&
       (cif->rtype->type == SFFI_TYPE_STRUCT))
@@ -145,14 +120,12 @@ void sffi_call(sffi_cif *cif,
   else
     ecif.rvalue = rvalue;
 
-  /* If we have any large structure arguments, make a copy so we are passing
-     by value.  The pointer array is cloned first: the caller owns avalue[]
-     and may reuse it for another call, so it must not be modified.  */
+  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
       int size = at->size;
-      if (at->type == SFFI_TYPE_STRUCT) /*  && size > 4) All struct args?? */
+      if (at->type == SFFI_TYPE_STRUCT) 
         {
           char *argcopy = alloca (size);
           if (avalue_copy == NULL)
@@ -182,23 +155,20 @@ void sffi_call(sffi_cif *cif,
 void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
 		       unsigned arg4, unsigned arg5, unsigned arg6)
 {
-  /* This function is called by a trampoline.  The trampoline stows a
-     pointer to the sffi_closure object in $r12.  We must save this
-     pointer in a place that will persist while we do our work.  */
+  
   register sffi_closure *creg __asm__ ("$r12");
   sffi_closure *closure = creg;
 
-  /* Arguments that don't fit in registers are found on the stack
-     at a fixed offset above the current frame pointer.  */
+  
   register char *frame_pointer __asm__ ("$fp");
 
-  /* Pointer to a struct return value.  */
+  
   void *struct_rvalue = (void *) arg1;
 
-  /* 6 words reserved for register args + 3 words from jsr */
+  
   char *stack_args = frame_pointer + 9*4;
 
-  /* Lay the register arguments down in a continuous chunk of memory.  */
+  
   unsigned register_args[6] =
     { arg1, arg2, arg3, arg4, arg5, arg6 };
   char *register_args_ptr = (char *) register_args;
@@ -209,13 +179,13 @@ void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
   char *ptr = (char *) register_args;
   int i;
 
-  /* preserve struct type return pointer passing */
+  
   if ((cif->rtype != NULL) && (cif->rtype->type == SFFI_TYPE_STRUCT)) {
     ptr += 4;
     register_args_ptr = (char *)&register_args[1];
   }
 
-  /* Find the address of each argument.  */
+  
   for (i = 0; i < cif->nargs; i++)
     {
       switch (arg_types[i]->type)
@@ -247,10 +217,10 @@ void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
           }
 	  break;
 	default:
-	  /* This is an 8-byte value.  */
+	  
 	  if (ptr == (char *) &register_args[5])
 	    {
-	      /* The value is split across two locations */
+	      
 	      unsigned *ip = alloca(8);
 	      avalue[i] = ip;
 	      ip[0] = *(unsigned *) ptr;
@@ -265,22 +235,21 @@ void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
 	}
       ptr += 4;
 
-      /* If we've handled more arguments than fit in registers,
-	 start looking at the those passed on the stack.  */
+      
       if (ptr == (char *) &register_args[6])
 	ptr = stack_args;
       else if (ptr == (char *) &register_args[7])
 	ptr = stack_args + 4;
     }
 
-  /* Invoke the closure.  */
+  
   if (cif->rtype && (cif->rtype->type == SFFI_TYPE_STRUCT))
     {
       (closure->fun) (cif, struct_rvalue, avalue, closure->user_data);
     }
   else
     {
-      /* Allocate space for the return value and call the function.  */
+      
       long long rvalue;
       (closure->fun) (cif, &rvalue, avalue, closure->user_data);
       __asm__ ("mov $r12, %0\n ld.l $r0, ($r12)\n ldo.l $r1, 4($r12)" : : "r" (&rvalue));
@@ -303,10 +272,10 @@ sffi_prep_closure_loc (sffi_closure* closure,
 
   fn = (unsigned long) sffi_closure_eabi;
 
-  tramp[0] = 0x01e0; /* ldi.l $r12, .... */
+  tramp[0] = 0x01e0; 
   tramp[1] = cls >> 16;
   tramp[2] = cls & 0xffff;
-  tramp[3] = 0x1a00; /* jmpa .... */
+  tramp[3] = 0x1a00; 
   tramp[4] = fn >> 16;
   tramp[5] = fn & 0xffff;
 

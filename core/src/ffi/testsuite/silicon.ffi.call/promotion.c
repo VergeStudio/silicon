@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Promotion test.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 static int promotion(signed char sc, signed short ss,
 		     unsigned char uc, unsigned short us)
@@ -35,7 +31,7 @@ int main (void)
   values[2] = &uc;
   values[3] = &us;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &sffi_type_sint, args) == SFFI_OK);
 

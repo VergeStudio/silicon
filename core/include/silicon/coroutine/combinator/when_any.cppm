@@ -1,10 +1,10 @@
 module;
 
-// 模块化补齐：原经传递 include 获得的标准头，模块单元须显式包含。
+
 #include <variant>
 
 
-// EMSCRIPTEN does not currently support std::jthread or std::stop_source|token.
+
 #ifndef EMSCRIPTEN
 #    include <atomic>
 #    include <cassert>
@@ -15,8 +15,8 @@ module;
 #    include <vector>
 #endif
 
-// 模块声明必须无条件出现，否则该文件在 EMSCRIPTEN 下不构成模块单元，
-// 扫描器将报 missing :when_any dependency。分区内容整体受条件保护。
+
+
 export module silicon.coroutine:when_any;
 
 #ifndef EMSCRIPTEN
@@ -85,7 +85,7 @@ silicon::scheduler::task<void> make_when_any_task_return_void(awaitable a, std::
     co_await static_cast<awaitable &&>(a);
     auto expected = false;
     if(first_completed.compare_exchange_strong(expected, true, std::memory_order::acq_rel, std::memory_order::relaxed)) {
-        notify.set(); // This will trigger the controller task to wake up exactly once.
+        notify.set();
     }
     co_return;
 }
@@ -96,8 +96,8 @@ silicon::scheduler::task<void> make_when_any_task(
 ) {
     auto expected = false;
     auto result = co_await static_cast<awaitable &&>(a);
-    // Its important to only touch return_value and notify once since their lifetimes will be destroyed
-    // after being set and notified the first time.
+
+
     if(first_completed.compare_exchange_strong(expected, true, std::memory_order::acq_rel, std::memory_order::relaxed)) {
         return_value = std::move(result);
         notify.set();
@@ -131,12 +131,12 @@ template<
 silicon::scheduler::task_self_deleting make_when_any_controller_task(
         range_type awaitables, silicon::coroutine::event &notify, std::optional<return_type_base> &return_value
 ) {
-    // This must live for as long as the longest running when_any task since each task tries to see
-    // if it was the first to complete. Only the very first task to complete will set the return_value
-    // and notify.
+
+
+
     std::atomic<bool> first_completed{false};
 
-    // This detatched task will maintain the lifetime of all the when_any tasks.
+
     std::vector<silicon::scheduler::task<void>> tasks{};
 
     if constexpr(std::ranges::sized_range<range_type>) {
@@ -215,7 +215,7 @@ template<
         stop_source.request_stop();
         co_return;
     } else {
-        // Using an std::optional to prevent the need to default construct the type on the stack.
+
         std::optional<return_type_base> return_value{std::nullopt};
 
         auto controller_task =
@@ -255,6 +255,6 @@ template<
     }
 }
 
-} // namespace silicon::coroutine
+}
 
-#endif // EMSCRIPTEN
+#endif

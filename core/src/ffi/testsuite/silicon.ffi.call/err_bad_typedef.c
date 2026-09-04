@@ -1,10 +1,6 @@
-/* Area:		sffi_prep_cif
-   Purpose:		Test error return for bad typedefs.
-   Limitations:	none.
-   PR:			none.
-   Originator:	Blake Chaffin 6/6/2007	 */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 

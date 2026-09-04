@@ -22,7 +22,7 @@ import silicon.logger.error;
 
 namespace silicon::logger {
 
-// Pimpl implementation — spdlog types live here, invisible to module consumers
+
 struct default_logger::impl {
     std::shared_ptr<spdlog::logger> spdlog_logger{nullptr};
     const std::string_view pattern{"%^[%Y-%m-%d %H:%M:%S.%e][%t][%l]%v%$"};
@@ -44,8 +44,8 @@ std::expected<void, std::error_code> default_logger::init(const std::string_view
         }
         return {};
     } catch(const spdlog::spdlog_ex &) {
-        // spdlog 构造/注册失败属可恢复错误：清理已分配资源并返回 expected，
-        // 由调用方决定如何处理，而非吞掉异常。
+
+
         stop();
         return std::unexpected(make_error_code(logger_error::kInitFailed));
     }
@@ -130,4 +130,4 @@ void default_logger::critical(const std::string_view &msg, std::source_location 
     impl_->spdlog_logger->critical(std::format("[{}:{}] {}", location.file_name(), location.line(), msg.data()));
 }
 
-} // namespace silicon::logger
+}

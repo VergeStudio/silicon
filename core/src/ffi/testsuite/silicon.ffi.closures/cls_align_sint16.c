@@ -1,10 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure alignment of sint16.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<hos@tamanegi.org> 20031203	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_align {
@@ -87,9 +83,9 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_align_fn), &res_dbl, args_dbl);
-  /* { dg-output "12 4951 127 1 9320 13: 13 14271 140" } */
+  
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  /* { dg-output "\nres: 13 14271 140" } */
+  
   CHECK(res_dbl.a == 13);
   CHECK(res_dbl.b == 14271);
   CHECK(res_dbl.c == 140);
@@ -97,9 +93,9 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_align_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_align(*)(cls_struct_align, cls_struct_align))(code))(g_dbl, f_dbl);
-  /* { dg-output "\n12 4951 127 1 9320 13: 13 14271 140" } */
+  
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  /* { dg-output "\nres: 13 14271 140" } */
+  
   CHECK(res_dbl.a == 13);
   CHECK(res_dbl.b == 14271);
   CHECK(res_dbl.c == 140);

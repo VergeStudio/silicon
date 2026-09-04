@@ -1,13 +1,13 @@
-// proxy 模块测试：覆盖类型擦除基础设施 facade_builder / proxy / proxy_view 的
-// 约定分派、生命周期语义与 rtti / as_view / weak_dispatch 技能。
+
+
 #include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
 
-// 宏不随模块导出：PRO_DEF_MEM_DISPATCH 等由 proxy_macros.h 提供，消费方须自行
-// 包含（与 silicon.proxy 模块接口内的同一份定义互不冲突，各 TU 各有一份）。
+
+
 #include <silicon/proxy/proxy_macros.h>
 
 #include <silicon/test/test.h>
@@ -18,7 +18,7 @@ namespace sp = silicon::proxy;
 
 namespace {
 
-// 追加写：append 追加到尾部。
+
 struct text_buffer {
     std::string value;
 
@@ -31,7 +31,7 @@ struct text_buffer {
     std::string str() const { return value; }
 };
 
-// 前插写：与 text_buffer 同样的约定、相反的实现，用于验证分派按目标类型走。
+
 struct prefix_buffer {
     std::string value;
 
@@ -44,7 +44,7 @@ struct prefix_buffer {
     std::string str() const { return value; }
 };
 
-// 就地构造目标：小于默认 facade 容量（两个指针）。
+
 struct small_counter {
     int value;
 
@@ -56,7 +56,7 @@ struct small_counter {
     std::string str() const { return std::to_string(value); }
 };
 
-// 超出默认 facade 容量的目标：make_proxy 自动退化为堆分配，无法满足就地约束。
+
 struct big_buffer {
     char storage[64]{};
     std::size_t length{0};
@@ -74,7 +74,7 @@ struct big_buffer {
     std::string str() const { return std::string(storage, length); }
 };
 
-// 只实现部分约定：用于 weak_dispatch 的未实现约定回退路径。
+
 struct partial_buffer {
     std::size_t size() const noexcept { return 0u; }
     std::string str() const { return "partial"; }
@@ -86,7 +86,7 @@ PRO_DEF_MEM_DISPATCH(MemAppend, append);
 PRO_DEF_MEM_DISPATCH(MemStr, str);
 PRO_DEF_MEM_DISPATCH(MemClear, clear);
 
-// 基础 facade：四个约定，默认约束（不可拷贝 / 平凡重定位 / noexcept 析构）。
+
 using text_facade = sp::facade_builder
         ::add_convention<MemSize, std::size_t() const>
         ::add_convention<MemData, const char *() const>
@@ -94,7 +94,7 @@ using text_facade = sp::facade_builder
         ::add_convention<MemStr, std::string() const>
         ::build;
 
-// 可拷贝 facade：非平凡拷贝，用于验证 proxy 拷贝的是目标值本身。
+
 using copyable_facade = sp::facade_builder
         ::add_convention<MemSize, std::size_t() const>
         ::add_convention<MemAppend, void(std::string_view)>
@@ -108,7 +108,7 @@ using rtti_facade = sp::facade_builder
         ::add_convention<MemStr, std::string() const>
         ::add_skill<sp::skills::rtti>
         ::build;
-#endif // __cpp_rtti
+#endif
 
 using viewable_facade = sp::facade_builder
         ::add_convention<MemSize, std::size_t() const>
@@ -116,14 +116,14 @@ using viewable_facade = sp::facade_builder
         ::add_skill<sp::skills::as_view>
         ::build;
 
-// 未实现的 clear 采用 weak_dispatch 兜底：目标缺该方法时抛 std::logic_error。
+
 using weak_facade = sp::facade_builder
         ::add_convention<MemSize, std::size_t() const>
         ::add_convention<MemStr, std::string() const>
         ::add_convention<sp::weak_dispatch<MemClear>, void()>
         ::build;
 
-} // namespace
+}
 
 TEST_CASE("facade 契约：默认约束与容量") {
     static_assert(sp::facade<text_facade>);
@@ -239,8 +239,8 @@ TEST_CASE("skills::as_view 允许 proxy 隐式转为 proxy_view") {
 }
 
 #if defined(__cpp_rtti) && __cpp_rtti >= 199711L
-// proxy_typeid / proxy_cast 是间接访问器（*p）的隐藏友元，须经 *p 触发 ADL，
-// 直接传 proxy 本体时其关联类不含该访问器分支。
+
+
 TEST_CASE("skills::rtti 提供 typeid 反射与 proxy_cast") {
     auto p = sp::make_proxy<rtti_facade, text_buffer>("rtti");
     REQUIRE(p.has_value());
@@ -264,4 +264,4 @@ TEST_CASE("bad_proxy_cast::what 契约") {
     const std::exception &base = e;
     CHECK(std::string(base.what()) == "silicon::proxy::bad_proxy_cast");
 }
-#endif // __cpp_rtti
+#endif

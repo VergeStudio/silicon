@@ -1,4 +1,4 @@
-/* -*-c-*- */
+
 #include "ffitest.h"
 #include <complex.h>
 
@@ -28,7 +28,7 @@ int main (void)
   cl_arg_types[0] = &T_FFI_TYPE;
   cl_arg_types[1] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &T_FFI_TYPE, cl_arg_types) == SFFI_OK);
 

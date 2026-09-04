@@ -56,7 +56,7 @@ TEST_CASE("en_malformed_flag") {
     CHECK_FALSE(r1.has_value());
     CHECK(r1.error() == make_error_code(cli_error::kInvalidValue));
 
-    // 裸 '--' 为分隔符（GNU 惯例）：其后全部为位置参数。
+
     const char *argv2[] = {"prog", "--", "--weird", "pos"};
     auto r2 = p.parse(4, argv2);
     REQUIRE(r2.has_value());
@@ -87,7 +87,7 @@ TEST_CASE("en_registered_value_flag_consumes_negative") {
 
 TEST_CASE("en_registered_bool_flag_not_consume_next") {
     parser p;
-    p.add_flag("verbose"); // requires_value=false：声明驱动，不吞后随 token
+    p.add_flag("verbose");
     const char *argv[] = {"prog", "--verbose", "dev.json"};
     auto r = p.parse(3, argv);
     REQUIRE(r.has_value());

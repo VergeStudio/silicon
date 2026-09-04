@@ -45,7 +45,7 @@
         }                                                            \
     } while(0)
 
-/* Define macros so that compilers other than gcc can run the tests.  */
+
 #undef __UNUSED__
 #if defined(__GNUC__)
 #    define __UNUSED__ __attribute__((__unused__))
@@ -65,8 +65,7 @@
 #    define ABI_ATTR
 #endif
 
-/* Prefer MAP_ANON(YMOUS) to /dev/zero, since we don't need to keep a
-   file open.  */
+
 #ifdef HAVE_MMAP_ANON
 #    undef HAVE_MMAP_DEV_ZERO
 
@@ -91,7 +90,7 @@
 
 #endif
 
-/* msvc kludge.  */
+
 #if defined(_MSC_VER)
 #    define PRIdLL "I64d"
 #    define PRIuLL "I64u"
@@ -100,9 +99,9 @@
 #    define PRIuLL "llu"
 #endif
 
-/* Tru64 UNIX kludge.  */
+
 #if defined(__alpha__) && defined(__osf__)
-/* Tru64 UNIX V4.0 doesn't support %lld/%lld, but long is 64-bit.  */
+
 #    undef PRIdLL
 #    define PRIdLL "ld"
 #    undef PRIuLL
@@ -114,34 +113,30 @@
 #    define PRIuPTR "lu"
 #endif
 
-/* PA HP-UX kludge.  */
+
 #if defined(__hppa__) && defined(__hpux__) && !defined(PRIuPTR)
 #    define PRIuPTR "lu"
 #endif
 
-/* IRIX kludge.  */
+
 #if defined(__sgi)
-/* IRIX 6.5 <inttypes.h> provides all definitions, but only for C99
-   compilations.  */
+
 #    define PRId8 "hhd"
 #    define PRIu8 "hhu"
 #    if (_MIPS_SZLONG == 32)
 #        define PRId64 "lld"
 #        define PRIu64 "llu"
 #    endif
-/* This doesn't match <inttypes.h>, which always has "lld" here, but the
-   arguments are uint64_t, int64_t, which are unsigned long, long for
-   64-bit in <sgidefs.h>.  */
+
 #    if (_MIPS_SZLONG == 64)
 #        define PRId64 "ld"
 #        define PRIu64 "lu"
 #    endif
-/* This doesn't match <inttypes.h>, which has "u" here, but the arguments
-   are uintptr_t, which is always unsigned long.  */
+
 #    define PRIuPTR "lu"
 #endif
 
-/* Solaris < 10 kludge.  */
+
 #if defined(__sun__) && defined(__svr4__) && !defined(PRIuPTR)
 #    if defined(__arch64__) || defined(__x86_64__)
 #        define PRIuPTR "lu"
@@ -150,7 +145,7 @@
 #    endif
 #endif
 
-/* MSVC kludge.  */
+
 #if defined _MSC_VER
 #    if !defined(__cplusplus) || defined(__STDC_FORMAT_MACROS)
 #        define PRIuPTR "lu"

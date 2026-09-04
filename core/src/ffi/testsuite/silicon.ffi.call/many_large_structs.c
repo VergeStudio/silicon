@@ -1,21 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Pass many large by-value structs on AArch64.
-   Limitations:	none.
-   PR:		none.
-   Originator:	AArch64 large-struct stack accounting regression.
 
-   Regression test: on AArch64, composites larger than 16 bytes are passed
-   by invisible reference.  sffi_call copies each payload into the argument
-   slab (growing down from the top) and, once X0-X7 are exhausted, also
-   spills the by-ref pointer into the same slab (the NSAA, growing up).
-   The generic prep_cif budget in cif->bytes only charged the payload copy,
-   not the 8-byte pointer slot, so with enough large structs the two regions
-   collided and a later payload copy overwrote an already-spilled pointer,
-   leaving the callee with a corrupt pointer for a by-value argument.
-   Passing sixteen 32-byte (non-HFA) structs by value -- eight more than the
-   argument registers -- must marshal every argument intact.  */
 
-/* { dg-do run } */
+
 #include "ffitest.h"
 
 #define NARGS 16
@@ -23,8 +8,7 @@
 
 typedef struct { unsigned char b[SSIZE]; } big_struct;
 
-/* Sum every byte of every argument.  A corrupted by-ref pointer makes the
-   callee read the wrong memory, so the sum no longer matches.  */
+
 static int ABI_ATTR
 sum_bytes (big_struct s0, big_struct s1, big_struct s2, big_struct s3,
 	   big_struct s4, big_struct s5, big_struct s6, big_struct s7,
@@ -65,8 +49,7 @@ int main (void)
   bs_elements[SSIZE] = NULL;
   bs_type.elements = bs_elements;
 
-  /* Fill struct i with the distinct byte value (i + 1) so any pointer
-     mix-up between arguments changes the total.  */
+  
   for (i = 0; i < NARGS; i++)
     {
       for (j = 0; j < SSIZE; j++)

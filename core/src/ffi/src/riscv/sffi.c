@@ -1,31 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2015 Michael Knyszek <mknyszek@berkeley.edu>
-                         2015 Andrew Waterman <waterman@cs.berkeley.edu>
-                         2018 Stef O'Rear <sorear2@gmail.com>
-   Based on MIPS N32/64 port
 
-   RISC-V Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -58,7 +31,7 @@ typedef struct call_context
     float_reg fa[8];
 #endif
     size_t a[8];
-    /* used by the assembly code to in-place construct its own stack frame */
+    
     char frame[16];
 } call_context;
 
@@ -71,8 +44,8 @@ typedef struct call_builder
     void *struct_stack;
 } call_builder;
 
-/* integer (not pointer) less than ABI XLEN */
-/* SFFI_TYPE_INT does not appear to be used */
+
+
 #if __SIZEOF_POINTER__ == 8
 #define IS_INT(type) ((type) >= SFFI_TYPE_UINT8 && (type) <= SFFI_TYPE_SINT64)
 #else
@@ -102,9 +75,7 @@ static sffi_type **flatten_struct(sffi_type *in, sffi_type **out, sffi_type **ou
     return out;
 }
 
-/* Structs with at most two fields after flattening, one of which is of
-   floating point type, are passed in multiple registers if sufficient
-   registers are available. */
+
 static float_struct_info struct_passed_as_elements(call_builder *cb, sffi_type *top) {
     float_struct_info ret = {0, 0, 0, 0};
     sffi_type *fields[3];
@@ -136,7 +107,7 @@ static float_struct_info struct_passed_as_elements(call_builder *cb, sffi_type *
 }
 
 #if ABI_FLEN >= 64
-/* Float values in wider RISC-V FP registers are NaN-boxed */
+
 static void marshal_float(call_builder *cb, void *data) {
     union {
         uint32_t i;
@@ -160,7 +131,7 @@ static void unmarshal_float(call_builder *cb, void *data) {
 #endif
 #endif
 
-/* allocates a single register, float register, or XLEN-sized stack slot to a datum */
+
 static void marshal_atom(call_builder *cb, int type, void *data) {
     size_t value = 0;
     switch (type) {
@@ -168,7 +139,7 @@ static void marshal_atom(call_builder *cb, int type, void *data) {
         case SFFI_TYPE_SINT8: value = *(int8_t *)data; break;
         case SFFI_TYPE_UINT16: value = *(uint16_t *)data; break;
         case SFFI_TYPE_SINT16: value = *(int16_t *)data; break;
-        /* 32-bit quantities are always sign-extended in the ABI */
+        
         case SFFI_TYPE_UINT32: value = *(int32_t *)data; break;
         case SFFI_TYPE_SINT32: value = *(int32_t *)data; break;
 #if __SIZEOF_POINTER__ == 8
@@ -242,7 +213,7 @@ static void unmarshal_atom(call_builder *cb, int type, void *data) {
     }
 }
 
-/* adds an argument to a call, or a not by reference return value */
+
 static void marshal(call_builder *cb, sffi_type *type, int var, void *data) {
     size_t realign[2];
 
@@ -264,17 +235,16 @@ static void marshal(call_builder *cb, sffi_type *type, int var, void *data) {
 #endif
 
     if (type->size > 2 * __SIZEOF_POINTER__) {
-        /* copy to stack and pass by reference */
+        
         data = memcpy (cb->struct_stack, data, type->size);
         cb->struct_stack = (size_t *) SFFI_ALIGN ((char *) cb->struct_stack + type->size, __SIZEOF_POINTER__);
         marshal_atom(cb, SFFI_TYPE_POINTER, &data);
     } else if (IS_INT(type->type) || type->type == SFFI_TYPE_POINTER) {
         marshal_atom(cb, type->type, data);
     } else {
-        /* overlong integers, soft-float floats, and structs without special
-           float handling are treated identically from this point on */
+        
 
-        /* variadics are aligned even in registers */
+        
         if (type->alignment > __SIZEOF_POINTER__) {
             if (var)
                 cb->used_integer = SFFI_ALIGN(cb->used_integer, 2);
@@ -289,7 +259,7 @@ static void marshal(call_builder *cb, sffi_type *type, int var, void *data) {
     }
 }
 
-/* for arguments passed by reference returns the pointer, otherwise the arg is copied (up to MAXCOPYARG bytes) */
+
 static void *unmarshal(call_builder *cb, sffi_type *type, int var, void *data) {
     size_t realign[2];
     void *pointer;
@@ -312,17 +282,16 @@ static void *unmarshal(call_builder *cb, sffi_type *type, int var, void *data) {
 #endif
 
     if (type->size > 2 * __SIZEOF_POINTER__) {
-        /* pass by reference */
+        
         unmarshal_atom(cb, SFFI_TYPE_POINTER, (char*)&pointer);
         return pointer;
     } else if (IS_INT(type->type) || type->type == SFFI_TYPE_POINTER) {
         unmarshal_atom(cb, type->type, data);
         return data;
     } else {
-        /* overlong integers, soft-float floats, and structs without special
-           float handling are treated identically from this point on */
+        
 
-        /* variadics are aligned even in registers */
+        
         if (type->alignment > __SIZEOF_POINTER__) {
             if (var)
                 cb->used_integer = SFFI_ALIGN(cb->used_integer, 2);
@@ -349,20 +318,20 @@ static int passed_by_ref(call_builder *cb, sffi_type *type, int var) {
     return type->size > 2 * __SIZEOF_POINTER__;
 }
 
-/* Perform machine dependent cif processing */
+
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif) {
     cif->riscv_nfixedargs = cif->nargs;
     return SFFI_OK;
 }
 
-/* Perform machine dependent cif processing when we have a variadic function */
+
 
 sffi_status sffi_prep_cif_machdep_var(sffi_cif *cif, unsigned int nfixedargs, unsigned int ntotalargs) {
     cif->riscv_nfixedargs = nfixedargs;
     return SFFI_OK;
 }
 
-/* Low level routine for calling functions */
+
 extern void sffi_call_asm (void *stack, struct call_context *regs,
 			  void (*fn) (void), void *closure) SFFI_HIDDEN;
 
@@ -370,25 +339,21 @@ static void
 sffi_call_int (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
 	      void *closure)
 {
-    /* this is a conservative estimate, assuming a complex return value and
-       that all remaining arguments are long long / __int128 */
+    
     size_t arg_bytes = cif->nargs <= 3 ? 0 :
         SFFI_ALIGN(2 * sizeof(size_t) * (cif->nargs - 3), STKALIGN);
-    /* Allocate space for copies of big structures.  */
+    
     size_t struct_bytes = SFFI_ALIGN (cif->bytes, STKALIGN);
     size_t rval_bytes = 0;
     if (rvalue == NULL && cif->rtype->size > 2*__SIZEOF_POINTER__)
         rval_bytes = SFFI_ALIGN(cif->rtype->size, STKALIGN);
     size_t alloc_size = arg_bytes + rval_bytes + struct_bytes + sizeof(call_context);
 
-    /* the assembly code will deallocate all stack data at lower addresses
-       than the argument region, so we need to allocate the frame and the
-       return value after the arguments in a single allocation */
+    
     size_t alloc_base;
-    /* Argument region must be 16-byte aligned */
+    
     if (_Alignof(max_align_t) >= STKALIGN) {
-        /* since sizeof long double is normally 16, the compiler will
-           guarantee alloca alignment to at least that much */
+        
         alloc_base = (size_t)alloca(alloc_size);
     } else {
         alloc_base = SFFI_ALIGN(alloca(alloc_size + STKALIGN - 1), STKALIGN);
@@ -419,7 +384,7 @@ sffi_call_int (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
 	if (IS_INT(cif->rtype->type)
 	    && cif->rtype->size < sizeof (sffi_arg))
 	  {
-	    /* Integer types smaller than sffi_arg need to be extended.  */
+	    
 	    switch (cif->rtype->type)
 	      {
 	      case SFFI_TYPE_SINT8:
@@ -466,7 +431,7 @@ sffi_status sffi_prep_closure_loc(sffi_closure *closure, sffi_cif *cif, void (*f
 #ifdef SFFI_EXEC_STATIC_TRAMP
   if (sffi_tramp_is_present (closure))
     {
-      /* Initialize the static trampoline's parameters. */
+      
       void (*dest)(void) = sffi_closure_asm;
       sffi_tramp_set_parms (closure->ftramp, dest, closure);
     }
@@ -476,17 +441,16 @@ sffi_status sffi_prep_closure_loc(sffi_closure *closure, sffi_cif *cif, void (*f
       uint32_t *tramp = (uint32_t *) &closure->tramp[0];
       uint64_t fn = (uint64_t) (uintptr_t) sffi_closure_asm;
 
-      /* we will call sffi_closure_inner with codeloc, not closure, but as long
-	 as the memory is readable it should work */
+      
 
-      tramp[0] = 0x00000317; /* auipc t1, 0 (i.e. t0 <- codeloc) */
+      tramp[0] = 0x00000317; 
 #if __SIZEOF_POINTER__ == 8
-      tramp[1] = 0x01033383; /* ld t2, 16(t1) */
+      tramp[1] = 0x01033383; 
 #else
-      tramp[1] = 0x01032383; /* lw t2, 16(t1) */
+      tramp[1] = 0x01032383; 
 #endif
-      tramp[2] = 0x00038067; /* jr t2 */
-      tramp[3] = 0x00000013; /* nop */
+      tramp[2] = 0x00038067; 
+      tramp[3] = 0x00000013; 
       tramp[4] = fn;
       tramp[5] = fn >> 32;
 #if !defined(__FreeBSD__)
@@ -517,9 +481,7 @@ sffi_prep_go_closure (sffi_go_closure *closure, sffi_cif *cif,
   return SFFI_OK;
 }
 
-/* Called by the assembly code with aregs pointing to saved argument registers
-   and stack pointing to the stacked arguments.  Return values passed in
-   registers will be reloaded from aregs. */
+
 void SFFI_HIDDEN
 sffi_closure_inner (sffi_cif *cif,
 		   void (*fun) (sffi_cif *, void *, void **, void *),
@@ -527,10 +489,7 @@ sffi_closure_inner (sffi_cif *cif,
 		   size_t *stack, call_context *aregs)
 {
     void **avalue = alloca(cif->nargs * sizeof(void*));
-    /* storage for arguments which will be copied by unmarshal().  We could
-       theoretically avoid the copies in many cases and use at most 128 bytes
-       of memory, but allocating disjoint storage for each argument is
-       simpler. */
+    
     char *astorage = alloca(cif->nargs * MAXCOPYARG);
     void *rvalue;
     call_builder cb;

@@ -1,9 +1,9 @@
-// Implementation unit for silicon::network (core connect_status helpers).
-//
-// Class declarations now live in the :core interface partition (module
-// purview); this unit provides the out-of-line, non-template definitions. It
-// gets the network types via the implicit import of the primary interface and
-// pulls in only the external/standard headers it needs.
+
+
+
+
+
+
 
 module;
 
@@ -31,4 +31,4 @@ auto to_string(const connect_status &status) -> result<std::string_view> {
     return std::unexpected(make_error_code(network_error::kInvalidConnectStatus));
 }
 
-} // namespace silicon::network
+}

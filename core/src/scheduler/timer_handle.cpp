@@ -6,8 +6,8 @@ module;
 #include <optional>
 
 module silicon.scheduler;
-// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
-// 实现单元自引用，故以 _MSC_VER 守卫。
+
+
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
@@ -46,8 +46,8 @@ timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
 
 timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
     : m_p(std::make_unique<impl>()) {
-    // On Windows, timers are managed by the IOCP-based io_notifier.
-    // The timer_handle is just a token that carries the poll_info pointer.
+
+
     m_p->m_fd = -1;
     m_p->m_timer_handle_ptr = timer_handle_ptr;
     (void)notifier;
@@ -65,4 +65,4 @@ const void * timer_handle::get_inner() const {
 
 timer_handle::~timer_handle() = default;
 
-} // namespace silicon::scheduler
+}

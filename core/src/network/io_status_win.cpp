@@ -1,8 +1,8 @@
-// Windows implementation of platform-specific io_status helpers.
-// 平台无关的 io_status 公共实现（message()/make_io_status_from_native/
-// make_io_status_from_poll_status/to_string）在公共实现单元 io_status.cpp；
-// 本文件仅提供平台差异的 message_impl / make_io_status_from_native_impl。
-// 守卫与 io_status_linux.cpp 的 unix 系守卫互斥，恰好一个文件定义同组符号。
+
+
+
+
+
 
 module;
 
@@ -43,10 +43,10 @@ std::string message_impl(int native_code) {
 }
 
 io_status make_io_status_from_native_impl(int native_code) {
-    // TODO: map Windows error codes to io_status::kind values
+
     return io_status{.type = io_status::kind::kNative, .native_code = native_code};
 }
 
-} // namespace silicon::network
+}
 
-#endif // defined(SILICON_PLATFORM_WINDOWS)
+#endif

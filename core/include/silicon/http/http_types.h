@@ -6,15 +6,15 @@
 
 namespace silicon::http {
 
-/// http_response / http_request 为 header-only（global module 实体），原因与
-/// silicon::time::system_clock 完全一致（见 time/system_clock.h 注释）：
-/// 1. MSVC 对命名模块实体的修饰名追加模块标签（`::<!silicon.http>`），clang 不
-///    生成该标签 → 任何「MSVC 编译的定义 + clang 引用」的跨工具链链接均无法解析；
-/// 2. MSVC IFC 不含成员函数体，clang 导入模块后对成员函数发强引用，无法本地
-///    内联展开。
-/// 把这两个类型抽到纯文本头、在 silicon.http 模块接口的全局模块片段包含、并由
-/// 消费方（如 siliconbuddy.client）直接 #include 本头，可让每个消费 TU 本地发射
-/// （weak）符号，彻底规避跨 DLL / 跨工具链符号解析。
+
+
+
+
+
+
+
+
+
 struct http_response {
 
     struct impl {
@@ -27,7 +27,7 @@ struct http_response {
 
   public:
     http_response() = default;
-    /// 便利构造：保留原聚合初始化 `http_response{200, "{}"}` 的调用形态
+
     http_response(int status, std::string b = {}, std::map<std::string, std::string> h = {}) {
         impl_->status_code_ = status;
         impl_->body_ = std::move(b);
@@ -87,4 +87,4 @@ struct http_request {
 
 };
 
-} // namespace silicon::http
+}

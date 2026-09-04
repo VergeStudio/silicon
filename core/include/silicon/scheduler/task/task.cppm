@@ -14,14 +14,14 @@ module;
 
 export module silicon.scheduler.task;
 
-// 版本信息由 silicon.core:config（silicon.core::get_version*）提供，
-// 本模块无 :config 分区。
+
+
 
 export namespace silicon::scheduler {
 
-// task 的前置声明必须先于 promise —— promise 的 get_return_object()
-// 以 task<return_type> 为返回类型，而 task 的完整定义在其后。默认实参 = void
-// 亦仅可在此首次声明处给出，供 task<> 与 promise<void> 使用。
+
+
+
 template<typename return_type = void>
 class task;
 
@@ -48,14 +48,14 @@ struct CORE_API promise_base {
     promise_base() noexcept = default;
     ~promise_base() = default;
 
-    // inline-defined so the deduced return types are visible to other modules
-    // that co_await a task across the module boundary (clang needs the return
-    // type of initial_suspend/final_suspend at the co_await site).
+
+
+
     auto initial_suspend() noexcept { return std::suspend_always{}; }
     auto final_suspend() noexcept { return final_awaitable{}; }
-    // Inline: this function is invoked from template instantiations in OTHER
-    // modules (e.g. coroutine_pool's wrapper co_await). Defined in task.cpp it has
-    // module linkage; MSVC mis-resolves the cross-module call at runtime (SIGSEGV).
+
+
+
     void continuation(std::coroutine_handle<> continuation) noexcept { m_continuation = continuation; }
 
   protected:
@@ -129,7 +129,7 @@ struct CORE_API promise final: public promise_base {
         } else if(std::holds_alternative<std::exception_ptr>(m_storage)) {
             std::rethrow_exception(std::get<std::exception_ptr>(m_storage));
         } else {
-            // 返回值从未设置即调用 result() 违反调用前提（协程未执行），不可恢复 → 终止。
+
             std::terminate();
         }
     }
@@ -291,15 +291,15 @@ inline auto promise<void>::get_return_object() noexcept -> task<> {
 
 
 
-// ---------------------------------------------------------------------------
-// task_self_deleting — a coroutine that self-destructs upon completion
-// ---------------------------------------------------------------------------
-//
-// NOTE: silicon::scheduler::task 指类模板本身，不能作命名空间限定符；
-// 辅助类型（task_self_deleting / make_task_self_deleting）位于
-// silicon::scheduler 命名空间，实现单元
-// src/task_self_deleting.cpp 使用同一命名空间，修饰名一致。
-// 消费方统一经 `import silicon.scheduler.task;` 使用。
+
+
+
+
+
+
+
+
+
 
 
 class task_self_deleting;
@@ -350,14 +350,14 @@ CORE_API auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_se
 
 
 
-// ---------------------------------------------------------------------------
-// task_event — minimal coroutine-aware event for task_group
-// ---------------------------------------------------------------------------
+
+
+
 
 class CORE_API task_event {
   public:
-    // 嵌套类型须显式 CORE_API：类级 dllexport 不覆盖模块 impl 单元中的
-    // 嵌套类 out-of-line 成员定义（同 di context_state 修法）。
+
+
     struct CORE_API awaiter {
         awaiter(const task_event &) noexcept;
         bool await_ready() const noexcept ;
@@ -386,16 +386,16 @@ class CORE_API task_event {
     mutable std::atomic<void *> m_state{nullptr};
 };
 
-// ---------------------------------------------------------------------------
-// task_group — manage a group of related tasks on an executor
-// ---------------------------------------------------------------------------
+
+
+
 
 template<typename executor_type>
 class task_group {
   public:
     explicit task_group(executor_type *executor)
         : m_executor(executor) {
-        // 空执行器违反构造前提，不可恢复 → 终止（与异常方向保持一致，避免隐藏契约违例）。
+
         if(executor == nullptr) {
             std::terminate();
         }
@@ -427,10 +427,10 @@ class task_group {
     task_group & operator=(task_group &&) = delete;
 
     ~task_group() {
-        // Spin-wait with yield instead of sleep_for to minimize latency.
-        // Note: This destructor blocks until all tasks complete. Do not call
-        // from within a coroutine running on the same executor — prefer
-        // co_await *this before destruction instead.
+
+
+
+
         while(!empty()) {
             std::this_thread::yield();
         }
@@ -464,4 +464,4 @@ class task_group {
     }
 };
 
-} // namespace silicon::scheduler
+}

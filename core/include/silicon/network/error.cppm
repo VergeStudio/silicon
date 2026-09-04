@@ -10,29 +10,29 @@ export module silicon.network.error;
 
 import silicon.error;
 
-// ---- 模块内部：DI 句柄（不导出）----
+
 namespace silicon::network {
 
 CORE_API std::atomic<const std::error_category *> network_error_category_instance{nullptr};
 
-} // namespace silicon::network
+}
 
 export namespace silicon::network {
 
-/// 网络模块专属错误码枚举。错误码经 make_error_code() 转为 std::error_code
-/// （专属 category `silicon.network`）；errno 类错误用 system_error() 助手
-/// （定义于 silicon.network:facade 分区）。
+
+
+
 enum class network_error {
     kUdpNotBound = 1,
     kCancelled,
     kPollingError,
     kTimeout,
     kInvalidIpAddress,
-    // 参数校验（create() 工厂）
+
     kNullScheduler,
     kNullExecutor,
     kNullTlsContext,
-    // socket 操作
+
     kSocketCreateFailed,
     kSetNonblockingFailed,
     kSetSockOptFailed,
@@ -41,17 +41,17 @@ enum class network_error {
     kInvalidSocketType,
     kInvalidDomain,
     kInvalidConnectStatus,
-    // tls
+
     kTlsContextInitFailed,
     kTlsCertificateLoadFailed,
     kTlsPrivateKeyLoadFailed,
     kTlsKeyMismatch,
-    // dns
+
     kDnsInitFailed,
     kUnknown,
 };
 
-// 具名类取代匿名类局部静态（MSVC 模块 vtable 缺陷）；由组合根构造并注入。
+
 class CORE_API network_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.network"; }
     std::string message(int ev) const override {
@@ -83,12 +83,12 @@ class CORE_API network_category_impl final : public std::error_category {
     }
 };
 
-/// 组合根注入全局唯一 category 实例（须在任何 make_error_code 调用之前完成）。
+
 inline void inject_network_error_category(const std::error_category &cat) noexcept {
     network_error_category_instance.store(&cat, std::memory_order_release);
 }
 
-/// 返回 network_error 专属 error_category。DI 是唯一来源，未注入即终止。
+
 [[nodiscard]] inline const std::error_category &network_category() noexcept {
     const std::error_category *cat = network_error_category_instance.load(std::memory_order_acquire);
     if (cat == nullptr) {
@@ -97,23 +97,23 @@ inline void inject_network_error_category(const std::error_category &cat) noexce
     return *cat;
 }
 
-/// 将 network_error 转为 std::error_code。
+
 [[nodiscard]] inline std::error_code make_error_code(network_error e) noexcept {
     return {static_cast<int>(e), network_category()};
 }
 
-} // namespace silicon::network
+}
 
-// ── 自注册默认 category（模块作用域，非导出）──
-// network_error 专属 category 须由 network_category() 提供。历史上它仅由组合根经
-// inject_network_error_category 注入，但全仓从未调用，导致 category 未注入时
-// network_category() 直接 std::terminate()，错误返回路径在真实消费方会崩溃而非
-// 返回 expected 错误。此处自注册一个默认实例，保证任何消费方在走错误路径前 category
-// 已可用。组合根仍可调 inject_network_error_category 注入自定义实例（原子存储，后写覆盖）。
+
+
+
+
+
+
 namespace {
     const silicon::network::network_category_impl s_default_network_category{};
     const bool s_network_category_registered = [] {
         silicon::network::inject_network_error_category(s_default_network_category);
         return true;
     }();
-} // namespace
+}

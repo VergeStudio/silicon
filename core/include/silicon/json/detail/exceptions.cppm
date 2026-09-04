@@ -1,29 +1,29 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
-#include <silicon/common.h> // CORE_API：成员 inline 函数被导出模板跨模块引用时须显式导出
-#include <cstddef>   // nullptr_t
-#include <exception> // exception
+#include <silicon/common.h>
+#include <cstddef>
+#include <exception>
 #if JSON_DIAGNOSTICS
-#    include <numeric> // accumulate
+#    include <numeric>
 #endif
-#include <stdexcept> // runtime_error
-#include <string>    // to_string
-#include <vector>    // vector
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 export module silicon.json:detail.exceptions;
 
@@ -38,31 +38,31 @@ import :detail.value_t;
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
 
-////////////////
-// exceptions //
-////////////////
 
-/// @brief general exception of the @ref basic_json class
-/// @sa https://json.silicon.me/api/basic_json/exception/
+
+
+
+
+
 export class exception: public std::exception {
   public:
-    /// returns the explanatory string
+
     CORE_API const char *what() const noexcept override {
         return m.what();
     }
 
-    /// the id of the exception
-    const int id; // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
+
+    const int id;
 
   protected:
     JSON_HEDLEY_NON_NULL(3)
-    exception(int id_, const char *what_arg): id(id_), m(what_arg) {} // NOLINT(bugprone-throw-keyword-missing)
+    exception(int id_, const char *what_arg): id(id_), m(what_arg) {}
 
     CORE_API static std::string name(const std::string &ename, int id_) {
         return concat("[json.exception.", ename, '.', std::to_string(id_), "] ");
     }
 
-    CORE_API static std::string diagnostics(std::nullptr_t /*leaf_element*/) {
+    CORE_API static std::string diagnostics(std::nullptr_t ) {
         return "";
     }
 
@@ -92,16 +92,16 @@ export class exception: public std::exception {
                     break;
                 }
 
-                case value_t::null:            // LCOV_EXCL_LINE
-                case value_t::string:          // LCOV_EXCL_LINE
-                case value_t::boolean:         // LCOV_EXCL_LINE
-                case value_t::number_integer:  // LCOV_EXCL_LINE
-                case value_t::number_unsigned: // LCOV_EXCL_LINE
-                case value_t::number_float:    // LCOV_EXCL_LINE
-                case value_t::binary:          // LCOV_EXCL_LINE
-                case value_t::discarded:       // LCOV_EXCL_LINE
-                default:                       // LCOV_EXCL_LINE
-                    break;                     // LCOV_EXCL_LINE
+                case value_t::null:
+                case value_t::string:
+                case value_t::boolean:
+                case value_t::number_integer:
+                case value_t::number_unsigned:
+                case value_t::number_float:
+                case value_t::binary:
+                case value_t::discarded:
+                default:
+                    break;
             }
         }
 
@@ -120,23 +120,15 @@ export class exception: public std::exception {
     }
 
   private:
-    /// an exception object as storage for error messages
+
     std::runtime_error m;
 };
 
-/// @brief exception indicating a parse error
-/// @sa https://json.silicon.me/api/basic_json/parse_error/
+
+
 export class parse_error: public exception {
   public:
-    /*!
-    @brief create a parse error exception
-    @param[in] id_       the id of the exception
-    @param[in] pos       the position where the error occurred (or with
-                         chars_read_total=0 if the position cannot be
-                         determined)
-    @param[in] what_arg  the explanatory string
-    @return parse_error object
-    */
+    
     template<typename BasicJsonContext, enable_if_t<is_basic_json_context<BasicJsonContext>::value, int> = 0>
     static parse_error create(int id_, const position_t &pos, const std::string &what_arg, BasicJsonContext context) {
         const std::string w = concat(exception::name("parse_error", id_), "parse error", position_string(pos), ": ", exception::diagnostics(context), what_arg);
@@ -149,15 +141,7 @@ export class parse_error: public exception {
         return {id_, byte_, w.c_str()};
     }
 
-    /*!
-    @brief byte index of the parse error
-
-    The byte index of the last read character in the input file.
-
-    @note For an input with n bytes, 1 is the index of the first character and
-          n+1 is the index of the terminating null byte or the end of file.
-          This also holds true when reading a byte vector (CBOR or MessagePack).
-    */
+    
     const std::size_t byte;
 
   private:
@@ -169,8 +153,8 @@ export class parse_error: public exception {
     }
 };
 
-/// @brief exception indicating errors with iterators
-/// @sa https://json.silicon.me/api/basic_json/invalid_iterator/
+
+
 export class invalid_iterator: public exception {
   public:
     template<typename BasicJsonContext, enable_if_t<is_basic_json_context<BasicJsonContext>::value, int> = 0>
@@ -185,8 +169,8 @@ export class invalid_iterator: public exception {
         : exception(id_, what_arg) {}
 };
 
-/// @brief exception indicating executing a member function with a wrong type
-/// @sa https://json.silicon.me/api/basic_json/type_error/
+
+
 export class type_error: public exception {
   public:
     template<typename BasicJsonContext, enable_if_t<is_basic_json_context<BasicJsonContext>::value, int> = 0>
@@ -200,8 +184,8 @@ export class type_error: public exception {
     CORE_API type_error(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
-/// @brief exception indicating access out of the defined range
-/// @sa https://json.silicon.me/api/basic_json/out_of_range/
+
+
 export class out_of_range: public exception {
   public:
     template<typename BasicJsonContext, enable_if_t<is_basic_json_context<BasicJsonContext>::value, int> = 0>
@@ -215,8 +199,8 @@ export class out_of_range: public exception {
     CORE_API out_of_range(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
-/// @brief exception indicating other library errors
-/// @sa https://json.silicon.me/api/basic_json/other_error/
+
+
 export class other_error: public exception {
   public:
     template<typename BasicJsonContext, enable_if_t<is_basic_json_context<BasicJsonContext>::value, int> = 0>
@@ -230,5 +214,5 @@ export class other_error: public exception {
     CORE_API other_error(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
-} // namespace detail
+}
 SILICON_JSON_NAMESPACE_END

@@ -1,26 +1,4 @@
-/* ----------------------------------------------------------------------
-  ffi.c - Copyright (c) 2013 Imagination Technologies
 
-  Meta Foreign Function Interface
-  Permission is hereby granted, free of charge, to any person obtaining
-  a copy of this software and associated documentation files (the
-  `Software''), to deal in the Software without restriction, including
-  without limitation the rights to use, copy, modify, merge, publish,
-  distribute, sublicense, and/or sell copies of the Software, and to
-  permit persons to whom the Software is furnished to do so, subject to
-  the following conditions:
-
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED `AS IS'', WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-  IN NO EVENT SHALL SIMON POSNJAK BE LIABLE FOR ANY CLAIM, DAMAGES OR
-  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-  OTHER DEALINGS IN THE SOFTWARE.
------------------------------------------------------------------------ */
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -29,10 +7,7 @@
 
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
-/*
- * sffi_prep_args is called by the assembly routine once stack space has been
- * allocated for the function's arguments
- */
+
 
 unsigned int sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -43,7 +18,7 @@ unsigned int sffi_prep_args(char *stack, extended_cif *ecif)
 
 	argp = stack;
 
-	/* Store return value */
+	
 	if ( ecif->cif->flags == SFFI_TYPE_STRUCT ) {
 		argp -= 4;
 		*(void **) argp = ecif->rvalue;
@@ -51,16 +26,16 @@ unsigned int sffi_prep_args(char *stack, extended_cif *ecif)
 
 	p_argv = ecif->avalue;
 
-	/* point to next location */
+	
 	for (i = ecif->cif->nargs, p_arg = ecif->cif->arg_types; (i != 0); i--, p_arg++, p_argv++)
 	{
 		size_t z;
 
-		/* Move argp to address of argument */
+		
 		z = (*p_arg)->size;
 		argp -= z;
 
-		/* Align if necessary */
+		
 		argp = (char *) SFFI_ALIGN_DOWN(SFFI_ALIGN_DOWN(argp, (*p_arg)->alignment), 4);
 
 		if (z < sizeof(int)) {
@@ -91,12 +66,11 @@ unsigned int sffi_prep_args(char *stack, extended_cif *ecif)
 		}
 	}
 
-	/* return the size of the arguments to be passed in registers,
-	   padded to an 8 byte boundary to preserve stack alignment */
+	
 	return SFFI_ALIGN(MIN(stack - argp, 6*4), 8);
 }
 
-/* Perform machine dependent cif processing */
+
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
 	sffi_type **ptr;
@@ -106,31 +80,30 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 		if ((*ptr)->size == 0)
 			return SFFI_BAD_TYPEDEF;
 
-		/* Perform a sanity check on the argument type, do this
-		   check after the initialization.  */
+		
 		SFFI_ASSERT_VALID_TYPE(*ptr);
 
-		/* Add any padding if necessary */
+		
 		if (((*ptr)->alignment - 1) & bytes)
 			bytes = SFFI_ALIGN(bytes, (*ptr)->alignment);
 
 		bytes += SFFI_ALIGN((*ptr)->size, 4);
 	}
 
-	/* Ensure arg space is aligned to an 8-byte boundary */
+	
 	bytes = SFFI_ALIGN(bytes, 8);
 
-	/* Make space for the return structure pointer */
+	
 	if (cif->rtype->type == SFFI_TYPE_STRUCT) {
 		bytes += sizeof(void*);
 
-		/* Ensure stack is aligned to an 8-byte boundary */
+		
 		bytes = SFFI_ALIGN(bytes, 8);
 	}
 
 	cif->bytes = bytes;
 
-	/* Set the return type flag */
+	
 	switch (cif->rtype->type) {
 	case SFFI_TYPE_VOID:
 	case SFFI_TYPE_FLOAT:
@@ -142,15 +115,15 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 		cif->flags = (unsigned) SFFI_TYPE_SINT64;
 		break;
 	case SFFI_TYPE_STRUCT:
-		/* Meta can store return values which are <= 64 bits */
+		
 		if (cif->rtype->size <= 4)
-			/* Returned to D0Re0 as 32-bit value */
+			
 			cif->flags = (unsigned)SFFI_TYPE_INT;
 		else if ((cif->rtype->size > 4) && (cif->rtype->size <= 8))
-			/* Returned valued is stored to D1Re0|R0Re0 */
+			
 			cif->flags = (unsigned)SFFI_TYPE_DOUBLE;
 		else
-			/* value stored in memory */
+			
 			cif->flags = (unsigned)SFFI_TYPE_STRUCT;
 		break;
 	default:
@@ -162,14 +135,7 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 
 extern void sffi_call_SYSV(void (*fn)(void), extended_cif *, unsigned, unsigned, double *);
 
-/*
- * Exported in API. Entry point
- * cif -> sffi_cif object
- * fn -> function pointer
- * rvalue -> pointer to return value
- * avalue -> vector of void * pointers pointing to memory locations holding the
- * arguments
- */
+
 void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 {
 	extended_cif ecif;
@@ -180,10 +146,7 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
 	double temp;
 
-	/*
-	 * If the return value is a struct and we don't have a return value address
-	 * then we need to make one
-	 */
+	
 
 	if ((rvalue == NULL ) && (cif->flags == SFFI_TYPE_STRUCT))
 		ecif.rvalue = alloca(cif->rtype->size);
@@ -205,37 +168,31 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 		memcpy (rvalue, &temp, cif->rtype->size);
 }
 
-/* private members */
+
 
 static void sffi_prep_incoming_args_SYSV (char *, void **, void **,
 	sffi_cif*, float *);
 
 void sffi_closure_SYSV (sffi_closure *);
 
-/* Do NOT change that without changing the SFFI_TRAMPOLINE_SIZE */
-extern unsigned int sffi_metag_trampoline[10]; /* 10 instructions */
 
-/* end of private members */
+extern unsigned int sffi_metag_trampoline[10]; 
 
-/*
- * __tramp: trampoline memory location
- * __fun: assembly routine
- * __ctx: memory location for wrapper
- *
- * At this point, tramp[0] == __ctx !
- */
+
+
+
 void sffi_init_trampoline(unsigned char *__tramp, unsigned int __fun, unsigned int __ctx) {
 	memcpy (__tramp, sffi_metag_trampoline, sizeof(sffi_metag_trampoline));
 	*(unsigned int*) &__tramp[40] = __ctx;
 	*(unsigned int*) &__tramp[44] = __fun;
-	/* This will flush the instruction cache */
+	
 	__builtin_meta2_cachewd(&__tramp[0], 1);
 	__builtin_meta2_cachewd(&__tramp[47], 1);
 }
 
 
 
-/* the cif must already be prepared */
+
 
 sffi_status
 sffi_prep_closure_loc (sffi_closure *closure,
@@ -264,7 +221,7 @@ sffi_prep_closure_loc (sffi_closure *closure,
 }
 
 
-/* This function is jumped to by the trampoline */
+
 unsigned int sffi_closure_SYSV_inner (closure, respp, args, vfp_args)
 	sffi_closure *closure;
 	void **respp;
@@ -277,13 +234,7 @@ unsigned int sffi_closure_SYSV_inner (closure, respp, args, vfp_args)
 	cif = closure->cif;
 	arg_area = (void**) alloca (cif->nargs * sizeof (void*));
 
-	/*
-	 * This call will initialize ARG_AREA, such that each
-	 * element in that array points to the corresponding
-	 * value on the stack; and if the function returns
-	 * a structure, it will re-set RESP to point to the
-	 * structure return address.
-	 */
+	
 	sffi_prep_incoming_args_SYSV(args, respp, arg_area, cif, vfp_args);
 
 	(closure->fun) ( cif, *respp, arg_area, closure->user_data);
@@ -300,10 +251,10 @@ static void sffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
 	register char *argp;
 	register sffi_type **p_arg;
 
-	/* stack points to original arguments */
+	
 	argp = stack;
 
-	/* Store return value */
+	
 	if ( cif->flags == SFFI_TYPE_STRUCT ) {
 		argp -= 4;
 		*rvalue = *(void **) argp;

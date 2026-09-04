@@ -1,13 +1,6 @@
-/* Area:	sffi_call_plan
-   Purpose:	Check that a reusable call plan reproduces sffi_call for a
-		variadic signature prepared with sffi_prep_cif_var.  The
-		variadic double arguments travel in SSE registers, so the
-		fast path must set the vector-register count (al) correctly.
-   Limitations:	none.
-   PR:		none.
-   Originator:	sffi_call_plan tests  */
 
-/* { dg-do run } */
+
+
 #include <stdarg.h>
 #include "ffitest.h"
 

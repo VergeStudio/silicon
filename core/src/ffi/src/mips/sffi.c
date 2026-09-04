@@ -1,30 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2011  Anthony Green
-           Copyright (c) 2008  David Daney
-           Copyright (c) 1996, 2007, 2008, 2011  Red Hat, Inc.
-   
-   MIPS Foreign Function Interface 
 
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -68,8 +42,7 @@ if (argp == &stack[bytes]) \
 #endif
 
 
-/* sffi_prep_args is called by the assembly routine once stack space
-   has been allocated for the function's arguments */
+
 
 static void sffi_prep_args(char *stack, 
 			  extended_cif *ecif,
@@ -86,10 +59,8 @@ static void sffi_prep_args(char *stack,
 #ifdef SFFI_MIPS_N32
   int soft_float = (ecif->cif->abi == SFFI_N32_SOFT_FLOAT
 		    || ecif->cif->abi == SFFI_N64_SOFT_FLOAT);
-  /* If more than 8 double words are used, the remainder go
-     on the stack. We reorder stuff on the stack here to 
-     support this easily. */
-  /* if ret is _Complex long double, args reg shift2, and a0 should holds pointer to rvalue */
+  
+  
   if (ecif->cif->rtype->type == SFFI_TYPE_COMPLEX && ecif->cif->rtype->elements[0]->type == SFFI_TYPE_LONGDOUBLE)
     {
       if (bytes + 16 > 8 * sizeof(sffi_arg))
@@ -130,7 +101,7 @@ static void sffi_prep_args(char *stack,
       size_t z;
       unsigned int a;
 
-      /* Align if necessary.  */
+      
       a = (*p_arg)->alignment;
       if (a < sizeof(sffi_arg))
         a = sizeof(sffi_arg);
@@ -147,7 +118,7 @@ static void sffi_prep_args(char *stack,
           int type = (*p_arg)->type;
 	  z = sizeof(sffi_arg);
 
-          /* The size of a pointer depends on the ABI */
+          
           if (type == SFFI_TYPE_POINTER)
             type = (ecif->cif->abi == SFFI_N64
 		    || ecif->cif->abi == SFFI_N64_SOFT_FLOAT)
@@ -192,9 +163,7 @@ static void sffi_prep_args(char *stack,
 		  
 	      case SFFI_TYPE_UINT32:
 #ifdef SFFI_MIPS_N32
-		/* The N32 ABI requires that 32-bit integers
-		   be sign-extended to 64-bits, regardless of
-		   whether they are signed or unsigned. */
+		
 		*(sffi_arg *)argp = *(SINT32 *)(* p_argv);
 #else
 		*(sffi_arg *)argp = *(UINT32 *)(* p_argv);
@@ -203,9 +172,9 @@ static void sffi_prep_args(char *stack,
 
 #ifdef SFFI_MIPS_N32
 	      case SFFI_TYPE_COMPLEX:
-		/* expand from 4+4 to 8+8 if pass with fpr reg */
-		/* argp will wind back to stack when we process all of reg args */
-		/* all var_args passed with gpr, should be expand */
+		
+		
+		
 	        if(!soft_float
 		    && (*p_arg)->elements[0]->type == SFFI_TYPE_FLOAT
 		    && argp>=argp_f
@@ -220,12 +189,12 @@ static void sffi_prep_args(char *stack,
 		  memcpy(argp, *p_argv, (*p_arg)->size);
 		break;
 #endif
-	      /* This can only happen with 64bit slots.  */
+	      
 	      case SFFI_TYPE_FLOAT:
 		*(float *) argp = *(float *)(* p_argv);
 		break;
 
-	      /* Handle structures.  */
+	      
 	      default:
 		memcpy(argp, *p_argv, (*p_arg)->size);
 		break;
@@ -240,8 +209,7 @@ static void sffi_prep_args(char *stack,
 	    unsigned long end = (unsigned long) argp + z;
 	    unsigned long cap = (unsigned long) stack + bytes;
 
-	    /* Check if the data will fit within the register space.
-	       Handle it if it doesn't.  */
+	    
 
 	    if (end <= cap)
 	      memcpy(argp, *p_argv, z);
@@ -266,21 +234,17 @@ static void sffi_prep_args(char *stack,
 
 #ifdef SFFI_MIPS_N32
 
-/* The n32 spec says that if "a chunk consists solely of a double 
-   float field (but not a double, which is part of a union), it
-   is passed in a floating point register. Any other chunk is
-   passed in an integer register". This code traverses structure
-   definitions and generates the appropriate flags. */
+
 
 static int
 calc_n32_struct_flags_element(unsigned *flags, sffi_type *e,
 			      unsigned *loc, unsigned *arg_reg)
 {
-  /* Align this object.  */
+  
   *loc = SFFI_ALIGN(*loc, e->alignment);
   if (e->type == SFFI_TYPE_DOUBLE)
     {
-      /* Already aligned to SFFI_SIZEOF_ARG.  */
+      
       *arg_reg = *loc / SFFI_SIZEOF_ARG;
       if (*arg_reg > 7)
 	return 1;
@@ -316,7 +280,7 @@ calc_n32_struct_flags(int soft_float, sffi_type *arg,
 	  break;
       index++;
     }
-  /* Next Argument register at alignment of SFFI_SIZEOF_ARG.  */
+  
   *arg_reg = SFFI_ALIGN(*loc, SFFI_SIZEOF_ARG) / SFFI_SIZEOF_ARG;
 
   return flags;
@@ -329,12 +293,7 @@ calc_n32_return_struct_flags(int soft_float, sffi_type *arg)
   unsigned small = SFFI_TYPE_SMALLSTRUCT;
   sffi_type *e;
 
-  /* Returning structures under n32 is a tricky thing.
-     A struct with only one or two floating point fields 
-     is returned in $f0 (and $f2 if necessary). Any other
-     struct results at most 128 bits are returned in $2
-     (the first 64 bits) and $3 (remainder, if necessary).
-     Larger structs are handled normally. */
+  
   
   if (arg->size > 16)
     return 0;
@@ -353,8 +312,7 @@ calc_n32_return_struct_flags(int soft_float, sffi_type *arg)
 
       if (arg->elements[1])
 	{
-	  /* Two floating point fields with more fields!
-	     This must be passed the old way. */
+	  
 	  return small;
 	}
 
@@ -375,8 +333,7 @@ calc_n32_return_struct_flags(int soft_float, sffi_type *arg)
 
 	  if (arg->elements[2])
 	    {
-	      /* There are three arguments and the first two are
-		 floats! This must be passed the old way. */
+	      
 	      return small;
 	    }
 
@@ -391,16 +348,14 @@ calc_n32_return_struct_flags(int soft_float, sffi_type *arg)
 
 #endif
 
-/* Perform machine dependent cif processing */
+
 static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 {
   cif->flags = 0;
   cif->mips_nfixedargs = nfixedargs;
 
 #ifdef SFFI_MIPS_O32
-  /* Set the flags necessary for O32 processing.  SFFI_O32_SOFT_FLOAT
-   * does not have special handling for floating point args.
-   */
+  
 
   if (cif->rtype->type != SFFI_TYPE_STRUCT && cif->rtype->type != SFFI_TYPE_COMPLEX && cif->abi == SFFI_O32)
     {
@@ -419,8 +374,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 
 	  if (cif->nargs > 1)
 	    {
-	      /* Only handle the second argument if the first
-		 is a float or double. */
+	      
 	      if (cif->flags)
 		{
 		  switch ((cif->arg_types)[1]->type)
@@ -438,7 +392,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	}
     }
       
-  /* Set the return type flag */
+  
 
   if (cif->abi == SFFI_O32_SOFT_FLOAT)
     {
@@ -463,7 +417,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
     }
   else
     {
-      /* SFFI_O32 */      
+            
       switch (cif->rtype->type)
         {
         case SFFI_TYPE_VOID:
@@ -489,7 +443,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 #endif
 
 #ifdef SFFI_MIPS_N32
-  /* Set the flags necessary for N32 processing */
+  
   {
     unsigned arg_reg = 0;
     unsigned loc = 0;
@@ -506,8 +460,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 
 	if (struct_flags == 0)
 	  {
-	    /* This means that the structure is being passed as
-	       a hidden argument */
+	    
 
 	    arg_reg = 1;
 	    count = (cif->nargs < 7) ? cif->nargs : 7;
@@ -533,9 +486,9 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	    arg_reg++;
 	    break;
           case SFFI_TYPE_LONGDOUBLE:
-            /* Align it.  */
+            
             arg_reg = SFFI_ALIGN(arg_reg, 2);
-            /* Treat it as two adjacent doubles.  */
+            
 	    if (soft_float || index >= nfixedargs)
 	      {
 		arg_reg += 2;
@@ -575,11 +528,11 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 		    if (arg_reg >= 8)
 		        continue;
 		  }
-		/* passthrough */
+		
 	      case SFFI_TYPE_FLOAT:
-		// one fpr can only holds one arg even it is single
+
 		cif->bytes += 16;
-		/* passthrough */
+		
 	      case SFFI_TYPE_SINT32:
 	      case SFFI_TYPE_UINT32:
 	      case SFFI_TYPE_DOUBLE:
@@ -620,21 +573,18 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	index++;
       }
 
-  /* Set the return type flag */
+  
     switch (cif->rtype->type)
       {
       case SFFI_TYPE_STRUCT:
 	{
 	  if (struct_flags == 0)
 	    {
-	      /* The structure is returned through a hidden
-		 first argument. Do nothing, 'cause SFFI_TYPE_VOID 
-		 is 0 */
+	      
 	    }
 	  else
 	    {
-	      /* The structure is returned via some tricky
-		 mechanism */
+	      
 	      cif->flags += SFFI_TYPE_STRUCT << (SFFI_FLAG_BITS * 8);
 	      cif->flags += struct_flags << (4 + (SFFI_FLAG_BITS * 8));
 	    }
@@ -642,7 +592,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	}
       
       case SFFI_TYPE_VOID:
-	/* Do nothing, 'cause SFFI_TYPE_VOID is 0 */
+	
 	break;
 
       case SFFI_TYPE_POINTER:
@@ -658,7 +608,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	    cif->flags += SFFI_TYPE_SINT32 << (SFFI_FLAG_BITS * 8);
 	    break;
 	  }
-	/* else fall through */
+	
       case SFFI_TYPE_DOUBLE:
 	if (soft_float)
 	  cif->flags += SFFI_TYPE_UINT64 << (SFFI_FLAG_BITS * 8);
@@ -667,12 +617,10 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	break;
 
       case SFFI_TYPE_LONGDOUBLE:
-	/* Long double is returned as if it were a struct containing
-	   two doubles.  */
+	
 	if (soft_float)
 	  {
-	    /* if ret is long double, the ret is given by v0 and a0, no idea why
-	     * Let's us VOID | VOID | LONGDOUBLE for it*/
+	    
 	    cif->flags += SFFI_TYPE_LONGDOUBLE << (SFFI_FLAG_BITS * 8);
  	  }
 	else
@@ -709,15 +657,14 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	    }
 	  else
 	    {
-	      //cif->flags += (type + (type << SFFI_FLAG_BITS))
-		//	    << (4 + (SFFI_FLAG_BITS * 8));
+
+
 	      cif->flags += type << (4 + (SFFI_FLAG_BITS * 8));
 	    }
 	  break;
 	}
       case SFFI_TYPE_UINT32:
-	/* In the N32 or N64 ABI unsigned 32-bit integer should be
-	   *sign*-extended.  */
+	
 	cif->flags += SFFI_TYPE_SINT32 << (SFFI_FLAG_BITS * 8);
 	break;
       case SFFI_TYPE_SINT64:
@@ -744,12 +691,12 @@ sffi_status sffi_prep_cif_machdep_var(sffi_cif *cif,
     return sffi_prep_cif_machdep_int(cif, nfixedargs);
 }
 
-/* Low level routine for calling O32 functions */
+
 extern int sffi_call_O32(void (*)(char *, extended_cif *, int, int), 
 			extended_cif *, unsigned, 
 			unsigned, unsigned *, void (*)(void), void *closure);
 
-/* Low level routine for calling N32 functions */
+
 extern int sffi_call_N32(void (*)(char *, extended_cif *, int, int), 
 			extended_cif *, unsigned, 
 			unsigned, void *, void (*)(void), void *closure);
@@ -762,8 +709,8 @@ void sffi_call_int(sffi_cif *cif, void (*fn)(void), void *rvalue,
   ecif.cif = cif;
   ecif.avalue = avalue;
   
-  /* If the return value is a struct and we don't have a return	*/
-  /* value address then we need to make one		        */
+  
+  
   
   if ((rvalue == NULL) && 
       (cif->rtype->type == SFFI_TYPE_STRUCT || cif->rtype->type == SFFI_TYPE_COMPLEX))
@@ -792,9 +739,7 @@ void sffi_call_int(sffi_cif *cif, void (*fn)(void), void *rvalue,
         char *rvalue_copy = ecif.rvalue;
         if (cif->rtype->type == SFFI_TYPE_STRUCT && cif->rtype->size < 16)
           {
-            /* For structures smaller than 16 bytes we clobber memory
-               in 8 byte increments.  Make a copy so we don't clobber
-               the callers memory outside of the struct bounds.  */
+            
             rvalue_copy = alloca(16);
             copy_rvalue = 1;
           }
@@ -843,7 +788,7 @@ extern void sffi_go_closure_O32(void);
 #else
 extern void sffi_closure_N32(void);
 extern void sffi_go_closure_N32(void);
-#endif /* SFFI_MIPS_O32 */
+#endif 
 
 sffi_status
 sffi_prep_closure_loc (sffi_closure *closure,
@@ -871,54 +816,54 @@ sffi_prep_closure_loc (sffi_closure *closure,
     return SFFI_BAD_ABI;
 #endif
   fn = sffi_closure_N32;
-#endif /* SFFI_MIPS_O32 */
+#endif 
 
 #if defined(SFFI_MIPS_O32) || (_MIPS_SIM ==_ABIN32)
-  /* lui  $25,high(fn) */
+  
   tramp[0] = 0x3c190000 | ((unsigned)fn >> 16);
-  /* ori  $25,low(fn)  */
+  
   tramp[1] = 0x37390000 | ((unsigned)fn & 0xffff);
-  /* lui  $12,high(codeloc) */
+  
   tramp[2] = 0x3c0c0000 | ((unsigned)codeloc >> 16);
-  /* jr   $25          */
+  
 #if !defined(__mips_isa_rev) || (__mips_isa_rev<6)
   tramp[3] = 0x03200008;
 #else
   tramp[3] = 0x03200009;
 #endif
-  /* ori  $12,low(codeloc)  */
+  
   tramp[4] = 0x358c0000 | ((unsigned)codeloc & 0xffff);
 #else
-  /* N64 has a somewhat larger trampoline.  */
-  /* lui  $25,high(fn) */
+  
+  
   tramp[0] = 0x3c190000 | ((unsigned long)fn >> 48);
-  /* lui  $12,high(codeloc) */
+  
   tramp[1] = 0x3c0c0000 | ((unsigned long)codeloc >> 48);
-  /* ori  $25,mid-high(fn)  */
+  
   tramp[2] = 0x37390000 | (((unsigned long)fn >> 32 ) & 0xffff);
-  /* ori  $12,mid-high(codeloc)  */
+  
   tramp[3] = 0x358c0000 | (((unsigned long)codeloc >> 32) & 0xffff);
-  /* dsll $25,$25,16 */
+  
   tramp[4] = 0x0019cc38;
-  /* dsll $12,$12,16 */
+  
   tramp[5] = 0x000c6438;
-  /* ori  $25,mid-low(fn)  */
+  
   tramp[6] = 0x37390000 | (((unsigned long)fn >> 16 ) & 0xffff);
-  /* ori  $12,mid-low(codeloc)  */
+  
   tramp[7] = 0x358c0000 | (((unsigned long)codeloc >> 16) & 0xffff);
-  /* dsll $25,$25,16 */
+  
   tramp[8] = 0x0019cc38;
-  /* dsll $12,$12,16 */
+  
   tramp[9] = 0x000c6438;
-  /* ori  $25,low(fn)  */
+  
   tramp[10] = 0x37390000 | ((unsigned long)fn  & 0xffff);
-  /* jr   $25          */
+  
 #if !defined(__mips_isa_rev) || (__mips_isa_rev<6)
   tramp[11] = 0x03200008;
 #else
   tramp[11] = 0x03200009;
 #endif
-  /* ori  $12,low(codeloc)  */
+  
   tramp[12] = 0x358c0000 | ((unsigned long)codeloc & 0xffff);
 
 #endif
@@ -933,27 +878,11 @@ sffi_prep_closure_loc (sffi_closure *closure,
 #else
   cacheflush (clear_location, SFFI_TRAMPOLINE_SIZE, ICACHE);
 #endif
-#endif /* ! __FreeBSD__ */
+#endif 
   return SFFI_OK;
 }
 
-/*
- * Decodes the arguments to a function, which will be stored on the
- * stack. AR is the pointer to the beginning of the integer arguments
- * (and, depending upon the arguments, some floating-point arguments
- * as well). FPR is a pointer to the area where floating point
- * registers have been saved, if any.
- *
- * RVALUE is the location where the function return value will be
- * stored. CLOSURE is the prepared closure to invoke.
- *
- * This function should only be called from assembly, which is in
- * turn called from a trampoline.
- *
- * Returns the function return type.
- *
- * Based on the similar routine for sparc.
- */
+
 int
 sffi_closure_mips_inner_O32 (sffi_cif *cif,
                             void (*fun)(sffi_cif*, void*, void**, void*),
@@ -1038,7 +967,7 @@ sffi_closure_mips_inner_O32 (sffi_cif *cif,
       i++;
     }
 
-  /* Invoke the closure. */
+  
   fun(cif, rvalue, avaluep, user_data);
 
   if (cif->abi == SFFI_O32_SOFT_FLOAT)
@@ -1102,21 +1031,7 @@ copy_struct_N32(char *target, unsigned offset, sffi_abi abi, sffi_type *type,
     }
 }
 
-/*
- * Decodes the arguments to a function, which will be stored on the
- * stack. AR is the pointer to the beginning of the integer
- * arguments. FPR is a pointer to the area where floating point
- * registers have been saved.
- *
- * RVALUE is the location where the function return value will be
- * stored. CLOSURE is the prepared closure to invoke.
- *
- * This function should only be called from assembly, which is in
- * turn called from a trampoline.
- *
- * Returns the function return flags.
- *
- */
+
 int
 sffi_closure_mips_inner_N32 (sffi_cif *cif, 
 			    void (*fun)(sffi_cif*, void*, void**, void*),
@@ -1142,7 +1057,7 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
     {
 #if _MIPS_SIM==_ABIN32
       rvalue = (void *)(UINT32)ar[0];
-#else /* N64 */
+#else 
       rvalue = (void *)ar[0];
 #endif
       argn = 1;
@@ -1180,7 +1095,7 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
         }
       else if (arg_types[i]->type == SFFI_TYPE_COMPLEX && arg_types[i]->elements[0]->type == SFFI_TYPE_LONGDOUBLE)
         {
-	  /* align long double */
+	  
 	  argn += ((argn & 0x1)? 1 : 0);
           argp = (argn >= 8 || i >= cif->mips_nfixedargs || soft_float) ? ar + argn : fpr + argn;
           avaluep[i] = (char *) argp;
@@ -1192,7 +1107,7 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
 	  else
 	    {
 	      argp = fpr + argn;
-	      /* the normal args for function holds 8bytes, while here we convert it to ptr */
+	      
 	      uint32_t *tmp = (uint32_t *)argp;
 	      tmp[1] = tmp[2];
 	    }
@@ -1207,7 +1122,7 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
 
           argp = ar + argn;
 
-          /* The size of a pointer depends on the ABI */
+          
           if (type == SFFI_TYPE_POINTER)
             type = (cif->abi == SFFI_N64 || cif->abi == SFFI_N64_SOFT_FLOAT)
 	      ? SFFI_TYPE_SINT64 : SFFI_TYPE_UINT32;
@@ -1250,15 +1165,14 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
             case SFFI_TYPE_STRUCT:
               if (argn < 8)
                 {
-                  /* Allocate space for the struct as at least part of
-                     it was passed in registers.  */
+                  
                   avaluep[i] = alloca(arg_types[i]->size);
                   copy_struct_N32(avaluep[i], 0, cif->abi, arg_types[i],
                                   argn, 0, ar, fpr, i >= cif->mips_nfixedargs || soft_float);
 
                   break;
                 }
-              /* Else fall through.  */
+              
             default:
               avaluep[i] = (char *) argp;
               break;
@@ -1268,13 +1182,13 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
       i++;
     }
 
-  /* Invoke the closure. */
+  
   fun (cif, rvalue, avaluep, user_data);
 
   return cif->flags >> (SFFI_FLAG_BITS * 8);
 }
 
-#endif /* SFFI_MIPS_N32 */
+#endif 
 
 #if defined(SFFI_MIPS_O32)
 extern void sffi_closure_O32(void);
@@ -1282,7 +1196,7 @@ extern void sffi_go_closure_O32(void);
 #else
 extern void sffi_closure_N32(void);
 extern void sffi_go_closure_N32(void);
-#endif /* SFFI_MIPS_O32 */
+#endif 
 
 sffi_status
 sffi_prep_go_closure (sffi_go_closure* closure, sffi_cif* cif,
@@ -1305,7 +1219,7 @@ sffi_prep_go_closure (sffi_go_closure* closure, sffi_cif* cif,
     return SFFI_BAD_ABI;
 #endif
   fn = sffi_go_closure_N32;
-#endif /* SFFI_MIPS_O32 */
+#endif 
 
   closure->tramp = (void *)fn;
   closure->cif = cif;
@@ -1314,4 +1228,4 @@ sffi_prep_go_closure (sffi_go_closure* closure, sffi_cif* cif,
   return SFFI_OK;
 }
 
-#endif /* SFFI_CLOSURES */
+#endif 

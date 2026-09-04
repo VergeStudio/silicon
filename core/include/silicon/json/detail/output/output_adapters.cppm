@@ -1,29 +1,29 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
-#include <algorithm> // copy
-#include <cstddef>   // size_t
-#include <iterator>  // back_inserter
-#include <memory>    // shared_ptr, make_shared
-#include <string>    // basic_string
-#include <vector>    // vector
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <vector>
 #ifndef JSON_NO_IO
-#    include <ios>     // streamsize
-#    include <ostream> // basic_ostream
+#    include <ios>
+#    include <ostream>
 #endif
 
 export module silicon.json:detail.output.output_adapters;
@@ -34,7 +34,7 @@ export module silicon.json:detail.output.output_adapters;
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
 
-/// abstract output adapter interface
+
 export template<typename CharType>
 struct output_adapter_protocol {
     virtual void write_character(CharType c) = 0;
@@ -48,11 +48,11 @@ struct output_adapter_protocol {
     output_adapter_protocol &operator=(output_adapter_protocol &&) noexcept = default;
 };
 
-/// a type to simplify interfaces
+
 export template<typename CharType>
 using output_adapter_t = std::shared_ptr<output_adapter_protocol<CharType>>;
 
-/// output adapter for byte vectors
+
 export template<typename CharType, typename AllocatorType = std::allocator<CharType>>
 class output_vector_adapter: public output_adapter_protocol<CharType> {
   public:
@@ -73,7 +73,7 @@ class output_vector_adapter: public output_adapter_protocol<CharType> {
 };
 
 #ifndef JSON_NO_IO
-/// output adapter for output streams
+
 export template<typename CharType>
 class output_stream_adapter: public output_adapter_protocol<CharType> {
   public:
@@ -94,7 +94,7 @@ class output_stream_adapter: public output_adapter_protocol<CharType> {
 };
 #endif
 
-/// output adapter for basic_string
+
 export template<typename CharType, typename StringType = std::basic_string<CharType>>
 class output_string_adapter: public output_adapter_protocol<CharType> {
   public:
@@ -137,5 +137,5 @@ class output_adapter {
     output_adapter_t<CharType> oa = nullptr;
 };
 
-} // namespace detail
+}
 SILICON_JSON_NAMESPACE_END

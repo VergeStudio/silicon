@@ -1,13 +1,9 @@
-/* Area:	sffi_call
-   Purpose:	Check complex int128 call and return.
-   Limitations:	none.
-   PR:		none. */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
-/* clang defines __SIZEOF_INT128__ but does not support _Complex __int128,
-   so exclude it here and fall through to the trivial main() below. */
+
 #if defined(SFFI_TARGET_HAS_INT128) && \
     defined(SFFI_TARGET_HAS_COMPLEX_TYPE) && \
     defined(__SIZEOF_INT128__) && \

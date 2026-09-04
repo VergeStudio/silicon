@@ -1,32 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (C) 2013 IBM
-           Copyright (C) 2011, 2026 Anthony Green
-           Copyright (C) 2011 Kyle Moffett
-           Copyright (C) 2008 Red Hat, Inc
-           Copyright (C) 2007, 2008 Free Software Foundation, Inc
-	   Copyright (c) 1998 Geoffrey Keating
 
-   PowerPC Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR
-   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-   OTHER DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include "sffi.h"
 #include "sffi_common.h"
@@ -35,7 +7,7 @@
 #include <tramp.h>
 
 #if HAVE_LONG_DOUBLE_VARIANT
-/* Adjust sffi_type_longdouble.  */
+
 void SFFI_HIDDEN
 sffi_prep_types (sffi_abi abi)
 {
@@ -49,7 +21,7 @@ sffi_prep_types (sffi_abi abi)
 }
 #endif
 
-/* Perform machine dependent cif processing */
+
 sffi_status SFFI_HIDDEN
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
@@ -79,16 +51,7 @@ sffi_call_int (sffi_cif *cif,
 	      void **avalue,
 	      void *closure)
 {
-  /* The final SYSV ABI says that structures smaller or equal 8 bytes
-     are returned in r3/r4.  A draft ABI used by linux instead returns
-     them in memory.
-
-     We bounce-buffer SYSV small struct return values so that sysv.S
-     can write r3 and r4 to memory without worrying about struct size.
-   
-     For ELFv2 ABI, use a bounce buffer for homogeneous structs too,
-     for similar reasons. This bounce buffer must be aligned to 16
-     bytes for use with homogeneous structs of vectors (float128).  */
+  
   float128 smst_buffer[8];
   extended_cif ecif;
 
@@ -98,8 +61,7 @@ sffi_call_int (sffi_cif *cif,
   ecif.rvalue = rvalue;
   if ((cif->flags & FLAG_RETURNS_SMST) != 0)
     ecif.rvalue = smst_buffer;
-  /* Ensure that we have a valid struct return value.
-     FIXME: Isn't this just papering over a user problem?  */
+  
   else if (!rvalue && cif->rtype->type == SFFI_TYPE_STRUCT)
     ecif.rvalue = alloca (cif->rtype->size);
 
@@ -110,16 +72,12 @@ sffi_call_int (sffi_cif *cif,
   sffi_call_SYSV (&ecif, fn, ecif.rvalue, cif->flags, closure, -cif->bytes);
 #endif
 
-  /* Check for a bounce-buffered return value */
+  
   if (rvalue && ecif.rvalue == smst_buffer)
     {
       unsigned int rsize = cif->rtype->size;
 #ifdef SFFI_TARGET_HAS_COMPLEX_TYPE
-      /* Integer-typed _Complex: the .Lsmall_struct return path stored
-	 r3 at buffer offset 0 and r4 at offset 8.  Extract one inner-
-	 sized half from each slot — right-justified on BE, low-address
-	 on LE — and lay them out as the natural packed complex value
-	 the caller expects (real@0, imag@hsize).  */
+      
       if (cif->rtype->type == SFFI_TYPE_COMPLEX
 	  && (cif->flags & (FLAG_RETURNS_FP | FLAG_RETURNS_VEC)) == 0)
 	{
@@ -135,17 +93,13 @@ sffi_call_int (sffi_cif *cif,
       else
 #endif
 #ifndef __LITTLE_ENDIAN__
-      /* The SYSV ABI returns a structure of up to 4 bytes in size
-	 left-padded in r3.  */
+      
 # ifndef POWERPC64
       if (rsize <= 4)
 	memcpy (rvalue, (char *) smst_buffer + 4 - rsize, rsize);
       else
 # endif
-	/* The SYSV ABI returns a structure of up to 8 bytes in size
-	   left-padded in r3/r4, and the ELFv2 ABI similarly returns a
-	   structure of up to 8 bytes in size left-padded in r3. But
-	   note that a structure of a single float is not paddded.  */
+	
 	if (rsize <= 8 && (cif->flags & FLAG_RETURNS_FP) == 0)
 	  memcpy (rvalue, (char *) smst_buffer + 8 - rsize, rsize);
 	else
@@ -204,8 +158,7 @@ sffi_tramp_arch (size_t *tramp_size, size_t *map_size)
   *tramp_size = PPC_TRAMP_SIZE;
   *map_size = PPC_TRAMP_MAP_SIZE;
 #if defined (_CALL_AIX) || _CALL_ELF == 1
-  /* The caller wants the entry point address of the trampoline code,
-     not the address of the function descriptor.  */
+  
   return *(void **)trampoline_code_table;
 #else
   return &trampoline_code_table;

@@ -1,23 +1,23 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
-#include <cstdint> // size_t
-#include <string>  // string
-#include <utility> // declval
+#include <cstdint>
+#include <string>
+#include <utility>
 
 export module silicon.json:detail.meta.is_sax;
 
@@ -156,5 +156,5 @@ struct is_sax_static_asserts {
     );
 };
 
-} // namespace detail
+}
 SILICON_JSON_NAMESPACE_END

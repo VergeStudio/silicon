@@ -1,10 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check passing of multiple unsigned short values.
-   Limitations:	none.
-   PR:		PR13221.
-   Originator:	<andreast@gcc.gnu.org> 20031129  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static unsigned short test_func_fn(unsigned short a1, unsigned short a2)
@@ -57,21 +53,21 @@ int main (void)
   cl_arg_types[1] = &sffi_type_ushort;
   cl_arg_types[2] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 2,
 		     &sffi_type_ushort, cl_arg_types) == SFFI_OK);
 
   sffi_call(&cif, SFFI_FN(test_func_fn), &res_call, args_dbl);
-  /* { dg-output "2 32765: 32767" } */
+  
   printf("res: %d\n", (unsigned short)res_call);
-  /* { dg-output "\nres: 32767" } */
+  
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, test_func_gn, NULL, code)  == SFFI_OK);
 
   res_closure = (*((test_type)code))(2, 32765);
-  /* { dg-output "\n2 32765: 32767" } */
+  
   printf("res: %d\n", res_closure);
-  /* { dg-output "\nres: 32767" } */
+  
   CHECK(res_closure == 32767);
 
   exit(0);

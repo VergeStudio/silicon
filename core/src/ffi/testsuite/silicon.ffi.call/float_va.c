@@ -1,21 +1,12 @@
-/* Area:        fp and variadics
-   Purpose:     check fp inputs and returns work on variadics, even the fixed params
-   Limitations: None
-   PR:          none
-   Originator:  <david.gilbert@linaro.org> 2011-01-25
 
-   Intended to stress the difference in ABI on ARM vfp
-*/
 
-/* { dg-do run } */
+
 
 #include <stdarg.h>
 
 #include "ffitest.h"
 
-/* prints out all the parameters, and returns the sum of them all.
- * 'x' is the number of variadic parameters all of which are double in this test
- */
+
 double float_va_fn(unsigned int x, double y,...)
 {
   double total=0.0;
@@ -51,14 +42,12 @@ int main (void)
   unsigned int firstarg;
   double        resfp;
 
-  /* First test, pass float_va_fn(0,2.0) - note there are no actual
-   * variadic parameters, but it's declared variadic so the ABI may be
-   * different. */
-  /* Call it statically and then via ffi */
+  
+  
   resfp=float_va_fn(0,2.0);
-  /* { dg-output "0: 2.0 : total: 2.0" } */
+  
   printf("compiled: %.1f\n", resfp);
-  /* { dg-output "\ncompiled: 2.0" } */
+  
 
   arg_types[0] = &sffi_type_uint;
   arg_types[1] = &sffi_type_double;
@@ -71,17 +60,17 @@ int main (void)
   values[0] = &firstarg;
   values[1] = &doubles[0];
   sffi_call(&cif, SFFI_FN(float_va_fn), &resfp, values);
-  /* { dg-output "\n0: 2.0 : total: 2.0" } */
+  
   printf("ffi: %.1f\n", resfp);
-  /* { dg-output "\nffi: 2.0" } */
+  
   CHECK_DOUBLE_EQ(resfp, 2);
 
-  /* Second test, float_va_fn(2,2.0,3.0,4.0), now with variadic params */
-  /* Call it statically and then via ffi */
+  
+  
   resfp=float_va_fn(2,2.0,3.0,4.0);
-  /* { dg-output "\n2: 2.0 : 0:3.0  1:4.0  total: 11.0" } */
+  
   printf("compiled: %.1f\n", resfp);
-  /* { dg-output "\ncompiled: 11.0" } */
+  
   CHECK_DOUBLE_EQ(resfp, 11);
 
   arg_types[0] = &sffi_type_uint;
@@ -101,9 +90,9 @@ int main (void)
   values[2] = &doubles[1];
   values[3] = &doubles[2];
   sffi_call(&cif, SFFI_FN(float_va_fn), &resfp, values);
-  /* { dg-output "\n2: 2.0 : 0:3.0  1:4.0  total: 11.0" } */
+  
   printf("ffi: %.1f\n", resfp);
-  /* { dg-output "\nffi: 11.0" } */
+  
   CHECK_DOUBLE_EQ(resfp, 11);
 
   exit(0);

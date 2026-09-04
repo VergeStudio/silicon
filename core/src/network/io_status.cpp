@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network (io_status shared helpers).
+
 
 module;
 
@@ -10,7 +10,7 @@ module silicon.network;
 
 import silicon.coroutine;
 
-// ── Shared: message() preamble (same on all platforms) ──────────────────
+
 std::string silicon::network::io_status::message() const {
     if(not is_native()) {
         return std::string{to_string(type)};
@@ -20,16 +20,16 @@ std::string silicon::network::io_status::message() const {
         return "Success";
     }
 
-    // Platform-specific error message retrieval
+
     return message_impl(native_code);
 }
 
-// ── make_io_status_from_native (platform dispatch) ────────────────────
+
 silicon::network::io_status silicon::network::make_io_status_from_native(int native_code) {
     return make_io_status_from_native_impl(native_code);
 }
 
-// ── make_io_status_from_poll_status (shared — no platform deps) ───────
+
 silicon::network::io_status silicon::network::make_io_status_from_poll_status(silicon::scheduler::poll_status status) {
     switch(status) {
         case silicon::scheduler::poll_status::read:
@@ -48,7 +48,7 @@ silicon::network::io_status silicon::network::make_io_status_from_poll_status(si
     }
 }
 
-// ── to_string (shared) ────────────────────────────────────────────
+
 std::string_view silicon::network::to_string(silicon::network::io_status::kind k) {
     using kind = io_status::kind;
     switch(k) {

@@ -1,10 +1,6 @@
-/* Area:	closure_call
-   Purpose:	Check simple closure handling with all ABIs
-   Limitations:	none.
-   PR:		none.
-   Originator:	<twalljava@dev.java.net> */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static void
@@ -43,18 +39,18 @@ int main (void)
   cl_arg_types[3] = &sffi_type_uint;
   cl_arg_types[4] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 4,
 		     &sffi_type_sint, cl_arg_types) == SFFI_OK);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, closure_test,
-                             (void *) 3 /* userdata */, code) == SFFI_OK);
+                             (void *) 3 , code) == SFFI_OK);
 
   res = (*(closure_test_type0)code)(0, 1, 2, 3);
-  /* { dg-output "0 1 2 3: 9" } */
+  
 
   printf("res: %d\n",res);
-  /* { dg-output "\nres: 9" } */
+  
   CHECK(res == 9);
 
   exit(0);

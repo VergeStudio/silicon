@@ -1,32 +1,4 @@
-/* -----------------------------------------------------------------------
-   sffi_sysv.c - Copyright (C) 2013 IBM
-                Copyright (C) 2011, 2026 Anthony Green
-                Copyright (C) 2011 Kyle Moffett
-                Copyright (C) 2008 Red Hat, Inc
-                Copyright (C) 2007, 2008 Free Software Foundation, Inc
-                Copyright (c) 1998 Geoffrey Keating
 
-   PowerPC Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR
-   OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-   ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-   OTHER DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include "sffi.h"
 #include <tramp.h>
@@ -37,14 +9,14 @@
 #include "sffi_powerpc.h"
 
 
-/* About the SYSV ABI.  */
+
 #define ASM_NEEDS_REGISTERS 6
 #define NUM_GPR_ARG_REGISTERS 8
 #define NUM_FPR_ARG_REGISTERS 8
 
 
 #if HAVE_LONG_DOUBLE_VARIANT && SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
-/* Adjust size of sffi_type_longdouble.  */
+
 void SFFI_HIDDEN
 sffi_prep_types_sysv (sffi_abi abi)
 {
@@ -61,7 +33,7 @@ sffi_prep_types_sysv (sffi_abi abi)
 }
 #endif
 
-/* Transform long double, double and float to other types as per abi.  */
+
 static int
 translate_float (int abi, int type)
 {
@@ -89,7 +61,7 @@ translate_float (int abi, int type)
   return type;
 }
 
-/* Perform machine dependent cif processing */
+
 static sffi_status
 sffi_prep_cif_sysv_core (sffi_cif *cif)
 {
@@ -101,25 +73,15 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
   unsigned type = cif->rtype->type;
   unsigned size = cif->rtype->size;
 
-  /* The machine-independent calculation of cif->bytes doesn't work
-     for us.  Redo the calculation.  */
+  
 
-  /* Space for the frame pointer, callee's LR, and the asm's temp regs.  */
+  
   bytes = (2 + ASM_NEEDS_REGISTERS) * sizeof (int);
 
-  /* Space for the GPR registers.  */
+  
   bytes += NUM_GPR_ARG_REGISTERS * sizeof (int);
 
-  /* Return value handling.  The rules for SYSV are as follows:
-     - 32-bit (or less) integer values are returned in gpr3;
-     - Structures of size <= 4 bytes also returned in gpr3;
-     - 64-bit integer values and structures between 5 and 8 bytes are returned
-     in gpr3 and gpr4;
-     - Larger structures are allocated space and a pointer is passed as
-     the first argument.
-     - Single/double FP values are returned in fpr1;
-     - long doubles (if not equivalent to double) are returned in
-     fpr1,fpr2 for Linux and as for large structs for SysV.  */
+  
 
   type = translate_float (cif->abi, type);
 
@@ -128,11 +90,11 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
     case SFFI_TYPE_LONGDOUBLE:
       flags |= FLAG_RETURNS_128BITS;
-      /* Fall through.  */
+      
 #endif
     case SFFI_TYPE_DOUBLE:
       flags |= FLAG_RETURNS_64BITS;
-      /* Fall through.  */
+      
     case SFFI_TYPE_FLOAT:
       flags |= FLAG_RETURNS_FP;
 #ifdef __NO_FPRS__
@@ -142,16 +104,14 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 
     case SFFI_TYPE_UINT128:
       flags |= FLAG_RETURNS_128BITS;
-      /* Fall through.  */
+      
     case SFFI_TYPE_UINT64:
     case SFFI_TYPE_SINT64:
       flags |= FLAG_RETURNS_64BITS;
       break;
 
     case SFFI_TYPE_STRUCT:
-      /* The final SYSV ABI says that structures smaller or equal 8 bytes
-	 are returned in r3/r4.  A draft ABI used by linux instead
-	 returns them in memory.  */
+      
       if ((cif->abi & SFFI_SYSV_STRUCT_RET) != 0 && size <= 8)
 	{
 	  flags |= FLAG_RETURNS_SMST;
@@ -159,21 +119,17 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	}
       gpr_count++;
       flags |= FLAG_RETVAL_REFERENCE;
-      /* Fall through.  */
+      
     case SFFI_TYPE_VOID:
       flags |= FLAG_RETURNS_NOTHING;
       break;
 
     default:
-      /* Returns 32-bit integer, or similar.  Nothing to do here.  */
+      
       break;
     }
 
-  /* The first NUM_GPR_ARG_REGISTERS words of integer arguments, and the
-     first NUM_FPR_ARG_REGISTERS fp arguments, go in registers; the rest
-     goes on the stack.  Structures and long doubles (if not equivalent
-     to double) are passed as a pointer to a copy of the structure.
-     Stuff on the stack needs to keep proper alignment.  */
+  
   for (ptr = cif->arg_types, i = cif->nargs; i > 0; i--, ptr++)
     {
       unsigned short typenum = (*ptr)->type;
@@ -187,7 +143,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	  if (fpr_count >= NUM_FPR_ARG_REGISTERS - 1)
 	    {
 	      fpr_count = NUM_FPR_ARG_REGISTERS;
-	      /* 8-byte align long doubles.  */
+	      
 	      stack_count += stack_count & 1;
 	      stack_count += 4;
 	    }
@@ -202,7 +158,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	case SFFI_TYPE_DOUBLE:
 	  if (fpr_count >= NUM_FPR_ARG_REGISTERS)
 	    {
-	      /* 8-byte align doubles.  */
+	      
 	      stack_count += stack_count & 1;
 	      stack_count += 2;
 	    }
@@ -215,7 +171,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 
 	case SFFI_TYPE_FLOAT:
 	  if (fpr_count >= NUM_FPR_ARG_REGISTERS)
-	    /* Yes, we don't follow the ABI, but neither does gcc.  */
+	    
 	    stack_count += 1;
 	  else
 	    fpr_count += 1;
@@ -225,9 +181,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	  break;
 
 	case SFFI_TYPE_UINT128:
-	  /* A long double in SFFI_LINUX_SOFT_FLOAT can use only a set
-	     of four consecutive gprs. If we do not have enough, we
-	     have to adjust the gpr_count value.  */
+	  
 	  if (gpr_count >= NUM_GPR_ARG_REGISTERS - 3)
 	    gpr_count = NUM_GPR_ARG_REGISTERS;
 	  if (gpr_count >= NUM_GPR_ARG_REGISTERS)
@@ -238,14 +192,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 
 	case SFFI_TYPE_UINT64:
 	case SFFI_TYPE_SINT64:
-	  /* 'long long' arguments are passed as two words, but
-	     either both words must fit in registers or both go
-	     on the stack.  If they go on the stack, they must
-	     be 8-byte-aligned.
-
-	     Also, only certain register pairs can be used for
-	     passing long long int -- specifically (r3,r4), (r5,r6),
-	     (r7,r8), (r9,r10).  */
+	  
 	  gpr_count += gpr_count & 1;
 	  if (gpr_count >= NUM_GPR_ARG_REGISTERS)
 	    {
@@ -257,12 +204,9 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	  break;
 
 	case SFFI_TYPE_STRUCT:
-	  /* We must allocate space for a copy of these to enforce
-	     pass-by-value.  Pad the space up to a multiple of 16
-	     bytes (the maximum alignment required for anything under
-	     the SYSV ABI).  */
+	  
 	  struct_copy_size += ((*ptr)->size + 15) & ~0xF;
-	  /* Fall through (allocate space for the pointer).  */
+	  
 
 	case SFFI_TYPE_POINTER:
 	case SFFI_TYPE_INT:
@@ -272,8 +216,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	case SFFI_TYPE_SINT16:
 	case SFFI_TYPE_UINT8:
 	case SFFI_TYPE_SINT8:
-	  /* Everything else is passed as a 4-byte word in a GPR, either
-	     the object itself or a pointer to it.  */
+	  
 	  if (gpr_count >= NUM_GPR_ARG_REGISTERS)
 	    stack_count += 1;
 	  else
@@ -292,17 +235,17 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
   if (struct_copy_size != 0)
     flags |= FLAG_ARG_NEEDS_COPY;
 
-  /* Space for the FPR registers, if needed.  */
+  
   if (fpr_count != 0)
     bytes += NUM_FPR_ARG_REGISTERS * sizeof (double);
 
-  /* Stack space.  */
+  
   bytes += stack_count * sizeof (int);
 
-  /* The stack space allocated needs to be a multiple of 16 bytes.  */
+  
   bytes = (bytes + 15) & ~0xF;
 
-  /* Add in the space for the copied structures.  */
+  
   bytes += struct_copy_size;
 
   cif->flags = flags;
@@ -316,7 +259,7 @@ sffi_prep_cif_sysv (sffi_cif *cif)
 {
   if ((cif->abi & SFFI_SYSV) == 0)
     {
-      /* This call is from old code.  Translate to new ABI values.  */
+      
       cif->flags |= FLAG_COMPAT;
       switch (cif->abi)
 	{
@@ -345,31 +288,7 @@ sffi_prep_cif_sysv (sffi_cif *cif)
   return sffi_prep_cif_sysv_core (cif);
 }
 
-/* sffi_prep_args_SYSV is called by the assembly routine once stack space
-   has been allocated for the function's arguments.
 
-   The stack layout we want looks like this:
-
-   |   Return address from sffi_call_SYSV 4bytes	|	higher addresses
-   |--------------------------------------------|
-   |   Previous backchain pointer	4	|       stack pointer here
-   |--------------------------------------------|<+ <<<	on entry to
-   |   Saved r28-r31			4*4	| |	sffi_call_SYSV
-   |--------------------------------------------| |
-   |   GPR registers r3-r10		8*4	| |	sffi_call_SYSV
-   |--------------------------------------------| |
-   |   FPR registers f1-f8 (optional)	8*8	| |
-   |--------------------------------------------| |	stack	|
-   |   Space for copied structures		| |	grows	|
-   |--------------------------------------------| |	down    V
-   |   Parameters that didn't fit in registers  | |
-   |--------------------------------------------| |	lower addresses
-   |   Space for callee's LR		4	| |
-   |--------------------------------------------| |	stack pointer here
-   |   Current backchain pointer	4	|-/	during
-   |--------------------------------------------|   <<<	sffi_call_SYSV
-
-*/
 
 void SFFI_HIDDEN
 sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
@@ -386,26 +305,23 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
     double *d;
   } valp;
 
-  /* 'stacktop' points at the previous backchain pointer.  */
+  
   valp stacktop;
 
-  /* 'gpr_base' points at the space for gpr3, and grows upwards as
-     we use GPR registers.  */
+  
   valp gpr_base;
   valp gpr_end;
 
 #ifndef __NO_FPRS__
-  /* 'fpr_base' points at the space for fpr1, and grows upwards as
-     we use FPR registers.  */
+  
   valp fpr_base;
   valp fpr_end;
 #endif
 
-  /* 'copy_space' grows down as we put structures in it.  It should
-     stay 16-byte aligned.  */
+  
   valp copy_space;
 
-  /* 'next_arg' grows up as we put parameters in it.  */
+  
   valp next_arg;
 
   int i;
@@ -441,18 +357,18 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 #endif
   next_arg.u = stack + 2;
 
-  /* Check that everything starts aligned properly.  */
+  
   SFFI_ASSERT (((unsigned long) (char *) stack & 0xF) == 0);
   SFFI_ASSERT (((unsigned long) copy_space.c & 0xF) == 0);
   SFFI_ASSERT (((unsigned long) stacktop.c & 0xF) == 0);
   SFFI_ASSERT ((bytes & 0xF) == 0);
   SFFI_ASSERT (copy_space.c >= next_arg.c);
 
-  /* Deal with return values that are actually pass-by-reference.  */
+  
   if (flags & FLAG_RETVAL_REFERENCE)
     *gpr_base.u++ = (unsigned) (char *) ecif->rvalue;
 
-  /* Now for the arguments.  */
+  
   p_argv.v = ecif->avalue;
   for (ptr = ecif->cif->arg_types, i = ecif->cif->nargs;
        i > 0;
@@ -462,7 +378,7 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 
       typenum = translate_float (ecif->cif->abi, typenum);
 
-      /* Now test the translated value */
+      
       switch (typenum)
 	{
 #ifndef __NO_FPRS__
@@ -516,13 +432,10 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 	    *fpr_base.d++ = double_tmp;
 	  SFFI_ASSERT (flags & FLAG_FP_ARGUMENTS);
 	  break;
-#endif /* have FPRs */
+#endif 
 
 	case SFFI_TYPE_UINT128:
-	  /* The soft float ABI for long doubles works like this, a long double
-	     is passed in four consecutive GPRs if available.  A maximum of 2
-	     long doubles can be passed in gprs.  If we do not have 4 GPRs
-	     left, the long double is passed on the stack, 4-byte aligned.  */
+	  
 	  if (gpr_base.u >= gpr_end.u - 3)
 	    {
 	      unsigned int ii;
@@ -556,11 +469,7 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 	    }
 	  else
 	    {
-	      /* The abi states only certain register pairs can be
-		 used for passing long long int specifically (r3,r4),
-		 (r5,r6), (r7,r8), (r9,r10).  If next arg is long long
-		 but not correct starting register of pair then skip
-		 until the proper starting register.  */
+	      
 	      if (((gpr_end.u - gpr_base.u) & 1) != 0)
 		gpr_base.u++;
 	      *gpr_base.ll++ = **p_argv.ll;
@@ -607,7 +516,7 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 	}
     }
 
-  /* Check that we didn't overrun the stack...  */
+  
   SFFI_ASSERT (copy_space.c >= next_arg.c);
   SFFI_ASSERT (gpr_base.u <= gpr_end.u);
 #ifndef __NO_FPRS__
@@ -644,7 +553,7 @@ sffi_prep_closure_loc_sysv (sffi_closure *closure,
 #ifdef SFFI_EXEC_STATIC_TRAMP
   if (sffi_tramp_is_present(closure))
     {
-      /* Initialize the static trampoline's parameters. */
+      
       void (*dest)(void) = sffi_closure_SYSV;
       sffi_tramp_set_parms (closure->ftramp, dest, closure);
     }
@@ -652,18 +561,18 @@ sffi_prep_closure_loc_sysv (sffi_closure *closure,
 #endif
     {
       unsigned int *tramp = (unsigned int *) &closure->tramp[0];
-      tramp[0] = 0x7c0802a6;  /*   mflr    r0 */
-      tramp[1] = 0x429f0005;  /*   bcl     20,31,.+4 */
-      tramp[2] = 0x7d6802a6;  /*   mflr    r11 */
-      tramp[3] = 0x7c0803a6;  /*   mtlr    r0 */
-      tramp[4] = 0x800b0018;  /*   lwz     r0,24(r11) */
-      tramp[5] = 0x816b001c;  /*   lwz     r11,28(r11) */
-      tramp[6] = 0x7c0903a6;  /*   mtctr   r0 */
-      tramp[7] = 0x4e800420;  /*   bctr */
-      *(void **) &tramp[8] = (void *) sffi_closure_SYSV; /* function */
-      *(void **) &tramp[9] = codeloc;			/* context */
+      tramp[0] = 0x7c0802a6;  
+      tramp[1] = 0x429f0005;  
+      tramp[2] = 0x7d6802a6;  
+      tramp[3] = 0x7c0803a6;  
+      tramp[4] = 0x800b0018;  
+      tramp[5] = 0x816b001c;  
+      tramp[6] = 0x7c0903a6;  
+      tramp[7] = 0x4e800420;  
+      *(void **) &tramp[8] = (void *) sffi_closure_SYSV; 
+      *(void **) &tramp[9] = codeloc;			
 
-      /* Flush the icache.  */
+      
       flush_icache ((char *)tramp, (char *)codeloc, 8 * 4);
     }
 
@@ -674,12 +583,7 @@ sffi_prep_closure_loc_sysv (sffi_closure *closure,
   return SFFI_OK;
 }
 
-/* Basically the trampoline invokes sffi_closure_SYSV, and on
-   entry, r11 holds the address of the closure.
-   After storing the registers that could possibly contain
-   parameters to be passed into the stack frame and setting
-   up space for a return value, sffi_closure_SYSV invokes the
-   following helper function to do most of the work.  */
+
 
 int
 sffi_closure_helper_SYSV (sffi_cif *cif,
@@ -690,31 +594,28 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 			 sffi_dblfl *pfr,
 			 unsigned long *pst)
 {
-  /* rvalue is the pointer to space for return value in closure assembly */
-  /* pgr is the pointer to where r3-r10 are stored in sffi_closure_SYSV */
-  /* pfr is the pointer to where f1-f8 are stored in sffi_closure_SYSV  */
-  /* pst is the pointer to outgoing parameter stack in original caller */
+  
+  
+  
+  
 
   void **          avalue;
   sffi_type **      arg_types;
   long             i, avn;
 #ifndef __NO_FPRS__
-  long             nf = 0;   /* number of floating registers already used */
+  long             nf = 0;   
 #endif
-  long             ng = 0;   /* number of general registers already used */
+  long             ng = 0;   
 
   unsigned       size     = cif->rtype->size;
   unsigned short rtypenum = cif->rtype->type;
 
   avalue = alloca (cif->nargs * sizeof (void *));
 
-  /* First translate for softfloat/nonlinux */
+  
   rtypenum = translate_float (cif->abi, rtypenum);
 
-  /* Copy the caller's structure return value address so that the closure
-     returns the data directly to the caller.
-     For SFFI_SYSV the result is passed in r3/r4 if the struct size is less
-     or equal 8 bytes.  */
+  
   if (rtypenum == SFFI_TYPE_STRUCT
       && !((cif->abi & SFFI_SYSV_STRUCT_RET) != 0 && size <= 8))
     {
@@ -727,26 +628,21 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
   avn = cif->nargs;
   arg_types = cif->arg_types;
 
-  /* Grab the addresses of the arguments from the stack frame.  */
+  
   while (i < avn) {
     unsigned short typenum = arg_types[i]->type;
 
-    /* We may need to handle some values depending on ABI.  */
+    
     typenum = translate_float (cif->abi, typenum);
 
     switch (typenum)
       {
 #ifndef __NO_FPRS__
       case SFFI_TYPE_FLOAT:
-	/* Unfortunately float values are stored as doubles
-	   in the sffi_closure_SYSV code (since we don't check
-	   the type in that routine).  */
+	
 	if (nf < NUM_FPR_ARG_REGISTERS)
 	  {
-	    /* FIXME? here we are really changing the values
-	       stored in the original calling routines outgoing
-	       parameter stack.  This is probably a really
-	       naughty thing to do but...  */
+	    
 	    double temp = pfr->d;
 	    pfr->f = (float) temp;
 	    avalue[i] = pfr;
@@ -797,8 +693,7 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 #endif
 
       case SFFI_TYPE_UINT128:
-	/* Test if for the whole long double, 4 gprs are available.
-	   otherwise the stuff ends up on the stack.  */
+	
 	if (ng < NUM_GPR_ARG_REGISTERS - 3)
 	  {
 	    avalue[i] = pgr;
@@ -864,8 +759,7 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 	break;
 
       case SFFI_TYPE_STRUCT:
-	/* Structs are passed by reference. The address will appear in a
-	   gpr if it is one of the first 8 arguments.  */
+	
 	if (ng < NUM_GPR_ARG_REGISTERS)
 	  {
 	    avalue[i] = (void *) *pgr;
@@ -881,19 +775,12 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 
       case SFFI_TYPE_SINT64:
       case SFFI_TYPE_UINT64:
-	/* Passing long long ints are complex, they must
-	   be passed in suitable register pairs such as
-	   (r3,r4) or (r5,r6) or (r6,r7), or (r7,r8) or (r9,r10)
-	   and if the entire pair aren't available then the outgoing
-	   parameter stack is used for both but an alignment of 8
-	   must will be kept.  So we must either look in pgr
-	   or pst to find the correct address for this type
-	   of parameter.  */
+	
 	if (ng < NUM_GPR_ARG_REGISTERS - 1)
 	  {
 	    if (ng & 1)
 	      {
-		/* skip r4, r6, r8 as starting points */
+		
 		ng++;
 		pgr++;
 	      }
@@ -920,9 +807,7 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 
   (*fun) (cif, rvalue, avalue, user_data);
 
-  /* Tell sffi_closure_SYSV how to perform return type promotions.
-     Because the SFFI_SYSV ABI returns the structures <= 8 bytes in
-     r3/r4 we have to tell sffi_closure_SYSV how to treat them. */
+  
   switch (rtypenum)
     {
     case SFFI_TYPE_VOID:

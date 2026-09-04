@@ -1,12 +1,8 @@
-/* Area:	closure_call
-   Purpose:	Check return value schar.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20031108	 */
 
 
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static void cls_ret_schar_fn(sffi_cif* cif __UNUSED__, void* resp, void** args,
@@ -31,16 +27,16 @@ int main (void)
   cl_arg_types[0] = &sffi_type_schar;
   cl_arg_types[1] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_schar, cl_arg_types) == SFFI_OK);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_ret_schar_fn, NULL, code)  == SFFI_OK);
 
   res = (*((cls_ret_schar)code))(127);
-  /* { dg-output "127: 127" } */
+  
   printf("res: %d\n", res);
-  /* { dg-output "\nres: 127" } */
+  
   CHECK(res == 127);
 
   exit(0);

@@ -1,9 +1,9 @@
-// library 模块测试：覆盖 flags 枚举契约、prefix/suffix/get_os_name 平台名构造、shared_library
-// 缺省构造状态，以及 load/get_symbol 失败路径（均经 make_error_code 触发 library category）。
-//
-// library_error 的专属 category 现已由 error.cppm 在模块静态初始化期自注册默认实例（与
-// silicon.network / silicon.config / silicon.logger / silicon.event 一致），故未注入的消费方
-// 走错误路径（make_error_code）前 category 已可用，不再 std::terminate。
+
+
+
+
+
+
 #include <string>
 
 #include <silicon/test/test.h>
@@ -18,8 +18,8 @@ TEST_CASE("flags 枚举底层值（kShLibGlobal/kShLibLocal）") {
 }
 
 TEST_CASE("prefix/suffix 非空且 get_os_name 由其拼接") {
-    // Windows 共享库无前缀（DLL 直接以 <name>.dll 命名），prefix() 返回空串属正确行为；
-    // Unix/Cygwin 下 prefix 为 "lib"/"cyg"，非空。故仅在非 Windows 平台断言 prefix 非空。
+
+
 #if !defined(SILICON_PLATFORM_WINDOWS)
     CHECK_FALSE(shared_library::prefix().empty());
 #endif
@@ -50,7 +50,7 @@ TEST_CASE("shared_library get_symbol 未加载库返回 kSymbolNotFound") {
 
 TEST_CASE("library error category 自注册：非注入消费方也能构造 error_code（不再 terminate）") {
     auto ec = make_error_code(library_error::kInvalidHandle);
-    CHECK(ec); // 已置错误
+    CHECK(ec);
     CHECK(ec.value() == static_cast<int>(library_error::kInvalidHandle));
     CHECK(std::string(ec.category().name()) == "silicon.library");
     CHECK(ec.message() == "invalid shared library handle");

@@ -1,23 +1,23 @@
 module;
 
 #if defined(SILICON_PLATFORM_WINDOWS)
-#    include <Windows.h> // GetLastError
+#    include <Windows.h>
 #else
 #    include <sys/socket.h>
 #    include <sys/types.h>
 #    include <unistd.h>
 #endif
-// 迁出 silicon.coroutine 后不再借道该模块 GMF 间接获得这些标准头，
-// 本实现单元用到的标准设施一律在此显式引入。
+
+
 #include <array>
 #include <atomic>
 #include <chrono>
 #include <coroutine>
 #include <cstddef>
 #include <cstring>
-#include <exception> // std::exception：io_scheduler::create() 捕获构造期异常
-#include <functional> // std::function 与 nullptr 比较所需的 operator==
-#include <system_error> // std::system_category：替代被 MSVC 弃用的 strerror
+#include <exception>
+#include <functional>
+#include <system_error>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -31,8 +31,8 @@ module;
 
 
 module silicon.scheduler;
-// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
-// 实现单元自引用，故以 _MSC_VER 守卫。
+
+
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
@@ -44,7 +44,7 @@ import :poll_info_impl;
 
 
 using namespace std::chrono_literals;
-// 与 io_scheduler.cppm 一致：沿用迁入 silicon::scheduler 基础类型的非限定名。
+
 using namespace silicon::scheduler;
 
 namespace silicon::scheduler {
@@ -59,15 +59,15 @@ static silicon::scheduler::task<void> make_spawned_joinable_wait_task(std::uniqu
 
 io_scheduler::io_scheduler(options &&opts, private_constructor)
     : m_p(std::make_unique<impl>(std::move(opts))) {
-    // 构造不再抛异常：管道 / IO 通知器 / fd 注册的失败检查已上提至 create()，
-    // 由返回值 std::expected 向调用方暴露，而非依赖异常。
+
+
     m_p->m_recent_events.reserve(m_max_events);
 }
 
 std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::create(options opts) {
     auto s = std::make_unique<io_scheduler>(std::move(opts), private_constructor{});
 
-    // 校验构造期资源（管道 / IO 通知器）已成功建立。
+
     if(!s->m_p->m_shutdown_pipe.is_valid() || !s->m_p->m_schedule_pipe.is_valid()) {
         return std::unexpected(make_error_code(scheduler_error::kPipeCreateFailed));
     }
@@ -75,7 +75,7 @@ std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::crea
         return std::unexpected(make_error_code(scheduler_error::kInvalidNotifierState));
     }
 
-    // 注册事件循环唤醒管道（关闭后调度 / fd 注册失败 → 返回错误）。
+
     if(!s->m_p->m_io_notifier.watch(s->m_p->m_shutdown_pipe.read_fd(), silicon::scheduler::poll_op::read, const_cast<void *>(s->m_p->m_shutdown_ptr), true)) {
         return std::unexpected(make_error_code(scheduler_error::kEventRegisterFailed));
     }
@@ -83,7 +83,7 @@ std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::crea
         return std::unexpected(make_error_code(scheduler_error::kEventRegisterFailed));
     }
 
-    // 线程池（按需）：失败直接透传其错误码。
+
     if(s->m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_on_thread_pool) {
         auto tp = thread_pool::create(std::move(s->m_p->m_opts.pool));
         if(!tp) {
@@ -92,7 +92,7 @@ std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::crea
         s->m_p->m_thread_pool = std::move(*tp);
     }
 
-    // 启动事件循环线程（std::thread 构造可能抛 system_error → 收敛为错误）。
+
     if(s->m_p->m_opts.thread_strategy == thread_strategy_t::spawn) {
         try {
             s->m_p->m_io_thread = std::thread([s = s.get()]() { s->process_events_dedicated_thread(); });
@@ -100,7 +100,7 @@ std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::crea
             return std::unexpected(make_error_code(scheduler_error::kUnknown));
         }
     }
-    // else manual mode, the user must call process_events.
+
 
     return s;
 }
@@ -112,9 +112,9 @@ io_scheduler::~io_scheduler() {
         m_p->m_io_thread.join();
     }
 
-    // completion 引擎（read_at/write_at 首次调用时惰性建立）：停 worker、join、
-    // 注销内部唤醒 fd、关 io_ring。必须在 shutdown() 已等全部挂起任务完成之后、
-    // io_notifier 仍存活（m_p 尚未析构）时调用。
+
+
+
     destroy_completion_engine();
 
     m_p->m_shutdown_pipe.close();
@@ -145,7 +145,7 @@ silicon::scheduler::task<void> io_scheduler::schedule_at(time_point time) {
 silicon::scheduler::task<void> io_scheduler::yield_until(time_point time) {
     auto now = clock::now();
 
-    // If the requested time is in the past (or now!) bail out!
+
     if(time <= now) {
         co_await schedule();
     } else {
@@ -166,13 +166,13 @@ silicon::scheduler::task<poll_status> io_scheduler::poll(
         std::chrono::milliseconds timeout,
         std::optional<poll_stop_token> cancel_trigger
 ) {
-    // Because the size will drop when this coroutine suspends every poll needs to undo the subtraction
-    // on the number of active tasks in the scheduler.  When this task is resumed by the event loop.
+
+
     m_p->m_size.fetch_add(1, std::memory_order::release);
 
-    // Setup two events, a timeout event and the actual poll for op event.
-    // Whichever triggers first will delete the other to guarantee only one wins.
-    // The resume token will be set by the scheduler to what the event turned out to be.
+
+
+
 
     bool timeout_requested = (timeout > 0ms);
 
@@ -186,9 +186,9 @@ silicon::scheduler::task<poll_status> io_scheduler::poll(
         std::cerr << "Failed to add " << fd << " to watch list\n";
     }
 
-    // The event loop will 'clean-up' whichever event didn't win since the coroutine is scheduled
-    // onto the thread poll its possible the other type of event could trigger while its waiting
-    // to execute again, thus restarting the coroutine twice, that would be quite bad.
+
+
+
     auto result = co_await pi;
     co_return result;
 }
@@ -213,9 +213,9 @@ bool io_scheduler::resume(std::coroutine_handle<> handle) {
 }
 
 void io_scheduler::shutdown() noexcept {
-    // Only allow shutdown to occur once.
+
     if(m_p->m_shutdown_requested.exchange(true, std::memory_order::acq_rel) == false) {
-        // Signal the event loop to stop asap.
+
         const constexpr int value{1};
         long written = m_p->m_shutdown_pipe.write(&value, sizeof(value));
         if(written != sizeof(value)) {
@@ -237,14 +237,14 @@ silicon::scheduler::task<void> io_scheduler::yield_for_internal(std::chrono::nan
     if(amount <= 0ms) {
         co_await schedule();
     } else {
-        // Yield/timeout tasks are considered live in the scheduler and must be accounted for. Note
-        // that if the user gives an invalid amount and schedule() is directly called it will account
-        // for the scheduled task there.
+
+
+
         m_p->m_size.fetch_add(1, std::memory_order::release);
 
-        // Yielding does not require setting the timer position on the poll info since
-        // it doesn't have a corresponding 'event' that can trigger, it always waits for
-        // the timeout to occur before resuming.
+
+
+
 
         silicon::scheduler::poll_info pi{};
         add_timer_token(clock::now() + amount, pi);
@@ -267,7 +267,7 @@ void io_scheduler::process_events_dedicated_thread() {
     }
 
     m_p->m_io_processing.exchange(true, std::memory_order::release);
-    // Execute tasks until stopped or there are no more tasks to complete.
+
     while(!m_p->m_shutdown_requested.load(std::memory_order::acquire) || size() > 0) {
         process_events_execute(m_default_timeout);
     }
@@ -279,34 +279,34 @@ void io_scheduler::process_events_dedicated_thread() {
 }
 
 void io_scheduler::process_events_execute(std::chrono::milliseconds timeout) {
-    // Clear the recent events without decreasing the allocated capacity to reduce allocations
+
     m_p->m_recent_events.clear();
     m_p->m_io_notifier.next_events(m_p->m_recent_events, timeout);
 
     for(auto &[handle_ptr, poll_status]: m_p->m_recent_events) {
         if(handle_ptr == m_p->m_timer_ptr) {
-            // Process all events that have timed out.
+
             process_timeout_execute();
         } else if(handle_ptr == m_p->m_schedule_ptr) {
-            // Process scheduled coroutines.
+
             process_scheduled_execute_inline();
         } else if(handle_ptr == m_p->m_shutdown_ptr) [[unlikely]] {
-            // Nothing to do, just needed to wake-up and smell the flowers
+
         } else if(handle_ptr == m_p->m_completion_ptr) [[unlikely]] {
-            // completion worker 已完成若干 io_op 并唤醒驱动：收割完成项并把
-            // 挂起协程句柄排入待恢复队列（readiness 之外的 completion 通道）。
+
+
             drain_ring_completions();
         } else {
-            // Individual poll task wake-up.
+
             process_event_execute(static_cast<silicon::scheduler::poll_info *>(handle_ptr), poll_status);
         }
     }
 
-    // Its important to not resume any handles until the full set is accounted for.  If a timeout
-    // and an event for the same handle happen in the same epoll_wait() call then inline processing
-    // will destruct the poll_info object before the second event is handled.  This is also possible
-    // with thread pool processing, but probably has an extremely low chance of occuring due to
-    // the thread switch required.  If m_max_events == 1 this would be unnecessary.
+
+
+
+
+
 
     if(!m_p->m_handles_to_resume.empty()) {
         if(m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
@@ -328,8 +328,8 @@ void io_scheduler::process_events_execute(std::chrono::milliseconds timeout) {
 }
 
 void io_scheduler::process_scheduled_execute_inline() {
-    // Clear the notification by reading until the pipe is cleared, this is done before
-    // resetting the flag that writes to the pipe need to happen.
+
+
     while(true) {
         constexpr std::size_t READ_COUNT{4};
         constexpr long READ_COUNT_BYTES = READ_COUNT * sizeof(int);
@@ -339,26 +339,26 @@ void io_scheduler::process_scheduled_execute_inline() {
             continue;
         }
 
-        // If we got nothing, or we got a partial read break the loop since the pipe is empty.
+
         if(read_bytes >= 0) {
             break;
         }
 
-        // pipe is set to O_NONBLOCK so ignore empty blocking reads.
+
         if(errno == EAGAIN) {
             break;
         }
 
-        // Not much we can do here, we're in a very bad state, lets report to stderr.
+
         std::cerr << "::read(m_schedule_pipe.read_fd()) error[" << errno << "] " << std::system_category().message(errno) << " fd=["
                   << m_p->m_schedule_pipe.read_fd() << "]" << std::endl;
         break;
     }
 
-    // Note to all producers that the pipe is cleared and any new additions need to trigger the pipe.
+
     m_p->m_schedule_pipe_triggered.exchange(false, std::memory_order::release);
 
-    // Now it is safe to acquire all scheduled ops.
+
     auto *ops = silicon::scheduler::awaiter_list_pop_all(m_p->m_scheduled_ops);
 
     if(ops != nullptr) {
@@ -380,16 +380,16 @@ void io_scheduler::process_scheduled_execute_inline() {
 void io_scheduler::process_event_execute(silicon::scheduler::poll_info *pi, poll_status status) {
     if(!pi->m_p->m_processed) {
         std::atomic_thread_fence(std::memory_order::acquire);
-        // Its possible the event and the timeout occurred in the same epoll, make sure only one
-        // is ever processed, the other is discarded.
+
+
         pi->m_p->m_processed = true;
 
-        // Given a valid fd always remove it from epoll so the next poll can blindly EPOLL_CTL_ADD.
+
         if(pi->m_p->m_fd != -1) {
             m_p->m_io_notifier.unwatch(*pi);
         }
 
-        // Since this event triggered, remove its corresponding timeout if it has one.
+
         if(pi->m_p->m_timer_pos.has_value()) {
             remove_timer_token(pi->m_p->m_timer_pos.value());
         }
@@ -425,11 +425,11 @@ void io_scheduler::process_timeout_execute() {
 
     for(auto pi: poll_infos) {
         if(!pi->m_p->m_processed) {
-            // Its possible the event and the timeout occurred in the same epoll, make sure only one
-            // is ever processed, the other is discarded.
+
+
             pi->m_p->m_processed = true;
 
-            // Since this timed out, remove its corresponding event if it has one.
+
             if(pi->m_p->m_fd != -1) {
                 m_p->m_io_notifier.unwatch(*pi);
             }
@@ -443,8 +443,8 @@ void io_scheduler::process_timeout_execute() {
         }
     }
 
-    // Update the time to the next smallest time point, re-take the current now time
-    // since updating and resuming tasks could shift the time.
+
+
     update_timeout(clock::now());
 }
 
@@ -452,7 +452,7 @@ auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::poll_info 
     std::scoped_lock lk{m_p->m_timed_events_mutex};
     auto pos = m_p->m_timed_events.emplace(tp, &pi);
 
-    // If this item was inserted as the smallest time point, update the timeout.
+
     if(pos == m_p->m_timed_events.begin()) {
         update_timeout(clock::now());
     }
@@ -467,9 +467,9 @@ void io_scheduler::remove_timer_token(timed_events::iterator pos) {
 
         m_p->m_timed_events.erase(pos);
 
-        // If this was the first item, update the timeout.  It would be acceptable to just let it
-        // also fire the timeout as the event loop will ignore it since nothing will have timed
-        // out but it feels like the right thing to do to update it to the correct timeout value.
+
+
+
         if(is_first) {
             update_timeout(clock::now());
         }
@@ -494,4 +494,4 @@ void io_scheduler::update_timeout(time_point now) {
     }
 }
 
-} // namespace silicon::scheduler
+}

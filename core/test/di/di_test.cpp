@@ -1,4 +1,4 @@
-// di 模块测试：覆盖依赖注入容器的接口绑定、作用域、构造注入、自动装配与错误路径。
+
 #include <memory>
 #include <string>
 #include <system_error>
@@ -31,7 +31,7 @@ struct retry_config final: iconfig {
     int retries() const override { return 3; }
 };
 
-// 构造期注入：SILICON_DI_CONSTRUCTOR 声明依赖签名，容器据此自动装配。
+
 struct greeting_service {
     SILICON_DI_CONSTRUCTOR(greeting_service(igreeter &greeter, iconfig &cfg))
         : greeter_(greeter),
@@ -43,7 +43,7 @@ struct greeting_service {
     iconfig &cfg_;
 };
 
-} // namespace
+}
 
 TEST_CASE("di_error 枚举与 make_error_code 走 silicon.di category") {
     auto ec = make_error_code(di::di_error::kTypeNotFound);
@@ -52,7 +52,7 @@ TEST_CASE("di_error 枚举与 make_error_code 走 silicon.di category") {
     CHECK(std::string(ec.message()) == "requested type not found in container");
     CHECK(std::string(make_error_code(di::di_error::kCircularDependency).message()) == "circular dependency detected");
 
-    // 枚举底层值（顺序即协议，改动须同步）
+
     static_assert(static_cast<int>(di::di_error::kDuplicateBinding) == 1);
     static_assert(static_cast<int>(di::di_error::kUnresolvedDependency) == 2);
     static_assert(static_cast<int>(di::di_error::kCircularDependency) == 3);
@@ -68,8 +68,8 @@ TEST_CASE("接口绑定：resolve 得到实现引用") {
 }
 
 TEST_CASE("scope::unique 每次解析出新实例") {
-    // unique 存储按值把实例移出，抽象接口无法按值持有，故按实现类型直接注册并解析，
-    // 两次解析得到两个独立实例。
+
+
     di::container<> c;
     c.register_type<di::storage_marker<english_greeter>, di::scope<di::unique>>();
     auto a = c.resolve<english_greeter>();
@@ -140,8 +140,8 @@ TEST_CASE("invoke 注入可调用对象的参数") {
     c.register_type<di::interfaces<igreeter>, di::storage_marker<english_greeter>, di::scope<di::shared>>();
     c.register_type<di::interfaces<iconfig>, di::storage_marker<retry_config>, di::scope<di::shared>>();
 
-    // invoke 的参数解析失败按硬失败落地（依赖层无法向上传播错误码），
-    // 因此 invoke 返回可调用对象的原始结果而非 expected。
+
+
     auto r = c.invoke([](igreeter &g, iconfig &cfg) { return g.greet() + std::to_string(cfg.retries()); });
     CHECK(r == "hello3");
 }

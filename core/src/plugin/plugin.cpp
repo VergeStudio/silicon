@@ -42,7 +42,7 @@ std::vector<std::string> plugin_registry::list_plugins() const {
     return names;
 }
 
-// ── proxy_plugin_registry ──────────────────────────────────────────
+
 
 auto proxy_plugin_registry::register_plugin(plugin_proxy plugin) -> result<void> {
     if(!plugin) return std::unexpected(make_error_code(plugin_error::kNullPlugin));
@@ -73,4 +73,4 @@ std::vector<std::string> proxy_plugin_registry::list() const {
 }
 
 
-} // namespace silicon::plugin
+}

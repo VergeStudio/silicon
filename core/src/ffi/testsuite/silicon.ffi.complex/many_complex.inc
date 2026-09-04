@@ -1,4 +1,4 @@
-/* -*-c-*- */
+
 #include "ffitest.h"
 
 #include <stdlib.h>
@@ -64,7 +64,7 @@ int main (void)
       ca[i] = i + (-20 - i) * I;
     }
 
-    /* Initialize the cif */
+    
     CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 13, &T_FFI_TYPE, args) == SFFI_OK);
 
     sffi_call(&cif, SFFI_FN(many), &c, values);

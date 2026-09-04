@@ -1,14 +1,14 @@
 module;
-// 迁出 silicon.coroutine 后不再借道该模块 GMF 间接获得 <chrono>/<thread>，
-// 此处显式引入（s_initialization_check_interval / std::this_thread::sleep_for）。
+
+
 #include <atomic>
 #include <chrono>
-#include <exception> // std::terminate：默认 io 执行器构造失败属启动期致命错误
+#include <exception>
 #include <iostream>
 #include <memory>
-#include <system_error> // std::error_code::message
+#include <system_error>
 #include <thread>
-#include <utility> // std::move
+#include <utility>
 #include <coroutine>
 #include <map>
 #include <optional>
@@ -38,7 +38,7 @@ void silicon::scheduler::default_executor::set_executor_options(thread_pool::opt
 }
 
 std::unique_ptr<silicon::scheduler::thread_pool> &silicon::scheduler::default_executor::executor() {
-    // If we're the first one here create the default executor.
+
     if(s_default_executor_init.exchange(true) == false) {
         auto created = silicon::scheduler::thread_pool::create(s_default_executor_options);
         if(!created) {
@@ -63,7 +63,7 @@ void silicon::scheduler::default_executor::set_io_executor_options(io_scheduler:
 }
 
 std::unique_ptr<silicon::scheduler::io_scheduler> &silicon::scheduler::default_executor::io_executor() {
-    // If we're the first one here create the default executor.
+
     if(s_default_io_executor_init.exchange(true) == false) {
         auto ios = silicon::scheduler::io_scheduler::create(s_default_io_executor_options);
         if(!ios) {

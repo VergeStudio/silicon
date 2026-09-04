@@ -2,7 +2,7 @@ module;
 
 #include <atomic>
 #include <cstdio>
-#include <cstdlib> // silicon::os::get_env（_dupenv_s / std::getenv / std::free）
+#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <queue>
@@ -14,16 +14,16 @@ export module silicon.util;
 
 export namespace silicon::util {
 
-// -----------------------------------------------------------------------------
-// util declarations
-// -----------------------------------------------------------------------------
+
+
+
 
 CORE_API bool has_suffix(const char *, const char *);
 CORE_API std::uint64_t generate_unique_id();
 
-// -----------------------------------------------------------------------------
-// string — str_cat / str_append (C++23 unified variadic template)
-// -----------------------------------------------------------------------------
+
+
+
 
 namespace strings_internal {
 
@@ -44,30 +44,30 @@ inline std::string cat_pieces(std::initializer_list<std::string_view> pieces) {
     return out;
 }
 
-} // namespace strings_internal
+}
 
-// Unified variadic str_cat — handles 0 to N arguments via fold expression
+
 template <typename... Args>
     requires (std::convertible_to<Args, std::string_view> && ...)
 inline std::string str_cat(const Args &...args) {
     return strings_internal::cat_pieces({static_cast<std::string_view>(args)...});
 }
 
-// Unified variadic str_append — handles 1 to N arguments
+
 template <typename... Args>
     requires (std::convertible_to<Args, std::string_view> && ...) && (sizeof...(Args) >= 1)
 inline void str_append(std::string *destination, const Args &...args) {
     strings_internal::append_pieces(destination, {static_cast<std::string_view>(args)...});
 }
 
-} // namespace silicon::util
+}
 
-// OS 兼容工具。
-// Windows 使用安全 CRT（_dupenv_s），POSIX 回落 std::getenv，规避
-// -Wdeprecated-declarations。
+
+
+
 export namespace silicon::os {
 
-// 读取环境变量。未设置或为空时返回空字符串。
+
 inline std::string get_env(const char *name) {
 #if defined(SILICON_PLATFORM_WINDOWS)
     char *buf = nullptr;
@@ -84,8 +84,8 @@ inline std::string get_env(const char *name) {
 #endif
 }
 
-// 设置环境变量（进程级）。Windows 使用安全 CRT（_putenv_s），POSIX 使用 setenv
-// （overwrite=1）。与 get_env 对称，屏蔽平台差异，避免测试/调用方直接写 POSIX 符号。
+
+
 inline void set_env(const char *name, const char *value) {
 #if defined(SILICON_PLATFORM_WINDOWS)
     _putenv_s(name, value);
@@ -94,4 +94,4 @@ inline void set_env(const char *name, const char *value) {
 #endif
 }
 
-} // namespace silicon::os
+}

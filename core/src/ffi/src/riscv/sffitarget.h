@@ -1,29 +1,4 @@
-/* -----------------------------------------------------------------*-C-*-
-   sffitarget.h - 2014 Michael Knyszek
 
-   Target configuration macros for RISC-V.
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-
-   ----------------------------------------------------------------------- */
 
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
@@ -41,8 +16,7 @@
 typedef unsigned long sffi_arg;
 typedef signed long sffi_sarg;
 
-/* SFFI_UNUSED_NN and riscv_unused are to maintain ABI compatibility with a
-   distributed Berkeley patch from 2014, and can be removed at SONAME bump */
+
 typedef enum sffi_abi {
     SFFI_FIRST_ABI = 0,
     SFFI_SYSV,
@@ -54,9 +28,9 @@ typedef enum sffi_abi {
     SFFI_DEFAULT_ABI = SFFI_SYSV
 } sffi_abi;
 
-#endif /* SILICON_FFI_ASM */
+#endif 
 
-/* ---- Definitions for closures ----------------------------------------- */
+
 
 #define SFFI_CLOSURES 1
 #define SFFI_GO_CLOSURES 1

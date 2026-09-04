@@ -1,23 +1,23 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
-#include <cstddef>    // size_t
-#include <cstdint>    // uint8_t
-#include <functional> // hash
+#include <cstddef>
+#include <cstdint>
+#include <functional>
 
 export module silicon.json:detail.hash;
 
@@ -27,23 +27,13 @@ import :detail.value_t;
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
 
-// boost::hash_combine
+
 export inline std::size_t combine(std::size_t seed, std::size_t h) noexcept {
     seed ^= h + 0x9e3779b9 + (seed << 6U) + (seed >> 2U);
     return seed;
 }
 
-/*!
-@brief hash a JSON value
 
-The hash function tries to rely on std::hash where possible. Furthermore, the
-type of the JSON value is taken into account to have different hash values for
-null, 0, 0U, and false, etc.
-
-@tparam BasicJsonType basic_json specialization
-@param j JSON value to hash
-@return hash value of j
-*/
 export template<typename BasicJsonType>
 std::size_t hash(const BasicJsonType &j) {
     using string_t = typename BasicJsonType::string_t;
@@ -112,11 +102,11 @@ std::size_t hash(const BasicJsonType &j) {
             return seed;
         }
 
-        default:                // LCOV_EXCL_LINE
-            JSON_ASSERT(false); // NOLINT(cert-dcl03-c,hicpp-static-assert,misc-static-assert) LCOV_EXCL_LINE
-            return 0;           // LCOV_EXCL_LINE
+        default:
+            JSON_ASSERT(false);
+            return 0;
     }
 }
 
-} // namespace detail
+}
 SILICON_JSON_NAMESPACE_END

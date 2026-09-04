@@ -1,6 +1,6 @@
-// tui 模块测试：覆盖基于 silicon.proxy 的三类 type-erased 门面
-// （terminal / pty / tui_renderer）的 make_proxy / make_proxy_view 分派，
-// 以及 tui 错误码经 silicon.tui category 的构造。
+
+
+
 #include <initializer_list>
 #include <string>
 #include <string_view>
@@ -16,14 +16,14 @@ namespace tui = silicon::tui;
 
 namespace {
 
-// 具体终端：满足 terminal_facade 的 terminal_type/width/height 三个约定。
+
 struct fake_terminal {
     std::string_view terminal_type() const { return "xterm-256color"; }
     int32_t width() const { return 80; }
     int32_t height() const { return 24; }
 };
 
-// 具体 PTY：满足 pty_facade 的 create/write/read/close 四个约定。
+
 struct fake_pty {
     bool create(std::string_view, std::initializer_list<std::string>) { return true; }
     int32_t write(std::string_view s) { return static_cast<int32_t>(s.size()); }
@@ -31,13 +31,13 @@ struct fake_pty {
     void close() {}
 };
 
-// 具体渲染器：满足 tui_renderer_facade 的 render/clear 两个约定。
+
 struct fake_renderer {
     void render(std::string_view) {}
     void clear() {}
 };
 
-} // namespace
+}
 
 TEST_CASE("tui 错误码走 silicon.tui category") {
     const std::error_code ec = tui::make_error_code(tui::tui_error::kInitFailed);

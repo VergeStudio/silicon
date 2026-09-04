@@ -1,10 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct my_ffi_struct {
@@ -75,16 +71,16 @@ int main(void)
   args[1] = &f;
   args[2] = NULL;
   sffi_call(&cif, SFFI_FN(callee), &res, args);
-  /* { dg-output "1 2 3 1 2 3: 2 4 6" } */
+  
   printf("res: %g %g %g\n", res.a, res.b, res.c);
-  /* { dg-output "\nres: 2 4 6" } */
+  
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, stub, NULL, code) == SFFI_OK);
 
   res = ((my_ffi_struct(*)(struct my_ffi_struct, struct my_ffi_struct))(code))(g, f);
-  /* { dg-output "\n1 2 3 1 2 3: 2 4 6" } */
+  
   printf("res: %g %g %g\n", res.a, res.b, res.c);
-  /* { dg-output "\nres: 2 4 6" } */
+  
 
   exit(0);;
 }

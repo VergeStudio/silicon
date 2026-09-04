@@ -1,5 +1,5 @@
-// util 模块测试：覆盖纯函数工具——has_suffix / generate_unique_id / str_cat / str_append /
-// os::get_env。均为无状态或进程级单例行为，不涉及错误 category。
+
+
 #include <cstdint>
 #include <cstdlib>
 #include <string>
@@ -16,10 +16,10 @@ TEST_CASE("has_suffix 命中与未命中") {
     CHECK(has_suffix("filename.txt", ".txt"));
     CHECK_FALSE(has_suffix("filename.txt", ".png"));
     CHECK(has_suffix("archive.tar.gz", ".gz"));
-    CHECK_FALSE(has_suffix("archive.tar.gz", ".tar"));           // 仅末尾匹配
-    CHECK_FALSE(has_suffix("short", "longer_than_str"));         // 后缀长于字符串
-    CHECK(has_suffix("anything", ""));                           // 空后缀恒真（memcmp 0 字节）
-    CHECK_FALSE(has_suffix("FILE.TXT", ".txt"));                 // 大小写敏感
+    CHECK_FALSE(has_suffix("archive.tar.gz", ".tar"));
+    CHECK_FALSE(has_suffix("short", "longer_than_str"));
+    CHECK(has_suffix("anything", ""));
+    CHECK_FALSE(has_suffix("FILE.TXT", ".txt"));
 }
 
 TEST_CASE("generate_unique_id 单调递增且唯一") {

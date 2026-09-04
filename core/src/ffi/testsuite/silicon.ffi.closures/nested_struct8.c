@@ -1,12 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Contains structs as parameter of the struct itself.
-		Sample taken from Alan Modras patch to src/prep_cif.c.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20051010	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct A {
@@ -125,7 +119,7 @@ int main (void)
   args_dbl[3] = NULL;
 
   sffi_call(&cif, SFFI_FN(B_fn), &res_dbl, args_dbl);
-  /* { dg-output "1 7 12 127 99 2 9: 15 242 143" } */
+  
   CHECK( res_dbl.x.a == (e_dbl.a + f_dbl.x.a + g_dbl.d));
   CHECK( res_dbl.x.b == (e_dbl.b + f_dbl.x.b + f_dbl.y + g_dbl.e));
   CHECK( res_dbl.y == (e_dbl.b + f_dbl.x.b + g_dbl.e));
@@ -133,7 +127,7 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, B_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((B(*)(A, B, C))(code))(e_dbl, f_dbl, g_dbl);
-  /* { dg-output "\n1 7 12 127 99 2 9: 15 242 143" } */
+  
   CHECK( res_dbl.x.a == (e_dbl.a + f_dbl.x.a + g_dbl.d));
   CHECK( res_dbl.x.b == (e_dbl.b + f_dbl.x.b + f_dbl.y + g_dbl.e));
   CHECK( res_dbl.y == (e_dbl.b + f_dbl.x.b + g_dbl.e));

@@ -1,6 +1,6 @@
 module;
 
-// 模块化补齐：原经传递 include 获得的标准头，模块单元须显式包含。
+
 #include <memory>
 #include <exception>
 
@@ -22,8 +22,8 @@ import :void_value;
 
 export namespace silicon::coroutine {
 
-// 跨 DLL 消费：普通类的 out-of-line 成员（when_all.cpp 定义）
-// 须类级 dllexport 跟随导出（宏在 class 关键字后规避 C4091）。
+
+
 class CORE_API when_all_latch {
   public:
     when_all_latch(std::size_t) noexcept;
@@ -43,7 +43,7 @@ class CORE_API when_all_latch {
     void notify_awaitable_completed() noexcept ;
 
   private:
-    /// Implementation state, fully hidden in the implementation unit.
+
     struct impl;
     std::unique_ptr<impl> m_p;
 };
@@ -54,7 +54,7 @@ class when_all_ready_awaitable;
 template<typename return_type>
 class when_all_task;
 
-/// Empty tuple<> implementation.
+
 template<>
 class when_all_ready_awaitable<std::tuple<>> {
   public:
@@ -69,8 +69,8 @@ class when_all_ready_awaitable<std::tuple<>> {
 template<typename... task_types>
 class when_all_ready_awaitable<std::tuple<task_types...>> {
   public:
-    // 注意：impl 必须一次性聚合初始化。when_all_latch 无默认构造，
-    // when_all_task<T> 的移动赋值亦为 delete，故不可"先默认构造再逐成员赋值"。
+
+
     explicit when_all_ready_awaitable(task_types &&...tasks) noexcept(
             std::conjunction<std::is_nothrow_move_constructible<task_types>...>::value
     )
@@ -82,7 +82,7 @@ class when_all_ready_awaitable<std::tuple<task_types...>> {
         : m_p(new impl{when_all_latch{sizeof...(task_types)}, std::move(tasks)}) {}
 
     when_all_ready_awaitable(const when_all_ready_awaitable &) = delete;
-    // PIMPL 语义下移动即转移实现指针，无需逐成员移动。
+
     when_all_ready_awaitable(when_all_ready_awaitable &&other) noexcept: m_p(std::move(other.m_p)) {}
 
     when_all_ready_awaitable & operator=(const when_all_ready_awaitable &) = delete;
@@ -145,7 +145,7 @@ class when_all_ready_awaitable<std::tuple<task_types...>> {
 template<typename task_container_type>
 class when_all_ready_awaitable {
   public:
-    // 同上：聚合初始化，且 std::size(tasks) 在移动 tasks 之前按序求值。
+
     explicit when_all_ready_awaitable(task_container_type &&tasks) noexcept
         : m_p(new impl{when_all_latch{std::size(tasks)}, std::forward<task_container_type>(tasks)}) {}
 
@@ -269,9 +269,9 @@ class when_all_task_promise {
     }
 
     void return_void() noexcept {
-        // We should have either suspended at co_yield point or
-        // an exception was thrown before running off the end of
-        // the coroutine.
+
+
+
         std::unreachable();
     }
 
@@ -286,8 +286,8 @@ class when_all_task_promise {
 };
 
 template<>
-// 显式全特化的 inline 成员（get_return_object/final_suspend/...）由拥有定义的
-// TU 导出（消费方不本地实例化），跨 DLL 消费须类级标注。
+
+
 class CORE_API when_all_task_promise<void> {
   public:
     using coroutine_handle_type = std::coroutine_handle<when_all_task_promise<void>>;
@@ -298,11 +298,11 @@ class CORE_API when_all_task_promise<void> {
 
     std::suspend_always initial_suspend() noexcept { return {}; }
 
-    // 完成通知 awaiter：必须是类级嵌套类型（不可为 final_suspend 函数体内的
-    // 局部类）——① 类级 dllexport 不导出函数内局部类的方法符号（MSVC 模块协程
-    // LNK2001 实测 3 符号）；② clang 拒绝局部类的 dllexport 标注（局部类无外部
-    // 链接），故提升为类级嵌套类型并单独标注 CORE_API（照 scheduler
-    // sync_wait.cppm 范式）。
+
+
+
+
+
     struct CORE_API completion_notifier {
         bool await_ready() const noexcept { return false; }
         void await_suspend(coroutine_handle_type coroutine) const noexcept {
@@ -340,7 +340,7 @@ class CORE_API when_all_task_promise<void> {
 template<typename return_type>
 class when_all_task {
   public:
-    // To be able to call start().
+
     template<typename task_container_type>
     friend class when_all_ready_awaitable;
 
@@ -387,10 +387,10 @@ class when_all_task {
 };
 
 template<>
-// 显式全特化：inline 成员（ctor/move/dtor/start）由拥有定义的 TU 导出，须类级标注。
+
 class CORE_API when_all_task<void> {
   public:
-    // To be able to call start().
+
     template<typename task_container_type>
     friend class when_all_ready_awaitable;
 
@@ -462,18 +462,18 @@ template<
         -> when_all_ready_awaitable<std::vector<when_all_task<return_type>>> {
     std::vector<when_all_task<return_type>> output_tasks;
 
-    // If the size is known in constant time reserve the output tasks size.
+
     if constexpr(std::ranges::sized_range<range_type>) {
         output_tasks.reserve(std::size(awaitables));
     }
 
-    // Wrap each task into a when_all_task.
+
     for(auto &&a: awaitables) {
         output_tasks.emplace_back(make_when_all_task(std::move(a)));
     }
 
-    // Return the single awaitable that drives all the user's tasks.
+
     return when_all_ready_awaitable(std::move(output_tasks));
 }
 
-} // namespace silicon::coroutine
+}

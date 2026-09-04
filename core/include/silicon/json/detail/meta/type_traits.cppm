@@ -1,25 +1,25 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
-#include <limits> // numeric_limits
-#include <string>      // char_traits
-#include <tuple>       // tuple
-#include <type_traits> // false_type, is_constructible, is_integral, is_same, true_type
-#include <utility>     // declval
+#include <limits>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 export module silicon.json:detail.meta.type_traits;
 
@@ -32,43 +32,36 @@ import :json_fwd;
 
 
 SILICON_JSON_NAMESPACE_BEGIN
-/*!
-@brief detail namespace with internal helper functions
 
-This namespace collects functions that should not be exposed,
-implementations of some @ref basic_json methods, and meta-programming helpers.
-
-@since version 2.1.0
-*/
 namespace detail {
 
-/////////////
-// helpers //
-/////////////
 
-// Note to maintainers:
-//
-// Every trait in this file expects a non CV-qualified type.
-// The only exceptions are in the 'aliases for detected' section
-// (i.e. those of the form: decltype(T::member_function(std::declval<T>())))
-//
-// In this case, T has to be properly CV-qualified to constraint the function arguments
-// (e.g. to_json(BasicJsonType&, const T&))
+
+
+
+
+
+
+
+
+
+
+
 
 export template<typename>
 struct is_basic_json: std::false_type {};
 
 export silicon_BASIC_JSON_TPL_DECLARATION struct is_basic_json<silicon_BASIC_JSON_TPL>: std::true_type {};
 
-// used by exceptions create() member functions
-// true_type for pointer to possibly cv-qualified basic_json or std::nullptr_t
-// false_type otherwise
+
+
+
 export template<typename BasicJsonContext>
 struct is_basic_json_context: std::integral_constant<bool, is_basic_json<typename std::remove_cv<typename std::remove_pointer<BasicJsonContext>::type>::type>::value || std::is_same<BasicJsonContext, std::nullptr_t>::value> {};
 
-//////////////////////
-// json_ref helpers //
-//////////////////////
+
+
+
 
 export template<typename>
 class json_ref;
@@ -79,9 +72,9 @@ struct is_json_ref: std::false_type {};
 export template<typename T>
 struct is_json_ref<json_ref<T>>: std::true_type {};
 
-//////////////////////////
-// aliases for detected //
-//////////////////////////
+
+
+
 
 export template<typename T>
 using mapped_type_t = typename T::mapped_type;
@@ -113,14 +106,14 @@ using from_json_function = decltype(T::from_json(std::declval<Args>()...));
 export template<typename T, typename U>
 using get_template_function = decltype(std::declval<T>().template get<U>());
 
-// trait checking if JSONSerializer<T>::from_json(json const&, udt&) exists
+
 export template<typename BasicJsonType, typename T, typename = void>
 struct has_from_json: std::false_type {};
 
-// trait checking if j.get<T> is valid
-// use this trait instead of std::is_constructible or std::is_convertible,
-// both rely on, or make use of implicit conversions, and thus fail when T
-// has several constructors/operator= (see https://github.com/silicon/json/issues/958)
+
+
+
+
 export template<typename BasicJsonType, typename T>
 struct is_getable {
     static constexpr bool value = is_detected<get_template_function, const BasicJsonType &, T>::value;
@@ -134,8 +127,8 @@ struct has_from_json<BasicJsonType, T, enable_if_t<!is_basic_json<T>::value>> {
             is_detected_exact<void, from_json_function, serializer, const BasicJsonType &, T &>::value;
 };
 
-// This trait checks if JSONSerializer<T>::from_json(json const&) exists
-// this overload is used for non-default-constructible user-defined-types
+
+
 export template<typename BasicJsonType, typename T, typename = void>
 struct has_non_default_from_json: std::false_type {};
 
@@ -147,8 +140,8 @@ struct has_non_default_from_json<BasicJsonType, T, enable_if_t<!is_basic_json<T>
             is_detected_exact<T, from_json_function, serializer, const BasicJsonType &>::value;
 };
 
-// This trait checks if BasicJsonType::json_serializer<T>::to_json exists
-// Do not evaluate the trait when T is a basic_json type, to avoid template instantiation infinite recursion.
+
+
 export template<typename BasicJsonType, typename T, typename = void>
 struct has_to_json: std::false_type {};
 
@@ -166,7 +159,7 @@ using detect_key_compare = typename T::key_compare;
 export template<typename T>
 struct has_key_compare: std::integral_constant<bool, is_detected<detect_key_compare, T>::value> {};
 
-// obtains the actual object key comparator
+
 export template<typename BasicJsonType>
 struct actual_object_comparator {
     using object_t = typename BasicJsonType::object_t;
@@ -177,21 +170,21 @@ struct actual_object_comparator {
 export template<typename BasicJsonType>
 using actual_object_comparator_t = typename actual_object_comparator<BasicJsonType>::type;
 
-/////////////////
-// char_traits //
-/////////////////
 
-// Primary template of char_traits calls std char_traits
+
+
+
+
 export template<typename T>
 struct char_traits: std::char_traits<T> {};
 
-// Explicitly define char traits for unsigned char since it is not standard
+
 export template<>
 struct char_traits<unsigned char>: std::char_traits<char> {
     using char_type = unsigned char;
     using int_type = uint64_t;
 
-    // Redefine to_int_type function
+
     static int_type to_int_type(char_type c) noexcept {
         return static_cast<int_type>(c);
     }
@@ -205,13 +198,13 @@ struct char_traits<unsigned char>: std::char_traits<char> {
     }
 };
 
-// Explicitly define char traits for signed char since it is not standard
+
 export template<>
 struct char_traits<signed char>: std::char_traits<char> {
     using char_type = signed char;
     using int_type = uint64_t;
 
-    // Redefine to_int_type function
+
     static int_type to_int_type(char_type c) noexcept {
         return static_cast<int_type>(c);
     }
@@ -225,11 +218,11 @@ struct char_traits<signed char>: std::char_traits<char> {
     }
 };
 
-///////////////////
-// is_ functions //
-///////////////////
 
-// https://en.cppreference.com/w/cpp/types/conjunction
+
+
+
+
 export template<class...>
 struct conjunction: std::true_type {};
 export template<class B>
@@ -238,13 +231,13 @@ export template<class B, class... Bn>
 struct conjunction<B, Bn...>
     : std::conditional<static_cast<bool>(B::value), conjunction<Bn...>, B>::type {};
 
-// https://en.cppreference.com/w/cpp/types/negation
+
 export template<class B>
 struct negation: std::integral_constant<bool, !B::value> {};
 
-// Reimplementation of is_constructible and is_default_constructible, due to them being broken for
-// std::pair and std::tuple until LWG 2367 fix (see https://cplusplus.github.io/LWG/lwg-defects.html#2367).
-// This causes compile errors in e.g. clang 3.5 or gcc 4.9.
+
+
+
 export template<typename T>
 struct is_default_constructible: std::is_default_constructible<T> {};
 
@@ -304,9 +297,9 @@ struct is_range {
     using iterator = detected_t<result_of_begin, t_ref>;
     using sentinel = detected_t<result_of_end, t_ref>;
 
-    // to be 100% correct, it should use https://en.cppreference.com/w/cpp/iterator/input_or_output_iterator
-    // and https://en.cppreference.com/w/cpp/iterator/sentinel_for
-    // but reimplementing these would be too much work, as a lot of other concepts are used underneath
+
+
+
     static constexpr auto is_iterator_begin =
             is_iterator_traits<iterator_traits<iterator>>::value;
 
@@ -320,9 +313,9 @@ using iterator_t = enable_if_t<is_range<R>::value, result_of_begin<decltype(std:
 export template<typename T>
 using range_value_t = value_type_t<iterator_traits<iterator_t<T>>>;
 
-// The following implementation of is_complete_type is taken from
-// https://blogs.msdn.microsoft.com/vcblog/2015/12/02/partial-support-for-expression-sfinae-in-vs-2015-update-1/
-// and is written by Xiang Fan who agreed to using it in this library.
+
+
+
 
 export template<typename T, typename = void>
 struct is_complete_type: std::false_type {};
@@ -340,7 +333,7 @@ struct is_compatible_object_type_impl<
         enable_if_t<is_detected<mapped_type_t, CompatibleObjectType>::value && is_detected<key_type_t, CompatibleObjectType>::value>> {
     using object_t = typename BasicJsonType::object_t;
 
-    // macOS's is_constructible does not play well with nonesuch...
+
     static constexpr bool value =
             is_constructible<typename object_t::key_type, typename CompatibleObjectType::key_type>::value &&
             is_constructible<typename object_t::mapped_type, typename CompatibleObjectType::mapped_type>::value;
@@ -386,7 +379,7 @@ struct is_compatible_string_type {
 
 export template<typename BasicJsonType, typename ConstructibleStringType>
 struct is_constructible_string_type {
-    // launder type through decltype() to fix compilation failure on ICPC
+
 #ifdef __INTEL_COMPILER
     using laundered_type = decltype(std::declval<ConstructibleStringType>());
 #else
@@ -409,8 +402,8 @@ struct is_compatible_array_type_impl<
         enable_if_t<
                 is_detected<iterator_t, CompatibleArrayType>::value &&
                 is_iterator_traits<iterator_traits<detected_t<iterator_t, CompatibleArrayType>>>::value &&
-                // special case for types like std::filesystem::path whose iterator's value_type are themselves
-                // c.f. https://github.com/silicon/json/pull/3073
+
+
                 !std::is_same<CompatibleArrayType, detected_t<range_value_t, CompatibleArrayType>>::value>> {
     static constexpr bool value =
             is_constructible<BasicJsonType, range_value_t<CompatibleArrayType>>::value;
@@ -435,8 +428,8 @@ struct is_constructible_array_type_impl<
         BasicJsonType,
         ConstructibleArrayType,
         enable_if_t<!std::is_same<ConstructibleArrayType, typename BasicJsonType::value_type>::value && !is_compatible_string_type<BasicJsonType, ConstructibleArrayType>::value && is_default_constructible<ConstructibleArrayType>::value && (std::is_move_assignable<ConstructibleArrayType>::value || std::is_copy_assignable<ConstructibleArrayType>::value) && is_detected<iterator_t, ConstructibleArrayType>::value && is_iterator_traits<iterator_traits<detected_t<iterator_t, ConstructibleArrayType>>>::value && is_detected<range_value_t, ConstructibleArrayType>::value &&
-                    // special case for types like std::filesystem::path whose iterator's value_type are themselves
-                    // c.f. https://github.com/silicon/json/pull/3073
+
+
                     !std::is_same<ConstructibleArrayType, detected_t<range_value_t, ConstructibleArrayType>>::value && is_complete_type<detected_t<range_value_t, ConstructibleArrayType>>::value>> {
     using value_type = range_value_t<ConstructibleArrayType>;
 
@@ -460,7 +453,7 @@ struct is_compatible_integer_type_impl<
         RealIntegerType,
         CompatibleNumberIntegerType,
         enable_if_t<std::is_integral<RealIntegerType>::value && std::is_integral<CompatibleNumberIntegerType>::value && !std::is_same<bool, CompatibleNumberIntegerType>::value>> {
-    // is there an assert somewhere on overflows?
+
     using RealLimits = std::numeric_limits<RealIntegerType>;
     using CompatibleLimits = std::numeric_limits<CompatibleNumberIntegerType>;
 
@@ -505,7 +498,7 @@ struct is_json_iterator_of<BasicJsonType, typename BasicJsonType::iterator>: std
 export template<typename BasicJsonType>
 struct is_json_iterator_of<BasicJsonType, typename BasicJsonType::const_iterator>: std::true_type {};
 
-// checks if a given type T is a template specialization of Primary
+
 export template<template<typename...> class Primary, typename T>
 struct is_specialization_of: std::false_type {};
 
@@ -515,7 +508,7 @@ struct is_specialization_of<Primary, Primary<Args...>>: std::true_type {};
 export template<typename T>
 using is_json_pointer = is_specialization_of<::silicon::json::impl::json_pointer, uncvref_t<T>>;
 
-// checks if A and B are comparable using Compare functor
+
 export template<typename Compare, typename A, typename B, typename = void>
 struct is_comparable: std::false_type {};
 
@@ -525,20 +518,20 @@ struct is_comparable<Compare, A, B, void_t<decltype(std::declval<Compare>()(std:
 export template<typename T>
 using detect_is_transparent = typename T::is_transparent;
 
-// type trait to check if KeyType can be used as object key (without a BasicJsonType)
-// see is_usable_as_basic_json_key_type below
+
+
 export template<typename Comparator, typename ObjectKeyType, typename KeyTypeCVRef, bool RequireTransparentComparator = true, bool ExcludeObjectKeyType = RequireTransparentComparator, typename KeyType = uncvref_t<KeyTypeCVRef>>
 using is_usable_as_key_type = typename std::conditional<
         is_comparable<Comparator, ObjectKeyType, KeyTypeCVRef>::value && !(ExcludeObjectKeyType && std::is_same<KeyType, ObjectKeyType>::value) && (!RequireTransparentComparator || is_detected<detect_is_transparent, Comparator>::value) && !is_json_pointer<KeyType>::value,
         std::true_type,
         std::false_type>::type;
 
-// type trait to check if KeyType can be used as object key
-// true if:
-//   - KeyType is comparable with BasicJsonType::object_t::key_type
-//   - if ExcludeObjectKeyType is true, KeyType is not BasicJsonType::object_t::key_type
-//   - the comparator is transparent or RequireTransparentComparator is false
-//   - KeyType is not a JSON iterator or json_pointer
+
+
+
+
+
+
 export template<typename BasicJsonType, typename KeyTypeCVRef, bool RequireTransparentComparator = true, bool ExcludeObjectKeyType = RequireTransparentComparator, typename KeyType = uncvref_t<KeyTypeCVRef>>
 using is_usable_as_basic_json_key_type = typename std::conditional<
         is_usable_as_key_type<typename BasicJsonType::object_comparator_t, typename BasicJsonType::object_t::key_type, KeyTypeCVRef, RequireTransparentComparator, ExcludeObjectKeyType>::value && !is_json_iterator_of<BasicJsonType, KeyType>::value,
@@ -548,7 +541,7 @@ using is_usable_as_basic_json_key_type = typename std::conditional<
 export template<typename ObjectType, typename KeyType>
 using detect_erase_with_key_type = decltype(std::declval<ObjectType &>().erase(std::declval<KeyType>()));
 
-// type trait to check if object_t has an erase() member functions accepting KeyType
+
 export template<typename BasicJsonType, typename KeyType>
 using has_erase_with_key_type = typename std::conditional<
         is_detected<
@@ -558,14 +551,14 @@ using has_erase_with_key_type = typename std::conditional<
         std::true_type,
         std::false_type>::type;
 
-// a naive helper to check if a type is an ordered_map (exploits the fact that
-// ordered_map inherits capacity() from std::vector)
+
+
 export template<typename T>
 struct is_ordered_map {
     using one = char;
 
     struct two {
-        char x[2]; // NOLINT(cppcoreguidelines-avoid-c-arrays,hicpp-avoid-c-arrays,modernize-avoid-c-arrays)
+        char x[2];
     };
 
     template<typename C>
@@ -573,10 +566,10 @@ struct is_ordered_map {
     template<typename C>
     static two test(...);
 
-    enum { value = sizeof(test<T>(nullptr)) == sizeof(char) }; // NOLINT(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
+    enum { value = sizeof(test<T>(nullptr)) == sizeof(char) };
 };
 
-// to avoid useless casts (see https://github.com/silicon/json/issues/2893#issuecomment-889152324)
+
 export template<typename T, typename U, enable_if_t<!std::is_same<T, U>::value, int> = 0>
 T conditional_static_cast(U value) {
     return static_cast<T>(value);
@@ -596,7 +589,7 @@ using all_signed = conjunction<std::is_signed<Types>...>;
 export template<typename... Types>
 using all_unsigned = conjunction<std::is_unsigned<Types>...>;
 
-// there's a disjunction trait in another PR; replace when merged
+
 export template<typename... Types>
 using same_sign = std::integral_constant<bool, all_signed<Types...>::value || all_unsigned<Types...>::value>;
 
@@ -650,7 +643,7 @@ struct value_in_range_of_impl1<OfType, T, false> {
 
 export template<typename OfType, typename T>
 struct value_in_range_of_impl1<OfType, T, true> {
-    static constexpr bool test(T /*val*/) {
+    static constexpr bool test(T ) {
         return true;
     }
 };
@@ -663,9 +656,9 @@ inline constexpr bool value_in_range_of(T val) {
 export template<bool Value>
 using bool_constant = std::integral_constant<bool, Value>;
 
-///////////////////////////////////////////////////////////////////////////////
-// is_c_string
-///////////////////////////////////////////////////////////////////////////////
+
+
+
 
 namespace impl {
 
@@ -678,18 +671,18 @@ inline constexpr bool is_c_string() {
     return (std::is_array<T>::value && std::is_same<TUnCVExt, char>::value) || (std::is_pointer<T>::value && std::is_same<TUnCVPtr, char>::value);
 }
 
-} // namespace impl
+}
 
-// checks whether T is a [cv] char */[cv] char[] C string
+
 export template<typename T>
 struct is_c_string: bool_constant<impl::is_c_string<T>()> {};
 
 export template<typename T>
 using is_c_string_uncvref = is_c_string<uncvref_t<T>>;
 
-///////////////////////////////////////////////////////////////////////////////
-// is_transparent
-///////////////////////////////////////////////////////////////////////////////
+
+
+
 
 namespace impl {
 
@@ -698,13 +691,13 @@ inline constexpr bool is_transparent() {
     return is_detected<detect_is_transparent, T>::value;
 }
 
-} // namespace impl
+}
 
-// checks whether T has a member named is_transparent
+
 export template<typename T>
 struct is_transparent: bool_constant<impl::is_transparent<T>()> {};
 
-///////////////////////////////////////////////////////////////////////////////
 
-} // namespace detail
+
+}
 SILICON_JSON_NAMESPACE_END

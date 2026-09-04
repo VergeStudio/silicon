@@ -11,4 +11,4 @@ export namespace silicon::scheduler {
 
     template <typename E>
     using unexpected = std::unexpected<E>;
-} // namespace silicon::scheduler
+}

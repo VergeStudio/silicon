@@ -1,6 +1,6 @@
 module;
 
-// 模块化补齐：原经传递 include 获得的标准头，模块单元须显式包含。
+
 #include <memory>
 
 
@@ -15,22 +15,10 @@ import :event;
 import silicon.scheduler;
 
 export namespace silicon::coroutine {
-/**
- * The latch is thread safe counter to wait for 1 or more other tasks to complete, they signal their
- * completion by calling `count_down()` on the latch and upon the latch counter reaching zero the
- * coroutine `co_await`ing the latch then resumes execution.
- *
- * This is useful for spawning many worker tasks to complete either a computationally complex task
- * across a thread pool of workers, or waiting for many asynchronous results like http requests
- * to complete.
- */
+
 class CORE_API latch {
   public:
-    /**
-     * Creates a latch with the given count of tasks to wait to complete.
-     * @param count The number of tasks to wait to complete, if this is zero or negative then the
-     *              latch starts 'completed' immediately and execution is resumed with no suspension.
-     */
+    
     latch(std::int64_t) noexcept;
     ~latch();
 
@@ -39,28 +27,16 @@ class CORE_API latch {
     latch & operator=(const latch &) = delete;
     latch & operator=(latch &&) = delete;
 
-    /**
-     * @return True if the latch has been counted down to zero.
-     */
+    
     bool is_ready() const noexcept ;
 
-    /**
-     * @return The number of tasks this latch is still waiting to complete.
-     */
+    
     std::size_t remaining() const noexcept ;
 
-    /**
-     * If the latch counter goes to zero then the task awaiting the latch is resumed.
-     * @param n The number of tasks to complete towards the latch, defaults to 1.
-     */
+    
     void count_down(std::int64_t = 1) noexcept ;
 
-    /**
-     * If the latch counter goes to zero then the task awaiting the latch is resumed on the given
-     * thread pool.
-     * @param tp The thread pool to schedule the task that is waiting on the latch on.
-     * @param n The number of tasks to complete towards the latch, defaults to 1.
-     */
+    
     template<silicon::scheduler::concepts::executor executor_type>
     void count_down(std::unique_ptr<executor_type> &executor, std::int64_t n = 1) noexcept {
         if(decrement(n)) {
@@ -71,18 +47,15 @@ class CORE_API latch {
     auto operator co_await() const noexcept -> event::awaiter;
 
   private:
-    /// PIMPL：impl 仅前置声明，定义置于 src/latch.cpp。
+
     struct impl;
-    /// Hidden implementation state.
+
     std::unique_ptr<impl> m_p;
 
-    /**
-     * 非模板钩子：递减计数，返回是否刚好归零（需要触发内部 event）。
-     * 供接口单元中的 `count_down(executor)` 模板重载使用。
-     */
+    
     bool decrement(std::int64_t) noexcept ;
-    /// 非模板钩子：暴露内部 event 引用，供模板重载在 executor 上恢复等待者。
+
     event & internal_event() noexcept ;
 };
 
-} // namespace silicon::coroutine
+}

@@ -1,23 +1,23 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
-#include <cstring> // strlen
-#include <string>  // string
-#include <utility> // forward
+#include <cstring>
+#include <string>
+#include <utility>
 
 export module silicon.json:detail.string_concat;
 
@@ -39,13 +39,13 @@ export template<typename StringType, typename... Args>
 inline std::size_t concat_length(const StringType &str, const Args &...rest);
 
 export template<typename... Args>
-inline std::size_t concat_length(const char /*c*/, const Args &...rest) {
+inline std::size_t concat_length(const char , const Args &...rest) {
     return 1 + concat_length(rest...);
 }
 
 export template<typename... Args>
 inline std::size_t concat_length(const char *cstr, const Args &...rest) {
-    // cppcheck-suppress ignoredReturnValue
+
     return ::strlen(cstr) + concat_length(rest...);
 }
 
@@ -55,7 +55,7 @@ inline std::size_t concat_length(const StringType &str, const Args &...rest) {
 }
 
 export template<typename OutStringType>
-inline void concat_into(OutStringType & /*out*/) {}
+inline void concat_into(OutStringType & ) {}
 
 template<typename StringType, typename Arg>
 using string_can_append = decltype(std::declval<StringType &>().append(std::declval<Arg &&>()));
@@ -122,5 +122,5 @@ inline OutStringType concat(Args &&...args) {
     return str;
 }
 
-} // namespace detail
+}
 SILICON_JSON_NAMESPACE_END

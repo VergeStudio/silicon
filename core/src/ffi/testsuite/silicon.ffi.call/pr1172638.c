@@ -1,9 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Reproduce bug found in python ctypes
-   Limitations:	none.
-   PR:		Fedora 1174037  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct {
@@ -47,7 +44,7 @@ int main (void)
   RECT ar, br, dr, er, gr; 
   RECT *p1, *p2;
 
-  /* This is a hack to get a properly aligned result buffer */
+  
   RECT *rect_result =
     (RECT *) malloc (sizeof(RECT));
 
@@ -78,7 +75,7 @@ int main (void)
   args[6] = &point_type;
   args[7] = &rect_type;
   
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 8, &rect_type, args) == SFFI_OK);
 
   i = 1;

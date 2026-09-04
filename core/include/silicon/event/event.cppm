@@ -30,7 +30,7 @@ class CORE_API event {
     void set_status(event_status) noexcept;
 
   private:
-    // PIMPL：私有状态移入不透明 impl，稳定 ABI、隐藏实现。
+
     struct impl {
         std::string name_;
         event_status status_{event_status::kSuccess};
@@ -39,4 +39,4 @@ class CORE_API event {
     std::unique_ptr<impl> impl_{std::make_unique<impl>()};
 };
 
-} // namespace silicon::event
+}

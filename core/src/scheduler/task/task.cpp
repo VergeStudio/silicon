@@ -40,4 +40,4 @@ bool task_event::awaiter::await_ready() const noexcept {
 
 void task_event::awaiter::await_resume() noexcept {}
 
-} // namespace silicon::scheduler
+}

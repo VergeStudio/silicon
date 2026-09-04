@@ -48,4 +48,4 @@ void error(const std::string_view &msg, std::source_location &&location) {
 void critical(const std::string_view &msg, std::source_location &&location) {
     return g_logger.critical(msg, std::forward<std::source_location>(location));
 }
-} // namespace silicon::logger
+}

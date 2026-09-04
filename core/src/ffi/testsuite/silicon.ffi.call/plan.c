@@ -1,13 +1,6 @@
-/* Area:	sffi_call_plan
-   Purpose:	Check that a reusable call plan reproduces sffi_call for the
-		pure-GP64 fast path, pointer arguments and repeated reuse,
-		and that a signature with no fast path still yields a usable
-		plan that falls back to sffi_call.
-   Limitations:	none.
-   PR:		none.
-   Originator:	sffi_call_plan tests  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static uint64_t gp6(uint64_t a, uint64_t b, uint64_t c,
@@ -37,9 +30,7 @@ int main (void)
   uint64_t a[6], r_call, r_plan;
   int i, k;
 
-  /* Pure GP64: every argument is one 64-bit integer, so build_plan
-     selects the sffi_plan_gpN direct thunk.  Reuse the plan across many
-     invocations with changing values.  */
+  
   for (i = 0; i < 6; i++)
     args[i] = &sffi_type_uint64;
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 6, &sffi_type_uint64, args)
@@ -61,7 +52,7 @@ int main (void)
     }
   sffi_call_plan_free(plan);
 
-  /* Pointer argument and pointer return. */
+  
   {
     sffi_cif cifp;
     sffi_type *pargs[1];
@@ -84,9 +75,7 @@ int main (void)
     sffi_call_plan_free(planp);
   }
 
-  /* No fast path: a struct-by-value argument.  build_plan returns NULL for
-     the fast plan, but sffi_call_plan_alloc must still hand back a valid plan
-     whose invoke falls back to sffi_call and produces the same result.  */
+  
   {
     sffi_cif cifs;
     sffi_type *sargs[1];
@@ -120,7 +109,7 @@ int main (void)
     sffi_call_plan_free(plans);
   }
 
-  /* Freeing NULL is documented to be harmless. */
+  
   sffi_call_plan_free(NULL);
 
   exit(0);

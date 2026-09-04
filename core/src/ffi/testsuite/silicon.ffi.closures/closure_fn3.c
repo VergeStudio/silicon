@@ -1,12 +1,6 @@
-/* Area:	closure_call
-   Purpose:	Check multiple values passing from different type.
-		Also, exceed the limit of gpr and fpr registers on PowerPC
-		Darwin.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static void closure_test_fn3(sffi_cif* cif __UNUSED__, void* resp, void** args,
@@ -84,19 +78,19 @@ int main (void)
   cl_arg_types[15] = &sffi_type_sint;
   cl_arg_types[16] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 16,
 		     &sffi_type_sint, cl_arg_types) == SFFI_OK);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, closure_test_fn3,
-                             (void *) 3 /* userdata */, code)  == SFFI_OK);
+                             (void *) 3 , code)  == SFFI_OK);
 
   res = (*((closure_test_type3)code))
     (1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9, 10, 11.11, 12.0, 13,
      19.19, 21.21, 1);
-  /* { dg-output "1 2 3 4 5 6 7 8 9 10 11 12 13 19 21 1 3: 135" } */
+  
   printf("res: %d\n",res);
-  /* { dg-output "\nres: 135" } */
+  
   CHECK(res == 135);
   exit(0);
 }

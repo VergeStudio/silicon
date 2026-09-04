@@ -59,4 +59,4 @@ auto task_event::operator co_await() const noexcept -> awaiter {
     return awaiter(*this);
 }
 
-} // namespace silicon::scheduler
+}

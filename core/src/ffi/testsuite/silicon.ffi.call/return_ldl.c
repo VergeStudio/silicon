@@ -1,9 +1,5 @@
-/* Area:	sffi_call
-   Purpose:	Check return value long double.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20071113  */
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 
@@ -21,7 +17,7 @@ int main (void)
   args[0] = &sffi_type_longdouble;
   values[0] = &ldl;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_longdouble, args) == SFFI_OK);
 

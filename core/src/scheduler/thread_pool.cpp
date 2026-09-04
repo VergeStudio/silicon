@@ -38,11 +38,11 @@ struct thread_pool::impl {
 
     struct alignas(64) ThreadState {
         std::deque<std::coroutine_handle<void>> queue;
-        // mutable：all_queues_empty() 等 const 成员需在只读语义下加锁。
+
         mutable std::mutex mutex;
     };
-    // ThreadState 含 std::mutex（不可移动），vector::resize 要求 move-insertable，
-    // 属非法实例化；deque::resize 原位构造且不搬迁元素，故改用 deque。
+
+
     std::deque<ThreadState> m_states;
 
     std::vector<std::thread> m_threads;
@@ -109,7 +109,7 @@ std::expected<std::unique_ptr<thread_pool>, std::error_code> thread_pool::create
             impl.m_threads.emplace_back([tp = tp.get(), i]() { tp->m_impl->executor(i); });
         }
     } catch(const std::exception &) {
-        // 线程创建失败（系统资源不足）：tp 析构会 join 已创建线程，返回模块级错误码。
+
         return std::unexpected(make_error_code(scheduler_error::kUnknown));
     }
     return tp;
@@ -124,8 +124,8 @@ auto thread_pool::schedule() -> schedule_operation {
     if(!m_impl->m_shutdown_requested.load(std::memory_order::acquire)) {
         return schedule_operation{*this};
     } else {
-        // 关闭后调度属于调用方违反前提（在已 shutdown 的执行器上继续入队），
-        // 不可恢复且语义上等同契约违例，统一终止而非抛异常。
+
+
         m_impl->m_size.fetch_sub(1, std::memory_order::release);
         std::terminate();
     }
@@ -284,4 +284,4 @@ std::size_t thread_pool::resume_range_impl(std::vector<std::coroutine_handle<voi
     return total;
 }
 
-} // namespace silicon::scheduler
+}

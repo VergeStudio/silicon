@@ -1,5 +1,5 @@
-// 实现单元：silicon.cli.parser
-// parser 的 PIMPL 状态与解析算法（原 header-only 的 parser_types.h 部分）。
+
+
 module;
 
 #include <expected>
@@ -22,7 +22,7 @@ namespace silicon::cli {
 
 struct parser::impl {
     std::set<std::string> subcommands;
-    std::map<std::string, bool> flags; // name -> requires_value
+    std::map<std::string, bool> flags;
 };
 
 parser::parser() : impl_(std::make_unique<impl>()) {}
@@ -42,7 +42,7 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
     if(argc <= 0) return result;
 
     int i = 1;
-    // 子命令：首个不以 '-' 开头的 token
+
     if(i < argc && argv[i][0] != '-') {
         result.command() = argv[i];
         ++i;
@@ -54,7 +54,7 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
     };
     std::vector<flag_seen> seen;
 
-    bool positional_only = false; // 裸 '--' 之后全部为位置参数
+    bool positional_only = false;
     while(i < argc) {
         std::string_view arg(argv[i]);
         if(positional_only || arg.empty() || arg[0] != '-') {
@@ -65,13 +65,13 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
 
         const bool is_long = arg.size() >= 2 && arg[1] == '-';
 
-        // 裸 '--'：分隔符，后续全部为位置参数（GNU 惯例）。
+
         if(is_long && arg.size() == 2) {
             positional_only = true;
             ++i;
             continue;
         }
-        // 裸 '-'：畸形 flag。
+
         if(!is_long && arg.size() == 1) {
             return std::unexpected(make_error_code(cli_error::kInvalidValue));
         }
@@ -79,7 +79,7 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
         const size_t name_start = is_long ? 2 : 1;
         std::string name(arg.substr(name_start));
 
-        // 显式值语法：--name=value（仅长 flag 支持等号，最高优先级）。
+
         std::optional<std::string> inline_value;
         if(is_long) {
             if(auto eq = name.find('='); eq != std::string::npos) {
@@ -91,8 +91,8 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
             return std::unexpected(make_error_code(cli_error::kInvalidValue));
         }
 
-        // 声明驱动：已登记的 flag 按 add_flag 的 requires_value 决定是否消费值；
-        // 未登记（宽松维度）保留词法回退——长 flag 后随非 '-' token 则带值。
+
+
         const auto it = impl_->flags.find(name);
         bool takes_value;
         if(it != impl_->flags.end()) {
@@ -119,7 +119,7 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
         }
     }
 
-    // ── 校验：仅对声明过的维度生效，未声明则宽松通过 ──
+
     if(!impl_->subcommands.empty() && !result.command().empty()
        && impl_->subcommands.find(result.command()) == impl_->subcommands.end()) {
         return std::unexpected(make_error_code(cli_error::kUnknownSubcommand));
@@ -139,4 +139,4 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
     return result;
 }
 
-} // namespace silicon::cli
+}

@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check nested float struct.
-   Limitations:	none.
-   PR:		none.
-   Originator:	Cheng Jin <jincheng@ca.ibm.com>  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct stru_FF stru_FF;

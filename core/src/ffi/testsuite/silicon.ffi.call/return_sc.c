@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check return value signed char.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static signed char return_sc(signed char sc)
@@ -22,7 +18,7 @@ int main (void)
   args[0] = &sffi_type_schar;
   values[0] = &sc;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_schar, args) == SFFI_OK);
 

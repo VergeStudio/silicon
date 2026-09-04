@@ -1,23 +1,4 @@
-/* Copyright (c) 2020 Kalray
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-``Software''), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #if defined(__kvx__)
 #include <stdio.h>
@@ -54,15 +35,14 @@ extern struct ret_value sffi_call_SYSV(unsigned total_size,
                                       void *fn,
                                       unsigned int_ext_method);
 
-/* Perform machine dependent cif processing */
+
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
   cif->flags = cif->rtype->size;
   return SFFI_OK;
 }
 
-/* sffi_prep_args is called by the assembly routine once stack space
-   has been allocated for the function's arguments */
+
 
 void *sffi_prep_args(char *stack, unsigned int arg_slots_size, extended_cif *ecif)
 {
@@ -145,7 +125,7 @@ void *sffi_prep_args(char *stack, unsigned int arg_slots_size, extended_cif *eci
   return stacktemp + REG_ARGS_SIZE;
 }
 
-/* Perform machine dependent cif processing when we have a variadic function */
+
 
 sffi_status sffi_prep_cif_machdep_var(sffi_cif *cif, unsigned int nfixedargs,
                                     unsigned int ntotalargs)
@@ -200,21 +180,21 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   size_t wb_size;
 
 
-  /* Calculate size to allocate on stack */
+  
   for (i = 0, arg = cif->arg_types; i < cif->nargs; i++, arg++) {
     DEBUG_PRINT("argument %d, type %d, size %lu\n", i, (*arg)->type, (*arg)->size);
     if (((*arg)->type == SFFI_TYPE_STRUCT) || ((*arg)->type == SFFI_TYPE_COMPLEX)) {
       if ((*arg)->size <= KVX_ABI_MAX_AGGREGATE_IN_REG_SIZE) {
         slot_fitting_args_size += ALIGN((*arg)->size, KVX_ABI_SLOT_SIZE);
       } else {
-        slot_fitting_args_size += KVX_ABI_SLOT_SIZE; /* aggregate passed by reference */
+        slot_fitting_args_size += KVX_ABI_SLOT_SIZE; 
         big_struct_size += ALIGN((*arg)->size, KVX_ABI_SLOT_SIZE);
       }
     } else if ((*arg)->size <= KVX_ABI_SLOT_SIZE) {
       slot_fitting_args_size += KVX_ABI_SLOT_SIZE;
     } else {
       printf("Error: unsupported arg size %ld arg type %d\n", (*arg)->size, (*arg)->type);
-      abort(); /* should never happen? */
+      abort(); 
     }
   }
 
@@ -223,19 +203,12 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   ecif.avalue = avalue;
   ecif.rvalue = rvalue;
 
-  /* This implementation allocates anyway for all register based args */
+  
   slot_fitting_args_size = max(slot_fitting_args_size, REG_ARGS_SIZE);
   total_size = slot_fitting_args_size + big_struct_size;
   total_size = ALIGN(total_size, KVX_ABI_STACK_ALIGNMENT);
 
-  /* wb_size: write back size, the size we will need to write back to user
-   * provided buffer. In theory it should always be cif->flags which is
-   * cif->rtype->size. But SILICON_FFI API mandates that for integral types
-   * of size <= system register size, then we *MUST* write back
-   * the size of system register size.
-   * in our case, if size <= 8 bytes we must write back 8 bytes.
-   * floats, complex and structs are not affected, only integrals.
-   */
+  
   wb_size = handle_small_int_ext(&int_extension_method, cif->rtype);
 
   switch (cif->abi) {
@@ -259,7 +232,7 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   }
 }
 
-/* Closures not supported yet */
+
 sffi_status
 sffi_prep_closure_loc (sffi_closure* closure,
                       sffi_cif* cif,
@@ -270,4 +243,4 @@ sffi_prep_closure_loc (sffi_closure* closure,
   return SFFI_BAD_ABI;
 }
 
-#endif /* (__kvx__) */
+#endif 

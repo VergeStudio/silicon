@@ -1,33 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2017, 2022, 2026  Anthony Green
-           Copyright (c) 1996, 1998, 1999, 2001, 2007, 2008  Red Hat, Inc.
-           Copyright (c) 2002  Ranjit Mathew
-           Copyright (c) 2002  Bo Thorsen
-           Copyright (c) 2002  Roger Sayle
-           Copyright (C) 2008, 2010  Free Software Foundation, Inc.
 
-   x86 Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #if defined(__i386__) || defined(_M_IX86)
 #include <sffi.h>
@@ -37,8 +8,7 @@
 #include <tramp.h>
 #include "internal.h"
 
-/* Force SFFI_TYPE_LONGDOUBLE to be different than SFFI_TYPE_DOUBLE;
-   all further uses in this file will refer to the 80-bit type.  */
+
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 # if SFFI_TYPE_LONGDOUBLE != 4
 #  error SFFI_TYPE_LONGDOUBLE out of date
@@ -53,13 +23,13 @@
 #endif
 
 #if defined(_MSC_VER) && defined(_M_IX86)
-/* Stack is not 16-byte aligned on Windows.  */
+
 #define STACK_ALIGN(bytes) (bytes)
 #else
 #define STACK_ALIGN(bytes) SFFI_ALIGN (bytes, 16)
 #endif
 
-/* Perform machine dependent cif processing.  */
+
 sffi_status SFFI_HIDDEN
 sffi_prep_cif_machdep(sffi_cif *cif)
 {
@@ -144,7 +114,7 @@ sffi_prep_cif_machdep(sffi_cif *cif)
                 flags = X86_RET_STRUCTPOP;
                 break;
               }
-            /* Allocate space for return value pointer.  */
+            
             bytes += SFFI_ALIGN (sizeof(void*), SFFI_SIZEOF_ARG);
           }
       }
@@ -224,19 +194,19 @@ extend_basic_type(void *arg, int type)
 
 struct call_frame
 {
-  void *ebp;		/* 0 */
-  void *retaddr;	/* 4 */
-  void (*fn)(void);	/* 8 */
-  int flags;		/* 12 */
-  void *rvalue;		/* 16 */
-  unsigned regs[3];	/* 20-28 */
+  void *ebp;		
+  void *retaddr;	
+  void (*fn)(void);	
+  int flags;		
+  void *rvalue;		
+  unsigned regs[3];	
 };
 
 struct abi_params
 {
-  int dir;		/* parameter growth direction */
-  int static_chain;	/* the static chain register used by gcc */
-  int nregs;		/* number of register parameters */
+  int dir;		
+  int static_chain;	
+  int nregs;		
   int regs[3];
 };
 
@@ -246,7 +216,7 @@ static const struct abi_params abi_params[SFFI_LAST_ABI] = {
   [SFFI_FASTCALL] = { 1, R_EAX, 2, { R_ECX, R_EDX } },
   [SFFI_STDCALL] = { 1, R_ECX, 0 },
   [SFFI_PASCAL] = { -1, R_ECX, 0 },
-  /* ??? No defined static chain; gcc does not support REGISTER.  */
+  
   [SFFI_REGISTER] = { -1, R_ECX, 3, { R_EAX, R_EDX, R_ECX } },
   [SFFI_MS_CDECL] = { 1, R_ECX, 0 }
 };
@@ -263,15 +233,11 @@ static const struct abi_params abi_params[SFFI_LAST_ABI] = {
 
 extern void SFFI_DECLARE_FASTCALL sffi_call_i386(struct call_frame *, char *) SFFI_HIDDEN;
 
-/* We perform some black magic here to use some of the parent's stack frame in
- * sffi_call_i386() that breaks with the MSVC compiler with the /RTCs or /GZ
- * flags.  Disable the 'Stack frame run time error checking' for this function
- * so we don't hit weird exceptions in debug builds. */
+
 #if defined(_MSC_VER)
 #pragma runtime_checks("s", off)
 #endif
-/* n.b. sffi_call_unix64 will steal the alloca'd `stack` variable here for use
-   _as its own stack_ - so we need to compile this function without ASAN */
+
 SFFI_ASAN_NO_SANITIZE
 static void
 sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
@@ -299,12 +265,11 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 	case X86_RET_LDOUBLE:
 	case X86_RET_STRUCTPOP:
 	case X86_RET_STRUCTARG:
-	  /* The float cases need to pop the 387 stack.
-	     The struct cases need to pass a valid pointer to the callee.  */
+	  
 	  rsize = cif->rtype->size;
 	  break;
 	default:
-	  /* We can pretend that the callee returns nothing.  */
+	  
 	  flags = X86_RET_VOID;
 	  break;
 	}
@@ -326,14 +291,14 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
   switch (flags)
     {
     case X86_RET_STRUCTARG:
-      /* The pointer is passed as the first argument.  */
+      
       if (pabi->nregs > 0)
 	{
 	  frame->regs[pabi->regs[0]] = (unsigned)rvalue;
 	  narg_reg = 1;
 	  break;
 	}
-      /* fallthru */
+      
     case X86_RET_STRUCTPOP:
       *(void **)argp = rvalue;
       argp += sizeof(void *);
@@ -370,29 +335,20 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 	  size_t za = SFFI_ALIGN (z, SFFI_SIZEOF_ARG);
 	  size_t align = SFFI_SIZEOF_ARG;
 
-	  /* Issue 434: For thiscall and fastcall, if the parameter passed
-	     as 64-bit integer or struct, all following integer parameters
-	     will be passed on stack.  */
+	  
 	  if ((cabi == SFFI_THISCALL || cabi == SFFI_FASTCALL)
 	      && (t == SFFI_TYPE_SINT64
 		  || t == SFFI_TYPE_UINT64
 		  || t == SFFI_TYPE_STRUCT))
 	    narg_reg = 2;
 
-	  /* Alignment rules for arguments are quite complex.  Vectors and
-	     structures with 16 byte alignment get it.  Note that long double
-	     on Darwin does have 16 byte alignment, and does not get this
-	     alignment if passed directly; a structure with a long double
-	     inside, however, would get 16 byte alignment.  Since SILICON_FFI does
-	     not support vectors, we need non concern ourselves with other
-	     cases.  */
+	  
 	  if (t == SFFI_TYPE_STRUCT && ty->alignment >= 16)
 	    align = 16;
 
 	  if (dir < 0)
 	    {
-	      /* ??? These reverse argument ABIs are probably too old
-		 to have cared about alignment.  Someone should check.  */
+	      
 	      argp -= za;
 	      memcpy (argp, valp, z);
 	    }
@@ -427,7 +383,7 @@ sffi_call_go (sffi_cif *cif, void (*fn)(void), void *rvalue,
 }
 #endif
 
-/** private members **/
+
 
 void SFFI_HIDDEN sffi_closure_i386(void);
 void SFFI_HIDDEN sffi_closure_STDCALL(void);
@@ -440,11 +396,11 @@ void SFFI_HIDDEN sffi_closure_REGISTER_alt(void);
 
 struct closure_frame
 {
-  unsigned rettemp[4];				/* 0 */
-  unsigned regs[3];				/* 16-24 */
-  sffi_cif *cif;					/* 28 */
-  void (*fun)(sffi_cif*,void*,void**,void*);	/* 32 */
-  void *user_data;				/* 36 */
+  unsigned rettemp[4];				
+  unsigned regs[3];				
+  sffi_cif *cif;					
+  void (*fun)(sffi_cif*,void*,void**,void*);	
+  void *user_data;				
 };
 
 int SFFI_HIDDEN SFFI_DECLARE_FASTCALL
@@ -476,7 +432,7 @@ sffi_closure_inner (struct closure_frame *frame, char *stack)
 	  frame->rettemp[0] = (unsigned)rvalue;
 	  break;
 	}
-      /* fallthru */
+      
     case X86_RET_STRUCTPOP:
       rvalue = *(void **)argp;
       argp += sizeof(void *);
@@ -515,13 +471,11 @@ sffi_closure_inner (struct closure_frame *frame, char *stack)
 	  size_t za = SFFI_ALIGN (z, SFFI_SIZEOF_ARG);
 	  size_t align = SFFI_SIZEOF_ARG;
 
-	  /* See the comment in sffi_call_int.  */
+	  
 	  if (t == SFFI_TYPE_STRUCT && ty->alignment >= 16)
 	    align = 16;
 
-	  /* Issue 434: For thiscall and fastcall, if the parameter passed
-	     as 64-bit integer or struct, all following integer parameters
-	     will be passed on stack.  */
+	  
 	  if ((cabi == SFFI_THISCALL || cabi == SFFI_FASTCALL)
 	      && (t == SFFI_TYPE_SINT64
 		  || t == SFFI_TYPE_UINT64
@@ -530,8 +484,7 @@ sffi_closure_inner (struct closure_frame *frame, char *stack)
 
 	  if (dir < 0)
 	    {
-	      /* ??? These reverse argument ABIs are probably too old
-		 to have cared about alignment.  Someone should check.  */
+	      
 	      argp -= za;
 	      valp = argp;
 	    }
@@ -554,13 +507,7 @@ sffi_closure_inner (struct closure_frame *frame, char *stack)
       return flags | (cif->bytes << X86_RET_POP_SHIFT);
     case SFFI_THISCALL:
     case SFFI_FASTCALL:
-      /* The callee must pop exactly the bytes that were passed on the
-	 stack.  Deriving that from cif->bytes minus narg_reg * 4 is wrong
-	 once narg_reg has been force-bumped to 2 (above) for a 64-bit or
-	 struct argument that is itself placed on the stack: the subtraction
-	 then discounts register slots that were never used, under-popping
-	 the stack.  argp has advanced past exactly the stack-resident
-	 arguments (dir == 1 for these ABIs), so use that directly.  */
+      
       return flags | (((unsigned) (argp - stack)) << X86_RET_POP_SHIFT);
     default:
       return flags;
@@ -576,7 +523,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 {
   char *tramp = closure->tramp;
   void (*dest)(void);
-  int op = 0xb8;  /* movl imm, %eax */
+  int op = 0xb8;  
 
   switch (cif->abi)
     {
@@ -592,7 +539,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
       break;
     case SFFI_REGISTER:
       dest = sffi_closure_REGISTER;
-      op = 0x68;  /* pushl imm */
+      op = 0x68;  
       break;
     default:
       return SFFI_BAD_ABI;
@@ -601,7 +548,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 #if defined(SFFI_EXEC_STATIC_TRAMP)
   if (sffi_tramp_is_present(closure))
     {
-      /* Initialize the static trampoline's parameters. */
+      
       if (dest == sffi_closure_i386)
         dest = sffi_closure_i386_alt;
       else if (dest == sffi_closure_STDCALL)
@@ -613,15 +560,15 @@ sffi_prep_closure_loc (sffi_closure* closure,
     }
 #endif
 
-  /* Initialize the dynamic trampoline. */
-  /* endbr32.  */
+  
+  
   *(UINT32 *) tramp = 0xfb1e0ff3;
 
-  /* movl or pushl immediate.  */
+  
   tramp[4] = op;
   *(void **)(tramp + 5) = codeloc;
 
-  /* jmp dest */
+  
   tramp[9] = 0xe9;
   *(unsigned *)(tramp + 10) = (unsigned)dest - ((unsigned)codeloc + 14);
 
@@ -673,9 +620,9 @@ sffi_prep_go_closure (sffi_go_closure* closure, sffi_cif* cif,
   return SFFI_OK;
 }
 
-#endif /* SFFI_GO_CLOSURES */
+#endif 
 
-/* ------- Native raw API support -------------------------------- */
+
 
 #if !SFFI_NO_RAW_API
 
@@ -693,10 +640,7 @@ sffi_prep_raw_closure_loc (sffi_raw_closure *closure,
   void (*dest)(void);
   int i;
 
-  /* We currently don't support certain kinds of arguments for raw
-     closures.  This should be implemented by a separate assembly
-     language routine, since it would require argument processing,
-     something we don't do now for performance.  */
+  
   for (i = cif->nargs-1; i >= 0; i--)
     switch (cif->arg_types[i]->type)
       {
@@ -717,11 +661,11 @@ sffi_prep_raw_closure_loc (sffi_raw_closure *closure,
       return SFFI_BAD_ABI;
     }
 
-  /* movl imm, %eax.  */
+  
   tramp[0] = 0xb8;
   *(void **)(tramp + 1) = codeloc;
 
-  /* jmp dest */
+  
   tramp[5] = 0xe9;
   *(unsigned *)(tramp + 6) = (unsigned)dest - ((unsigned)codeloc + 10);
 
@@ -756,12 +700,11 @@ sffi_raw_call(sffi_cif *cif, void (*fn)(void), void *rvalue, sffi_raw *avalue)
 	case X86_RET_LDOUBLE:
 	case X86_RET_STRUCTPOP:
 	case X86_RET_STRUCTARG:
-	  /* The float cases need to pop the 387 stack.
-	     The struct cases need to pass a valid pointer to the callee.  */
+	  
 	  rsize = cif->rtype->size;
 	  break;
 	default:
-	  /* We can pretend that the callee returns nothing.  */
+	  
 	  flags = X86_RET_VOID;
 	  break;
 	}
@@ -782,14 +725,14 @@ sffi_raw_call(sffi_cif *cif, void (*fn)(void), void *rvalue, sffi_raw *avalue)
   switch (flags)
     {
     case X86_RET_STRUCTARG:
-      /* The pointer is passed as the first argument.  */
+      
       if (pabi->nregs > 0)
 	{
 	  frame->regs[pabi->regs[0]] = (unsigned)rvalue;
 	  narg_reg = 1;
 	  break;
 	}
-      /* fallthru */
+      
     case X86_RET_STRUCTPOP:
       *(void **)argp = rvalue;
       argp += sizeof(void *);
@@ -824,7 +767,7 @@ sffi_raw_call(sffi_cif *cif, void (*fn)(void), void *rvalue, sffi_raw *avalue)
 
   sffi_call_i386 (frame, stack);
 }
-#endif /* !SFFI_NO_RAW_API */
+#endif 
 
 #if defined(SFFI_EXEC_STATIC_TRAMP)
 void *
@@ -838,4 +781,4 @@ sffi_tramp_arch (size_t *tramp_size, size_t *map_size)
 }
 #endif
 
-#endif /* __i386__ */
+#endif 

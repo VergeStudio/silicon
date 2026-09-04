@@ -1,6 +1,6 @@
 module;
 
-// 标准库头必须置于全局模块片段：接口单元全局片段中的 #include 对实现单元不可达。
+
 #include <atomic>
 #include <memory>
 
@@ -8,10 +8,10 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-/// Implementation state of silicon::coroutine::condition_variable.
+
 struct condition_variable::impl {
   public:
-    /// @brief The list of waiters.
+
     std::atomic<awaiter_base *> m_awaiters{nullptr};
 };
 
@@ -30,12 +30,12 @@ void condition_variable::push_waiter(awaiter_base *waiter) noexcept {
 silicon::scheduler::task<void> condition_variable::make_notify_all_executor_individual_task(awaiter_base *waiter) {
     switch(co_await waiter->on_notify()) {
         case notify_status_t::kNotReady:
-            // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
+
             silicon::scheduler::awaiter_list_push(m_p->m_awaiters, waiter);
             break;
         case notify_status_t::kReady:
         case notify_status_t::kAwaiterDead:
-            // Don't re-enqueue any awaiters that are ready or dead.
+
             break;
     }
 }
@@ -63,14 +63,14 @@ bool condition_variable::awaiter::await_ready() const noexcept {
 bool condition_variable::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
-    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+
+
     static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
 
 silicon::scheduler::task<condition_variable::notify_status_t> condition_variable::awaiter::do_on_notify() {
-    // Re-lock, the waiter is now responsible for unlocking.
+
     co_await m_lock.owned_mutex()->lock();
     m_awaiting_coroutine.resume();
     co_return notify_status_t::kReady;
@@ -93,8 +93,8 @@ bool condition_variable::awaiter_with_predicate::await_ready() const noexcept {
 bool condition_variable::awaiter_with_predicate::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
-    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+
+
     static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
@@ -106,8 +106,8 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
         co_return notify_status_t::kReady;
     }
 
-    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
-    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+
+
     static_cast<void>(m_lock.owned_mutex()->unlock());
     co_return notify_status_t::kNotReady;
 }
@@ -134,8 +134,8 @@ bool condition_variable::awaiter_with_predicate_stop_token::await_ready() noexce
 bool condition_variable::awaiter_with_predicate_stop_token::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
-    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
-    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+
+
     static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
@@ -144,14 +144,14 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
     co_await m_lock.owned_mutex()->lock();
     m_predicate_result = m_predicate();
 
-    // If the predicate is ready or a stop has been requested resume.
+
     if(m_predicate_result || m_stop_token.stop_requested()) {
         m_awaiting_coroutine.resume();
         co_return notify_status_t::kReady;
     }
 
-    // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
-    // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
+
+
     static_cast<void>(m_lock.owned_mutex()->unlock());
     co_return notify_status_t::kNotReady;
 }
@@ -185,9 +185,9 @@ condition_variable::awaiter_with_wait_hook::awaiter_with_wait_hook(
 silicon::scheduler::task<condition_variable::notify_status_t> condition_variable::awaiter_with_wait_hook::do_on_notify() {
     auto event_lock = co_await m_data.m_event_mutex.scoped_lock();
 
-    // See if this awaiter is a real notify or if it has timed out already.
+
     if(m_data.m_awaiter_completed.load(std::memory_order::acquire)) {
-        // This awaiter timed out, report as dead after killing/resuming the on notify callback task.
+
         event_lock.unlock();
         m_data.m_notify_callback.set();
         co_return notify_status_t::kAwaiterDead;
@@ -196,7 +196,7 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
     auto *waiter_mutex = m_lock.owned_mutex();
     co_await waiter_mutex->lock();
 
-    // If there is no predicate then this awaiter is always ready on notify.
+
     if(!m_data.m_predicate.has_value()) {
         m_data.m_awaiter_completed.exchange(true, std::memory_order::release);
         m_data.m_status = {std::cv_status::no_timeout};
@@ -207,7 +207,7 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
 
     m_data.m_predicate_result = m_data.m_predicate.value()();
 
-    // If the predicate is ready or we've been requested to stop then we are ready.
+
     if(m_data.m_predicate_result || (m_data.m_stop_token.has_value() && m_data.m_stop_token.value().stop_requested())) {
         m_data.m_awaiter_completed.exchange(true, std::memory_order::release);
         m_data.m_status = {std::cv_status::no_timeout};
@@ -216,7 +216,7 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
         co_return notify_status_t::kReady;
     }
 
-    // 同 await_suspend：result<void> 为 [[nodiscard]]，此处无法传播，显式丢弃。
+
     static_cast<void>(waiter_mutex->unlock());
     co_return notify_status_t::kNotReady;
 }
@@ -224,23 +224,23 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
 #endif
 
 silicon::scheduler::task<void> condition_variable::notify_one() {
-    // The loop is here in case there are *dead* awaiter_hook_tasks that need to be skipped.
+
     while(true) {
         auto *waiter = silicon::scheduler::awaiter_list_pop(m_p->m_awaiters);
         if(waiter == nullptr) {
-            co_return; // There is nobody to currently notify.
+            co_return;
         }
 
         switch(co_await waiter->on_notify()) {
             case notify_status_t::kReady:
-                // The predicate was ready and the awaiter is resumed.
+
                 co_return;
             case notify_status_t::kNotReady:
-                // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
+
                 silicon::scheduler::awaiter_list_push(m_p->m_awaiters, waiter);
                 co_return;
             case notify_status_t::kAwaiterDead:
-                // This is an awaiter_with_wait_hook that timed out, try the next awaiter.
+
                 break;
         }
     }
@@ -250,17 +250,17 @@ silicon::scheduler::task<void> condition_variable::notify_all() {
     auto *waiter = silicon::scheduler::awaiter_list_pop_all(m_p->m_awaiters);
 
     while(waiter != nullptr) {
-        // Need to grab next before notifying since the notifier will self destruct after completing.
+
         awaiter_base *next = waiter->m_next;
 
         switch(co_await waiter->on_notify()) {
             case notify_status_t::kNotReady:
-                // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
+
                 silicon::scheduler::awaiter_list_push(m_p->m_awaiters, waiter);
                 break;
             case notify_status_t::kReady:
             case notify_status_t::kAwaiterDead:
-                // Don't re-enqueue any awaiters that are ready or dead.
+
                 break;
         }
 
@@ -293,4 +293,4 @@ auto condition_variable::wait(
 
 #endif
 
-} // namespace silicon::coroutine
+}

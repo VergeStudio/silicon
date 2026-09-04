@@ -1,29 +1,4 @@
-/* -----------------------------------------------------------------*-C-*-
-   sffitarget.h - Copyright (c) 2012  Anthony Green
-                 Copyright (c) 1996-2003  Red Hat, Inc.
-   Target configuration macros for MIPS.
 
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-
-   ----------------------------------------------------------------------- */
 
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
@@ -33,9 +8,7 @@
 #endif
 
 #ifdef __rtems__
-/*
- * Subprogram calling convention - copied from sgidefs.h
- */
+
 #    define _MIPS_SIM_ABI32 1
 #    define _MIPS_SIM_NABI32 2
 #    define _MIPS_SIM_ABI64 3
@@ -68,10 +41,10 @@
 #endif
 
 #ifdef SFFI_MIPS_O32
-/* O32 stack frames have 32bit integer args */
+
 #    define SFFI_SIZEOF_ARG 4
 #else
-/* N32 and N64 frames have 64bit integer args */
+
 #    define SFFI_SIZEOF_ARG 8
 #    if _MIPS_SIM == _ABIN32
 #        define SFFI_SIZEOF_JAVA_RAW 4
@@ -81,8 +54,7 @@
 #define SFFI_TARGET_HAS_COMPLEX_TYPE 1
 #define SFFI_FLAG_BITS 2
 
-/* SGI's strange assembler requires that we multiply by 4 rather 
-   than shift left by SFFI_FLAG_BITS */
+
 
 #define SFFI_ARGS_D SFFI_TYPE_DOUBLE
 #define SFFI_ARGS_F SFFI_TYPE_FLOAT
@@ -91,16 +63,16 @@
 #define SFFI_ARGS_FD SFFI_TYPE_DOUBLE * 4 + SFFI_TYPE_FLOAT
 #define SFFI_ARGS_DF SFFI_TYPE_FLOAT * 4 + SFFI_TYPE_DOUBLE
 
-/* Needed for N32 structure returns */
+
 #define SFFI_TYPE_SMALLSTRUCT SFFI_TYPE_UINT8
 #define SFFI_TYPE_SMALLSTRUCT2 SFFI_TYPE_SINT8
 
 #if 0
-/* The SGI assembler can't handle this.. */
+
 #    define SFFI_TYPE_STRUCT_DD ((SFFI_ARGS_DD) << 4) + SFFI_TYPE_STRUCT
-/* (and so on) */
+
 #else
-/* ...so we calculate these by hand! */
+
 #    define SFFI_TYPE_STRUCT_D 61
 #    define SFFI_TYPE_STRUCT_F 45
 #    define SFFI_TYPE_STRUCT_DD 253
@@ -116,7 +88,7 @@
 #    define SFFI_TYPE_COMPLEX_DD 63
 #    define SFFI_TYPE_COMPLEX_LDLD 79
 
-/* and for n32 soft float, add 16 * 2^4 */
+
 #    define SFFI_TYPE_STRUCT_D_SOFT 317
 #    define SFFI_TYPE_STRUCT_F_SOFT 301
 #    define SFFI_TYPE_STRUCT_DD_SOFT 509
@@ -156,7 +128,7 @@
 #        define ADDU addu
 #        define SRL srl
 #        define LI li
-#    else /* !SFFI_MIPS_O32 */
+#    else 
 #        define REG_L ld
 #        define REG_S sd
 #        define SUBU dsubu
@@ -171,30 +143,30 @@
 #            define LA la
 #            define EH_FRAME_ALIGN 2
 #            define FDE_ADDR_BYTES .4byte
-#        endif /* _MIPS_SIM==_ABI64 */
-#    endif     /* !SFFI_MIPS_O32 */
-#else          /* !SILICON_FFI_ASM */
+#        endif 
+#    endif     
+#else          
 #    ifdef __GNUC__
 #        ifdef SFFI_MIPS_O32
-/* O32 stack frames have 32bit integer args */
+
 typedef unsigned int sffi_arg __attribute__((__mode__(__SI__)));
 typedef signed int sffi_sarg __attribute__((__mode__(__SI__)));
 #        else
-/* N32 and N64 frames have 64bit integer args */
+
 typedef unsigned int sffi_arg __attribute__((__mode__(__DI__)));
 typedef signed int sffi_sarg __attribute__((__mode__(__DI__)));
 #        endif
 #    else
 #        ifdef SFFI_MIPS_O32
-/* O32 stack frames have 32bit integer args */
+
 typedef __uint32_t sffi_arg;
 typedef __int32_t sffi_sarg;
 #        else
-/* N32 and N64 frames have 64bit integer args */
+
 typedef __uint64_t sffi_arg;
 typedef __int64_t sffi_sarg;
 #        endif
-#    endif /* __GNUC__ */
+#    endif 
 
 typedef enum sffi_abi {
     SFFI_FIRST_ABI = 0,
@@ -233,9 +205,9 @@ typedef enum sffi_abi {
         unsigned rstruct_flag;    \
         unsigned mips_nfixedargs
 #    define SFFI_TARGET_SPECIFIC_VARIADIC
-#endif /* !SILICON_FFI_ASM */
+#endif 
 
-/* ---- Definitions for closures ----------------------------------------- */
+
 
 #define SFFI_CLOSURES 1
 #define SFFI_GO_CLOSURES 1

@@ -17,9 +17,9 @@ import :mutex;
 export namespace silicon::coroutine {
 
 enum class semaphore_acquire_result {
-    /// @brief The semaphore was acquired.
+
     kAcquired,
-    /// @brief The semaphore is shutting down, it has not been acquired.
+
     kShutdown
 };
 
@@ -27,7 +27,7 @@ extern CORE_API std::string semaphore_acquire_result_acquired;
 extern CORE_API std::string semaphore_acquire_result_shutdown;
 extern CORE_API std::string semaphore_acquire_result_unknown;
 
-// 自由函数不随 DLL 自动导出（MSVC），声明+定义均须标 CORE_API。
+
 CORE_API auto to_string(semaphore_acquire_result) -> const std::string &;
 
 template<std::ptrdiff_t max_value>
@@ -41,7 +41,7 @@ class acquire_operation {
     explicit acquire_operation(semaphore<max_value> &s): m_semaphore(s) {}
 
     [[nodiscard]] bool await_ready() const noexcept {
-        // If the semaphore is shutdown or a resources can be acquired without suspending release the lock and resume execution.
+
         if(m_semaphore.m_p->m_shutdown.load(std::memory_order::acquire) || m_semaphore.try_acquire()) {
             static_cast<void>(m_semaphore.m_p->m_mutex.unlock());
             return true;
@@ -51,7 +51,7 @@ class acquire_operation {
     }
 
     bool await_suspend(const std::coroutine_handle<> awaiting_coroutine) noexcept {
-        // Check again now that we've set up the coroutine frame, the state could have changed.
+
         if(await_ready()) {
             return false;
         }
@@ -90,43 +90,34 @@ class semaphore {
     semaphore & operator=(const semaphore &) noexcept = delete;
     semaphore & operator=(semaphore &&) noexcept = delete;
 
-    /**
-     * @brief Acquires a resource from the semaphore, if the semaphore has no resources available then
-     * this will suspend and wait until a resource becomes available.
-     */
+    
     [[nodiscard]] silicon::scheduler::task<semaphore_acquire_result> acquire() {
         co_await m_p->m_mutex.lock();
         co_return co_await acquire_operation<max_value>{*this};
     }
 
-    /**
-     * @brief Releases a resources back to the semaphore, if the semaphore is already at value() == max() this does nothing.
-     * @return
-     */
+    
     [[nodiscard]] silicon::scheduler::task<void> release() {
         co_await m_p->m_mutex.lock();
-        // Do not resume or increment resources past the max_value.
+
         if(value() == max()) {
             static_cast<void>(m_p->m_mutex.unlock());
             co_return;
         }
 
-        // If there are any waiters just transfer resource ownership to the waiter.
+
         auto *waiter = silicon::scheduler::awaiter_list_pop(m_p->m_acquire_waiters);
         if(waiter != nullptr) {
             static_cast<void>(m_p->m_mutex.unlock());
             waiter->m_awaiting_coroutine.resume();
         } else {
-            // Release the resource.
+
             m_p->m_counter.fetch_add(1, std::memory_order::release);
             static_cast<void>(m_p->m_mutex.unlock());
         }
     }
 
-    /**
-     * @brief Attempts to acquire a resource if there are any resources available.
-     * @return True if the acquire operation was able to acquire a resource.
-     */
+    
     bool try_acquire() {
         auto expected = m_p->m_counter.load(std::memory_order::acquire);
         do {
@@ -138,20 +129,13 @@ class semaphore {
         return true;
     }
 
-    /**
-     * @return The maximum number of resources the semaphore can contain.
-     */
+    
     [[nodiscard]] static constexpr std::ptrdiff_t max() noexcept { return max_value; }
 
-    /**
-     * @return The current number of resources available to acquire for this semaphore.
-     */
+    
     [[nodiscard]] std::ptrdiff_t value() const noexcept { return m_p->m_counter.load(std::memory_order::acquire); }
 
-    /**
-     * Stops the semaphore and will notify all release/acquire waiters to wake up in a failed state.
-     * Once this is set it cannot be un-done and all future operations on the semaphore will fail.
-     */
+    
     [[nodiscard]] silicon::scheduler::task<void> shutdown() noexcept {
         if(is_shutdown()) {
             co_return;
@@ -170,32 +154,30 @@ class semaphore {
         }
     }
 
-    /**
-     * @return True if this semaphore has been shutdown.
-     */
+    
     [[nodiscard]] bool is_shutdown() const { return m_p->m_shutdown.load(std::memory_order::acquire); }
 
   private:
     friend class acquire_operation<max_value>;
 
-    /// Implementation state of the semaphore.  Defined in the interface unit since semaphore is a
-    /// class template and all of its operations are instantiated at the point of use.
+
+
     struct impl {
       public:
         explicit impl(const std::ptrdiff_t starting_value): m_counter(starting_value) {}
 
-        /// @brief The current number of resources that are available to acquire.
+
         std::atomic<std::ptrdiff_t> m_counter;
-        /// @brief The current list of awaiters attempting to acquire the semaphore.
+
         std::atomic<acquire_operation<max_value> *> m_acquire_waiters{nullptr};
-        /// @brief mutex used to do acquire and release operations
+
         silicon::coroutine::mutex m_mutex;
-        /// @brief Flag to denote that all waiters should be woken up with the shutdown result.
+
         std::atomic<bool> m_shutdown{false};
     };
 
-    /// Hidden implementation state.
+
     std::unique_ptr<impl> m_p;
 };
 
-} // namespace silicon::coroutine
+}

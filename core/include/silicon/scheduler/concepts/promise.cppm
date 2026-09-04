@@ -22,4 +22,4 @@ concept promise = requires(type t) {
                      std::same_as<decltype(t.return_value(return_value)), void> ||
                      requires { t.yield_value(return_value); };
 };
-} // namespace silicon::scheduler::concepts
+}

@@ -1,11 +1,7 @@
-/* Area:		sffi_call
-   Purpose:		Test passing struct in variable argument lists.
-   Limitations:	none.
-   PR:			none.
-   Originator:	        ARM Ltd. */
 
-/* { dg-do run } */
-/* { dg-output "" { xfail avr32*-*-* m68k-*-* } } */
+
+
+
 
 #include "ffitest.h"
 #include <stdarg.h>
@@ -61,8 +57,7 @@ test_fn (int n, ...)
   ul = va_arg (ap, unsigned long);
   sl = va_arg (ap, signed long);
 
-  f = va_arg (ap, double);	/* C standard promotes float->double
-				   when anonymous */
+  f = va_arg (ap, double);	
   d = va_arg (ap, double);
 
   printf ("%u %u %u %u %u %u %u %u %u uc=%u sc=%d %u %d %u %d %lu %ld %f %f\n",
@@ -211,9 +206,9 @@ main (void)
   args[14] = NULL;
 
   sffi_call(&cif, SFFI_FN(test_fn), &res, args);
-  /* { dg-output "5 6 10 11 12 13 14 7 8 uc=9 sc=10 11 12 13 14 15 16 2.120000 3.130000" } */
+  
   printf("res: %d\n", (int) res);
-  /* { dg-output "\nres: 42" } */
+  
   CHECK(res == 42);
 
   return 0;

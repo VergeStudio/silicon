@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check return value double.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20050212  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static double return_dbl(double dbl1, float fl2, unsigned int in3, double dbl4)
@@ -28,7 +24,7 @@ int main (void)
   values[2] = &in3;
   values[3] = &dbl4;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &sffi_type_double, args) == SFFI_OK);
   dbl1 = 127.0;

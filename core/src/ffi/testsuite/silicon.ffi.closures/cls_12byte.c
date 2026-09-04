@@ -1,10 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_12byte {
@@ -86,9 +82,9 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_12byte_fn), &res_dbl, args_dbl);
-  /* { dg-output "7 4 9 1 5 3: 8 9 12" } */
+  
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  /* { dg-output "\nres: 8 9 12" } */
+  
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 9);
   CHECK(res_dbl.c == 12);
@@ -100,10 +96,10 @@ int main (void)
   res_dbl.c = 0;
 
   res_dbl = ((cls_struct_12byte(*)(cls_struct_12byte, cls_struct_12byte))(code))(h_dbl, j_dbl);
-  /* { dg-output "\n7 4 9 1 5 3: 8 9 12" } */
+  
 
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  /* { dg-output "\nres: 8 9 12" } */
+  
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 9);
   CHECK(res_dbl.c == 12);

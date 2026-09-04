@@ -1,34 +1,9 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2014 Sebastian Macke <sebastian@macke.de>
 
-   OpenRISC Foreign Function Interface
-
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include "sffi_common.h"
 
-/* sffi_prep_args is called by the assembly routine once stack space
-   has been allocated for the function's arguments */
+
 
 void* sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -51,7 +26,7 @@ void* sffi_prep_args(char *stack, extended_cif *ecif)
   for(i=0; i<ecif->cif->nargs; i++)
   {
 
-    /* variadic args are saved on stack */
+    
     if ((nfixedargs == 0) && (count < 24))
       {
         count = 24;
@@ -89,8 +64,8 @@ void* sffi_prep_args(char *stack, extended_cif *ecif)
         *(int *)stack = *(int*)(*argv);
         break;
 
-      default: /* 8 byte types */
-        if (count == 20) /* never split arguments */
+      default: 
+        if (count == 20) 
           {
             stack += 4;
             count += 4;
@@ -123,7 +98,7 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   sffi_type **arg;
   void **avalue_copy = NULL;
 
-  /* Calculate size to allocate on stack */
+  
 
   for(i = 0, arg = cif->arg_types, size=0; i < cif->nargs; i++, arg++)
     {
@@ -135,14 +110,11 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
       else
         size += 8;
 
-      /* If we have any large structure arguments, make a copy so we are passing
-         by value.  The pointer array is cloned first: the caller owns
-         avalue[] and may reuse it for another call, so it must not be
-         modified.  */
+      
       {
         sffi_type *at = cif->arg_types[i];
         int size = at->size;
-        if (at->type == SFFI_TYPE_STRUCT) /* && size > 4) All struct args? */
+        if (at->type == SFFI_TYPE_STRUCT) 
           {
             char *argcopy = alloca (size);
             if (avalue_copy == NULL)
@@ -157,7 +129,7 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
       }
     }
 
-  /* for variadic functions more space is needed on the stack */
+  
   if (cif->nargs != cif->nfixedargs)
     size += 24;
 
@@ -191,11 +163,11 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
   sffi_closure* closure = (sffi_closure*) r13;
   char *stack_args = (char*) sp;
 
-  /* Lay the register arguments down in a continuous chunk of memory.  */
+  
   unsigned register_args[6] =
     { r3, r4, r5, r6, r7, r8 };
 
-  /* Pointer to a struct return value.  */
+  
   void *struct_rvalue = (void *) r3;
 
   sffi_cif *cif = closure->cif;
@@ -206,7 +178,7 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
   int nfixedargs = cif->nfixedargs;
   int i;
 
-  /* preserve struct type return pointer passing */
+  
 
   if ((cif->rtype != NULL) && (cif->rtype->type == SFFI_TYPE_STRUCT))
   {
@@ -214,11 +186,11 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
     count = 4;
   }
 
-  /* Find the address of each argument.  */
+  
   for (i = 0; i < cif->nargs; i++)
     {
 
-      /* variadic args are saved on stack */
+      
       if ((nfixedargs == 0) && (count < 24))
         {
           ptr = stack_args;
@@ -250,9 +222,9 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
           break;
 
         default:
-          /* 8-byte values  */
+          
 
-          /* arguments are never splitted */
+          
           if (ptr == &register_args[5])
             ptr = stack_args;
           avalue[i] = ptr;
@@ -263,8 +235,7 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
       ptr += 4;
       count += 4;
 
-      /* If we've handled more arguments than fit in registers,
-         start looking at the those passed on the stack.  */
+      
 
       if (count == 24)
         ptr = stack_args;
@@ -301,21 +272,21 @@ sffi_prep_closure_loc (sffi_closure* closure,
   closure->user_data = user_data;
   closure->fun = fun;
 
-  /* write pointers to temporary registers */
-  tramp[0] = (0x6 << 10) | (13 << 5); /* l.movhi r13, ... */
+  
+  tramp[0] = (0x6 << 10) | (13 << 5); 
   tramp[1] = cls >> 16;
-  tramp[2] = (0x2a << 10) | (13 << 5) | 13; /* l.ori r13, r13, ... */
+  tramp[2] = (0x2a << 10) | (13 << 5) | 13; 
   tramp[3] = cls & 0xFFFF;
 
-  tramp[4] = (0x6 << 10) | (15 << 5); /* l.movhi r15, ... */
+  tramp[4] = (0x6 << 10) | (15 << 5); 
   tramp[5] = fn >> 16;
-  tramp[6] = (0x2a << 10) | (15 << 5) | 15; /* l.ori r15, r15 ... */
+  tramp[6] = (0x2a << 10) | (15 << 5) | 15; 
   tramp[7] = fn & 0xFFFF;
 
-  tramp[8] = (0x11 << 10); /* l.jr r15 */
+  tramp[8] = (0x11 << 10); 
   tramp[9] = 15 << 11;
 
-  tramp[10] = (0x2a << 10) | (17 << 5) | 1; /* l.ori r17, r1, ... */
+  tramp[10] = (0x2a << 10) | (17 << 5) | 1; 
   tramp[11] = 0x0;
 
   return SFFI_OK;
@@ -326,7 +297,7 @@ sffi_status sffi_prep_cif_machdep (sffi_cif *cif)
 {
   cif->flags = 0;
 
-  /* structures are returned as pointers */
+  
   if (cif->rtype->type == SFFI_TYPE_STRUCT)
     cif->flags = SFFI_TYPE_STRUCT;
   else

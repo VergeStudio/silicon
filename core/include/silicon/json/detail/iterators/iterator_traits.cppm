@@ -1,21 +1,21 @@
-//     __ _____ _____ _____
-//  __|  |   __|     |   | |  silicon JSON
-// |  |  |__   |  |  | | | |  version 3.11.3
-// |_____|_____|_____|_|___|  https://github.com/VergeStudio/silicon
-//
-// SPDX-FileCopyrightText: silicon contributors
-// SPDX-License-Identifier: MIT
 
-// Partition of the silicon.json module. Macros (JSON_* feature
-// flags, SILICON_JSON_NAMESPACE_* ) are NOT exported by C++20
-// modules, so the macro headers are textually included in the
-// global module fragment of every partition that needs them.
+
+
+
+
+
+
+
+
+
+
+
 
 module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
-#include <iterator> // random_access_iterator_tag
+#include <iterator>
 
 export module silicon.json:detail.iterators.iterator_traits;
 
@@ -40,8 +40,8 @@ struct iterator_types<
     using iterator_category = typename It::iterator_category;
 };
 
-// This is required as some compilers implement std::iterator_traits in a way that
-// doesn't work with SFINAE. See https://github.com/silicon/json/issues/1341.
+
+
 export template<typename T, typename = void>
 struct iterator_traits {
 };
@@ -60,5 +60,5 @@ struct iterator_traits<T *, enable_if_t<std::is_object<T>::value>> {
     using reference = T &;
 };
 
-} // namespace detail
+}
 SILICON_JSON_NAMESPACE_END

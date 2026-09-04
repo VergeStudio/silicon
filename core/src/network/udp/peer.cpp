@@ -1,7 +1,7 @@
-// Implementation unit for silicon::network::udp::peer.
-//
-// PIMPL：struct peer::impl 在此定义；所有触及实现细节的方法体（含模板 sendto/recvfrom
-// 与协程 task<> 方法）也集中于此，以确保接口单元不暴露实现类型。
+
+
+
+
 
 module;
 
@@ -31,29 +31,25 @@ import silicon.scheduler;
 namespace silicon::network::udp {
 
 struct peer::impl {
-    /// The scheduler that will drive this udp client.
+
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
-    /// The udp socket.
+
     network::socket m_socket{-1};
-    /// Did the user request this udp socket is bound locally to receive packets?
+
     bool m_bound{false};
 
-    /**
-     * Readiness flags for epoll Edge-Triggered (ET) mode.
-     * In ET mode, notifications are only sent when the descriptor state changes.
-     * These flags cache the readiness state to avoid unnecessary poll() calls.
-     */
+    
 
-    /// True if the socket might have data to read.
-    /// Must be set to true after polling.
-    /// Must be set to false after recv() returns EAGAIN/EWOULDBLOCK.
-    /// false by default, because the socket is usually not ready for reading on creation
+
+
+
+
     bool m_is_read_ready{false};
 
-    /// True if the socket send buffer can accept data.
-    /// Must be set to true after polling.
-    /// Must be set to false after send() returns EAGAIN/EWOULDBLOCK.
-    /// true by default, because the socket is usually already ready for writing on creation
+
+
+
+
     bool m_is_write_ready{true};
 };
 
@@ -139,14 +135,14 @@ silicon::scheduler::task<io_status> peer::write_to_impl(
         co_return io_status{io_status::kind::kOk};
     }
 
-    // Fast path
+
     if(impl_->m_is_write_ready) {
         auto status = sendto(address, buffer);
         if(status.try_again()) {
-            // Failed to write, marking as unready and going to poll
+
             impl_->m_is_write_ready = false;
         } else {
-            // Operation was successful (error is a success too)
+
             co_return status;
         }
     }
@@ -161,7 +157,7 @@ silicon::scheduler::task<io_status> peer::write_to_impl(
 }
 
 silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::byte>>> peer::read_from_impl(std::span<std::byte> buffer, std::chrono::milliseconds timeout) {
-    // The user must bind locally to be able to receive packets.
+
     if(!impl_->m_bound) {
         co_return {io_status{io_status::kind::kUdpNotBound}, network::socket_address::make_uninitialised(), {}};
     }
@@ -170,15 +166,15 @@ silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::by
         co_return {io_status{io_status::kind::kOk}, network::socket_address::make_uninitialised(), {}};
     }
 
-    // Fast path
+
     if(impl_->m_is_read_ready) {
         auto [status, addr, read] = recvfrom(buffer);
 
         if(status.try_again()) {
-            // Failed to read, marking as unready and going to poll
+
             impl_->m_is_read_ready = false;
         } else {
-            // Operation was successful (error is a success too)
+
             co_return {status, addr, read};
         }
     }
@@ -247,4 +243,4 @@ std::tuple<io_status, network::socket_address, std::span<element_type>> peer::re
     };
 }
 
-} // namespace silicon::network::udp
+}

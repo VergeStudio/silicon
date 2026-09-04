@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network::tcp::client.
+
 
 module;
 
@@ -31,7 +31,7 @@ namespace silicon::network::tcp {
 
 using namespace std::chrono_literals;
 
-// ── pImpl: data + (manual) copy/move so readiness flags keep their defaults ──
+
 struct client::impl {
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     socket_address m_endpoint;
@@ -57,8 +57,8 @@ client::impl::impl(silicon::scheduler::io_scheduler *scheduler, network::socket 
       m_endpoint(std::move(endpoint)),
       m_socket(std::move(socket)),
       m_connect_status(connect_status::kConnected) {
-    // scheduler is assumed good since it comes from a tcp::server.
-    // Force the socket to be non-blocking.
+
+
     m_socket.blocking(silicon::network::socket::blocking_t::no);
 }
 
@@ -73,8 +73,8 @@ client::impl::impl(const impl &other)
       m_endpoint(other.m_endpoint),
       m_socket(other.m_socket),
       m_connect_status(other.m_connect_status) {
-    // Readiness flags intentionally left at their defaults (false / true),
-    // matching the pre-pImpl copy semantics.
+
+
 }
 
 client::impl::impl(impl &&other) noexcept
@@ -106,14 +106,14 @@ auto client::impl::operator=(impl &&other) noexcept -> impl & {
 
 client::impl::~impl() = default;
 
-// ── private templates (recv / send) — defined before the *_impl callers ──────
+
 template<
         silicon::scheduler::concepts::mutable_buffer buffer_type,
         typename element_type>
 std::pair<io_status, std::span<element_type>> client::recv(buffer_type &&buffer) {
     auto bytes_recv = ::recv(impl_->m_socket.native_handle(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
     if(bytes_recv > 0) {
-        // Ok, we've received some data.
+
         return {
                 io_status{io_status::kind::kOk},
                 std::span<element_type>{buffer.data(), static_cast<size_t>(bytes_recv)}
@@ -121,11 +121,11 @@ std::pair<io_status, std::span<element_type>> client::recv(buffer_type &&buffer)
     }
 
     if(bytes_recv == 0) {
-        // On TCP stream sockets 0 indicates the connection has been closed by the peer.
+
         return {io_status{io_status::kind::kClosed}, std::span<element_type>{}};
     }
 
-    // Report the error to the user.
+
     return {make_io_status_from_native(errno), std::span<element_type>{}};
 }
 
@@ -135,28 +135,28 @@ template<
 std::pair<io_status, std::span<element_type>> client::send(const buffer_type &buffer) {
     auto bytes_sent = ::send(impl_->m_socket.native_handle(), reinterpret_cast<const char *>(buffer.data()), buffer.size(), 0);
     if(bytes_sent >= 0) {
-        // Some or all of the bytes were written.
+
         return {
                 io_status{io_status::kind::kOk},
                 std::span<element_type>{buffer.data() + bytes_sent, buffer.size() - bytes_sent}
         };
     }
 
-    // Due to the error none of the bytes were written.
+
     return {make_io_status_from_native(errno), std::span<element_type>{buffer.data(), buffer.size()}};
 }
 
-// ── private *_impl methods (defined in the impl unit; impl is complete here) ─
+
 silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::read_some_impl(std::span<std::byte> buffer, const std::chrono::milliseconds timeout) {
-    // Fast path
+
     if(impl_->m_is_read_ready) {
         auto [status, read] = recv(buffer);
 
         if(status.try_again()) {
-            // Failed to read, marking as unready and going to poll
+
             impl_->m_is_read_ready = false;
         } else {
-            // Operation was successful (error is a success too)
+
             co_return {status, read};
         }
     }
@@ -182,7 +182,7 @@ silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::rea
             );
 
             if(elapsed >= timeout) {
-                // Returning read prefix of the span
+
                 co_return {
                         io_status{io_status::kind::kTimeout}, buffer.subspan(0, buffer.size() - remaining.size())
                 };
@@ -202,20 +202,20 @@ silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::rea
 }
 
 silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> client::write_some_impl(std::span<const std::byte> buffer, const std::chrono::milliseconds timeout) {
-    // Fast path
+
     if(impl_->m_is_write_ready) {
         auto [status, unsent] = send(buffer);
 
         if(status.try_again()) {
-            // Failed to read, marking as unready and goint to poll
+
             impl_->m_is_write_ready = false;
         } else {
-            // Operation was successful (error is a success too)
+
             co_return {status, unsent};
         }
     }
 
-    // Waiting for readiness
+
     auto pstatus = co_await poll(silicon::scheduler::poll_op::write, timeout);
     if(pstatus != silicon::scheduler::poll_status::write) {
         co_return std::pair{make_io_status_from_poll_status(pstatus), buffer};
@@ -257,7 +257,7 @@ silicon::scheduler::task<silicon::scheduler::poll_status> client::poll(const sil
     return impl_->m_scheduler->poll(impl_->m_socket.native_handle(), op, timeout);
 }
 
-// ── public / factory surface ─────────────────────────────────────────────────
+
 auto client::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
         -> network::result<client> {
     if(scheduler == nullptr) {
@@ -320,13 +320,13 @@ auto client::socket() const -> const network::socket & {
 }
 
 silicon::scheduler::task<connect_status> client::connect(std::chrono::milliseconds timeout) {
-    // Only allow the user to connect per tcp client once, if they need to re-connect they should
-    // make a new tcp::client.
+
+
     if(impl_->m_connect_status.has_value()) {
         co_return impl_->m_connect_status.value();
     }
 
-    // This enforces the connection status is aways set on the client object upon returning.
+
     auto return_value = [this](connect_status s) -> connect_status {
         impl_->m_connect_status = s;
         return s;
@@ -336,8 +336,8 @@ silicon::scheduler::task<connect_status> client::connect(std::chrono::millisecon
     if(cret == 0) {
         co_return return_value(connect_status::kConnected);
     } else {
-        // If the connect is happening in the background poll for write on the socket to trigger
-        // when the connection is established.
+
+
         if(impl_->m_socket.in_progress()) {
             auto pstatus = co_await impl_->m_scheduler->poll(impl_->m_socket.native_handle(), silicon::scheduler::poll_op::write, timeout);
             if(pstatus == silicon::scheduler::poll_status::write) {
@@ -359,4 +359,4 @@ silicon::scheduler::task<connect_status> client::connect(std::chrono::millisecon
     co_return return_value(connect_status::kError);
 }
 
-} // namespace silicon::network::tcp
+}

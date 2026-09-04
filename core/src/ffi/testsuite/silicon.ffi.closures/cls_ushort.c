@@ -1,10 +1,6 @@
-/* Area:	closure_call
-   Purpose:	Check return value ushort.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030828	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static void cls_ret_ushort_fn(sffi_cif* cif __UNUSED__, void* resp, void** args,
@@ -30,16 +26,16 @@ int main (void)
   cl_arg_types[0] = &sffi_type_ushort;
   cl_arg_types[1] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_ushort, cl_arg_types) == SFFI_OK);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_ret_ushort_fn, NULL, code)  == SFFI_OK);
 
   res = (*((cls_ret_ushort)code))(65535);
-  /* { dg-output "65535: 65535" } */
+  
   printf("res: %d\n",res);
-  /* { dg-output "\nres: 65535" } */
+  
   CHECK(res == 65535);
 
   exit(0);

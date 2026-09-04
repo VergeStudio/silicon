@@ -1,17 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Pass a large struct by value (more words than arg registers).
-   Limitations:	none.
-   PR:		none.
-   Originator:	secscan regression (ARCompact used_stack overflow).
 
-   Regression test: on ARCompact (ARC 32-bit), sffi_call_int sized the stack
-   argument area at two words per argument, but a by-value struct is marshalled
-   one word ("atom") at a time, and words beyond the argument registers were
-   written to that under-sized area without bound.  Passing a 64-byte struct by
-   value (sixteen 32-bit words, eight more than the eight argument registers)
-   must marshal correctly and return the expected sum.  */
 
-/* { dg-do run } */
+
 #include "ffitest.h"
 
 typedef struct { int v[8]; } big_struct;

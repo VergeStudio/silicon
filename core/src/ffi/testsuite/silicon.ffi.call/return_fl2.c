@@ -1,13 +1,9 @@
-/* Area:	sffi_call
-   Purpose:	Check return value float.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20050212  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
-/* Use volatile float to avoid false negative on ix86.  See PR target/323.  */
+
 static float return_fl(float fl1, float fl2, float fl3, float fl4)
 {
   volatile float sum;
@@ -32,7 +28,7 @@ int main (void)
   values[2] = &fl3;
   values[3] = &fl4;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &sffi_type_float, args) == SFFI_OK);
   fl1 = 127.0;

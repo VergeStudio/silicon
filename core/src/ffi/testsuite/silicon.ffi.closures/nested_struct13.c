@@ -1,10 +1,6 @@
-/* Area:       sffi_call, closure_call
-   Purpose:    Check structure passing.
-   Limitations:        none.
-   PR:         none.
-   Originator: <jincheng@ca.ibm.com> and <jakub@redhat.com> 20210609    */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct A {
@@ -98,7 +94,7 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(B_fn), &res_dbl, args_dbl);
-  /* { dg-output "12.125 24.75 31.625 32.25: 36.875 43.75 44.375" } */
+  
   CHECK_FLOAT_EQ( res_dbl.x, (e_dbl + f_dbl.x));
   CHECK_FLOAT_EQ( res_dbl.y.a, (e_dbl + f_dbl.y.a));
   CHECK_FLOAT_EQ( res_dbl.y.b, (e_dbl + f_dbl.y.b));
@@ -106,7 +102,7 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, B_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((B(*)(float, B))(code))(e_dbl, f_dbl);
-  /* { dg-output "\n12.125 24.75 31.625 32.25: 36.875 43.75 44.375" } */
+  
   CHECK_FLOAT_EQ( res_dbl.x, (e_dbl + f_dbl.x));
   CHECK_FLOAT_EQ( res_dbl.y.a, (e_dbl + f_dbl.y.a));
   CHECK_FLOAT_EQ( res_dbl.y.b, (e_dbl + f_dbl.y.b));

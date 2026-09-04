@@ -1,10 +1,10 @@
-// Interface partition silicon.network:dns
-//
-// c-ares backed asynchronous DNS resolver. The exported template classes
-// resolver<executor_type> / result<executor_type> keep their full inline
-// definitions here (in module purview) so consumer translation units can
-// instantiate them. The partition pulls scheduler task / coroutine scheduling
-// primitives and the :core types it names.
+
+
+
+
+
+
+
 
 module;
 
@@ -39,9 +39,9 @@ import :facade;
 export namespace silicon::network::dns {
 
 
-/// Global count to track if c-ares has been initialized or cleaned up.
+
 extern uint64_t m_ares_count;
-/// Critical section around the c-ares global init/cleanup to prevent heap corruption.
+
 extern std::mutex m_ares_mutex;
 
 
@@ -65,15 +65,10 @@ class result {
     }
     ~result() = default;
 
-    /**
-     * @return The status of the dns lookup.
-     */
+    
     auto status() const -> dns::status { return m_status; }
 
-    /**
-     * @return If the result of the dns looked was successful then the list of ip addresses that
-     *         were resolved from the hostname.
-     */
+    
     auto ip_addresses() const -> const std::vector<silicon::network::ip_address> & { return m_ip_addresses; }
 
   private:
@@ -89,19 +84,7 @@ class result {
 template<silicon::scheduler::concepts::io_executor executor_type>
 class resolver {
   public:
-    /**
-     * Creates a c-ares backed asynchronous dns resolver.
-     *
-     * c-ares 的全局初始化与 channel 创建都可能失败，且 resolver 不可移动
-     * （sock_state_cb 持有 this 指针），因此以工厂函数返回
-     * `std::expected<std::unique_ptr<resolver>, std::error_code>`。
-     *
-     * @param executor The io executor driving the dns socket polling.
-     * @param timeout The global timeout per dns lookup request.
-     * @return 就绪的 resolver；executor 为空时返回
-     *         network_error::kNullExecutor，c-ares 初始化失败时返回
-     *         network_error::kDnsInitFailed。
-     */
+    
     static std::expected<std::unique_ptr<resolver>, std::error_code> create(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout) {
         if(executor == nullptr) {
             return std::unexpected(make_error_code(network_error::kNullExecutor));
@@ -118,7 +101,7 @@ class resolver {
             ++m_ares_count;
         }
 
-        // 计数已自增，此后任何失败都必须经由 resolver 的析构回滚，故先建对象。
+
         auto self = std::unique_ptr<resolver>{new resolver{executor, timeout}};
 
         ares_options options{};
@@ -153,52 +136,50 @@ class resolver {
         }
     }
 
-    /**
-     * @param hn The hostname to resolve its ip addresses.
-     */
+    
     silicon::scheduler::task<std::unique_ptr<result<executor_type>>> host_by_name(const network::hostname &hn) {
         silicon::coroutine::event resume_event{};
         auto result_ptr = std::make_unique<result<executor_type>>(m_executor, resume_event, 1);
 
         ares_addrinfo_hints hints{};
-        hints.ai_family = AF_UNSPEC; // Request both IPv4 and IPv6
+        hints.ai_family = AF_UNSPEC;
 
         ares_getaddrinfo(
                 m_ares_channel,
                 hn.data().data(),
-                nullptr, // service name (port number or NULL)
+                nullptr,
                 &hints,
                 ares_dns_callback,
                 result_ptr.get()
         );
 
-        // Suspend until this specific result is completed by ares.
+
         co_await resume_event;
         co_return result_ptr;
     }
 
   private:
-    /// create() 专用：所有可失败的前置校验都已在工厂中完成。
+
     resolver(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout)
         : m_executor(executor),
           m_timeout(timeout) {
     }
 
-    /// The executor to drive the events for dns lookups.
+
     std::unique_ptr<executor_type> &m_executor;
 
-    /// The global timeout per dns lookup request.
+
     std::chrono::milliseconds m_timeout{0};
 
-    /// The libc-ares channel for looking up dns entries.
+
     ares_channel m_ares_channel{nullptr};
 
-    /// This is the map of sockets that are currently being actively polled so multiple poll tasks
-    /// are not setup when socket state is changed.
+
+
     std::unordered_map<silicon::scheduler::fd_t, silicon::scheduler::poll_op> m_active_sockets{};
 
     silicon::scheduler::task<void> make_poll_task(silicon::scheduler::fd_t fd) {
-        // The loop ensures non-blocking polling until the socket is closed by c-ares.
+
         while(m_active_sockets.contains(fd)) {
             auto ops = m_active_sockets[fd];
             auto result = co_await m_executor->poll(fd, ops, m_timeout);
@@ -214,11 +195,11 @@ class resolver {
                     ares_process_fd(m_ares_channel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
                     break;
                 case silicon::scheduler::poll_status::closed:
-                    // might need to do something like call with two ARES_SOCKET_BAD?
+
                     m_active_sockets.erase(fd);
                     break;
                 case silicon::scheduler::poll_status::error:
-                    // might need to do something like call with two ARES_SOCKET_BAD?
+
                     m_active_sockets.erase(fd);
                     break;
                 case silicon::scheduler::poll_status::cancelled:
@@ -253,7 +234,7 @@ class resolver {
         }
     }
 
-    static void ares_dns_callback(void *arg, int status, int /*timeouts*/, ares_addrinfo *addr_info) {
+    static void ares_dns_callback(void *arg, int status, int , ares_addrinfo *addr_info) {
         auto &result = *static_cast<silicon::network::dns::result<executor_type> *>(arg);
         --result.m_pending_dns_requests;
 
@@ -263,8 +244,8 @@ class resolver {
             result.m_status = status::kComplete;
 
             for(ares_addrinfo_node *node = addr_info->nodes; node != nullptr; node = node->ai_next) {
-                // from_binary 只在长度越界时失败；这里长度由地址族固定给出，
-                // 理论上不会失败，失败时跳过该条目而不是中断整个解析结果。
+
+
                 if(node->ai_family == AF_INET) {
                     sockaddr_in *sin = reinterpret_cast<sockaddr_in *>(node->ai_addr);
                     auto ip_addr = network::ip_address::from_binary(
@@ -301,4 +282,4 @@ class resolver {
     }
 };
 
-} // namespace silicon::network::dns
+}

@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network::tls::send_status to_string.
+
 
 module;
 
@@ -57,6 +57,6 @@ auto to_string(send_status status) -> const std::string & {
     return send_status_unknown;
 }
 
-} // namespace silicon::network::tls
+}
 
-#endif // #ifdef SILICON_FEATURE_TLS
+#endif

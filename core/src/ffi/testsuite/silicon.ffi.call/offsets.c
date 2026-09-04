@@ -1,10 +1,6 @@
-/* Area:		Struct layout
-   Purpose:		Test sffi_get_struct_offsets
-   Limitations:		none.
-   PR:			none.
-   Originator: 		Tom Tromey. */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 #include <stddef.h>
 

@@ -1,4 +1,4 @@
-// Implementation unit for silicon::network::tls::context.
+
 
 module;
 
@@ -43,16 +43,16 @@ auto context::create(verify_peer_t verify_peer) -> network::result<context> {
         return std::unexpected(make_error_code(network_error::kTlsContextInitFailed));
     }
 
-    // 立即接管所有权：后续任何失败路径都由 context 的析构负责 SSL_CTX_free。
+
     context ctx{ssl_ctx};
 
-    // Disable SSLv3
+
     SSL_CTX_set_options(ssl_ctx, SSL_OP_ALL | SSL_OP_NO_SSLv3);
-    // Abort handshake if certificate verification fails.
+
     if(verify_peer == verify_peer_t::kYes) {
         SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_PEER, NULL);
     }
-    // Set the minimum TLS version, as of this TLSv1.1 or earlier are deprecated.
+
     SSL_CTX_set_min_proto_version(ssl_ctx, TLS1_2_VERSION);
 
     return ctx;
@@ -96,6 +96,6 @@ context::~context() {
     }
 }
 
-} // namespace silicon::network::tls
+}
 
-#endif // #ifdef SILICON_FEATURE_TLS
+#endif

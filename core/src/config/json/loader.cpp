@@ -14,7 +14,7 @@ import silicon.config.error;
 
 namespace silicon::config {
 
-// ── Pimpl ─────────────────────────────────────────────────────────────────
+
 struct json_file_config::impl {
     std::map<std::string, config_value, std::less<>> entries_;
 };
@@ -22,7 +22,7 @@ struct json_file_config::impl {
 json_file_config::json_file_config(): impl_(std::make_unique<impl>()) {}
 json_file_config::~json_file_config() = default;
 
-// ── json_file_config methods ────────────────────────────────────────────────
+
 auto json_file_config::load(const std::string &path, const fs::file_system_view &filesystem) -> result<void> {
     auto content = filesystem->read(path);
     if(!content) return std::unexpected(make_error_code(config_error::kLoadFailed));
@@ -46,4 +46,4 @@ std::map<std::string, config_value, std::less<>> json_file_config::all() const {
     return impl_->entries_;
 }
 
-} // namespace silicon::config
+}

@@ -39,7 +39,7 @@ auto awaiter_list_pop_all(std::atomic<awaiter_type *> &list) -> awaiter_type * {
     awaiter_type *head = list.load(std::memory_order::acquire);
 
     do {
-        // The list has become empty.
+
         if(head == nullptr) {
             break;
         }
@@ -69,4 +69,4 @@ awaiter_type * awaiter_list_reverse(awaiter_type *curr) {
 }
 
 
-} // namespace silicon::scheduler
+}

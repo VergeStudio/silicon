@@ -1,9 +1,9 @@
-// http 模块测试：覆盖 header-only 值类型 http_response / http_request 的构造、
-// getter/setter 与深拷贝独立性（pimpl 经 shared_ptr 实现值语义）。
-//
-// 这两个类型是纯文本头（见 http/http_types.h 注释），不随 silicon.http 模块导出，
-// 故本 TU 直接 #include 该头、不 import 模块；派生自某消费方（如 siliconbuddy.client）
-// 的惯常用法：每个消费 TU 本地发射 weak 符号，规避跨 DLL / 跨工具链符号解析。
+
+
+
+
+
+
 #include <map>
 #include <string>
 
@@ -30,7 +30,7 @@ TEST_CASE("http_response 缺省构造：零状态、空负载") {
 
 TEST_CASE("http_response 深拷贝独立：改副本不影响原值") {
     http_response a{201, "orig", {{"X", "1"}}};
-    http_response b = a; // 深拷贝（新 shared_ptr<impl>）
+    http_response b = a;
 
     b.status_code() = 404;
     b.body() = "mutated";

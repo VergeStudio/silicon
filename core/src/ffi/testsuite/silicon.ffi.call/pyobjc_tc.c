@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check different structures.
-   Limitations:	none.
-   PR:		none.
-   Originator:	Ronald Oussoren <oussoren@cistron.nl> 20030824	*/
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct Point {
@@ -40,37 +36,33 @@ int main(void)
 	void* values[6];
 	int r;
 
-	/*
-	 *  First set up FFI types for the 3 struct types
-	 */
+	
 
-	point_type.size = 0; /*sizeof(Point);*/
-	point_type.alignment = 0; /*__alignof__(Point);*/
+	point_type.size = 0; 
+	point_type.alignment = 0; 
 	point_type.type = SFFI_TYPE_STRUCT;
 	point_type.elements = malloc(3 * sizeof(sffi_type*));
 	point_type.elements[0] = &sffi_type_float;
 	point_type.elements[1] = &sffi_type_float;
 	point_type.elements[2] = NULL;
 
-	size_type.size = 0;/* sizeof(Size);*/
-	size_type.alignment = 0;/* __alignof__(Size);*/
+	size_type.size = 0;
+	size_type.alignment = 0;
 	size_type.type = SFFI_TYPE_STRUCT;
 	size_type.elements = malloc(3 * sizeof(sffi_type*));
 	size_type.elements[0] = &sffi_type_float;
 	size_type.elements[1] = &sffi_type_float;
 	size_type.elements[2] = NULL;
 
-	rect_type.size = 0;/*sizeof(Rect);*/
-	rect_type.alignment =0;/* __alignof__(Rect);*/
+	rect_type.size = 0;
+	rect_type.alignment =0;
 	rect_type.type = SFFI_TYPE_STRUCT;
 	rect_type.elements = malloc(3 * sizeof(sffi_type*));
 	rect_type.elements[0] = &point_type;
 	rect_type.elements[1] = &size_type;
 	rect_type.elements[2] = NULL;
 
-	/*
-	 * Create a CIF
-	 */
+	
 	arglist[0] = &sffi_type_sint;
 	arglist[1] = &sffi_type_pointer;
 	arglist[2] = &point_type;
@@ -85,7 +77,7 @@ int main(void)
 	}
 
 
-	/* And call the function through the CIF */
+	
 
 	{
 	Point p = { 1.0, 2.0 };

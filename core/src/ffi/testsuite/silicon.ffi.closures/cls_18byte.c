@@ -1,11 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check structure passing with different structure size.
-		Depending on the ABI. Double alignment check on darwin.
-   Limitations:	none.
-   PR:		none.
-   Originator:	<andreast@gcc.gnu.org> 20030915	 */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct cls_struct_18byte {
@@ -97,9 +92,9 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_18byte_fn), &res_dbl, args_dbl);
-  /* { dg-output "1 127 126 3 4 125 124 5: 5 252 250 8" } */
+  
   printf("res: %g %d %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  /* { dg-output "\nres: 5 252 250 8" } */
+  
   CHECK(res_dbl.a == 5);
   CHECK(res_dbl.b == 252);
   CHECK(res_dbl.c == 250);
@@ -108,9 +103,9 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_18byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_18byte(*)(cls_struct_18byte, cls_struct_18byte))(code))(g_dbl, f_dbl);
-  /* { dg-output "\n1 127 126 3 4 125 124 5: 5 252 250 8" } */
+  
   printf("res: %g %d %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  /* { dg-output "\nres: 5 252 250 8" } */
+  
   CHECK(res_dbl.a == 5);
   CHECK(res_dbl.b == 252);
   CHECK(res_dbl.c == 250);

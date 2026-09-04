@@ -1,6 +1,6 @@
 module;
 
-// 标准库头必须置于全局模块片段：接口单元全局片段中的 #include 对实现单元不可达。
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -11,9 +11,9 @@ module;
 #include <optional>
 
 #if defined(SILICON_PLATFORM_WINDOWS)
-#    include <io.h> // ::_write
+#    include <io.h>
 #else
-#    include <unistd.h> // ::write
+#    include <unistd.h>
 #endif
 
 module silicon.scheduler;
@@ -65,11 +65,11 @@ auto to_string(poll_status status) -> const std::string & {
     }
 }
 
-// --------------------------------------------------------------------------------------------
-// poll_stop_token
-// --------------------------------------------------------------------------------------------
 
-/// Implementation state of silicon::scheduler::poll_stop_token.
+
+
+
+
 struct poll_stop_token::impl {
   public:
     fd_t m_receiver{-1};
@@ -96,18 +96,18 @@ auto poll_stop_token::native_handle() const -> fd_t {
     return m_p->m_receiver;
 }
 
-// --------------------------------------------------------------------------------------------
-// poll_stop_source
-// --------------------------------------------------------------------------------------------
 
-/// Implementation state of silicon::scheduler::poll_stop_source.
+
+
+
+
 struct poll_stop_source::impl {
   public:
     pipe_t m_pipe{};
 };
 
 poll_stop_source::poll_stop_source(): m_p(std::make_unique<impl>()) {
-    // 管道创建失败时 pipe_t 处于无效状态；无法建立取消源属于前提违例 → 终止。
+
     if(!m_p->m_pipe.is_valid()) {
         std::terminate();
     }
@@ -142,4 +142,4 @@ void poll_stop_source::signal_stop() {
     }
 }
 
-} // namespace silicon::scheduler
+}

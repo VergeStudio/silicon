@@ -1,11 +1,7 @@
-/* Area:		sffi_call, closure_call
-   Purpose:		Test doubles passed in variable argument lists.
-   Limitations:	none.
-   PR:			none.
-   Originator:	Blake Chaffin 6/6/2007	 */
 
-/* { dg-do run } */
-/* { dg-output "" { xfail avr32*-*-* } } */
+
+
+
 #include "ffitest.h"
 
 struct small_tag
@@ -116,9 +112,9 @@ main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, test_fn, NULL, code) == SFFI_OK);
 
   res = ((int (*)(int, ...))(code))(si, s1, l1, s2);
-  /* { dg-output "4 5 6 10 11 12 13 14 20 21" } */
+  
   printf("res: %d\n", (int) res);
-  /* { dg-output "\nres: 42" } */
+  
   CHECK(res == 42);
 
   exit(0);

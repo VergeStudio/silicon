@@ -1,5 +1,5 @@
-// 实现单元：silicon.fs
-// 按 SILICON_PLATFORM_* 宏在编译期选用对应平台实现（宏由顶层 xmake.lua 定义）。
+
+
 module;
 
 #include <cstddef>
@@ -11,7 +11,7 @@ module;
 #include <system_error>
 #include <vector>
 
-// CORE_API 宏（dllexport/dlimport 闸门）：create_file_system 定义处须可见，否则 CORE_API 展开为空。
+
 #include <silicon/common.h>
 
 module silicon.fs;
@@ -20,9 +20,9 @@ import silicon.proxy;
 
 namespace silicon::fs {
 
-/// 平台无关的文件系统实现基类（CRTP，无虚函数、无抽象接口耦合）。
-/// win32_file_system / posix_file_system 以具体派生类型实例化 Derived，
-/// write() 经 CRTP 静态分派到派生类的 normalize_text，避免虚表。
+
+
+
 template<class Derived>
 class file_system_base {
   public:
@@ -84,8 +84,8 @@ class file_system_base {
         return std::filesystem::create_directories(to_path(path), ec);
     }
 
-    /// 平台钩子：文本写入前的换行符规范化（默认原样，POSIX 直接复用）。
-    /// 派生类可隐藏以提供平台特定行为；write() 经 CRTP 调用派生版本。
+
+
     std::string normalize_text(const std::string &content) const { return content; }
 
   protected:
@@ -94,8 +94,8 @@ class file_system_base {
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 
-/// Windows 文件系统实现。
-/// 文本写入按 Windows 约定归一化为 CRLF；目录创建使用系统默认权限。
+
+
 class win32_file_system: public file_system_base<win32_file_system> {
   public:
     std::string normalize_text(const std::string &content) const {
@@ -107,13 +107,13 @@ class win32_file_system: public file_system_base<win32_file_system> {
         }
         return out;
     }
-    // create_directories 复用基类默认实现（std::filesystem 在 Windows 上行为正确）
+
 };
 
 #elif defined(SILICON_PLATFORM_UNIX)
 
-/// POSIX 文件系统实现（Linux/Unix/macOS）。
-/// 文本保持 LF；目录创建后显式设置 0755 权限。
+
+
 class posix_file_system: public file_system_base<posix_file_system> {
   public:
     bool create_directories(const std::string &path) const {
@@ -124,7 +124,7 @@ class posix_file_system: public file_system_base<posix_file_system> {
         std::filesystem::permissions(p, std::filesystem::perms::owner_read | std::filesystem::perms::owner_write | std::filesystem::perms::owner_exec | std::filesystem::perms::group_read | std::filesystem::perms::group_exec | std::filesystem::perms::others_read | std::filesystem::perms::others_exec, std::filesystem::perm_options::replace, ec);
         return made;
     }
-    // normalize_text 复用基类默认实现（保持 LF）
+
 };
 
 #endif
@@ -137,4 +137,4 @@ CORE_API file_system_proxy create_file_system() {
 #endif
 }
 
-} // namespace silicon::fs
+}

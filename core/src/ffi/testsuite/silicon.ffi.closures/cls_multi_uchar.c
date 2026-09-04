@@ -1,10 +1,6 @@
-/* Area:	sffi_call, closure_call
-   Purpose:	Check passing of multiple unsigned char values.
-   Limitations:	none.
-   PR:		PR13221.
-   Originator:	<andreast@gcc.gnu.org> 20031129  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static unsigned char test_func_fn(unsigned char a1, unsigned char a2,
@@ -77,22 +73,22 @@ int main (void)
   cl_arg_types[3] = &sffi_type_uchar;
   cl_arg_types[4] = NULL;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &sffi_type_uchar, cl_arg_types) == SFFI_OK);
 
   sffi_call(&cif, SFFI_FN(test_func_fn), &res_call, args_dbl);
-  /* { dg-output "1 2 127 125: 255" } */
+  
   printf("res: %d\n", (unsigned char)res_call);
-  /* { dg-output "\nres: 255" } */
+  
   CHECK((unsigned char)res_call == 255);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, test_func_gn, NULL, code)  == SFFI_OK);
 
   res_closure = (*((test_type)code))(1, 2, 127, 125);
-  /* { dg-output "\n1 2 127 125: 255" } */
+  
   printf("res: %d\n", res_closure);
-  /* { dg-output "\nres: 255" } */
+  
   CHECK(res_closure == 255);
 
   exit(0);

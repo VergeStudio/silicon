@@ -1,6 +1,6 @@
 module;
 
-// 模块化补齐：原经传递 include 获得的标准头，模块单元须显式包含。
+
 #include <memory>
 #include <utility>
 
@@ -132,7 +132,7 @@ class CORE_API sync_wait_task_promise: public sync_wait_task_promise_base {
         } else if(std::holds_alternative<std::exception_ptr>(m_p->m_storage)) {
             std::rethrow_exception(std::get<std::exception_ptr>(m_p->m_storage));
         } else {
-            // 返回值从未设置即调用 result() 违反调用前提（协程未执行），不可恢复 → 终止。
+
             std::terminate();
         }
     }
@@ -191,9 +191,9 @@ class CORE_API sync_wait_task_promise<void>: public sync_wait_task_promise_base 
 
     auto get_return_object() noexcept { return coroutine_type::from_promise(*this); }
 
-    // 完成通知 awaiter：必须是类级嵌套类型（不可为 final_suspend 函数体内的
-    // 局部类）——类级 CORE_API(dllexport) 不会导出函数内局部类的方法符号，
-    // 跨 DLL 消费方（coroutine.test 等）将报 LNK2001。
+
+
+
     struct CORE_API completion_notifier {
         auto await_ready() const noexcept { return false; }
         auto await_suspend(coroutine_type coroutine) const noexcept { coroutine.promise().m_p->m_event->set(); }
@@ -296,4 +296,4 @@ return_type sync_wait(awaitable_type &&a) {
     }
 }
 
-} // namespace silicon::scheduler
+}

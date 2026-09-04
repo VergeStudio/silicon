@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check structures.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 typedef struct
@@ -30,7 +26,7 @@ int main (void)
   sffi_type ts2_type;
   sffi_type *ts2_type_elements[3];
 
-  /* This is a hack to get a properly aligned result buffer */
+  
   test_structure_2 *ts2_result =
     (test_structure_2 *) malloc (sizeof(test_structure_2));
 
@@ -45,7 +41,7 @@ int main (void)
   args[0] = &ts2_type;
   values[0] = &ts2_arg;
   
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 1, &ts2_type, args) == SFFI_OK);
   
   ts2_arg.d1 = 5.55;

@@ -1,14 +1,6 @@
-/* Area:	sffi_call_plan
-   Purpose:	Check that a reusable call plan reproduces sffi_call for
-		signatures that mix general-purpose and SSE registers, for
-		float and double returns, for signed narrow arguments, and
-		for integer returns narrower than a register (which the plan
-		must widen to sffi_arg exactly as sffi_call does).
-   Limitations:	none.
-   PR:		none.
-   Originator:	sffi_call_plan tests  */
 
-/* { dg-do run } */
+
+
 #include "ffitest.h"
 
 static double mixed(int a, double b, long c, float d,
@@ -34,8 +26,7 @@ static unsigned char ret_uc(unsigned char x)
 
 int main (void)
 {
-  /* Mixed GP + SSE arguments, double return: exercises the fast local-image
-     path with both integer and SSE moves and the ssecount (al) setup.  */
+  
   {
     sffi_cif cif;
     sffi_type *args[6];
@@ -68,7 +59,7 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  /* Float arguments and float return. */
+  
   {
     sffi_cif cif;
     sffi_type *args[2];
@@ -92,8 +83,7 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  /* Signed narrow argument and signed narrow return: the plan sign-extends
-     the argument and widens the return to sffi_arg just as sffi_call does. */
+  
   {
     sffi_cif cif;
     sffi_type *args[1];
@@ -121,7 +111,7 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  /* Unsigned narrow argument and unsigned narrow return. */
+  
   {
     sffi_cif cif;
     sffi_type *args[1];

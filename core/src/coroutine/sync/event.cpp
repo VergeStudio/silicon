@@ -11,12 +11,12 @@ namespace silicon::coroutine {
 
 struct event::impl {
   public:
-    /// The state of the event, nullptr is not set with zero awaiters.  Set to an awaiter* there
-    /// are coroutines awaiting the event to be set, and set to the owning event the event has
-    /// triggered.
-    /// 1) nullptr == not set
-    /// 2) awaiter* == linked list of awaiters waiting for the event to trigger.
-    /// 3) &event == The event is triggered and all awaiters are resumed.
+
+
+
+
+
+
     mutable std::atomic<void *> m_state;
 };
 
@@ -35,15 +35,15 @@ void * event::exchange_set_state() noexcept {
 }
 
 void event::set(resume_order_policy policy) noexcept {
-    // Exchange the state to this, if the state was previously not this, then traverse the list
-    // of awaiters and resume their coroutines.
+
+
     void *old_value = m_p->m_state.exchange(this, std::memory_order::acq_rel);
     if(old_value != this) {
-        // If FIFO has been requsted then reverse the order upon resuming.
+
         if(policy == resume_order_policy::kFifo) {
             old_value = reverse(static_cast<awaiter *>(old_value));
         }
-        // else lifo nothing to do
+
 
         auto *waiters = static_cast<awaiter *>(old_value);
         while(waiters != nullptr) {
@@ -63,10 +63,10 @@ bool event::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) n
 
     m_awaiting_coroutine = awaiting_coroutine;
 
-    // This value will update if other threads write to it via acquire.
+
     void *old_value = m_event.m_p->m_state.load(std::memory_order::acquire);
     do {
-        // Resume immediately if already in the set state.
+
         if(old_value == set_state) {
             return false;
         }
@@ -84,4 +84,4 @@ void event::reset() noexcept {
     m_p->m_state.compare_exchange_strong(old_value, nullptr, std::memory_order::acquire);
 }
 
-} // namespace silicon::coroutine
+}

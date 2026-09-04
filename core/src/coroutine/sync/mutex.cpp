@@ -9,12 +9,12 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-/// Implementation state of silicon::coroutine::mutex.
+
 class mutex::impl {
   public:
-    /// unlocked -> state == unlocked_value()
-    /// locked but empty waiter list == nullptr
-    /// locked with waiters == lock_operation_base*
+
+
+
     std::atomic<void *> m_state;
 };
 
@@ -29,22 +29,22 @@ bool lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_corouti
     void *current = state.load(std::memory_order::acquire);
     const void *unlocked_value = m_mutex.unlocked_value();
     do {
-        // While trying to suspend the lock can become available, if so attempt to grab it and then don't suspend.
-        // If the lock never becomes available then we place ourself at the head of the waiter list and suspend.
+
+
 
         if(current == unlocked_value) {
-            // The lock has become available, try and lock.
+
             if(state.compare_exchange_weak(current, nullptr, std::memory_order::acq_rel, std::memory_order::acquire)) {
-                // We've acquired the lock, don't suspend.
+
                 m_awaiting_coroutine = nullptr;
                 return false;
             }
-        } else // if (current == nullptr || current is of type lock_operation_base*)
+        } else
         {
-            // The lock is still owned, attempt to add ourself as a waiter.
+
             m_next = static_cast<lock_operation_base *>(current);
             if(state.compare_exchange_weak(current, static_cast<void *>(this), std::memory_order::acq_rel, std::memory_order::acquire)) {
-                // We've successfully added ourself to the waiter queue.
+
                 return true;
             }
         }
@@ -53,7 +53,7 @@ bool lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_corouti
 
 
 
-/// Implementation state of silicon::coroutine::scoped_lock.
+
 struct scoped_lock::impl {
   public:
     class silicon::coroutine::mutex *m_mutex{nullptr};
@@ -61,8 +61,8 @@ struct scoped_lock::impl {
 
 scoped_lock::scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy)
     : m_p(std::make_unique<impl>()) {
-    // Future -> support acquiring the lock?  Not sure how to do that without being able to
-    // co_await in the constructor.
+
+
     (void)strategy;
     m_p->m_mutex = &m;
 }
@@ -87,9 +87,9 @@ scoped_lock::~scoped_lock() {
 void scoped_lock::unlock() {
     if(m_p != nullptr && m_p->m_mutex != nullptr) {
         std::atomic_thread_fence(std::memory_order::acq_rel);
-        // mutex::unlock() 返回 result<void>（[[nodiscard]]）。scoped_lock::unlock()
-        // 为 void 且 noexcept，无法向上传播 kAlreadyUnlocked；此处持锁状态已由
-        // m_p->m_mutex != nullptr 保证，故显式丢弃。
+
+
+
         static_cast<void>(m_p->m_mutex->unlock());
         m_p->m_mutex = nullptr;
     }
@@ -113,12 +113,12 @@ bool mutex::try_lock() {
 auto mutex::unlock() -> result<void> {
     void *current = m_p->m_state.load(std::memory_order::acquire);
     do {
-        // Sanity check that the mutex isn't already unlocked.
+
         if(current == const_cast<void *>(unlocked_value())) {
             return std::unexpected(make_error_code(coroutine_error::kAlreadyUnlocked));
         }
 
-        // There are no current waiters, attempt to set the mutex as unlocked.
+
         if(current == nullptr) {
             if(m_p->m_state.compare_exchange_weak(
                        current,
@@ -126,21 +126,21 @@ auto mutex::unlock() -> result<void> {
                        std::memory_order::acq_rel,
                        std::memory_order::acquire
                )) {
-                // We've successfully unlocked the mutex, return since there are no current waiters.
+
                 std::atomic_thread_fence(std::memory_order::acq_rel);
                 return {};
             } else {
-                // This means someone has added themselves as a waiter, we need to try again with our updated current state.
-                // assert(m_state now holds a lock_operation_base*)
+
+
                 continue;
             }
         } else {
-            // There are waiters, lets wake the first one up. This will set the state to the next waiter, or nullptr (no waiters but locked).
+
             std::atomic<lock_operation_base *> *casted =
                     reinterpret_cast<std::atomic<lock_operation_base *> *>(&m_p->m_state);
             auto *waiter = silicon::scheduler::awaiter_list_pop<lock_operation_base>(*casted);
-            // assert waiter != nullptr, nobody else should be unlocking this mutex.
-            // Directly transfer control to the waiter, they are now responsible for unlocking the mutex.
+
+
             std::atomic_thread_fence(std::memory_order::acq_rel);
             waiter->m_awaiting_coroutine.resume();
             return {};
@@ -148,4 +148,4 @@ auto mutex::unlock() -> result<void> {
     } while(true);
 }
 
-} // namespace silicon::coroutine
+}

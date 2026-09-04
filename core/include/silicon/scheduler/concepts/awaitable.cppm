@@ -13,15 +13,8 @@ export namespace silicon::scheduler::concepts {
 template<typename type, typename... types>
 concept in_types = (std::same_as<type, types> || ...);
 
-/**
- * This concept declares a type that is required to meet the c++20 coroutine operator co_await()
- * retun type.  It requires the following three member functions:
- *      await_ready() -> bool
- *      await_suspend(std::coroutine_handle<>) -> void|bool|std::coroutine_handle<>
- *      await_resume() -> decltype(auto)
- *          Where the return type on await_resume is the requested return of the awaitable.
- */
-// clang-format off
+
+
 template<typename type>
 concept awaiter = requires(type t, std::coroutine_handle<> c)
 {
@@ -42,9 +35,7 @@ concept global_co_await_awaitable = requires(type t)
     { operator co_await(t) } -> awaiter;
 };
 
-/**
- * This concept declares a type that can be operator co_await()'ed and returns an awaiter_type.
- */
+
 template<typename type>
 concept awaitable = member_co_await_awaitable<type> || global_co_await_awaitable<type> || awaiter<type>;
 
@@ -98,23 +89,18 @@ struct awaitable_traits<awaitable>
     using awaiter_return_type = decltype(std::declval<awaiter_type>().await_resume());
 };
 
-/**
- * @brief A generic awaitable object that is a forward linked list.
- * This is used internally for most awaitables that track the next waiter via the m_next pointer.
- *
- * @tparam entry_type
- */
+
 template<typename entry_type>
 concept awaiter_forward_list_entry = requires(entry_type* e)
 {
-    /// The next awaiter in the list.
+
     { std::same_as<entry_type*, decltype(e->m_next)> };
-    /// The awaiting coroutine for this entry.
+
     { std::same_as<std::coroutine_handle<>, decltype(e->m_awaiting_coroutine)> };
 };
 
 
 
-// clang-format on
 
-} // namespace silicon::scheduler::concepts
+
+}

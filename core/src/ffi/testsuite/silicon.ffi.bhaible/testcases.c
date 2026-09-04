@@ -1,23 +1,6 @@
-/*
- * Copyright 1993 Bill Triggs <Bill.Triggs@inrialpes.fr>
- * Copyright 1995-2017 Bruno Haible <bruno@clisp.org>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 
-/* This file defines test functions of selected signatures, that exercise
-   dark corners of the various ABIs. */
+
+
 
 #include <stdio.h>
 
@@ -64,9 +47,7 @@ typedef struct {
 typedef struct { char c[3]; } T;
 typedef struct { char c[33],c1; } X;
 
-/* Don't use a number over 127, as some systems use signed chars and
-   the test case 25 doesn't account for this, resulting in undefined
-   behavior. See https://github.com/SILICON_FFI/SILICON_FFI/issues/598. */
+
 char c1='a', c2=127, c3=(char)1;
 
 short s1=32767, s2=(short)32768, s3=3, s4=4, s5=5, s6=6, s7=7, s8=8, s9=9;
@@ -96,7 +77,7 @@ A A1={'a',0.1f},A2={'b',0.2f},A3={'\377',0.3f};
 B B1={0.1,{1,2,3}},B2={0.2,{5,4,3}};
 J J1={47,11},J2={73,55};
 K K1={19,69,12,28};
-L L1={561,1105,1729,2465,2821,6601}; /* A002997 */
+L L1={561,1105,1729,2465,2821,6601}; 
 Size1 Size1_1={'a'};
 Size2 Size2_1={'a','b'};
 Size3 Size3_1={'a','b','c'};
@@ -124,14 +105,14 @@ X X1={"abcdefghijklmnopqrstuvwxyzABCDEF",'G'}, X2={"123",'9'}, X3={"return-retur
 #define ABI_ATTR
 #endif
 
-/* void tests */
+
 void ABI_ATTR v_v (void)
 {
   fprintf(out,"void f(void):\n");
   fflush(out);
 }
 
-/* int tests */
+
 int ABI_ATTR i_v (void)
 {
   int r=99;
@@ -177,7 +158,7 @@ int ABI_ATTR i_i16 (int a, int b, int c, int d, int e, int f, int g, int h,
   return r;
 }
 
-/* float tests */
+
 float ABI_ATTR f_f (float a)
 {
   float r=a+1.0f;
@@ -225,7 +206,7 @@ float ABI_ATTR f_f24 (float a, float b, float c, float d, float e, float f, floa
   return r;
 }
 
-/* double tests */
+
 double ABI_ATTR d_d (double a)
 {
   double r=a+1.0;
@@ -265,7 +246,7 @@ double ABI_ATTR d_d16 (double a, double b, double c, double d, double e, double 
   return r;
 }
 
-/* pointer tests */
+
 void* ABI_ATTR vp_vpdpcpsp (void* a, double* b, char* c, Int* d)
 {
   void* ret = (char*)b + 1;
@@ -274,7 +255,7 @@ void* ABI_ATTR vp_vpdpcpsp (void* a, double* b, char* c, Int* d)
   return ret;
 }
 
-/* mixed number tests */
+
 uchar ABI_ATTR uc_ucsil (uchar a, ushort b, uint c, ulong d)
 {
   uchar r = (uchar)-1;
@@ -457,7 +438,7 @@ double ABI_ATTR d_d13i (double a, double b, double c, double d, double e, double
   return r;
 }
 
-/* small structure return tests */
+
 Size1 ABI_ATTR S1_v (void)
 {
   fprintf(out,"Size1 f(void):");
@@ -513,7 +494,7 @@ Size16 ABI_ATTR S16_v (void)
   return Size16_1;
 }
 
-/* structure tests */
+
 Int ABI_ATTR I_III (Int a, Int b, Int c)
 {
   Int r;
@@ -582,10 +563,7 @@ X ABI_ATTR X_BcdB (B a, char b, double c, B d)
   return r;
 }
 
-/* Test for cases where some argument (especially structure, 'long long', or
-   'double') may be passed partially in general-purpose argument registers
-   and partially on the stack. Different ABIs pass between 4 and 8 arguments
-   (or none) in general-purpose argument registers. */
+
 
 long ABI_ATTR l_l0K (K b, long c)
 {
@@ -636,9 +614,7 @@ long ABI_ATTR l_l6K (long a1, long a2, long a3, long a4, long a5, long a6, K b, 
   fflush(out);
   return r;
 }
-/* These tests is crafted on the knowledge that for all known ABIs:
-   * 17 > number of floating-point argument registers,
-   * 3 < number of general-purpose argument registers < 3 + 6. */
+
 float ABI_ATTR f_f17l3L (float a, float b, float c, float d, float e, float f, float g,
                 float h, float i, float j, float k, float l, float m, float n,
                 float o, float p, float q,

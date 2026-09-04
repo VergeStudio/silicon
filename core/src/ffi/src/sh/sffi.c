@@ -1,29 +1,4 @@
-/* -----------------------------------------------------------------------
-   ffi.c - Copyright (c) 2002-2008, 2012 Kaz Kojima
-           Copyright (c) 2008 Red Hat, Inc.
-   
-   SuperH Foreign Function Interface 
 
-   Permission is hereby granted, free of charge, to any person obtaining
-   a copy of this software and associated documentation files (the
-   ``Software''), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED ``AS IS'', WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-   NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-   HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-   WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-   DEALINGS IN THE SOFTWARE.
-   ----------------------------------------------------------------------- */
 
 #include <sffi.h>
 #include <sffi_common.h>
@@ -41,7 +16,7 @@
 #define STRUCT_VALUE_ADDRESS_WITH_ARG 0
 #endif
 
-/* If the structure has essentially an unique element, return its type.  */
+
 static int
 simple_type (sffi_type *arg)
 {
@@ -79,7 +54,7 @@ return_type (sffi_type *arg)
 	}
     }
 
-  /* gcc uses r0/r1 pair for some kind of structures.  */
+  
   if (arg->size <= 2 * sizeof (int))
     {
       int i = 0;
@@ -105,8 +80,7 @@ return_type (sffi_type *arg)
   return SFFI_TYPE_STRUCT;
 }
 
-/* sffi_prep_args is called by the assembly routine once stack space
-   has been allocated for the function's arguments */
+
 
 void sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -133,7 +107,7 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   else
     ireg = 0;
 
-  /* Set arguments for registers.  */
+  
   greg = ireg;
   avn = ecif->cif->nargs;
   p_argv = ecif->avalue;
@@ -220,7 +194,7 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
 	}
     }
 
-  /* Set arguments on stack.  */
+  
   greg = ireg;
 #if defined(__SH4__)
   freg = 0;
@@ -318,7 +292,7 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   return;
 }
 
-/* Perform machine dependent cif processing */
+
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
   int i, j;
@@ -383,7 +357,7 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
     }
 #endif
 
-  /* Set the return type flag */
+  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_STRUCT:
@@ -417,8 +391,8 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   ecif.cif = cif;
   ecif.avalue = avalue;
   
-  /* If the return value is a struct and we don't have a return	*/
-  /* value address then we need to make one		        */
+  
+  
 
   if (cif->rtype->type == SFFI_TYPE_STRUCT
       && return_type (cif->rtype) != SFFI_TYPE_STRUCT)
@@ -467,10 +441,10 @@ sffi_prep_closure_loc (sffi_closure* closure,
     return SFFI_BAD_ABI;
 
   tramp = (unsigned int *) &closure->tramp[0];
-  /* Set T bit if the function returns a struct pointed with R2.  */
+  
   insn = (return_type (cif->rtype) == SFFI_TYPE_STRUCT
-	  ? 0x0018 /* sett */
-	  : 0x0008 /* clrt */);
+	  ? 0x0018 
+	  : 0x0008 );
 
 #ifdef __LITTLE_ENDIAN__
   tramp[0] = 0xd301d102;
@@ -479,28 +453,22 @@ sffi_prep_closure_loc (sffi_closure* closure,
   tramp[0] = 0xd102d301;
   tramp[1] = 0x412b0000 | insn;
 #endif
-  *(void **) &tramp[2] = (void *)codeloc;          /* ctx */
-  *(void **) &tramp[3] = (void *)sffi_closure_SYSV; /* funaddr */
+  *(void **) &tramp[2] = (void *)codeloc;          
+  *(void **) &tramp[3] = (void *)sffi_closure_SYSV; 
 
   closure->cif = cif;
   closure->fun = fun;
   closure->user_data = user_data;
 
 #if defined(__SH4__)
-  /* Flush the icache.  */
+  
   __ic_invalidate(codeloc);
 #endif
 
   return SFFI_OK;
 }
 
-/* Basically the trampoline invokes sffi_closure_SYSV, and on 
- * entry, r3 holds the address of the closure.
- * After storing the registers that could possibly contain
- * parameters to be passed into the stack frame and setting
- * up space for a return value, sffi_closure_SYSV invokes the 
- * following helper function to do most of the work.
- */
+
 
 #ifdef __LITTLE_ENDIAN__
 #define OFS_INT8	0
@@ -527,8 +495,7 @@ sffi_closure_helper_SYSV (sffi_closure *closure, void *rvalue,
   cif = closure->cif;
   avalue = alloca(cif->nargs * sizeof(void *));
 
-  /* Copy the caller's structure return value address so that the closure
-     returns the data directly to the caller.  */
+  
   if (cif->rtype->type == SFFI_TYPE_STRUCT && STRUCT_VALUE_ADDRESS_WITH_ARG)
     {
       rvalue = (void *) *pgr++;
@@ -541,7 +508,7 @@ sffi_closure_helper_SYSV (sffi_closure *closure, void *rvalue,
   greg = ireg;
   avn = cif->nargs;
 
-  /* Grab the addresses of the arguments from the stack frame.  */
+  
   for (i = 0, p_arg = cif->arg_types; i < avn; i++, p_arg++)
     {
       size_t z;
@@ -712,6 +679,6 @@ sffi_closure_helper_SYSV (sffi_closure *closure, void *rvalue,
 
   (closure->fun) (cif, rvalue, avalue, closure->user_data);
 
-  /* Tell sffi_closure_SYSV how to perform return type promotions.  */
+  
   return return_type (cif->rtype);
 }

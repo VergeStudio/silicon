@@ -68,4 +68,4 @@ auto make_task_self_deleting(silicon::scheduler::task<void> user_task) -> task_s
     co_return;
 }
 
-} // namespace silicon::scheduler
+}

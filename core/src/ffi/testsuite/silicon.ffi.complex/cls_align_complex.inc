@@ -1,4 +1,4 @@
-/* -*-c-*- */
+
 #include "ffitest.h"
 #include <complex.h>
 
@@ -74,18 +74,18 @@ int main (void)
   args_c[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_align_fn), &res_c, args_c);
-  /* { dg-output "12 4951,7i 127 1 9320,1i 13: 13 14271,8i 140" } */
+  
   printf("res: %d %f,%fi %d\n",
 	 res_c.a, T_CONV  creal (res_c.b), T_CONV  cimag (res_c.b), res_c.c);
-  /* { dg-output "\nres: 13 14271,8i 140" } */
+  
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_align_gn, NULL, code) == SFFI_OK);
 
   res_c = ((cls_struct_align(*)(cls_struct_align, cls_struct_align))(code))(g_c, f_c);
-  /* { dg-output "\n12 4951,7i 127 1 9320,1i 13: 13 14271,8i 140" } */
+  
   printf("res: %d %f,%fi %d\n",
 	 res_c.a, T_CONV  creal (res_c.b), T_CONV  cimag (res_c.b), res_c.c);
-  /* { dg-output "\nres: 13 14271,8i 140" } */
+  
 
   exit(0);
 }

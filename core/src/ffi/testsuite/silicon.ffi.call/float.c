@@ -1,10 +1,6 @@
-/* Area:	sffi_call
-   Purpose:	Check return value float.
-   Limitations:	none.
-   PR:		none.
-   Originator:	From the original ffitest.c  */
 
-/* { dg-do run } */
+
+
 
 #include "ffitest.h"
 
@@ -38,7 +34,7 @@ int main (void)
   args[3] = &sffi_type_longdouble;
   values[3] = &ld;
 
-  /* Initialize the cif */
+  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &sffi_type_sint, args) == SFFI_OK);
 
