@@ -32,7 +32,7 @@ namespace silicon::scheduler {
 /// 侵入链指针。非导出类型，方法定义位于 core/src/scheduler/io_op.cpp。
 struct io_op {
     /// 目标常规文件的描述符 / CRT fd。
-    silicon::coroutine::fd_t m_fd{-1};
+    silicon::scheduler::fd_t m_fd{-1};
     /// 读入 / 写出缓冲（写路径由 io_scheduler::write_at 以 const_cast 存入）。
     void *m_buffer{nullptr};
     /// 请求字节数（≤ 4GiB）。

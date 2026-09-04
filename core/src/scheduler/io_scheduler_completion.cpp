@@ -50,9 +50,9 @@ import silicon.scheduler;
 
 import :io_op;
 
-// 与 io_scheduler.cpp 一致：沿用 coroutine 基础类型（fd_t / poll_op / pipe_t）
-// 与调度原语的简化书写，using-directive 置于全局作用域（不参与模块导出）。
-using namespace silicon::coroutine;
+// 与 io_scheduler.cpp 一致：沿用 silicon::scheduler 基础类型（fd_t / poll_op /
+// pipe_t）与调度原语的简化书写，using-directive 置于全局作用域（不参与模块导出）。
+using namespace silicon::scheduler;
 
 namespace silicon::scheduler {
 
@@ -133,7 +133,7 @@ class completion_engine {
 #if defined(SILICON_PLATFORM_LINUX)
     /// 内部 completion pipe：worker 写 1 字节唤醒事件驱动线程（epoll 可轮询）。
     /// 严禁接 io_scheduler 的 CRT schedule pipe（Windows 唤醒同理走 post）。
-    silicon::coroutine::pipe_t m_wake_pipe{};
+    silicon::scheduler::pipe_t m_wake_pipe{};
     bool m_wake_registered{false};
 #endif
 };
@@ -143,7 +143,7 @@ completion_engine::completion_engine(const io_scheduler::options &opts, io_notif
     , m_sentinel(sentinel) {
     if(opts.completion_policy == io_scheduler::io_completion_policy::disabled) { return; }
 
-    m_ring = std::make_unique<io_ring>(opts.io_ring);
+    m_ring = std::make_unique<io_ring>(opts.io_ring_cfg);
     if(!m_ring->is_valid()) { m_ring.reset(); return; }
     if(!m_ring->supports(io_ring::op::read) || !m_ring->supports(io_ring::op::write)) { m_ring.reset(); return; }
 
@@ -198,12 +198,12 @@ void completion_engine::stop_and_join() noexcept {
 
 bool completion_engine::enqueue(io_op *op) noexcept {
     if(!available() || op == nullptr) { return false; }
-    silicon::coroutine::awaiter_list_push(m_pending, op);
+    silicon::scheduler::awaiter_list_push(m_pending, op);
     return true;
 }
 
 io_op * completion_engine::take_all_completed() noexcept {
-    return silicon::coroutine::awaiter_list_pop_all(m_completed);
+    return silicon::scheduler::awaiter_list_pop_all(m_completed);
 }
 
 void completion_engine::drain_wake_pipe() noexcept {
@@ -229,13 +229,13 @@ bool completion_engine::submit_op(io_op *op) noexcept {
 }
 
 void completion_engine::submit_pending() noexcept {
-    while(io_op *op = silicon::coroutine::awaiter_list_pop(m_pending)) {
+    while(io_op *op = silicon::scheduler::awaiter_list_pop(m_pending)) {
         if(!submit_op(op)) {
             // SQ 已满：先 submit 腾出槽位再重试；仍失败按提交失败完结。
             m_ring->submit();
             if(!submit_op(op)) {
                 op->complete_error(make_error_code(scheduler_error::kCompletionSubmitFailed));
-                silicon::coroutine::awaiter_list_push(m_completed, op);
+                silicon::scheduler::awaiter_list_push(m_completed, op);
                 wake_driver();
                 continue;
             }
@@ -263,7 +263,7 @@ void completion_engine::handle_completion(const io_ring::completion &completion)
 #endif
     }
 
-    silicon::coroutine::awaiter_list_push(m_completed, op);
+    silicon::scheduler::awaiter_list_push(m_completed, op);
     wake_driver();
 }
 
@@ -300,9 +300,9 @@ void completion_engine::worker_main() noexcept {
     // 停摆收尾：尽量把仍在待提交队列的操作送进内核；正常关闭路径下此时队列
     // 已空（shutdown 会等全部挂起任务完成），此处只做防御性完结。
     submit_pending();
-    while(io_op *op = silicon::coroutine::awaiter_list_pop(m_pending)) {
+    while(io_op *op = silicon::scheduler::awaiter_list_pop(m_pending)) {
         op->complete_error(make_error_code(scheduler_error::kShuttingDown));
-        silicon::coroutine::awaiter_list_push(m_completed, op);
+        silicon::scheduler::awaiter_list_push(m_completed, op);
     }
     wake_driver();
 }
@@ -459,7 +459,7 @@ void io_scheduler::drain_ring_completions() {
 
     io_op *ops = engine->take_all_completed();
     if(ops == nullptr) { return; }
-    ops = silicon::coroutine::awaiter_list_reverse(ops);
+    ops = silicon::scheduler::awaiter_list_reverse(ops);
 
     while(ops != nullptr) {
         io_op *next = ops->m_next;

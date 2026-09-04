@@ -104,7 +104,7 @@ client::client(client &&other) noexcept
 client::~client() {
     // If the user didn't shutdown the client block on shutting down to clean up resources.
     if(!m_shutdown.load(std::memory_order::acquire)) {
-        silicon::coroutine::sync_wait(shutdown(std::chrono::seconds{30}));
+        silicon::scheduler::sync_wait(shutdown(std::chrono::seconds{30}));
     }
 }
 
@@ -145,8 +145,8 @@ silicon::scheduler::task<connection_status> client::connect(std::chrono::millise
         // If the connect is happening in the background poll for write on the socket to trigger
         // when the connection is established.
         if(m_socket.in_progress()) {
-            auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), silicon::coroutine::poll_op::write, timeout);
-            if(pstatus == silicon::coroutine::poll_status::write) {
+            auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), silicon::scheduler::poll_op::write, timeout);
+            if(pstatus == silicon::scheduler::poll_status::write) {
                 int result{0};
                 socklen_t result_length{sizeof(result)};
                 if(::getsockopt(m_socket.native_handle(), SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&result), &result_length) < 0) {
@@ -157,7 +157,7 @@ silicon::scheduler::task<connection_status> client::connect(std::chrono::millise
                     // TODO: delta the already used time and remove from the handshake timeout.
                     co_return return_value(co_await handshake(timeout));
                 }
-            } else if(pstatus == silicon::coroutine::poll_status::timeout) {
+            } else if(pstatus == silicon::scheduler::poll_status::timeout) {
                 co_return return_value(connection_status::kTimeout);
             }
         }
@@ -188,12 +188,12 @@ silicon::scheduler::task<connection_status> client::handshake(std::chrono::milli
     int r{0};
     ERR_clear_error();
     while((r = SSL_connect(tls)) != 1) {
-        silicon::coroutine::poll_op op{silicon::coroutine::poll_op::read_write};
+        silicon::scheduler::poll_op op{silicon::scheduler::poll_op::read_write};
         int err = SSL_get_error(tls, r);
         if(err == SSL_ERROR_WANT_WRITE) {
-            op = silicon::coroutine::poll_op::write;
+            op = silicon::scheduler::poll_op::write;
         } else if(err == SSL_ERROR_WANT_READ) {
-            op = silicon::coroutine::poll_op::read;
+            op = silicon::scheduler::poll_op::read;
         } else {
             // char error_buffer[256];
             // ERR_error_string(err, error_buffer);
@@ -204,13 +204,13 @@ silicon::scheduler::task<connection_status> client::handshake(std::chrono::milli
         // TODO: adjust timeout based on elapsed time so far.
         auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), op, timeout);
         switch(pstatus) {
-            case silicon::coroutine::poll_status::timeout:
+            case silicon::scheduler::poll_status::timeout:
                 co_return connection_status::kTimeout;
-            case silicon::coroutine::poll_status::error:
+            case silicon::scheduler::poll_status::error:
                 co_return connection_status::kPollError;
-            case silicon::coroutine::poll_status::closed:
+            case silicon::scheduler::poll_status::closed:
                 co_return connection_status::kUnexpectedClose;
-            case silicon::coroutine::poll_status::cancelled:
+            case silicon::scheduler::poll_status::cancelled:
                 co_return connection_status::kUnexpectedClose;
             default:
                 // event triggered, continue handshake.
@@ -232,22 +232,22 @@ silicon::scheduler::task<void> client::tls_shutdown_and_free(std::chrono::millis
             co_return;
         } else if(r == 0) // shutdown in progress
         {
-            silicon::coroutine::poll_op op{silicon::coroutine::poll_op::read_write};
+            silicon::scheduler::poll_op op{silicon::scheduler::poll_op::read_write};
             auto err = SSL_get_error(tls_ptr, r);
             if(err == SSL_ERROR_WANT_WRITE) {
-                op = silicon::coroutine::poll_op::write;
+                op = silicon::scheduler::poll_op::write;
             } else if(err == SSL_ERROR_WANT_READ) {
-                op = silicon::coroutine::poll_op::read;
+                op = silicon::scheduler::poll_op::read;
             } else {
                 co_return;
             }
 
             auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), op, timeout);
             switch(pstatus) {
-                case silicon::coroutine::poll_status::timeout:
-                case silicon::coroutine::poll_status::error:
-                case silicon::coroutine::poll_status::closed:
-                case silicon::coroutine::poll_status::cancelled:
+                case silicon::scheduler::poll_status::timeout:
+                case silicon::scheduler::poll_status::error:
+                case silicon::scheduler::poll_status::closed:
+                case silicon::scheduler::poll_status::cancelled:
                     co_return;
                 default:
                     // continue shutdown.

@@ -44,7 +44,7 @@ export namespace silicon::network::tcp {
 ///   network::socket& socket();
 ///   const network::socket& socket() const;
 ///   silicon::scheduler::task<network::connect_status> connect(std::chrono::milliseconds);
-///   silicon::scheduler::task<silicon::coroutine::poll_status> poll(poll_op, std::chrono::milliseconds);
+///   silicon::scheduler::task<silicon::scheduler::poll_status> poll(poll_op, std::chrono::milliseconds);
 /// 模板方法（read_some/read_exact/write_some/write_all/recv/send）保留在具体类，
 /// 因 pro·xy 门面无法擦除模板成员。
 PRO_DEF_MEM_DISPATCH(MemTcpClientSocket, socket);
@@ -59,8 +59,8 @@ struct tcp_client_facade
       ::add_convention<MemTcpClientConnect,                                 //
                        silicon::scheduler::task<network::connect_status>(std::chrono::milliseconds)> //
       ::add_convention<MemTcpClientPoll,                                    //
-                       silicon::scheduler::task<silicon::coroutine::poll_status>(
-                               silicon::coroutine::poll_op, std::chrono::milliseconds)> //
+                       silicon::scheduler::task<silicon::scheduler::poll_status>(
+                               silicon::scheduler::poll_op, std::chrono::milliseconds)> //
       ::build {};
 
 using tcp_client_proxy = silicon::proxy::proxy<tcp_client_facade>;
@@ -130,8 +130,8 @@ class CORE_API client final {
      * @return A pair of: status of the operation; span pointing to the read part of buffer.
      */
     template<
-            silicon::coroutine::concepts::mutable_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::mutable_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::mutable_buffer_traits<buffer_type>::element_type>
     auto read_some(buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::pair<io_status, std::span<element_type>>> {
         if(buffer.empty()) {
@@ -150,8 +150,8 @@ class CORE_API client final {
      * @return A pair of: status of the operation; span pointing to the read part of buffer.
      */
     template<
-            silicon::coroutine::concepts::mutable_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::mutable_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::mutable_buffer_traits<buffer_type>::element_type>
     auto read_exact(buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::pair<io_status, std::span<element_type>>> {
         if(buffer.empty()) {
@@ -169,8 +169,8 @@ class CORE_API client final {
      * @return A pair of: status of the operation; span pointing to the unsent portion of the buffer.
      */
     template<
-            silicon::coroutine::concepts::const_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::const_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::const_buffer_traits<buffer_type>::element_type>
     auto write_some(const buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::pair<io_status, std::span<element_type>>> {
         static_assert(sizeof(element_type) == 1);
@@ -191,8 +191,8 @@ class CORE_API client final {
      * @return A pair of: status of the operation; span pointing to the unsent portion of the buffer.
      */
     template<
-            silicon::coroutine::concepts::const_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::const_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::const_buffer_traits<buffer_type>::element_type>
     auto write_all(const buffer_type &buffer, const std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::pair<io_status, std::span<element_type>>> {
         static_assert(sizeof(element_type) == 1);
@@ -229,17 +229,17 @@ class CORE_API client final {
     )
             -> silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>>;
 
-    auto poll(const silicon::coroutine::poll_op, const std::chrono::milliseconds = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<silicon::coroutine::poll_status>;
+    auto poll(const silicon::scheduler::poll_op, const std::chrono::milliseconds = std::chrono::milliseconds{0})
+            -> silicon::scheduler::task<silicon::scheduler::poll_status>;
 
     template<
-            silicon::coroutine::concepts::mutable_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::mutable_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::mutable_buffer_traits<buffer_type>::element_type>
     std::pair<io_status, std::span<element_type>> recv(buffer_type &&buffer) ;
 
     template<
-            silicon::coroutine::concepts::const_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::const_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::const_buffer_traits<buffer_type>::element_type>
     std::pair<io_status, std::span<element_type>> send(const buffer_type &) ;
 
     /// The tcp::server creates already connected clients and provides a tcp socket pre-built.
@@ -259,14 +259,14 @@ class CORE_API client final {
 /// @brief 类型擦除门面：TCP 服务端的可擦除接口。
 ///
 /// 任何满足下列成员的类型（含 tcp::server）都自动满足该门面，无需继承：
-///   silicon::scheduler::task<silicon::coroutine::expected<client, io_status>> accept(std::chrono::milliseconds);
+///   silicon::scheduler::task<silicon::scheduler::expected<client, io_status>> accept(std::chrono::milliseconds);
 /// 因 accept 返回类型引用 tcp::client，本门面定义于 client 完整声明之后。
 PRO_DEF_MEM_DISPATCH(MemTcpServerAccept, accept);
 
 struct tcp_server_facade
     : silicon::proxy::facade_builder                                                       //
       ::add_convention<MemTcpServerAccept,                                                 //
-                       silicon::scheduler::task<silicon::coroutine::expected<client, io_status>>(
+                       silicon::scheduler::task<silicon::scheduler::expected<client, io_status>>(
                                std::chrono::milliseconds)>                                  //
       ::build {};
 
@@ -321,7 +321,7 @@ class CORE_API server final {
      * @return The newly connected tcp client connection on success or an io_status describing the failure.
      */
     auto accept(std::chrono::milliseconds = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<silicon::coroutine::expected<network::tcp::client, io_status>>;
+            -> silicon::scheduler::task<silicon::scheduler::expected<network::tcp::client, io_status>>;
 
     /**
      * @return The tcp accept socket this server is using.
@@ -341,13 +341,13 @@ class CORE_API server final {
      *         connection ready to be accepted.
      */
     auto poll(std::chrono::milliseconds = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<coroutine::poll_status>;
+            -> silicon::scheduler::task<silicon::scheduler::poll_status>;
 
     /**
      * Accepts an incoming tcp client connection.
      * @return The newly connected tcp client connection.
      */
-    silicon::coroutine::expected<silicon::network::tcp::client, io_status> accept_now() ;
+    silicon::scheduler::expected<silicon::network::tcp::client, io_status> accept_now() ;
 
     friend client;
 

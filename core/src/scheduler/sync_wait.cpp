@@ -12,7 +12,7 @@ module silicon.scheduler;
 
 import :poll_info_impl;
 
-namespace silicon::coroutine {
+namespace silicon::scheduler {
 
 class sync_wait_event::impl {
   public:
@@ -46,4 +46,4 @@ void sync_wait_event::wait() noexcept {
     m_p->m_cv.wait(lk, [this] { return m_p->m_set.load(std::memory_order::seq_cst); });
 }
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler

@@ -15,7 +15,7 @@
 import silicon.coroutine;
 
 using silicon::coroutine::coroutine_pool;
-using silicon::coroutine::sync_wait;
+using silicon::scheduler::sync_wait;
 using silicon::scheduler::task;
 using silicon::coroutine::when_all;
 using silicon::scheduler::thread_pool;

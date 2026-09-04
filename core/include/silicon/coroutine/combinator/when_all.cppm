@@ -430,11 +430,11 @@ class CORE_API when_all_task<void> {
 };
 
 template<
-        concepts::awaitable awaitable,
-        typename return_type = typename concepts::awaitable_traits<awaitable &&>::awaiter_return_type>
+        silicon::scheduler::concepts::awaitable awaitable,
+        typename return_type = typename silicon::scheduler::concepts::awaitable_traits<awaitable &&>::awaiter_return_type>
 when_all_task<return_type> __ATTRIBUTE__(used) make_when_all_task(awaitable) ;
 
-template<concepts::awaitable awaitable, typename return_type>
+template<silicon::scheduler::concepts::awaitable awaitable, typename return_type>
 when_all_task<return_type> make_when_all_task(awaitable a) {
     if constexpr(std::is_void_v<return_type>) {
         co_await static_cast<awaitable &&>(a);
@@ -446,18 +446,18 @@ when_all_task<return_type> make_when_all_task(awaitable a) {
 
 
 
-template<concepts::awaitable... awaitables_type>
+template<silicon::scheduler::concepts::awaitable... awaitables_type>
 [[nodiscard]] auto when_all(awaitables_type... awaitables) {
     return when_all_ready_awaitable<std::tuple<
-            when_all_task<typename concepts::awaitable_traits<awaitables_type>::awaiter_return_type>...>>(
+            when_all_task<typename silicon::scheduler::concepts::awaitable_traits<awaitables_type>::awaiter_return_type>...>>(
             std::make_tuple(make_when_all_task(std::move(awaitables))...)
     );
 }
 
 template<
         std::ranges::range range_type,
-        concepts::awaitable awaitable_type = std::ranges::range_value_t<range_type>,
-        typename return_type = typename concepts::awaitable_traits<awaitable_type>::awaiter_return_type>
+        silicon::scheduler::concepts::awaitable awaitable_type = std::ranges::range_value_t<range_type>,
+        typename return_type = typename silicon::scheduler::concepts::awaitable_traits<awaitable_type>::awaiter_return_type>
 [[nodiscard]] auto when_all(range_type awaitables)
         -> when_all_ready_awaitable<std::vector<when_all_task<return_type>>> {
     std::vector<when_all_task<return_type>> output_tasks;

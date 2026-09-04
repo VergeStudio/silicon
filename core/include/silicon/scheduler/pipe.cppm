@@ -12,7 +12,7 @@ export module silicon.scheduler:pipe;
 
 import :fd;
 
-export namespace silicon::coroutine {
+export namespace silicon::scheduler {
 
 class CORE_API pipe_t {
   public:
@@ -45,4 +45,4 @@ class CORE_API pipe_t {
     std::unique_ptr<impl> m_p;
 };
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler

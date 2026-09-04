@@ -30,14 +30,14 @@ export namespace silicon::coroutine {
  * 提交的任务仍分配自身协程帧；池的核心收益是 **复用 N 个 worker 帧** 与
  * **并发上限 = N**：超额任务在 channel 中排队，由空闲 worker 取出运行。
  *
- * `coroutine_pool` 本身实现 `concepts::executor`，可直接作为执行器接入
+ * `coroutine_pool` 本身实现 `silicon::scheduler::concepts::executor`，可直接作为执行器接入
  * `task_container` / `latch` 等现有设施——其 `spawn_*` 走池以限制并发，
  * 而 `schedule` / `yield` / `resume` 委托给底层执行器。
  *
- * @tparam Executor 底层执行器类型（须满足 `concepts::executor`，如
+ * @tparam Executor 底层执行器类型（须满足 `silicon::scheduler::concepts::executor`，如
  *                  `silicon::scheduler::thread_pool`）。
  */
-template<concepts::executor Executor>
+template<silicon::scheduler::concepts::executor Executor>
 class coroutine_pool {
   private:
     explicit coroutine_pool(std::shared_ptr<Executor> executor, std::size_t pool_size)
@@ -96,7 +96,7 @@ class coroutine_pool {
     }
 
     /**
-     * @brief concepts::executor 要求：提交任务到工作队列，由 worker 取出运行。
+     * @brief silicon::scheduler::concepts::executor 要求：提交任务到工作队列，由 worker 取出运行。
      * @return 是否成功入队（已 shutdown 或底层执行器拒绝时返回 false）。
      */
     bool spawn_detached(silicon::scheduler::task<void>&& work) {
@@ -117,7 +117,7 @@ class coroutine_pool {
     }
 
     /**
-     * @brief concepts::executor 要求：提交任务，返回可 co_await 的 join 任务。
+     * @brief silicon::scheduler::concepts::executor 要求：提交任务，返回可 co_await 的 join 任务。
      * @return 一个在用户任务完成后置位的协程；入队失败时立即可完成（不悬挂）。
      */
     silicon::scheduler::task<void> spawn_joinable(silicon::scheduler::task<void>&& work) {
@@ -185,11 +185,11 @@ class coroutine_pool {
         (void)m_p->m_executor->spawn_detached(async_close());
     }
 
-    /// @brief concepts::executor 要求：调度委托给底层执行器。
+    /// @brief silicon::scheduler::concepts::executor 要求：调度委托给底层执行器。
     auto schedule() { return m_p->m_executor->schedule(); }
-    /// @brief concepts::executor 要求：让出委托给底层执行器。
+    /// @brief silicon::scheduler::concepts::executor 要求：让出委托给底层执行器。
     auto yield() { return m_p->m_executor->yield(); }
-    /// @brief concepts::executor 要求：恢复句柄委托给底层执行器。
+    /// @brief silicon::scheduler::concepts::executor 要求：恢复句柄委托给底层执行器。
     bool resume(std::coroutine_handle<> handle) { return m_p->m_executor->resume(handle); }
 
     /**

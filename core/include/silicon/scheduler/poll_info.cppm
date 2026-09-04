@@ -16,18 +16,6 @@ import :fd;
 import :poll;
 import :time;
 
-// 基础 I/O 类型已随调度原语迁入本模块（命名空间仍为 silicon::coroutine），
-// 此处仅在本单元内引入简化书写，不 export。
-namespace silicon::scheduler {
-using silicon::coroutine::fd_t;
-using silicon::coroutine::poll_op;
-using silicon::coroutine::poll_op_readable;
-using silicon::coroutine::poll_op_writeable;
-using silicon::coroutine::poll_status;
-using silicon::coroutine::poll_stop_token;
-using silicon::coroutine::time_point;
-} // namespace silicon::scheduler
-
 // poll_info 的 PIMPL 实现类型：命名空间作用域的前置声明，**刻意不 export**。
 //
 // 为什么它不是 `poll_info` 的嵌套类 `struct impl { ... }`：MSVC 目前不把「外围类
@@ -68,7 +56,7 @@ export namespace silicon::scheduler {
  * `core/src/scheduler/poll_info.cpp`.
  */
 struct CORE_API poll_info {
-    using timed_events = std::multimap<silicon::coroutine::time_point, poll_info *>;
+    using timed_events = std::multimap<silicon::scheduler::time_point, poll_info *>;
 
     /// Implementation state of a poll operation.  Kept behind `m_p` so the layout of a poll
     /// operation is an implementation detail.  This is an alias for the namespace-scope
@@ -80,8 +68,8 @@ struct CORE_API poll_info {
     poll_info();
     ~poll_info();
 
-    poll_info(fd_t, silicon::coroutine::poll_op);
-    poll_info(fd_t, silicon::coroutine::poll_op, std::optional<poll_stop_token>);
+    poll_info(fd_t, silicon::scheduler::poll_op);
+    poll_info(fd_t, silicon::scheduler::poll_op, std::optional<poll_stop_token>);
 
     poll_info(const poll_info &) = delete;
     poll_info(poll_info &&) = delete;
@@ -93,7 +81,7 @@ struct CORE_API poll_info {
 
         bool await_ready() const noexcept { return false; }
         void await_suspend(std::coroutine_handle<>) noexcept ;
-        silicon::coroutine::poll_status await_resume() noexcept ;
+        silicon::scheduler::poll_status await_resume() noexcept ;
 
         poll_info &m_pi;
     };

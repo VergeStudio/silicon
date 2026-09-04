@@ -228,7 +228,7 @@ class CORE_API condition_variable {
         controller_data &m_data;
     };
 
-    template<concepts::io_executor io_executor_type, typename return_type>
+    template<silicon::scheduler::concepts::io_executor io_executor_type, typename return_type>
     struct awaiter_with_wait: public awaiter_base {
         awaiter_with_wait(
                 std::unique_ptr<io_executor_type> &executor,
@@ -391,7 +391,7 @@ class CORE_API condition_variable {
      * @tparam executor_type The type of executor that the waiter will be resumed on.
      * @param executor The executor that the waiter will be resumed on.
      */
-    template<silicon::coroutine::concepts::executor executor_type>
+    template<silicon::scheduler::concepts::executor executor_type>
     void notify_one(std::unique_ptr<executor_type> &executor) {
         executor->spawn_detached(notify_one());
     }
@@ -411,7 +411,7 @@ class CORE_API condition_variable {
      * @param executor The executor that each waiter will be resumed on.
      * @return void
      */
-    template<silicon::coroutine::concepts::executor executor_type>
+    template<silicon::scheduler::concepts::executor executor_type>
     void notify_all(std::unique_ptr<executor_type> &executor) {
         auto *waiter = pop_all_waiters();
 
@@ -459,7 +459,7 @@ class CORE_API condition_variable {
 
 #ifdef LIBCORO_FEATURE_NETWORKING
 
-    template<concepts::io_executor io_executor_type, class rep_type, class period_type>
+    template<silicon::scheduler::concepts::io_executor io_executor_type, class rep_type, class period_type>
     [[nodiscard]] auto wait_for(
             std::unique_ptr<io_executor_type> &executor,
             silicon::coroutine::scoped_lock &lock,
@@ -471,7 +471,7 @@ class CORE_API condition_variable {
         };
     }
 
-    template<concepts::io_executor io_executor_type, class rep_type, class period_type>
+    template<silicon::scheduler::concepts::io_executor io_executor_type, class rep_type, class period_type>
     [[nodiscard]] auto wait_for(
             std::unique_ptr<io_executor_type> &executor,
             silicon::coroutine::scoped_lock &lock,
@@ -487,7 +487,7 @@ class CORE_API condition_variable {
         };
     }
 
-    template<concepts::io_executor io_executor_type, class rep_type, class period_type>
+    template<silicon::scheduler::concepts::io_executor io_executor_type, class rep_type, class period_type>
     [[nodiscard]] auto wait_for(
             std::unique_ptr<io_executor_type> &executor,
             silicon::coroutine::scoped_lock &lock,
@@ -505,7 +505,7 @@ class CORE_API condition_variable {
         };
     }
 
-    template<concepts::io_executor io_executor_type, class clock_type, class duration_type>
+    template<silicon::scheduler::concepts::io_executor io_executor_type, class clock_type, class duration_type>
     auto wait_until(
             std::unique_ptr<io_executor_type> &executor,
             silicon::coroutine::scoped_lock &lock,
@@ -519,7 +519,7 @@ class CORE_API condition_variable {
         };
     }
 
-    template<concepts::io_executor io_executor_type, class clock_type, class duration_type>
+    template<silicon::scheduler::concepts::io_executor io_executor_type, class clock_type, class duration_type>
     auto wait_until(
             std::unique_ptr<io_executor_type> &executor,
             silicon::coroutine::scoped_lock &lock,
@@ -537,7 +537,7 @@ class CORE_API condition_variable {
         };
     }
 
-    template<concepts::io_executor io_executor_type, class clock_type, class duration_type>
+    template<silicon::scheduler::concepts::io_executor io_executor_type, class clock_type, class duration_type>
     auto wait_until(
             std::unique_ptr<io_executor_type> &executor,
             silicon::coroutine::scoped_lock &lock,

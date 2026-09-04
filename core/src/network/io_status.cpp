@@ -30,18 +30,18 @@ silicon::network::io_status silicon::network::make_io_status_from_native(int nat
 }
 
 // ── make_io_status_from_poll_status (shared — no platform deps) ───────
-silicon::network::io_status silicon::network::make_io_status_from_poll_status(silicon::coroutine::poll_status status) {
+silicon::network::io_status silicon::network::make_io_status_from_poll_status(silicon::scheduler::poll_status status) {
     switch(status) {
-        case silicon::coroutine::poll_status::read:
-        case silicon::coroutine::poll_status::write:
+        case silicon::scheduler::poll_status::read:
+        case silicon::scheduler::poll_status::write:
             return io_status{io_status::kind::kOk};
-        case silicon::coroutine::poll_status::timeout:
+        case silicon::scheduler::poll_status::timeout:
             return io_status{io_status::kind::kTimeout};
-        case silicon::coroutine::poll_status::error:
+        case silicon::scheduler::poll_status::error:
             return io_status{io_status::kind::kPollingError};
-        case silicon::coroutine::poll_status::closed:
+        case silicon::scheduler::poll_status::closed:
             return io_status{io_status::kind::kClosed};
-        case silicon::coroutine::poll_status::cancelled:
+        case silicon::scheduler::poll_status::cancelled:
             return io_status{io_status::kind::kCancelled};
         default:
             return io_status{io_status::kind::kUnknown};

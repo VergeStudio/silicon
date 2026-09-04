@@ -155,7 +155,7 @@ class CORE_API mutex {
 
     /**
      * Releases the mutex's lock.
-     * @return coroutine::result<void>；重复解锁（逻辑错误）时返回
+     * @return silicon::coroutine::result<void>；重复解锁（逻辑错误）时返回
      *         std::unexpected(coroutine_error::kAlreadyUnlocked)。
      */
     result<void> unlock() ;

@@ -151,8 +151,8 @@ silicon::scheduler::task<io_status> peer::write_to_impl(
         }
     }
 
-    auto pstatus = co_await poll(silicon::coroutine::poll_op::write, timeout);
-    if(pstatus != silicon::coroutine::poll_status::write) {
+    auto pstatus = co_await poll(silicon::scheduler::poll_op::write, timeout);
+    if(pstatus != silicon::scheduler::poll_status::write) {
         co_return make_io_status_from_poll_status(pstatus);
     }
     impl_->m_is_write_ready = true;
@@ -183,8 +183,8 @@ silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::by
         }
     }
 
-    auto pstatus = co_await poll(silicon::coroutine::poll_op::read, timeout);
-    if(pstatus != silicon::coroutine::poll_status::read) {
+    auto pstatus = co_await poll(silicon::scheduler::poll_op::read, timeout);
+    if(pstatus != silicon::scheduler::poll_status::read) {
         co_return {make_io_status_from_poll_status(pstatus), socket_address::make_uninitialised(), {}};
     }
     impl_->m_is_read_ready = true;
@@ -192,11 +192,11 @@ silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::by
     co_return recvfrom(buffer);
 }
 
-silicon::scheduler::task<silicon::coroutine::poll_status> peer::poll(silicon::coroutine::poll_op op, std::chrono::milliseconds timeout) {
+silicon::scheduler::task<silicon::scheduler::poll_status> peer::poll(silicon::scheduler::poll_op op, std::chrono::milliseconds timeout) {
     co_return co_await impl_->m_scheduler->poll(impl_->m_socket.native_handle(), op, timeout);
 }
 
-template<silicon::coroutine::concepts::const_buffer buffer_type>
+template<silicon::scheduler::concepts::const_buffer buffer_type>
 auto peer::sendto(const network::socket_address &endpoint, const buffer_type &buffer) -> io_status {
     auto [sockaddr, socklen] = endpoint.data();
 
@@ -217,7 +217,7 @@ auto peer::sendto(const network::socket_address &endpoint, const buffer_type &bu
 }
 
 template<
-        silicon::coroutine::concepts::mutable_buffer buffer_type,
+        silicon::scheduler::concepts::mutable_buffer buffer_type,
         typename element_type>
 std::tuple<io_status, network::socket_address, std::span<element_type>> peer::recvfrom(buffer_type &&buffer) {
     auto endpoint = network::socket_address::make_uninitialised();

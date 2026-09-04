@@ -110,7 +110,7 @@ class CORE_API peer final {
      * @param buffer The data to send.
      * @return The status of operation
      */
-    template<silicon::coroutine::concepts::const_buffer buffer_type>
+    template<silicon::scheduler::concepts::const_buffer buffer_type>
     auto write_to(
             const socket_address &address,
             const buffer_type &buffer,
@@ -126,7 +126,7 @@ class CORE_API peer final {
      *         always start at the beggining of the buffer but depending on how large the data was
      *         it might not fill the entire buffer.
      */
-    template<silicon::coroutine::concepts::mutable_buffer buffer_type>
+    template<silicon::scheduler::concepts::mutable_buffer buffer_type>
     auto read_from(buffer_type &buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::byte>>> {
         co_return co_await read_from_impl(std::as_writable_bytes(std::span{buffer}), timeout);
@@ -142,8 +142,8 @@ class CORE_API peer final {
     auto read_from_impl(std::span<std::byte>, std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::byte>>>;
 
-    auto poll(silicon::coroutine::poll_op, std::chrono::milliseconds = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<silicon::coroutine::poll_status>;
+    auto poll(silicon::scheduler::poll_op, std::chrono::milliseconds = std::chrono::milliseconds{0})
+            -> silicon::scheduler::task<silicon::scheduler::poll_status>;
 
     /**
      * @param peer_info The peer to send the data to.
@@ -151,7 +151,7 @@ class CORE_API peer final {
      * @return The status of send call and a span view of any data that wasn't sent.  This data if
      *         un-sent will correspond to bytes at the end of the given buffer.
      */
-    template<silicon::coroutine::concepts::const_buffer buffer_type>
+    template<silicon::scheduler::concepts::const_buffer buffer_type>
     auto sendto(const network::socket_address &, const buffer_type &) -> io_status;
 
     /**
@@ -162,8 +162,8 @@ class CORE_API peer final {
      *         it might not fill the entire buffer.
      */
     template<
-            silicon::coroutine::concepts::mutable_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::mutable_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::mutable_buffer_traits<buffer_type>::element_type>
     std::tuple<io_status, network::socket_address, std::span<element_type>> recvfrom(buffer_type &&buffer) ;
 
   private:

@@ -57,7 +57,7 @@ class acquire_operation {
         }
 
         m_awaiting_coroutine = awaiting_coroutine;
-        awaiter_list_push(m_semaphore.m_p->m_acquire_waiters, this);
+        silicon::scheduler::awaiter_list_push(m_semaphore.m_p->m_acquire_waiters, this);
         static_cast<void>(m_semaphore.m_p->m_mutex.unlock());
         return true;
     }
@@ -82,7 +82,7 @@ class semaphore {
     explicit semaphore(const std::ptrdiff_t starting_value)
         : m_p(std::make_unique<impl>(starting_value)) {}
 
-    ~semaphore() { silicon::coroutine::sync_wait(shutdown()); }
+    ~semaphore() { silicon::scheduler::sync_wait(shutdown()); }
 
     semaphore(const semaphore &) = delete;
     semaphore(semaphore &&) = delete;
@@ -112,7 +112,7 @@ class semaphore {
         }
 
         // If there are any waiters just transfer resource ownership to the waiter.
-        auto *waiter = awaiter_list_pop(m_p->m_acquire_waiters);
+        auto *waiter = silicon::scheduler::awaiter_list_pop(m_p->m_acquire_waiters);
         if(waiter != nullptr) {
             static_cast<void>(m_p->m_mutex.unlock());
             waiter->m_awaiting_coroutine.resume();
@@ -160,7 +160,7 @@ class semaphore {
         auto lock = co_await m_p->m_mutex.scoped_lock();
         bool expected{false};
         if(m_p->m_shutdown.compare_exchange_strong(expected, true, std::memory_order::release, std::memory_order::relaxed)) {
-            auto *waiter = awaiter_list_pop_all(m_p->m_acquire_waiters);
+            auto *waiter = silicon::scheduler::awaiter_list_pop_all(m_p->m_acquire_waiters);
             lock.unlock();
             while(waiter != nullptr) {
                 auto *next = waiter->m_next;

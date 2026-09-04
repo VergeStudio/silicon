@@ -44,8 +44,8 @@ import :poll_info_impl;
 
 
 using namespace std::chrono_literals;
-// 与 io_scheduler.cppm 一致：沿用 coroutine 基础类型的非限定名。
-using namespace silicon::coroutine;
+// 与 io_scheduler.cppm 一致：沿用迁入 silicon::scheduler 基础类型的非限定名。
+using namespace silicon::scheduler;
 
 namespace silicon::scheduler {
 
@@ -76,10 +76,10 @@ std::expected<std::unique_ptr<io_scheduler>, std::error_code> io_scheduler::crea
     }
 
     // 注册事件循环唤醒管道（关闭后调度 / fd 注册失败 → 返回错误）。
-    if(!s->m_p->m_io_notifier.watch(s->m_p->m_shutdown_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(s->m_p->m_shutdown_ptr), true)) {
+    if(!s->m_p->m_io_notifier.watch(s->m_p->m_shutdown_pipe.read_fd(), silicon::scheduler::poll_op::read, const_cast<void *>(s->m_p->m_shutdown_ptr), true)) {
         return std::unexpected(make_error_code(scheduler_error::kEventRegisterFailed));
     }
-    if(!s->m_p->m_io_notifier.watch(s->m_p->m_schedule_pipe.read_fd(), silicon::coroutine::poll_op::read, const_cast<void *>(s->m_p->m_schedule_ptr), true)) {
+    if(!s->m_p->m_io_notifier.watch(s->m_p->m_schedule_pipe.read_fd(), silicon::scheduler::poll_op::read, const_cast<void *>(s->m_p->m_schedule_ptr), true)) {
         return std::unexpected(make_error_code(scheduler_error::kEventRegisterFailed));
     }
 
@@ -162,7 +162,7 @@ silicon::scheduler::task<void> io_scheduler::yield_until(time_point time) {
 
 silicon::scheduler::task<poll_status> io_scheduler::poll(
         fd_t fd,
-        silicon::coroutine::poll_op op,
+        silicon::scheduler::poll_op op,
         std::chrono::milliseconds timeout,
         std::optional<poll_stop_token> cancel_trigger
 ) {
@@ -359,10 +359,10 @@ void io_scheduler::process_scheduled_execute_inline() {
     m_p->m_schedule_pipe_triggered.exchange(false, std::memory_order::release);
 
     // Now it is safe to acquire all scheduled ops.
-    auto *ops = silicon::coroutine::awaiter_list_pop_all(m_p->m_scheduled_ops);
+    auto *ops = silicon::scheduler::awaiter_list_pop_all(m_p->m_scheduled_ops);
 
     if(ops != nullptr) {
-        ops = silicon::coroutine::awaiter_list_reverse(ops);
+        ops = silicon::scheduler::awaiter_list_reverse(ops);
 
         while(ops != nullptr) {
             auto *next = ops->m_next;
@@ -439,7 +439,7 @@ void io_scheduler::process_timeout_execute() {
             }
 
             m_p->m_handles_to_resume.emplace_back(pi->m_p->m_awaiting_coroutine);
-            pi->m_p->m_poll_status = silicon::coroutine::poll_status::timeout;
+            pi->m_p->m_poll_status = silicon::scheduler::poll_status::timeout;
         }
     }
 

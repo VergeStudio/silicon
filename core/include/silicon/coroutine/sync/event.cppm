@@ -107,7 +107,7 @@ class CORE_API event {
      * Sets this event and resumes all awaiters onto the given executor.  This will distribute
      * the waiters across the executor's threads.
      */
-    template<concepts::executor executor_type>
+    template<silicon::scheduler::concepts::executor executor_type>
     void set(std::unique_ptr<executor_type> &e, resume_order_policy policy = resume_order_policy::kLifo) noexcept {
         void *old_value = exchange_set_state();
         if(old_value != this) {

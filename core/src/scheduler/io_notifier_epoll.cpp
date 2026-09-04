@@ -16,27 +16,11 @@ module;
 #include <optional>
 
 module silicon.scheduler;
-// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
-// 实现单元自引用，故以 _MSC_VER 守卫。
-#if defined(_MSC_VER)
-import silicon.scheduler;
-#endif
 
 import :poll_info_impl;
 
 #if defined(SILICON_PLATFORM_LINUX)
 using namespace std::chrono_literals;
-
-// 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
-namespace silicon::scheduler {
-using silicon::coroutine::fd_t;
-using silicon::coroutine::poll_op;
-using silicon::coroutine::poll_op_readable;
-using silicon::coroutine::poll_op_writeable;
-using silicon::coroutine::poll_status;
-using silicon::coroutine::poll_stop_token;
-using silicon::coroutine::time_point;
-} // namespace silicon::scheduler
 
 namespace silicon::scheduler {
 

@@ -138,7 +138,7 @@ auto mutex::unlock() -> result<void> {
             // There are waiters, lets wake the first one up. This will set the state to the next waiter, or nullptr (no waiters but locked).
             std::atomic<lock_operation_base *> *casted =
                     reinterpret_cast<std::atomic<lock_operation_base *> *>(&m_p->m_state);
-            auto *waiter = awaiter_list_pop<lock_operation_base>(*casted);
+            auto *waiter = silicon::scheduler::awaiter_list_pop<lock_operation_base>(*casted);
             // assert waiter != nullptr, nobody else should be unlocking this mutex.
             // Directly transfer control to the waiter, they are now responsible for unlocking the mutex.
             std::atomic_thread_fence(std::memory_order::acq_rel);

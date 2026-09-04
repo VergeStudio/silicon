@@ -8,7 +8,7 @@ module;
 
 export module silicon.scheduler:concepts.awaitable;
 
-export namespace silicon::coroutine::concepts {
+export namespace silicon::scheduler::concepts {
 
 template<typename type, typename... types>
 concept in_types = (std::same_as<type, types> || ...);
@@ -117,4 +117,4 @@ concept awaiter_forward_list_entry = requires(entry_type* e)
 
 // clang-format on
 
-} // namespace silicon::coroutine::concepts
+} // namespace silicon::scheduler::concepts

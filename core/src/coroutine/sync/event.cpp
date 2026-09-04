@@ -55,7 +55,7 @@ void event::set(resume_order_policy policy) noexcept {
 }
 
 auto event::reverse(awaiter *curr) -> awaiter * {
-    return awaiter_list_reverse(curr);
+    return silicon::scheduler::awaiter_list_reverse(curr);
 }
 
 bool event::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {

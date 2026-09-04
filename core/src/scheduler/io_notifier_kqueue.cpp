@@ -18,27 +18,11 @@ module;
 #include <optional>
 
 module silicon.scheduler;
-// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
-// 实现单元自引用，故以 _MSC_VER 守卫。
-#if defined(_MSC_VER)
-import silicon.scheduler;
-#endif
 
 import :poll_info_impl;
 
 #if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
 using namespace std::chrono_literals;
-
-// 复用 silicon.coroutine 的基础 I/O 类型（不 export，仅本单元内简化书写）。
-namespace silicon::scheduler {
-using silicon::coroutine::fd_t;
-using silicon::coroutine::poll_op;
-using silicon::coroutine::poll_op_readable;
-using silicon::coroutine::poll_op_writeable;
-using silicon::coroutine::poll_status;
-using silicon::coroutine::poll_stop_token;
-using silicon::coroutine::time_point;
-} // namespace silicon::scheduler
 
 namespace silicon::scheduler {
 
@@ -139,13 +123,13 @@ bool io_notifier::watch(poll_info &pi) {
 
 bool io_notifier::unwatch(fd_t fd, poll_op op) {
     // For read-write event, we need to de-register both event types separately to the kqueue
-    if(op == silicon::coroutine::poll_op::read_write) {
+    if(op == silicon::scheduler::poll_op::read_write) {
         auto event_data = event_t{};
 
-        EV_SET(&event_data, fd, static_cast<int16_t>(silicon::coroutine::poll_op::read), EV_DELETE, 0, 0, nullptr);
+        EV_SET(&event_data, fd, static_cast<int16_t>(silicon::scheduler::poll_op::read), EV_DELETE, 0, 0, nullptr);
         ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr);
 
-        EV_SET(&event_data, fd, static_cast<int16_t>(silicon::coroutine::poll_op::write), EV_DELETE, 0, 0, nullptr);
+        EV_SET(&event_data, fd, static_cast<int16_t>(silicon::scheduler::poll_op::write), EV_DELETE, 0, 0, nullptr);
         ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr);
 
         return true;

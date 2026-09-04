@@ -98,12 +98,12 @@ bool ring_buffer<element, num_elements>::consume_operation::await_suspend(std::c
 }
 
 template<typename element, size_t num_elements>
-auto ring_buffer<element, num_elements>::consume_operation::await_resume() -> expected<element, ring_buffer_result::consume> {
+auto ring_buffer<element, num_elements>::consume_operation::await_resume() -> silicon::scheduler::expected<element, ring_buffer_result::consume> {
     if(m_e.has_value()) {
-        return expected<element, ring_buffer_result::consume>(std::move(m_e).value());
+        return silicon::scheduler::expected<element, ring_buffer_result::consume>(std::move(m_e).value());
     } else // state is stopped
     {
-        return unexpected<ring_buffer_result::consume>(m_result);
+        return silicon::scheduler::unexpected<ring_buffer_result::consume>(m_result);
     }
 }
 
@@ -120,7 +120,7 @@ ring_buffer<element, num_elements>::ring_buffer()
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::~ring_buffer() {
     // Wake up anyone still using the ring buffer.
-    silicon::coroutine::sync_wait(shutdown());
+    silicon::scheduler::sync_wait(shutdown());
 }
 
 template<typename element, size_t num_elements>
@@ -132,7 +132,7 @@ silicon::scheduler::task<ring_buffer_result::produce> ring_buffer<element, num_e
 }
 
 template<typename element, size_t num_elements>
-silicon::scheduler::task<expected<element, ring_buffer_result::consume>> ring_buffer<element, num_elements>::consume() {
+silicon::scheduler::task<silicon::scheduler::expected<element, ring_buffer_result::consume>> ring_buffer<element, num_elements>::consume() {
     co_await m_p->m_mutex.lock();
     auto result = co_await consume_operation{*this};
     co_await try_resume_producers();
@@ -230,7 +230,7 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::shutdown() {
 }
 
 template<typename element, size_t num_elements>
-template<silicon::coroutine::concepts::executor executor_type>
+template<silicon::scheduler::concepts::executor executor_type>
 silicon::scheduler::task<void> ring_buffer<element, num_elements>::shutdown_drain(std::unique_ptr<executor_type> &e) {
     auto lk = co_await m_p->m_mutex.scoped_lock();
     // Do not allow any more produces, the state must be in running to drain.
@@ -268,7 +268,7 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::try_resume_pr
     while(true) {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         if(m_p->m_used.load(std::memory_order::acquire) < num_elements) {
-            auto *op = awaiter_list_pop(m_p->m_produce_waiters);
+            auto *op = silicon::scheduler::awaiter_list_pop(m_p->m_produce_waiters);
             if(op != nullptr) {
                 auto slot = m_p->m_front.fetch_add(1, std::memory_order::acq_rel) % num_elements;
                 m_p->m_elements[slot] = std::move(op->m_e);
@@ -288,7 +288,7 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::try_resume_co
     while(true) {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         if(m_p->m_used.load(std::memory_order::acquire) > 0) {
-            auto *op = awaiter_list_pop(m_p->m_consume_waiters);
+            auto *op = silicon::scheduler::awaiter_list_pop(m_p->m_consume_waiters);
             if(op != nullptr) {
                 auto slot = m_p->m_back.fetch_add(1, std::memory_order::acq_rel) % num_elements;
                 op->m_e = std::move(m_p->m_elements[slot]);

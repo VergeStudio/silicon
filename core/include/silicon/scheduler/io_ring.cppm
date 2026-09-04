@@ -27,12 +27,6 @@ export module silicon.scheduler:io_ring;
 
 import :fd;
 
-// 基础 I/O 句柄类型已在 :fd 中定义（命名空间仍为 silicon::coroutine），此处仅
-// 在本单元内引入简化书写，不 export。
-namespace silicon::scheduler {
-using silicon::coroutine::fd_t;
-} // namespace silicon::scheduler
-
 export namespace silicon::scheduler {
 
 /// io_ring 的构造配置。

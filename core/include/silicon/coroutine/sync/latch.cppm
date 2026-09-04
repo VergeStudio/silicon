@@ -61,7 +61,7 @@ class CORE_API latch {
      * @param tp The thread pool to schedule the task that is waiting on the latch on.
      * @param n The number of tasks to complete towards the latch, defaults to 1.
      */
-    template<concepts::executor executor_type>
+    template<silicon::scheduler::concepts::executor executor_type>
     void count_down(std::unique_ptr<executor_type> &executor, std::int64_t n = 1) noexcept {
         if(decrement(n)) {
             internal_event().set(executor);

@@ -108,7 +108,7 @@ client::impl::~impl() = default;
 
 // ── private templates (recv / send) — defined before the *_impl callers ──────
 template<
-        silicon::coroutine::concepts::mutable_buffer buffer_type,
+        silicon::scheduler::concepts::mutable_buffer buffer_type,
         typename element_type>
 std::pair<io_status, std::span<element_type>> client::recv(buffer_type &&buffer) {
     auto bytes_recv = ::recv(impl_->m_socket.native_handle(), reinterpret_cast<char *>(buffer.data()), buffer.size(), 0);
@@ -130,7 +130,7 @@ std::pair<io_status, std::span<element_type>> client::recv(buffer_type &&buffer)
 }
 
 template<
-        silicon::coroutine::concepts::const_buffer buffer_type,
+        silicon::scheduler::concepts::const_buffer buffer_type,
         typename element_type>
 std::pair<io_status, std::span<element_type>> client::send(const buffer_type &buffer) {
     auto bytes_sent = ::send(impl_->m_socket.native_handle(), reinterpret_cast<const char *>(buffer.data()), buffer.size(), 0);
@@ -161,8 +161,8 @@ silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::rea
         }
     }
 
-    auto poll_status = co_await poll(silicon::coroutine::poll_op::read, timeout);
-    if(poll_status != silicon::coroutine::poll_status::read) {
+    auto poll_status = co_await poll(silicon::scheduler::poll_op::read, timeout);
+    if(poll_status != silicon::scheduler::poll_status::read) {
         co_return std::pair{make_io_status_from_poll_status(poll_status), std::span<std::byte>{}};
     }
     impl_->m_is_read_ready = true;
@@ -216,8 +216,8 @@ silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> clien
     }
 
     // Waiting for readiness
-    auto pstatus = co_await poll(silicon::coroutine::poll_op::write, timeout);
-    if(pstatus != silicon::coroutine::poll_status::write) {
+    auto pstatus = co_await poll(silicon::scheduler::poll_op::write, timeout);
+    if(pstatus != silicon::scheduler::poll_status::write) {
         co_return std::pair{make_io_status_from_poll_status(pstatus), buffer};
     }
     impl_->m_is_write_ready = true;
@@ -253,7 +253,7 @@ silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> clien
     co_return {io_status{io_status::kind::kOk}, {}};
 }
 
-silicon::scheduler::task<silicon::coroutine::poll_status> client::poll(const silicon::coroutine::poll_op op, const std::chrono::milliseconds timeout) {
+silicon::scheduler::task<silicon::scheduler::poll_status> client::poll(const silicon::scheduler::poll_op op, const std::chrono::milliseconds timeout) {
     return impl_->m_scheduler->poll(impl_->m_socket.native_handle(), op, timeout);
 }
 
@@ -339,8 +339,8 @@ silicon::scheduler::task<connect_status> client::connect(std::chrono::millisecon
         // If the connect is happening in the background poll for write on the socket to trigger
         // when the connection is established.
         if(impl_->m_socket.in_progress()) {
-            auto pstatus = co_await impl_->m_scheduler->poll(impl_->m_socket.native_handle(), silicon::coroutine::poll_op::write, timeout);
-            if(pstatus == silicon::coroutine::poll_status::write) {
+            auto pstatus = co_await impl_->m_scheduler->poll(impl_->m_socket.native_handle(), silicon::scheduler::poll_op::write, timeout);
+            if(pstatus == silicon::scheduler::poll_status::write) {
                 int result{0};
                 socklen_t result_length{sizeof(result)};
                 if(::getsockopt(impl_->m_socket.native_handle(), SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&result), &result_length) < 0) {
@@ -350,7 +350,7 @@ silicon::scheduler::task<connect_status> client::connect(std::chrono::millisecon
                 if(result == 0) {
                     co_return return_value(connect_status::kConnected);
                 }
-            } else if(pstatus == silicon::coroutine::poll_status::timeout) {
+            } else if(pstatus == silicon::scheduler::poll_status::timeout) {
                 co_return return_value(connect_status::kTimeout);
             }
         }

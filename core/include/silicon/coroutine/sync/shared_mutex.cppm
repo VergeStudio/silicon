@@ -15,11 +15,11 @@ import :mutex;
 import silicon.scheduler.task;
 import silicon.coroutine.error;
 export namespace silicon::coroutine {
-template<concepts::executor executor_type>
+template<silicon::scheduler::concepts::executor executor_type>
 class shared_mutex;
 
 
-template<concepts::executor executor_type>
+template<silicon::scheduler::concepts::executor executor_type>
 struct shared_lock_operation {
     explicit shared_lock_operation(silicon::coroutine::shared_mutex<executor_type> &shared_mutex, const bool exclusive)
         : m_shared_mutex(shared_mutex),
@@ -85,7 +85,7 @@ struct shared_lock_operation {
 
 
 
-template<concepts::executor executor_type>
+template<silicon::scheduler::concepts::executor executor_type>
 class shared_mutex {
   public:
     /**

@@ -20,18 +20,18 @@ condition_variable::condition_variable(): m_p(std::make_unique<impl>()) {}
 condition_variable::~condition_variable() = default;
 
 auto condition_variable::pop_all_waiters() noexcept -> awaiter_base * {
-    return awaiter_list_pop_all(m_p->m_awaiters);
+    return silicon::scheduler::awaiter_list_pop_all(m_p->m_awaiters);
 }
 
 void condition_variable::push_waiter(awaiter_base *waiter) noexcept {
-    awaiter_list_push(m_p->m_awaiters, waiter);
+    silicon::scheduler::awaiter_list_push(m_p->m_awaiters, waiter);
 }
 
 silicon::scheduler::task<void> condition_variable::make_notify_all_executor_individual_task(awaiter_base *waiter) {
     switch(co_await waiter->on_notify()) {
         case notify_status_t::kNotReady:
             // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
-            awaiter_list_push(m_p->m_awaiters, waiter);
+            silicon::scheduler::awaiter_list_push(m_p->m_awaiters, waiter);
             break;
         case notify_status_t::kReady:
         case notify_status_t::kAwaiterDead:
@@ -62,7 +62,7 @@ bool condition_variable::awaiter::await_ready() const noexcept {
 
 bool condition_variable::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
-    silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
+    silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
     // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
     // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
     static_cast<void>(m_lock.owned_mutex()->unlock());
@@ -92,7 +92,7 @@ bool condition_variable::awaiter_with_predicate::await_ready() const noexcept {
 
 bool condition_variable::awaiter_with_predicate::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
-    silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
+    silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
     // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
     // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
     static_cast<void>(m_lock.owned_mutex()->unlock());
@@ -133,7 +133,7 @@ bool condition_variable::awaiter_with_predicate_stop_token::await_ready() noexce
 
 bool condition_variable::awaiter_with_predicate_stop_token::await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
     m_awaiting_coroutine = awaiting_coroutine;
-    silicon::coroutine::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
+    silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
     // mutex::unlock() 返回 result<void>（[[nodiscard]]）：此处处于 await_suspend /
     // 协程体内，无法向上传播 kAlreadyUnlocked（重复解锁属调用方逻辑错误），显式丢弃。
     static_cast<void>(m_lock.owned_mutex()->unlock());
@@ -226,7 +226,7 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
 silicon::scheduler::task<void> condition_variable::notify_one() {
     // The loop is here in case there are *dead* awaiter_hook_tasks that need to be skipped.
     while(true) {
-        auto *waiter = awaiter_list_pop(m_p->m_awaiters);
+        auto *waiter = silicon::scheduler::awaiter_list_pop(m_p->m_awaiters);
         if(waiter == nullptr) {
             co_return; // There is nobody to currently notify.
         }
@@ -237,7 +237,7 @@ silicon::scheduler::task<void> condition_variable::notify_one() {
                 co_return;
             case notify_status_t::kNotReady:
                 // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
-                silicon::coroutine::awaiter_list_push(m_p->m_awaiters, waiter);
+                silicon::scheduler::awaiter_list_push(m_p->m_awaiters, waiter);
                 co_return;
             case notify_status_t::kAwaiterDead:
                 // This is an awaiter_with_wait_hook that timed out, try the next awaiter.
@@ -247,7 +247,7 @@ silicon::scheduler::task<void> condition_variable::notify_one() {
 }
 
 silicon::scheduler::task<void> condition_variable::notify_all() {
-    auto *waiter = awaiter_list_pop_all(m_p->m_awaiters);
+    auto *waiter = silicon::scheduler::awaiter_list_pop_all(m_p->m_awaiters);
 
     while(waiter != nullptr) {
         // Need to grab next before notifying since the notifier will self destruct after completing.
@@ -256,7 +256,7 @@ silicon::scheduler::task<void> condition_variable::notify_all() {
         switch(co_await waiter->on_notify()) {
             case notify_status_t::kNotReady:
                 // Re-enqueue since the predicate isn't ready and return since the notify has been satisfied.
-                silicon::coroutine::awaiter_list_push(m_p->m_awaiters, waiter);
+                silicon::scheduler::awaiter_list_push(m_p->m_awaiters, waiter);
                 break;
             case notify_status_t::kReady:
             case notify_status_t::kAwaiterDead:

@@ -58,7 +58,7 @@ bool queue<element_type>::awaiter::await_suspend(std::coroutine_handle<> awaitin
 }
 
 template<typename element_type>
-auto queue<element_type>::awaiter::await_resume() noexcept -> expected<element_type, queue_consume_result> {
+auto queue<element_type>::awaiter::await_resume() noexcept -> silicon::scheduler::expected<element_type, queue_consume_result> {
     if(m_element.has_value()) {
         if constexpr(std::is_move_constructible_v<element_type>) {
             return std::move(m_element.value());
@@ -67,7 +67,7 @@ auto queue<element_type>::awaiter::await_resume() noexcept -> expected<element_t
         }
     } else {
         // If we don't have an item the queue has stopped, the prior functions will have checked the state.
-        return unexpected<queue_consume_result>(queue_consume_result::kStopped);
+        return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kStopped);
     }
 }
 
@@ -178,28 +178,28 @@ silicon::scheduler::task<queue_produce_result> queue<element_type>::emplace(args
 }
 
 template<typename element_type>
-silicon::scheduler::task<expected<element_type, queue_consume_result>> queue<element_type>::pop() {
+silicon::scheduler::task<silicon::scheduler::expected<element_type, queue_consume_result>> queue<element_type>::pop() {
     co_await m_p->m_mutex.lock();
     co_return co_await awaiter{*this};
 }
 
 template<typename element_type>
-auto queue<element_type>::try_pop() -> expected<element_type, queue_consume_result> {
+auto queue<element_type>::try_pop() -> silicon::scheduler::expected<element_type, queue_consume_result> {
     if(m_p->m_mutex.try_lock()) {
         // Capture mutex into a scoped lock to manage unlocking correctly.
         silicon::coroutine::scoped_lock lk{m_p->m_mutex};
 
         // Return if stopped.
         if(m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
-            return unexpected<queue_consume_result>(queue_consume_result::kStopped);
+            return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kStopped);
         }
 
         // Return if empty.
         if(empty()) {
-            return unexpected<queue_consume_result>(queue_consume_result::kEmpty);
+            return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kEmpty);
         }
 
-        expected<element_type, queue_consume_result> value;
+        silicon::scheduler::expected<element_type, queue_consume_result> value;
         if constexpr(std::is_move_constructible_v<element_type>) {
             value = std::move(m_p->m_elements.front());
         } else {
@@ -210,7 +210,7 @@ auto queue<element_type>::try_pop() -> expected<element_type, queue_consume_resu
         return value;
     }
 
-    return unexpected<queue_consume_result>(queue_consume_result::kTryLockFailure);
+    return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kTryLockFailure);
 }
 
 template<typename element_type>
@@ -239,7 +239,7 @@ silicon::scheduler::task<void> queue<element_type>::shutdown() {
 }
 
 template<typename element_type>
-template<silicon::coroutine::concepts::executor executor_type>
+template<silicon::scheduler::concepts::executor executor_type>
 silicon::scheduler::task<void> queue<element_type>::shutdown_drain(std::unique_ptr<executor_type> &e) {
     auto lk = co_await m_p->m_mutex.scoped_lock();
     auto expected = running_state_t::kRunning;

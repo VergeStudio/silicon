@@ -16,25 +16,18 @@ import :poll;
 import :time;
 import :poll_info;
 
-// 基础 I/O 类型已随调度原语迁入本模块（命名空间仍为 silicon::coroutine），
-// 此处仅在本单元内引入简化书写，不 export。
-namespace silicon::scheduler {
-using silicon::coroutine::fd_t;
-using silicon::coroutine::poll_op;
-using silicon::coroutine::poll_op_readable;
-using silicon::coroutine::poll_op_writeable;
-using silicon::coroutine::poll_status;
-using silicon::coroutine::poll_stop_token;
-using silicon::coroutine::time_point;
-} // namespace silicon::scheduler
-
 // poll_info 的 PIMPL 实现类型（poll_info::impl 即本类型的别名）。
 //
-// 定义刻意**不 export**，与 :poll_info 分区中 `struct poll_info_impl;` 的非导出
-// 前置声明保持一致：实体只有模块链接，属模块内部实现类型，不进入模块对外接口。
-// 需要完整定义的本模块单元（接口分区与实现单元）显式写 `import :poll_info_impl;`
-// 即可使用；主模块接口单元 scheduler.cppm 亦只做普通 import 而非 export import，
-// 因此 `import silicon.scheduler;` 的消费方始终只拿到不完整类型（PIMPL 封装不变）。
+// 为什么这里必须 `export`：
+//   MSVC 不会把分区里的**非导出**实体写进该分区的 IFC——实现单元即使显式写了
+//   `import :poll_info_impl;`，也只能看到 :poll_info 分区中的前置声明，访问
+//   `m_p->m_fd` 之类成员时即报 C2027「使用了未定义类型」。曾据此改为非 export
+//   （理由是"与 :poll_info 中非导出前置声明保持一致"），结果整个 scheduler 模块
+//   编译失败，故此处必须 export。
+//
+//   export 只影响模块内可见性，**不会**破坏 PIMPL 封装：主模块接口单元
+//   scheduler.cppm 对本分区是普通 `import :poll_info_impl;` 而非 `export import`，
+//   因此 `import silicon.scheduler;` 的外部消费方始终只拿到不完整类型。
 //
 // 类型必须是命名空间作用域而非 poll_info 的嵌套类：MSVC 无法把外围类所在模块单元
 // 之外给出的嵌套类定义写进 IFC（详见 poll_info.cppm 中的说明）。
@@ -42,7 +35,7 @@ using silicon::coroutine::time_point;
 // 本分区的 purview 内**不要** #include 任何标准头：所需的 <coroutine> <map>
 // <optional> 等已在上方全局模块片段中包含，purview 内的 #include 会与 IFC 携带的
 // std 声明重复附着而触发 C2953。
-namespace silicon::scheduler {
+export namespace silicon::scheduler {
 
 /// Implementation state of a poll operation: target descriptor, requested
 /// operation, the paired timeout's position in `io_scheduler`'s timed events

@@ -27,7 +27,7 @@ import silicon.coroutine.error;
 import :mutex;
 export namespace silicon::coroutine {
 
-template<concepts::executor executor_type>
+template<silicon::scheduler::concepts::executor executor_type>
 class task_container
 {
 public:

@@ -31,7 +31,7 @@
 import silicon.scheduler;
 
 namespace sched = silicon::scheduler;
-namespace coro = silicon::coroutine;
+namespace coro = silicon::scheduler;
 
 namespace {
 

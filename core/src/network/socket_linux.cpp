@@ -18,11 +18,6 @@ module;
 #include <system_error>
 
 module silicon.network;
-// MSVC 须显式 import 本模块接口方可访问其导出实体；clang 与标准不允许
-// 实现单元自引用，故以 _MSC_VER 守卫。
-#if defined(_MSC_VER)
-import silicon.network;
-#endif
 
 import silicon.coroutine;
 
@@ -73,17 +68,17 @@ bool socket::blocking(blocking_t block) {
     return (fcntl(m_fd, F_SETFL, flags) == 0);
 }
 
-bool socket::shutdown(silicon::coroutine::poll_op how) {
+bool socket::shutdown(silicon::scheduler::poll_op how) {
     if(m_fd != -1) {
         int h{0};
         switch(how) {
-            case silicon::coroutine::poll_op::read:
+            case silicon::scheduler::poll_op::read:
                 h = SHUT_RD;
                 break;
-            case silicon::coroutine::poll_op::write:
+            case silicon::scheduler::poll_op::write:
                 h = SHUT_WR;
                 break;
-            case silicon::coroutine::poll_op::read_write:
+            case silicon::scheduler::poll_op::read_write:
                 h = SHUT_RDWR;
                 break;
         }

@@ -35,14 +35,16 @@ int socket_duplicate_handle(int fd) {
     return fd;
 }
 
-bool socket_enable_address_reuse(int fd) {
-    int sock_opt{1};
-
-    // Winsock 没有 SO_REUSEPORT，SO_REUSEADDR 已覆盖端口复用语义。
-    if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &sock_opt, static_cast<int>(sizeof(sock_opt))) < 0) {
-        return false;
-    }
-
+bool socket_enable_address_reuse(int /*fd*/) {
+    // 刻意不设置任何选项。Winsock 的 SO_REUSEADDR 与 POSIX 语义**不同**：
+    // 在 Windows 上它允许**任意进程**绑定同一监听端口（端口劫持），是已知的安全
+    // 陷阱；而 POSIX 的 SO_REUSEADDR 仅用于复用 TIME_WAIT 状态的地址。
+    //
+    // 按平台拆分之前，socket.cpp 中的 Windows 分支同样不调用 setsockopt
+    //（Linux 设 SO_REUSEADDR、非 Windows 设 SO_REUSEPORT，Windows 两者皆无），
+    // 此处保持该行为不变——重构不应改变语义。
+    //
+    // 形参以无名形式保留，使签名与 POSIX 版（socket_linux.cpp）一致。
     return true;
 }
 
@@ -62,17 +64,17 @@ bool socket::blocking(blocking_t block) {
     return (ioctlsocket(m_fd, FIONBIO, &mode) == 0);
 }
 
-bool socket::shutdown(silicon::coroutine::poll_op how) {
+bool socket::shutdown(silicon::scheduler::poll_op how) {
     if(m_fd != -1) {
         int h{0};
         switch(how) {
-            case silicon::coroutine::poll_op::read:
+            case silicon::scheduler::poll_op::read:
                 h = SD_RECEIVE;
                 break;
-            case silicon::coroutine::poll_op::write:
+            case silicon::scheduler::poll_op::write:
                 h = SD_SEND;
                 break;
-            case silicon::coroutine::poll_op::read_write:
+            case silicon::scheduler::poll_op::read_write:
                 h = SD_BOTH;
                 break;
         }

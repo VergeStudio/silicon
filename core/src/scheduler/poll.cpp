@@ -21,7 +21,7 @@ module silicon.scheduler;
 import :poll_info_impl;
 
 
-namespace silicon::coroutine {
+namespace silicon::scheduler {
 
 static const std::string poll_unknown{"unknown"};
 
@@ -69,7 +69,7 @@ auto to_string(poll_status status) -> const std::string & {
 // poll_stop_token
 // --------------------------------------------------------------------------------------------
 
-/// Implementation state of silicon::coroutine::poll_stop_token.
+/// Implementation state of silicon::scheduler::poll_stop_token.
 struct poll_stop_token::impl {
   public:
     fd_t m_receiver{-1};
@@ -100,7 +100,7 @@ auto poll_stop_token::native_handle() const -> fd_t {
 // poll_stop_source
 // --------------------------------------------------------------------------------------------
 
-/// Implementation state of silicon::coroutine::poll_stop_source.
+/// Implementation state of silicon::scheduler::poll_stop_source.
 struct poll_stop_source::impl {
   public:
     pipe_t m_pipe{};
@@ -142,4 +142,4 @@ void poll_stop_source::signal_stop() {
     }
 }
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler

@@ -45,7 +45,7 @@ extern uint64_t m_ares_count;
 extern std::mutex m_ares_mutex;
 
 
-template<silicon::coroutine::concepts::io_executor executor_type>
+template<silicon::scheduler::concepts::io_executor executor_type>
 class resolver;
 
 enum class status {
@@ -53,7 +53,7 @@ enum class status {
     kError
 };
 
-template<silicon::coroutine::concepts::io_executor executor_type>
+template<silicon::scheduler::concepts::io_executor executor_type>
 class result {
     friend resolver<executor_type>;
 
@@ -86,7 +86,7 @@ class result {
     friend void ares_dns_callback(void *, int, int, ares_addrinfo *) ;
 };
 
-template<silicon::coroutine::concepts::io_executor executor_type>
+template<silicon::scheduler::concepts::io_executor executor_type>
 class resolver {
   public:
     /**
@@ -195,33 +195,33 @@ class resolver {
 
     /// This is the map of sockets that are currently being actively polled so multiple poll tasks
     /// are not setup when socket state is changed.
-    std::unordered_map<silicon::coroutine::fd_t, silicon::coroutine::poll_op> m_active_sockets{};
+    std::unordered_map<silicon::scheduler::fd_t, silicon::scheduler::poll_op> m_active_sockets{};
 
-    silicon::scheduler::task<void> make_poll_task(silicon::coroutine::fd_t fd) {
+    silicon::scheduler::task<void> make_poll_task(silicon::scheduler::fd_t fd) {
         // The loop ensures non-blocking polling until the socket is closed by c-ares.
         while(m_active_sockets.contains(fd)) {
             auto ops = m_active_sockets[fd];
             auto result = co_await m_executor->poll(fd, ops, m_timeout);
             switch(result) {
-                case silicon::coroutine::poll_status::read:
+                case silicon::scheduler::poll_status::read:
                     ares_process_fd(m_ares_channel, fd, ARES_SOCKET_BAD);
                     break;
-                case silicon::coroutine::poll_status::write:
+                case silicon::scheduler::poll_status::write:
                     ares_process_fd(m_ares_channel, ARES_SOCKET_BAD, fd);
                     break;
 
-                case silicon::coroutine::poll_status::timeout:
+                case silicon::scheduler::poll_status::timeout:
                     ares_process_fd(m_ares_channel, ARES_SOCKET_BAD, ARES_SOCKET_BAD);
                     break;
-                case silicon::coroutine::poll_status::closed:
+                case silicon::scheduler::poll_status::closed:
                     // might need to do something like call with two ARES_SOCKET_BAD?
                     m_active_sockets.erase(fd);
                     break;
-                case silicon::coroutine::poll_status::error:
+                case silicon::scheduler::poll_status::error:
                     // might need to do something like call with two ARES_SOCKET_BAD?
                     m_active_sockets.erase(fd);
                     break;
-                case silicon::coroutine::poll_status::cancelled:
+                case silicon::scheduler::poll_status::cancelled:
                     m_active_sockets.erase(fd);
                     break;
             }
@@ -235,14 +235,14 @@ class resolver {
         uint64_t ops{0};
 
         if(readable) {
-            ops |= static_cast<uint64_t>(silicon::coroutine::poll_op::read);
+            ops |= static_cast<uint64_t>(silicon::scheduler::poll_op::read);
         }
         if(writable) {
-            ops |= static_cast<uint64_t>(silicon::coroutine::poll_op::write);
+            ops |= static_cast<uint64_t>(silicon::scheduler::poll_op::write);
         }
 
-        auto fd = static_cast<silicon::coroutine::fd_t>(socket_fd);
-        auto poll_ops = static_cast<silicon::coroutine::poll_op>(ops);
+        auto fd = static_cast<silicon::scheduler::fd_t>(socket_fd);
+        auto poll_ops = static_cast<silicon::scheduler::poll_op>(ops);
         if(ops != 0) {
             auto [it, inserted] = self->m_active_sockets.insert_or_assign(fd, poll_ops);
             if(inserted) {

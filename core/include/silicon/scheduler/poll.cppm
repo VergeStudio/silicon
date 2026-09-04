@@ -30,7 +30,7 @@ export module silicon.scheduler:poll;
 import :pipe;
 import :fd;
 
-export namespace silicon::coroutine {
+export namespace silicon::scheduler {
 #if defined(SILICON_PLATFORM_LINUX)
 enum class poll_op : uint64_t {
     /// Poll for read operations.
@@ -130,4 +130,4 @@ class CORE_API poll_stop_source {
     std::unique_ptr<impl> m_p;
 };
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler

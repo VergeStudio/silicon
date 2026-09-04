@@ -9,7 +9,7 @@ export module silicon.scheduler:concepts.promise;
 
 import :concepts.awaitable;
 
-export namespace silicon::coroutine::concepts {
+export namespace silicon::scheduler::concepts {
 
 template<typename type, typename return_type>
 concept promise = requires(type t) {
@@ -22,4 +22,4 @@ concept promise = requires(type t) {
                      std::same_as<decltype(t.return_value(return_value)), void> ||
                      requires { t.yield_value(return_value); };
 };
-} // namespace silicon::coroutine::concepts
+} // namespace silicon::scheduler::concepts

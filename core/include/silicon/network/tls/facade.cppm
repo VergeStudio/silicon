@@ -269,8 +269,8 @@ class client final {
      *         bytes will be a subspan or full span of the given input buffer.
      */
     template<
-            silicon::coroutine::concepts::mutable_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::mutable_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::mutable_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::mutable_buffer_traits<buffer_type>::element_type>
     silicon::scheduler::task<std::pair<recv_status, std::span<element_type>>> recv(buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt) {
         if(buffer.empty()) {
             co_return {recv_status::kBufferIsEmpty, std::span<element_type>{}};
@@ -347,8 +347,8 @@ class client final {
      *         were successfully sent the status will be 'ok' and the remaining span will be empty.
      */
     template<
-            silicon::coroutine::concepts::const_buffer buffer_type,
-            typename element_type = typename silicon::coroutine::concepts::const_buffer_traits<buffer_type>::element_type>
+            silicon::scheduler::concepts::const_buffer buffer_type,
+            typename element_type = typename silicon::scheduler::concepts::const_buffer_traits<buffer_type>::element_type>
     silicon::scheduler::task<std::pair<send_status, std::span<element_type>>> send(const buffer_type &buffer, std::optional<std::chrono::milliseconds> timeout = std::nullopt) {
         // Make sure there is data to send.
         if(buffer.empty()) {
@@ -461,7 +461,7 @@ class client final {
      * @return The status result of th poll operation.  When poll_status::read or poll_status::write is returned then
      *         this specific event operation is ready.
      */
-    auto poll(silicon::coroutine::poll_op op, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
+    auto poll(silicon::scheduler::poll_op op, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<poll_status> {
         return m_scheduler->poll(m_socket.native_handle(), op, timeout);
     }
@@ -541,7 +541,7 @@ class client final {
 /// @brief 类型擦除门面：TLS 服务端的可擦除接口。
 ///
 /// 任何满足下列成员的类型（含 tls::server）都自动满足该门面，无需继承：
-///   silicon::scheduler::task<silicon::coroutine::poll_status> poll(std::chrono::milliseconds);
+///   silicon::scheduler::task<silicon::scheduler::poll_status> poll(std::chrono::milliseconds);
 ///   silicon::scheduler::task<client> accept(std::chrono::milliseconds);
 /// 因 accept 返回类型引用 tls::client，本门面定义于 client 完整声明之后。
 PRO_DEF_MEM_DISPATCH(MemTlsServerPoll, poll);
@@ -550,7 +550,7 @@ PRO_DEF_MEM_DISPATCH(MemTlsServerAccept, accept);
 struct tls_server_facade
     : silicon::proxy::facade_builder                                                          //
       ::add_convention<MemTlsServerPoll,                                                      //
-                       silicon::scheduler::task<silicon::coroutine::poll_status>(
+                       silicon::scheduler::task<silicon::scheduler::poll_status>(
                                std::chrono::milliseconds)>                                     //
       ::add_convention<MemTlsServerAccept,                                                    //
                        silicon::scheduler::task<client>(std::chrono::milliseconds)>           //
@@ -605,8 +605,8 @@ class server final {
      * @return The result of the poll, 'event' means the poll was successful and there is at least 1
      *         connection ready to be accepted.
      */
-    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<silicon::coroutine::poll_status> {
-        return m_scheduler->poll(m_accept_socket.native_handle(), silicon::coroutine::poll_op::read, timeout, m_cancel_trigger.get_token());
+    auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<silicon::scheduler::poll_status> {
+        return m_scheduler->poll(m_accept_socket.native_handle(), silicon::scheduler::poll_op::read, timeout, m_cancel_trigger.get_token());
     }
 
     /**
@@ -627,7 +627,7 @@ class server final {
 
     auto shutdown() {
         m_cancel_trigger.signal_stop();
-        m_accept_socket.shutdown(silicon::coroutine::poll_op::read_write);
+        m_accept_socket.shutdown(silicon::scheduler::poll_op::read_write);
     }
 
   private:

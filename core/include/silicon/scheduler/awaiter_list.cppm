@@ -8,7 +8,7 @@ export module silicon.scheduler:awaiter_list;
 
 import :concepts.awaitable;
 
-export namespace silicon::coroutine {
+export namespace silicon::scheduler {
 
 template<concepts::awaiter_forward_list_entry awaiter_type>
 void awaiter_list_push(std::atomic<awaiter_type *> &list, awaiter_type *to_enqueue) {
@@ -69,4 +69,4 @@ awaiter_type * awaiter_list_reverse(awaiter_type *curr) {
 }
 
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler

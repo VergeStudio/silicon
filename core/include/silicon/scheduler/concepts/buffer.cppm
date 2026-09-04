@@ -7,7 +7,7 @@ module;
 
 export module silicon.scheduler:concepts.buffer;
 
-export namespace silicon::coroutine::concepts {
+export namespace silicon::scheduler::concepts {
 // clang-format off
 template<typename type>
 concept const_buffer = requires(const type t)
@@ -53,4 +53,4 @@ struct mutable_buffer_traits
 
 // clang-format on
 
-} // namespace silicon::coroutine::concepts
+} // namespace silicon::scheduler::concepts

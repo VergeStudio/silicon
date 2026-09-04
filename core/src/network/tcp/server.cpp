@@ -20,7 +20,7 @@ struct server::impl {
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     options m_options;
     network::socket m_accept_socket{-1};
-    silicon::coroutine::poll_stop_source m_cancel_trigger{};
+    silicon::scheduler::poll_stop_source m_cancel_trigger{};
     bool m_is_read_ready{false};
 
     impl() = default;
@@ -100,10 +100,10 @@ auto server::accept_socket() const -> const network::socket & {
 
 auto server::shutdown() {
     impl_->m_cancel_trigger.signal_stop();
-    impl_->m_accept_socket.shutdown(silicon::coroutine::poll_op::read_write);
+    impl_->m_accept_socket.shutdown(silicon::scheduler::poll_op::read_write);
 }
 
-silicon::scheduler::task<silicon::coroutine::expected<network::tcp::client, io_status>> server::accept(std::chrono::milliseconds timeout) {
+silicon::scheduler::task<silicon::scheduler::expected<network::tcp::client, io_status>> server::accept(std::chrono::milliseconds timeout) {
     // Fast path
     if(impl_->m_is_read_ready) {
         auto client = accept_now();
@@ -118,29 +118,29 @@ silicon::scheduler::task<silicon::coroutine::expected<network::tcp::client, io_s
 
     // Waiting for readiness
     auto pstatus = co_await poll(timeout);
-    if(pstatus != silicon::coroutine::poll_status::read) {
-        co_return silicon::coroutine::unexpected<io_status>{make_io_status_from_poll_status(pstatus)};
+    if(pstatus != silicon::scheduler::poll_status::read) {
+        co_return silicon::scheduler::unexpected<io_status>{make_io_status_from_poll_status(pstatus)};
     }
     impl_->m_is_read_ready = true;
 
     co_return accept_now();
 }
 
-silicon::scheduler::task<coroutine::poll_status> server::poll(std::chrono::milliseconds timeout) {
+silicon::scheduler::task<silicon::scheduler::poll_status> server::poll(std::chrono::milliseconds timeout) {
     return impl_->m_scheduler->poll(
             impl_->m_accept_socket.native_handle(),
-            silicon::coroutine::poll_op::read,
+            silicon::scheduler::poll_op::read,
             timeout,
             impl_->m_cancel_trigger.get_token()
     );
 }
 
-silicon::coroutine::expected<silicon::network::tcp::client, io_status> server::accept_now() {
+silicon::scheduler::expected<silicon::network::tcp::client, io_status> server::accept_now() {
     auto client_endpoint = socket_address::make_uninitialised();
 
     network::socket accepted = impl_->m_accept_socket.accept(client_endpoint);
     if(!accepted.is_ok()) {
-        return silicon::coroutine::unexpected<io_status>{make_io_status_from_native(impl_->m_accept_socket.last_error())};
+        return silicon::scheduler::unexpected<io_status>{make_io_status_from_native(impl_->m_accept_socket.last_error())};
     }
 
     return tcp::client{impl_->m_scheduler, std::move(accepted), client_endpoint};

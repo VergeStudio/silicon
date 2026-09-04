@@ -69,7 +69,7 @@ class queue {
 
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
-        [[nodiscard]] expected<element_type, queue_consume_result> await_resume() noexcept ;
+        [[nodiscard]] silicon::scheduler::expected<element_type, queue_consume_result> await_resume() noexcept ;
 
         std::optional<element_type> m_element{std::nullopt};
         queue &m_queue;
@@ -137,20 +137,20 @@ class queue {
      * @return awaiter A waiter task that upon co_await complete returns an element or the queue
      *                 status that it is shut down.
      */
-    [[nodiscard]] silicon::scheduler::task<expected<element_type, queue_consume_result>> pop() ;
+    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element_type, queue_consume_result>> pop() ;
 
     /**
      * @brief Tries to pop the head element of the queue if available. This can fail if it cannot
      *        acquire the lock via `silicon::coroutine::mutex::try_lock()` or if there are no elements available.
      *        Does not block.
      *
-     * @return expected<element_type, queue_consume_result> The head element if the lock was acquired
+     * @return silicon::scheduler::expected<element_type, queue_consume_result> The head element if the lock was acquired
      *         and an element is available.
      *         queue_consume_result::stopped if the queue has been shutdown.
      *         queue_consume_result::empty if lock was acquired but the queue is empty.
      *         queue_consume_result::try_lock_failure if the queue is in use and the lock could not be acquired.
      */
-    [[nodiscard]] expected<element_type, queue_consume_result> try_pop() ;
+    [[nodiscard]] silicon::scheduler::expected<element_type, queue_consume_result> try_pop() ;
 
     /**
      * @brief Shuts down the queue immediately discarding any elements that haven't been processed.
@@ -168,7 +168,7 @@ class queue {
      * @param e The executor to yield this task to wait for elements to be processed.
      * @return silicon::scheduler::task<void>
      */
-    template<silicon::coroutine::concepts::executor executor_type>
+    template<silicon::scheduler::concepts::executor executor_type>
     silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &) ;
 
     /**

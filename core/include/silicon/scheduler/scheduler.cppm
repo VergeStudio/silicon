@@ -19,11 +19,11 @@ import std;
 // concepts / awaiter_list / pipe）均已归属本模块。依赖单向：
 // silicon.coroutine -> silicon.scheduler -> silicon.scheduler.task，无环。
 //
-// 注意：迁入的原语保留原有的 silicon::coroutine 命名空间，仅模块归属发生变化，
-// 因此既有消费方（network 等）的类型书写不受影响。
+// 注意：上述自 silicon.coroutine 迁入的调度原语已统一置于 silicon::scheduler
+// 命名空间（不再保留 silicon::coroutine 旧命名空间，无向后兼容别名）。
 export import silicon.scheduler.task;
 
-// —— 自 silicon.coroutine 迁入的调度原语（命名空间仍为 silicon::coroutine）——
+// —— 自 silicon.coroutine 迁入的调度原语（命名空间：silicon::scheduler）——
 export import :concepts.awaitable;
 export import :concepts.buffer;
 export import :concepts.executor;

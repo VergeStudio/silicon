@@ -28,7 +28,7 @@ module silicon.scheduler;
 import silicon.scheduler.error;
 import :poll_info_impl;
 
-namespace silicon::coroutine
+namespace silicon::scheduler
 {
 
 class pipe_t::impl {
@@ -181,4 +181,4 @@ void pipe_t::close() {
     }
 }
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler

@@ -99,7 +99,7 @@ class ring_buffer {
         /**
          * @return The consumed element or ring_buffer_stopped if the ring buffer has been shutdown.
          */
-        auto await_resume() -> expected<element, ring_buffer_result::consume>;
+        auto await_resume() -> silicon::scheduler::expected<element, ring_buffer_result::consume>;
 
         /// If the operation needs to suspend, the coroutine to resume when the element can be consumed.
         std::coroutine_handle<> m_awaiting_coroutine;
@@ -129,7 +129,7 @@ class ring_buffer {
      * Consumes an element from the ring buffer.  This operation will suspend until an element in
      * the ring buffer becomes available.
      */
-    [[nodiscard]] silicon::scheduler::task<expected<element, ring_buffer_result::consume>> consume() ;
+    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element, ring_buffer_result::consume>> consume() ;
 
     /**
      * @return The maximum number of elements the ring buffer can hold.
@@ -169,7 +169,7 @@ class ring_buffer {
      */
     silicon::scheduler::task<void> shutdown() ;
 
-    template<silicon::coroutine::concepts::executor executor_type>
+    template<silicon::scheduler::concepts::executor executor_type>
     [[nodiscard]] silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &) ;
 
     /**

@@ -21,7 +21,7 @@ export module silicon.scheduler:sync_wait;
 
 import :concepts.awaitable;
 
-export namespace silicon::coroutine {
+export namespace silicon::scheduler {
 
 
 struct CORE_API unset_return_value {
@@ -296,4 +296,4 @@ return_type sync_wait(awaitable_type &&a) {
     }
 }
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler

@@ -155,7 +155,7 @@ struct io_status {
 
 std::string_view to_string(io_status::kind) ;
 io_status make_io_status_from_native(int) ;
-auto make_io_status_from_poll_status(silicon::coroutine::poll_status) -> io_status;
+auto make_io_status_from_poll_status(silicon::scheduler::poll_status) -> io_status;
 
 // ── Platform-specific helpers (defined in io_status_linux.cpp / io_status_win.cpp) ──
 [[nodiscard]] std::string message_impl(int);
@@ -528,7 +528,8 @@ inline std::ostream & operator<<(std::ostream &os, const socket_address &ep) {
 /// 复制底层句柄：POSIX 用 dup()；Windows 的 SOCKET 无 dup 语义，返回同一句柄值。
 int socket_duplicate_handle(int) ;
 /// 监听套接字绑定前的地址/端口复用选项设置。
-/// Windows 无 SO_REUSEPORT，其 SO_REUSEADDR 已覆盖端口复用语义。
+/// Windows 实现刻意**不设**任何选项：Winsock 的 SO_REUSEADDR 语义与 POSIX 不同，
+/// 它允许任意进程绑定同一监听端口（端口劫持），故保持独占绑定。
 bool socket_enable_address_reuse(int) ;
 
 class CORE_API socket final {
@@ -587,8 +588,8 @@ class CORE_API socket final {
      * @param how Shuts the socket down with the given operations.
      * @return Returns true if the sockets given operations were shutdown.
      */
-    bool shutdown(silicon::coroutine::poll_op = silicon::coroutine::poll_op::read_write) ;
-    bool shutdown(int how) { return shutdown(static_cast<silicon::coroutine::poll_op>(how)); }
+    bool shutdown(silicon::scheduler::poll_op = silicon::scheduler::poll_op::read_write) ;
+    bool shutdown(int how) { return shutdown(static_cast<silicon::scheduler::poll_op>(how)); }
 
     /**
      * Closes the socket and sets this socket to an invalid state.

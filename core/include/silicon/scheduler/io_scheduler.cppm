@@ -63,10 +63,10 @@ import :io_notifier;
 import :io_ring;
 import :timer_handle;
 
-// 本单元沿用 coroutine 的基础类型（fd_t / poll_op / poll_status / poll_stop_token /
-// time_point / when_any / expected ...）。using-directive 置于全局作用域：命名空间内
-// 的同名实体优先，不会与 silicon::scheduler::task 冲突；且它不参与模块导出。
-using namespace silicon::coroutine;
+// 本单元沿用迁入 silicon::scheduler 的基础类型（fd_t / poll_op / poll_status /
+// poll_stop_token / time_point / expected ...）。using-directive 置于全局作用域：
+// 命名空间内的同名实体优先，不会与 task 冲突；且它不参与模块导出。
+using namespace silicon::scheduler;
 
 export namespace silicon::scheduler {
 
@@ -156,7 +156,12 @@ class CORE_API io_scheduler {
 #endif
         };
         /// io_ring 构造配置（仅在 completion_policy != disabled 且后端存在时生效）。
-        io_ring_config io_ring{};
+        ///
+        /// 成员名刻意不取 `io_ring`：那会与类名 `io_ring` 同名，使 designated
+        /// initializer `.io_ring = {}` 产生解析歧义（MSVC 据此生成对
+        /// `io_ring::io_ring(io_ring_config)` 的引用，在**未编译** io_ring 后端的
+        /// 配置下让每一个 import 本分区的 TU 都报 LNK2001）。
+        io_ring_config io_ring_cfg{};
     };
 
     /**
@@ -192,7 +197,7 @@ class CORE_API io_scheduler {
 #else
                     .completion_policy = io_completion_policy::disabled,
 #endif
-                    .io_ring = {}
+                    .io_ring_cfg = {}
             }
     ) -> result<std::unique_ptr<io_scheduler>>;
 
@@ -233,7 +238,7 @@ class CORE_API io_scheduler {
             if(m_scheduler.m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
                 m_scheduler.m_p->m_size.fetch_add(1, std::memory_order::release);
                 m_awaiting_coroutine = awaiting_coroutine;
-                silicon::coroutine::awaiter_list_push(m_scheduler.m_p->m_scheduled_ops, this);
+                silicon::scheduler::awaiter_list_push(m_scheduler.m_p->m_scheduled_ops, this);
 
                 // Trigger the event to wake-up the scheduler if this event isn't currently triggered.
                 bool expected{false};
@@ -297,7 +302,7 @@ class CORE_API io_scheduler {
 
     /**
      * Schedules a task on the scheduler and returns another task that must be awaited on for completion.
-     * This can be done via co_await in a coroutine context or silicon::coroutine::sync_wait() outside of coroutine context.
+     * This can be done via co_await in a coroutine context or silicon::scheduler::sync_wait() outside of coroutine context.
      * @tparam return_type The return value of the task.
      * @param task The task to schedule on the scheduler.
      * @return The task to await for the input task to complete.
@@ -320,7 +325,7 @@ class CORE_API io_scheduler {
      * @return The task to await for the input task to complete.
      */
     template<typename return_type, typename rep, typename period>
-    [[nodiscard]] silicon::scheduler::task<silicon::coroutine::expected<return_type, timeout_status>> schedule(silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
+    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<return_type, timeout_status>> schedule(silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
         using namespace std::chrono_literals;
 
         // If negative or 0 timeout, just schedule the task as normal.
@@ -328,21 +333,21 @@ class CORE_API io_scheduler {
         if(timeout_ms == 0ms) {
             if constexpr(std::is_void_v<return_type>) {
                 co_await schedule(std::move(task));
-                co_return silicon::coroutine::expected<return_type, timeout_status>();
+                co_return silicon::scheduler::expected<return_type, timeout_status>();
             } else {
-                co_return silicon::coroutine::expected<return_type, timeout_status>(co_await schedule(std::move(task)));
+                co_return silicon::scheduler::expected<return_type, timeout_status>(co_await schedule(std::move(task)));
             }
         }
 
         auto result = co_await when_any(std::move(task), make_timeout_task(timeout_ms));
         if(!std::holds_alternative<timeout_status>(result)) {
             if constexpr(std::is_void_v<return_type>) {
-                co_return silicon::coroutine::expected<return_type, timeout_status>();
+                co_return silicon::scheduler::expected<return_type, timeout_status>();
             } else {
-                co_return silicon::coroutine::expected<return_type, timeout_status>(std::move(std::get<0>(result)));
+                co_return silicon::scheduler::expected<return_type, timeout_status>(std::move(std::get<0>(result)));
             }
         } else {
-            co_return silicon::coroutine::unexpected<timeout_status>(std::move(std::get<1>(result)));
+            co_return silicon::scheduler::unexpected<timeout_status>(std::move(std::get<1>(result)));
         }
     }
 
@@ -359,7 +364,7 @@ class CORE_API io_scheduler {
      * @return The task to await for the input task to complete.
      */
     template<typename return_type, typename rep, typename period>
-    [[nodiscard]] silicon::scheduler::task<silicon::coroutine::expected<return_type, timeout_status>> schedule(std::stop_source stop_source, silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
+    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<return_type, timeout_status>> schedule(std::stop_source stop_source, silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
         using namespace std::chrono_literals;
 
         // If negative or 0 timeout, just schedule the task as normal.
@@ -367,21 +372,21 @@ class CORE_API io_scheduler {
         if(timeout_ms == 0ms) {
             if constexpr(std::is_void_v<return_type>) {
                 co_await schedule(std::move(task));
-                co_return silicon::coroutine::expected<return_type, timeout_status>();
+                co_return silicon::scheduler::expected<return_type, timeout_status>();
             } else {
-                co_return silicon::coroutine::expected<return_type, timeout_status>(co_await schedule(std::move(task)));
+                co_return silicon::scheduler::expected<return_type, timeout_status>(co_await schedule(std::move(task)));
             }
         }
 
         auto result = co_await when_any(std::move(stop_source), std::move(task), make_timeout_task(timeout_ms));
         if(!std::holds_alternative<timeout_status>(result)) {
             if constexpr(std::is_void_v<return_type>) {
-                co_return silicon::coroutine::expected<return_type, timeout_status>();
+                co_return silicon::scheduler::expected<return_type, timeout_status>();
             } else {
-                co_return silicon::coroutine::expected<return_type, timeout_status>(std::move(std::get<0>(result)));
+                co_return silicon::scheduler::expected<return_type, timeout_status>(std::move(std::get<0>(result)));
             }
         } else {
-            co_return silicon::coroutine::unexpected<timeout_status>(std::move(std::get<1>(result)));
+            co_return silicon::scheduler::unexpected<timeout_status>(std::move(std::get<1>(result)));
         }
     }
 #endif
@@ -435,7 +440,7 @@ class CORE_API io_scheduler {
      */
     [[nodiscard]] auto poll(
             fd_t,
-            silicon::coroutine::poll_op,
+            silicon::scheduler::poll_op,
             std::chrono::milliseconds = std::chrono::milliseconds{0},
             std::optional<poll_stop_token> = std::nullopt
     ) -> silicon::scheduler::task<poll_status>;
@@ -474,7 +479,7 @@ class CORE_API io_scheduler {
      */
     bool resume(std::coroutine_handle<>) ;
 
-    template<silicon::coroutine::concepts::sized_range_of<std::coroutine_handle<>> range_type>
+    template<silicon::scheduler::concepts::sized_range_of<std::coroutine_handle<>> range_type>
     std::size_t resume(const range_type &handles) noexcept {
         auto size = std::size(handles);
         std::size_t invalid_handles{0};
@@ -565,9 +570,9 @@ class CORE_API io_scheduler {
         /// io_scheduler_completion.cpp，cppm 只以 void* 持有（不引入平台类型）。
         void *m_completion_engine{nullptr};
         /// The event loop pipe to trigger a shutdown.
-        silicon::coroutine::pipe_t m_shutdown_pipe{};
+        silicon::scheduler::pipe_t m_shutdown_pipe{};
         /// The event loop schedule task pipe.
-        silicon::coroutine::pipe_t m_schedule_pipe{};
+        silicon::scheduler::pipe_t m_schedule_pipe{};
         /// @brief Scheduled operations waiting tasks has entries.
         std::atomic<bool> m_schedule_pipe_triggered{false};
         /// @brief Scheduled operations waiting to be resumed.
@@ -591,7 +596,7 @@ class CORE_API io_scheduler {
 
         std::atomic<bool> m_io_processing{false};
 
-        std::vector<std::pair<silicon::scheduler::poll_info *, silicon::coroutine::poll_status>> m_recent_events{};
+        std::vector<std::pair<silicon::scheduler::poll_info *, silicon::scheduler::poll_status>> m_recent_events{};
         std::vector<std::coroutine_handle<>> m_handles_to_resume{};
     };
 

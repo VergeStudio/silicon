@@ -3,7 +3,7 @@ module;
 
 export module silicon.scheduler:fd;
 
-export namespace silicon::coroutine {
+export namespace silicon::scheduler {
 using fd_t = int;
 
-} // namespace silicon::coroutine
+} // namespace silicon::scheduler
