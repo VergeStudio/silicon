@@ -49,6 +49,10 @@ export import :poll_info;
 import :poll_info_impl;
 
 export import :io_notifier;
+// completion 语义的 I/O 环（Linux=io_uring / Windows=I/O Ring）。与 io_notifier
+// 的 readiness 模型并列而非替代；后端需 xmake 选项 --io_ring=y 才会编译，
+// 未启用时 is_valid() 恒为 false，消费方回退 io_notifier。
+export import :io_ring;
 export import :timer_handle;
 export import :facade;
 export import :thread_pool;

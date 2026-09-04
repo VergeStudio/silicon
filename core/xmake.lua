@@ -19,6 +19,16 @@ target("core", function()
         add_defines("NOMINMAX", "WIN32_LEAN_AND_MEAN")
     end
 
+    -- completion I/O 后端：--io_ring=y 时编入 io_ring_uring.cpp /
+    -- io_ring_ioring.cpp；两文件内部再按平台宏互斥守卫，因此 macOS 等无后端的
+    -- 平台仍只得到空 TU，io_ring 保持"声明存在但不可实例化"。
+    if has_config("io_ring") then
+        add_defines("SILICON_FEATURE_IO_RING=1")
+        if is_plat("linux") then
+            add_packages("liburing")
+        end
+    end
+
     -- 单 DLL 伞宏：core 编译进 silicon_core，CORE_EXPORT 由本 target 定义，
     -- 所有以 CORE_API 标注的导出实体据此 dllexport（消费方不定义则 dllimport）。
     add_defines("CORE_EXPORT")

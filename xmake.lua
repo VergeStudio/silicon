@@ -16,6 +16,22 @@ set_encodings("utf-8")
 
 add_rules("mode.debug", "mode.release", "mode.valgrind")
 
+-- completion I/O 后端（Linux=io_uring / Windows=I/O Ring）。
+-- 默认关闭：关闭时 :io_ring 接口单元仍参与编译（便于跨平台语法校验），但两个
+-- 后端实现单元为空 TU，io_ring 无可用定义，消费方一律走 io_notifier
+--（IOCP / epoll / kqueue）。
+option("io_ring")
+    set_default(false)
+    set_showmenu(true)
+    set_description("Enable the platform completion I/O ring backend (Windows: I/O Ring, Linux: io_uring)")
+option_end()
+
+-- add_requires 必须在 root scope；仅开启选项且目标平台为 Linux 时拉取 liburing，
+-- 避免其他平台在 config 阶段去解析一个用不到的包。
+if has_config("io_ring") and is_plat("linux") then
+    add_requires("liburing")
+end
+
 -- 工具链选择
 if is_plat("windows") then
     set_toolchains("msvc")
