@@ -10,7 +10,6 @@
 #define SPARC_RET_INT64 8
 #define SPARC_RET_INT128 9
 
-
 #define SPARC_RET_F_8 10
 #define SPARC_RET_F_6 11
 #define SPARC_RET_F_4 12

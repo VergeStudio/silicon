@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static double return_dbl(double dbl)
@@ -18,7 +15,6 @@ int main (void)
   args[0] = &sffi_type_double;
   values[0] = &dbl;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_double, args) == SFFI_OK);
 

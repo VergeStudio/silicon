@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 static int ABI_ATTR my_f(float a, char *s)
@@ -21,25 +17,24 @@ int main (void)
   args[0] = &sffi_type_float;
   values[1] = (void*) &s;
   values[0] = (void*) &v2;
-  
-  
+
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 2,
 		       &sffi_type_sint, args) == SFFI_OK);
-  
+
   s = "a";
   v2 = 0.0;
   sffi_call(&cif, SFFI_FN(my_f), &rint, values);
   CHECK(rint == 1);
-  
+
   s = "1234567";
   v2 = -1.0;
   sffi_call(&cif, SFFI_FN(my_f), &rint, values);
   CHECK(rint == 6);
-  
+
   s = "1234567890123456789012345";
   v2 = 1.0;
   sffi_call(&cif, SFFI_FN(my_f), &rint, values);
   CHECK(rint == 26);
-  
+
   exit(0);
 }

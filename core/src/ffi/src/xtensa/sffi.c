@@ -1,13 +1,7 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
-
-
-
 #define SFFI_TYPE_STRUCT_REGS SFFI_TYPE_LAST
-
 
 extern void sffi_call_SYSV(void *rvalue, unsigned rsize, unsigned flags,
 			  void(*fn)(void), unsigned nbytes, extended_cif*);
@@ -33,9 +27,9 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
       break;
     case SFFI_TYPE_STRUCT:
       cif->flags = SFFI_TYPE_STRUCT;
-      
+
       if (cif->rtype->size > 4 * 4) {
-        
+
         cif->flags = SFFI_TYPE_STRUCT;	
         cif->bytes += 8;
       }
@@ -46,7 +40,6 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
       break;
   }
 
-  
   if (cif->bytes < SFFI_REGISTER_NARGS * 4)
     cif->bytes = SFFI_REGISTER_ARGS_SPACE;
   else
@@ -75,13 +68,11 @@ void sffi_prep_args(extended_cif *ecif, unsigned char* stack)
     double **d;
   } p_argv;
 
-  
   SFFI_ASSERT (((unsigned long) stack & 0x7) == 0);
 
   p_argv.v = ecif->avalue;
   addr = (unsigned long*)stack;
 
-  
   if (ecif->cif->rtype->type == SFFI_TYPE_STRUCT && ecif->cif->rtype->size > 16)
   {
     *addr++ = (unsigned long)ecif->rvalue;
@@ -132,7 +123,6 @@ void sffi_prep_args(extended_cif *ecif, unsigned char* stack)
         offs = (unsigned long) addr - (unsigned long) stack;
         size = (*ptr)->size;
 
-        
         if (offs < SFFI_REGISTER_NARGS * 4
             && offs + size > SFFI_REGISTER_NARGS * 4)
           addr = (unsigned long*) (stack + SFFI_REGISTER_NARGS * 4);
@@ -148,7 +138,6 @@ void sffi_prep_args(extended_cif *ecif, unsigned char* stack)
   }
 }
 
-
 void sffi_call(sffi_cif* cif, void(*fn)(void), void *rvalue, void **avalue)
 {
   extended_cif ecif;
@@ -158,8 +147,6 @@ void sffi_call(sffi_cif* cif, void(*fn)(void), void *rvalue, void **avalue)
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-
-  
 
   if (flags == SFFI_TYPE_STRUCT && (rsize <= 16 || rvalue == NULL))
   {
@@ -193,11 +180,8 @@ sffi_prep_closure_loc (sffi_closure* closure,
   if (cif->abi != SFFI_SYSV)
     return SFFI_BAD_ABI;
 
-  
   memcpy(closure->tramp, sffi_trampoline, SFFI_TRAMPOLINE_SIZE);
   *(unsigned int*)(&closure->tramp[8]) = (unsigned int)sffi_closure_SYSV;
-
-
 
   sffi_cacheflush(closure->tramp, closure->tramp + SFFI_TRAMPOLINE_SIZE);
 
@@ -206,7 +190,6 @@ sffi_prep_closure_loc (sffi_closure* closure,
   closure->user_data = user_data;
   return SFFI_OK; 
 }
-
 
 long SFFI_HIDDEN
 sffi_closure_SYSV_inner(sffi_closure *closure, void **values, void *rvalue)
@@ -237,7 +220,6 @@ sffi_closure_SYSV_inner(sffi_closure *closure, void **values, void *rvalue)
   {
     if (arg_types[i]->alignment == 8 && (areg & 1) != 0)
       areg++;
-
 
     if (areg == SFFI_REGISTER_NARGS)
       areg = (SFFI_REGISTER_ARGS_SPACE + 32) / 4;

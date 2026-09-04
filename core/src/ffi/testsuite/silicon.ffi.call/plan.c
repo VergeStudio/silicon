@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static uint64_t gp6(uint64_t a, uint64_t b, uint64_t c,
@@ -30,7 +27,6 @@ int main (void)
   uint64_t a[6], r_call, r_plan;
   int i, k;
 
-  
   for (i = 0; i < 6; i++)
     args[i] = &sffi_type_uint64;
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 6, &sffi_type_uint64, args)
@@ -52,7 +48,6 @@ int main (void)
     }
   sffi_call_plan_free(plan);
 
-  
   {
     sffi_cif cifp;
     sffi_type *pargs[1];
@@ -75,7 +70,6 @@ int main (void)
     sffi_call_plan_free(planp);
   }
 
-  
   {
     sffi_cif cifs;
     sffi_type *sargs[1];
@@ -109,7 +103,6 @@ int main (void)
     sffi_call_plan_free(plans);
   }
 
-  
   sffi_call_plan_free(NULL);
 
   exit(0);

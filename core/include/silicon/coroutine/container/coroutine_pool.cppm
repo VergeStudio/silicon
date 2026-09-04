@@ -1,6 +1,5 @@
 module;
 
-
 #include <atomic>
 #include <chrono>
 #include <coroutine>
@@ -24,7 +23,6 @@ import :mutex;
 
 export namespace silicon::coroutine {
 
-
 template<silicon::scheduler::concepts::executor Executor>
 class coroutine_pool {
   private:
@@ -39,7 +37,7 @@ class coroutine_pool {
     }
 
   public:
-    
+
     static std::expected<std::unique_ptr<coroutine_pool<Executor>>, std::error_code> create(std::shared_ptr<Executor> executor, std::size_t pool_size) {
         if(executor == nullptr) {
             return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
@@ -60,25 +58,20 @@ class coroutine_pool {
     ~coroutine_pool() {
         shutdown();
 
-
-
         while(!empty() || m_p->m_workers_active.load(std::memory_order::acquire) > 0
               || !m_p->m_close_done.load(std::memory_order::acquire)) {
             std::this_thread::sleep_for(std::chrono::milliseconds{10});
         }
     }
 
-    
     bool dispatch(silicon::scheduler::task<void>&& work) {
         return spawn_detached(std::move(work));
     }
 
-    
     bool spawn_detached(silicon::scheduler::task<void>&& work) {
         if(m_p->m_stopped.load(std::memory_order::acquire)) {
             return false;
         }
-
 
         m_p->m_inflight.fetch_add(1, std::memory_order::relaxed);
         m_p->m_pending_sends.fetch_add(1, std::memory_order::relaxed);
@@ -91,27 +84,18 @@ class coroutine_pool {
         return ok;
     }
 
-    
     silicon::scheduler::task<void> spawn_joinable(silicon::scheduler::task<void>&& work) {
         auto e = std::make_shared<silicon::coroutine::event>();
         if(!spawn_detached(make_wrapper(this, e, std::move(work)))) {
             e->set();
         }
 
-
-
-
-
         return make_join_task(e);
     }
-
-
 
     static silicon::scheduler::task<void> make_join_task(std::shared_ptr<silicon::coroutine::event> e) {
         co_await *e;
     }
-
-
 
     static silicon::scheduler::task<void> make_wrapper(coroutine_pool *self, std::shared_ptr<silicon::coroutine::event> e,
                              silicon::scheduler::task<void> w) {
@@ -123,22 +107,18 @@ class coroutine_pool {
         e->set();
     }
 
-    
     [[nodiscard]] std::size_t size() const {
         return m_p->m_inflight.load(std::memory_order::acquire);
     }
 
-    
     [[nodiscard]] bool empty() const { return size() == 0; }
 
-    
     silicon::scheduler::task<void> join() {
         while(!empty()) {
             co_await m_p->m_executor->yield();
         }
     }
 
-    
     void shutdown() {
         if(m_p->m_stopped.exchange(true, std::memory_order::acq_rel)) {
             return;
@@ -146,14 +126,12 @@ class coroutine_pool {
         (void)m_p->m_executor->spawn_detached(async_close());
     }
 
-
     auto schedule() { return m_p->m_executor->schedule(); }
 
     auto yield() { return m_p->m_executor->yield(); }
 
     bool resume(std::coroutine_handle<> handle) { return m_p->m_executor->resume(handle); }
 
-    
     [[nodiscard]] std::exception_ptr last_error() const { return m_p->m_last_error; }
 
   private:
@@ -162,7 +140,6 @@ class coroutine_pool {
             m_p->m_last_error = std::current_exception();
         }
     }
-
 
     silicon::scheduler::task<void> worker() {
         while(true) {
@@ -183,7 +160,6 @@ class coroutine_pool {
         m_p->m_workers_active.fetch_sub(1, std::memory_order::release);
     }
 
-
     silicon::scheduler::task<void> sender(silicon::scheduler::task<void> work) {
         auto result = co_await m_p->m_channel.send(std::move(work));
         if(result == channel_result::send::kClosed) {
@@ -193,8 +169,6 @@ class coroutine_pool {
 
         m_p->m_pending_sends.fetch_sub(1, std::memory_order::release);
     }
-
-
 
     silicon::scheduler::task<void> async_close() {
         while(m_p->m_pending_sends.load(std::memory_order::acquire) > 0) {

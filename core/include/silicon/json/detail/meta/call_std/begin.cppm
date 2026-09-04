@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -19,7 +6,6 @@ module;
 export module silicon.json:detail.meta.call_std.begin;
 
 import :detail.meta.detected;
-
 
 SILICON_JSON_NAMESPACE_BEGIN
 

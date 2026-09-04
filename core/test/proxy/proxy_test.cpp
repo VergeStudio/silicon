@@ -1,12 +1,8 @@
-
-
 #include <cstddef>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <utility>
-
-
 
 #include <silicon/proxy/proxy_macros.h>
 
@@ -17,7 +13,6 @@ import silicon.proxy;
 namespace sp = silicon::proxy;
 
 namespace {
-
 
 struct text_buffer {
     std::string value;
@@ -31,7 +26,6 @@ struct text_buffer {
     std::string str() const { return value; }
 };
 
-
 struct prefix_buffer {
     std::string value;
 
@@ -44,7 +38,6 @@ struct prefix_buffer {
     std::string str() const { return value; }
 };
 
-
 struct small_counter {
     int value;
 
@@ -55,7 +48,6 @@ struct small_counter {
     void append(std::string_view) noexcept { ++value; }
     std::string str() const { return std::to_string(value); }
 };
-
 
 struct big_buffer {
     char storage[64]{};
@@ -74,7 +66,6 @@ struct big_buffer {
     std::string str() const { return std::string(storage, length); }
 };
 
-
 struct partial_buffer {
     std::size_t size() const noexcept { return 0u; }
     std::string str() const { return "partial"; }
@@ -86,14 +77,12 @@ PRO_DEF_MEM_DISPATCH(MemAppend, append);
 PRO_DEF_MEM_DISPATCH(MemStr, str);
 PRO_DEF_MEM_DISPATCH(MemClear, clear);
 
-
 using text_facade = sp::facade_builder
         ::add_convention<MemSize, std::size_t() const>
         ::add_convention<MemData, const char *() const>
         ::add_convention<MemAppend, void(std::string_view)>
         ::add_convention<MemStr, std::string() const>
         ::build;
-
 
 using copyable_facade = sp::facade_builder
         ::add_convention<MemSize, std::size_t() const>
@@ -115,7 +104,6 @@ using viewable_facade = sp::facade_builder
         ::add_convention<MemStr, std::string() const>
         ::add_skill<sp::skills::as_view>
         ::build;
-
 
 using weak_facade = sp::facade_builder
         ::add_convention<MemSize, std::size_t() const>
@@ -239,7 +227,6 @@ TEST_CASE("skills::as_view 允许 proxy 隐式转为 proxy_view") {
 }
 
 #if defined(__cpp_rtti) && __cpp_rtti >= 199711L
-
 
 TEST_CASE("skills::rtti 提供 typeid 反射与 proxy_cast") {
     auto p = sp::make_proxy<rtti_facade, text_buffer>("rtti");

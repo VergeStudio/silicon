@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 static void
@@ -64,7 +60,6 @@ int main (void)
   cl_arg_types[15] = &sffi_type_sint;
   cl_arg_types[16] = NULL;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 16,
 		     &sffi_type_sint, cl_arg_types) == SFFI_OK);
 
@@ -77,16 +72,16 @@ int main (void)
 
 #if !defined(SFFI_EXEC_STATIC_TRAMP) && !defined(__EMSCRIPTEN__) \
     && !(defined(SFFI_EXEC_TRAMPOLINE_TABLE) && SFFI_EXEC_TRAMPOLINE_TABLE)
-  
+
   CHECK(memcmp(pcl, SFFI_CL(codeloc), sizeof(*pcl)) == 0);
 #endif
 
   res = (*((closure_loc_test_type0)codeloc))
     (1LL, 2, 3LL, 4, 127, 429LL, 7, 8, 9.5, 10, 11, 12, 13,
      19, 21, 1);
-  
+
   printf("res: %d\n",res);
-  
+
   CHECK(res == 680);
   exit(0);
 }

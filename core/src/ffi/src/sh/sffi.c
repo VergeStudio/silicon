@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -15,7 +13,6 @@
 #else
 #define STRUCT_VALUE_ADDRESS_WITH_ARG 0
 #endif
-
 
 static int
 simple_type (sffi_type *arg)
@@ -54,7 +51,6 @@ return_type (sffi_type *arg)
 	}
     }
 
-  
   if (arg->size <= 2 * sizeof (int))
     {
       int i = 0;
@@ -79,8 +75,6 @@ return_type (sffi_type *arg)
 
   return SFFI_TYPE_STRUCT;
 }
-
-
 
 void sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -107,7 +101,6 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   else
     ireg = 0;
 
-  
   greg = ireg;
   avn = ecif->cif->nargs;
   p_argv = ecif->avalue;
@@ -128,19 +121,19 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
 	    case SFFI_TYPE_SINT8:
 	      *(signed int *) argp = (signed int)*(SINT8 *)(* p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_UINT8:
 	      *(unsigned int *) argp = (unsigned int)*(UINT8 *)(* p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_SINT16:
 	      *(signed int *) argp = (signed int)*(SINT16 *)(* p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_UINT16:
 	      *(unsigned int *) argp = (unsigned int)*(UINT16 *)(* p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_STRUCT:
 	      *(unsigned int *) argp = (unsigned int)*(UINT32 *)(* p_argv);
 	      break;
@@ -194,7 +187,6 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
 	}
     }
 
-  
   greg = ireg;
 #if defined(__SH4__)
   freg = 0;
@@ -217,19 +209,19 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
 	    case SFFI_TYPE_SINT8:
 	      *(signed int *) argp = (signed int)*(SINT8 *)(* p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_UINT8:
 	      *(unsigned int *) argp = (unsigned int)*(UINT8 *)(* p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_SINT16:
 	      *(signed int *) argp = (signed int)*(SINT16 *)(* p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_UINT16:
 	      *(unsigned int *) argp = (unsigned int)*(UINT16 *)(* p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_STRUCT:
 	      *(unsigned int *) argp = (unsigned int)*(UINT32 *)(* p_argv);
 	      break;
@@ -292,7 +284,6 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   return;
 }
 
-
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
   int i, j;
@@ -330,7 +321,7 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 	  cif->flags += ((cif->arg_types)[i]->type) << (2 * j);
 	  j++;
 	  break;
-	      
+
 	default:
 	  size = (cif->arg_types)[i]->size;
 	  n = (size + sizeof (int) - 1) / sizeof (int);
@@ -357,7 +348,6 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
     }
 #endif
 
-  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_STRUCT:
@@ -390,9 +380,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-  
-  
-  
 
   if (cif->rtype->type == SFFI_TYPE_STRUCT
       && return_type (cif->rtype) != SFFI_TYPE_STRUCT)
@@ -441,7 +428,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
     return SFFI_BAD_ABI;
 
   tramp = (unsigned int *) &closure->tramp[0];
-  
+
   insn = (return_type (cif->rtype) == SFFI_TYPE_STRUCT
 	  ? 0x0018 
 	  : 0x0008 );
@@ -461,14 +448,12 @@ sffi_prep_closure_loc (sffi_closure* closure,
   closure->user_data = user_data;
 
 #if defined(__SH4__)
-  
+
   __ic_invalidate(codeloc);
 #endif
 
   return SFFI_OK;
 }
-
-
 
 #ifdef __LITTLE_ENDIAN__
 #define OFS_INT8	0
@@ -495,7 +480,6 @@ sffi_closure_helper_SYSV (sffi_closure *closure, void *rvalue,
   cif = closure->cif;
   avalue = alloca(cif->nargs * sizeof(void *));
 
-  
   if (cif->rtype->type == SFFI_TYPE_STRUCT && STRUCT_VALUE_ADDRESS_WITH_ARG)
     {
       rvalue = (void *) *pgr++;
@@ -508,7 +492,6 @@ sffi_closure_helper_SYSV (sffi_closure *closure, void *rvalue,
   greg = ireg;
   avn = cif->nargs;
 
-  
   for (i = 0, p_arg = cif->arg_types; i < avn; i++, p_arg++)
     {
       size_t z;
@@ -526,12 +509,12 @@ sffi_closure_helper_SYSV (sffi_closure *closure, void *rvalue,
 	    case SFFI_TYPE_UINT8:
 	      avalue[i] = (((char *)pgr) + OFS_INT8);
 	      break;
-  
+
 	    case SFFI_TYPE_SINT16:
 	    case SFFI_TYPE_UINT16:
 	      avalue[i] = (((char *)pgr) + OFS_INT16);
 	      break;
-  
+
 	    case SFFI_TYPE_STRUCT:
 	      avalue[i] = pgr;
 	      break;
@@ -611,12 +594,12 @@ sffi_closure_helper_SYSV (sffi_closure *closure, void *rvalue,
 	    case SFFI_TYPE_UINT8:
 	      avalue[i] = (((char *)pst) + OFS_INT8);
 	      break;
-  
+
 	    case SFFI_TYPE_SINT16:
 	    case SFFI_TYPE_UINT16:
 	      avalue[i] = (((char *)pst) + OFS_INT16);
 	      break;
-  
+
 	    case SFFI_TYPE_STRUCT:
 	      avalue[i] = pst;
 	      break;
@@ -679,6 +662,5 @@ sffi_closure_helper_SYSV (sffi_closure *closure, void *rvalue,
 
   (closure->fun) (cif, rvalue, avalue, closure->user_data);
 
-  
   return return_type (cif->rtype);
 }

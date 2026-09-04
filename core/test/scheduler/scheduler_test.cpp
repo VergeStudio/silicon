@@ -1,6 +1,3 @@
-
-
-
 #include <atomic>
 #include <chrono>
 #include <coroutine>
@@ -22,12 +19,6 @@ namespace sched = silicon::scheduler;
 namespace coro = silicon::scheduler;
 
 namespace {
-
-
-
-
-
-
 
 auto make_value_task(int v) -> sched::task<int> {
     co_return v;
@@ -77,8 +68,6 @@ auto await_delay(sched::io_scheduler &ios, std::chrono::milliseconds delay, bool
     co_return;
 }
 
-
-
 struct value_awaiter {
     int value;
 
@@ -86,7 +75,6 @@ struct value_awaiter {
     void await_suspend(std::coroutine_handle<>) noexcept {}
     int await_resume() const noexcept { return value; }
 };
-
 
 struct list_entry {
     std::coroutine_handle<> m_awaiting_coroutine{};
@@ -232,7 +220,6 @@ TEST_CASE("thread_pool：创建成功并并发执行提交的任务") {
             CHECK(group.start(increment_task(counter)));
         }
 
-
         coro::sync_wait(wait_group(group));
         CHECK(counter.load() == 8);
         CHECK(group.empty());
@@ -351,7 +338,6 @@ TEST_CASE("io_scheduler：schedule_after 在到期后恢复协程") {
 
     CHECK(resumed);
 
-
     CHECK(elapsed >= std::chrono::milliseconds{25});
 
     ios.shutdown();
@@ -366,7 +352,6 @@ TEST_CASE("io_scheduler：manual 模式下 process_events 驱动定时恢复") {
     REQUIRE(created.has_value());
     auto &ios = *created.value();
     CHECK(ios.is_shutdown() == false);
-
 
     bool resumed = false;
     auto task = ios.spawn_joinable(await_delay(ios, std::chrono::milliseconds{20}, resumed));
@@ -435,8 +420,6 @@ TEST_CASE("awaiter_list：pop_all 摘取整条链表且可反转") {
 
 TEST_CASE("io_scheduler：completion read_at 默认契约（无后端时立即降级）") {
 
-
-
     auto created = sched::io_scheduler::create(sched::io_scheduler::options{
         .thread_strategy = sched::io_scheduler::thread_strategy_t::spawn,
         .pool = {.thread_count = 1},
@@ -444,7 +427,6 @@ TEST_CASE("io_scheduler：completion read_at 默认契约（无后端时立即�
             sched::io_scheduler::execution_strategy_t::process_tasks_on_thread_pool});
     REQUIRE(created.has_value());
     auto &ios = *created.value();
-
 
     struct temp_file {
         std::FILE *file{nullptr};
@@ -469,11 +451,8 @@ TEST_CASE("io_scheduler：completion read_at 默认契约（无后端时立即�
     REQUIRE(tf.fd >= 0);
     REQUIRE(tf.write_byte('X'));
 
-
     char buffer[1]{};
     auto read_probe = coro::sync_wait(ios.read_at(tf.fd, buffer, 1, 0));
-
-
 
     if(ios.completion_backend() == sched::io_ring::backend::none) {
         REQUIRE_FALSE(read_probe.has_value());

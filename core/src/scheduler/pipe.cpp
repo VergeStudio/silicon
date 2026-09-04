@@ -13,8 +13,6 @@ module;
 #include <map>
 #include <optional>
 
-
-
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    include <io.h>
 #    include <fcntl.h>
@@ -39,14 +37,12 @@ class pipe_t::impl {
 pipe_t::pipe_t(): m_p(std::make_unique<impl>())
 {
 
-
 #if defined(SILICON_PLATFORM_WINDOWS)
     if (_pipe(m_p->m_fds.data(), 256, _O_BINARY) != 0)
     {
         std::cerr << "Failed to create pipe, errno=[" << std::system_category().message(errno) << "]\n";
         return;
     }
-
 
     for (const auto& fd : m_p->m_fds)
     {
@@ -60,7 +56,6 @@ pipe_t::pipe_t(): m_p(std::make_unique<impl>())
         std::cerr << "Failed to create pipe, errno=[" << std::system_category().message(errno) << "]\n";
         return;
     }
-
 
     for (const auto& fd : m_p->m_fds)
     {

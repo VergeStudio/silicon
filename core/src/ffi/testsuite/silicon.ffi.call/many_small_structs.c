@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct { int a; int b; } small_struct;

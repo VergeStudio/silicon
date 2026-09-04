@@ -1,15 +1,11 @@
 module;
 
-
 #include "silicon/common.h"
 
 module silicon.coroutine;
 
-
 namespace silicon::coroutine {
 using namespace std::string_literals;
-
-
 
 CORE_API std::string semaphore_acquire_result_acquired = "acquired"s;
 CORE_API std::string semaphore_acquire_result_shutdown = "shutdown"s;

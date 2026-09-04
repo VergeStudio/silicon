@@ -1,4 +1,3 @@
-
 #include "ffitest.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -54,7 +53,6 @@ int main (void)
   arg_types[2] = &T_FFI_TYPE;
   arg_types[3] = NULL;
 
-  
   CHECK(sffi_prep_cif_var(&cif, SFFI_DEFAULT_ABI, 1, 3, &sffi_type_sint,
 			 arg_types) == SFFI_OK);
 

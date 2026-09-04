@@ -1,22 +1,11 @@
 #ifndef SILICON_COMMON_H
 #define SILICON_COMMON_H
 
-
-
-
-
-
-
-
-
 #if defined(_MSC_VER)
 #    define __ATTRIBUTE__(x)
 #else
 #    define __ATTRIBUTE__(x) __attribute__((x))
 #endif
-
-
-
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(CORE_EXPORT)
@@ -31,10 +20,5 @@
 #        define CORE_API
 #    endif
 #endif
-
-
-
-
-
 
 #endif

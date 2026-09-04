@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 #ifdef __linux__

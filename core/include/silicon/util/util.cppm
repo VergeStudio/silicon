@@ -14,16 +14,8 @@ export module silicon.util;
 
 export namespace silicon::util {
 
-
-
-
-
 CORE_API bool has_suffix(const char *, const char *);
 CORE_API std::uint64_t generate_unique_id();
-
-
-
-
 
 namespace strings_internal {
 
@@ -46,13 +38,11 @@ inline std::string cat_pieces(std::initializer_list<std::string_view> pieces) {
 
 }
 
-
 template <typename... Args>
     requires (std::convertible_to<Args, std::string_view> && ...)
 inline std::string str_cat(const Args &...args) {
     return strings_internal::cat_pieces({static_cast<std::string_view>(args)...});
 }
-
 
 template <typename... Args>
     requires (std::convertible_to<Args, std::string_view> && ...) && (sizeof...(Args) >= 1)
@@ -62,11 +52,7 @@ inline void str_append(std::string *destination, const Args &...args) {
 
 }
 
-
-
-
 export namespace silicon::os {
-
 
 inline std::string get_env(const char *name) {
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -83,8 +69,6 @@ inline std::string get_env(const char *name) {
     return (v && *v) ? std::string(v) : std::string{};
 #endif
 }
-
-
 
 inline void set_env(const char *name, const char *value) {
 #if defined(SILICON_PLATFORM_WINDOWS)

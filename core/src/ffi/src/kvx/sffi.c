@@ -1,5 +1,3 @@
-
-
 #if defined(__kvx__)
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,14 +33,11 @@ extern struct ret_value sffi_call_SYSV(unsigned total_size,
                                       void *fn,
                                       unsigned int_ext_method);
 
-
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
   cif->flags = cif->rtype->size;
   return SFFI_OK;
 }
-
-
 
 void *sffi_prep_args(char *stack, unsigned int arg_slots_size, extended_cif *ecif)
 {
@@ -125,8 +120,6 @@ void *sffi_prep_args(char *stack, unsigned int arg_slots_size, extended_cif *eci
   return stacktemp + REG_ARGS_SIZE;
 }
 
-
-
 sffi_status sffi_prep_cif_machdep_var(sffi_cif *cif, unsigned int nfixedargs,
                                     unsigned int ntotalargs)
 {
@@ -179,8 +172,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   struct ret_value local_rvalue = {0};
   size_t wb_size;
 
-
-  
   for (i = 0, arg = cif->arg_types; i < cif->nargs; i++, arg++) {
     DEBUG_PRINT("argument %d, type %d, size %lu\n", i, (*arg)->type, (*arg)->size);
     if (((*arg)->type == SFFI_TYPE_STRUCT) || ((*arg)->type == SFFI_TYPE_COMPLEX)) {
@@ -203,12 +194,10 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   ecif.avalue = avalue;
   ecif.rvalue = rvalue;
 
-  
   slot_fitting_args_size = max(slot_fitting_args_size, REG_ARGS_SIZE);
   total_size = slot_fitting_args_size + big_struct_size;
   total_size = ALIGN(total_size, KVX_ABI_STACK_ALIGNMENT);
 
-  
   wb_size = handle_small_int_ext(&int_extension_method, cif->rtype);
 
   switch (cif->abi) {
@@ -231,7 +220,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
       break;
   }
 }
-
 
 sffi_status
 sffi_prep_closure_loc (sffi_closure* closure,

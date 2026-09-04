@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include <string>
 
 #include <silicon/test/test.h>

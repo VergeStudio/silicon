@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 module;
 
 #include <ares.h>
@@ -38,12 +30,9 @@ import :facade;
 
 export namespace silicon::network::dns {
 
-
-
 extern uint64_t m_ares_count;
 
 extern std::mutex m_ares_mutex;
-
 
 template<silicon::scheduler::concepts::io_executor executor_type>
 class resolver;
@@ -65,10 +54,8 @@ class result {
     }
     ~result() = default;
 
-    
     auto status() const -> dns::status { return m_status; }
 
-    
     auto ip_addresses() const -> const std::vector<silicon::network::ip_address> & { return m_ip_addresses; }
 
   private:
@@ -84,7 +71,7 @@ class result {
 template<silicon::scheduler::concepts::io_executor executor_type>
 class resolver {
   public:
-    
+
     static std::expected<std::unique_ptr<resolver>, std::error_code> create(std::unique_ptr<executor_type> &executor, std::chrono::milliseconds timeout) {
         if(executor == nullptr) {
             return std::unexpected(make_error_code(network_error::kNullExecutor));
@@ -100,7 +87,6 @@ class resolver {
             }
             ++m_ares_count;
         }
-
 
         auto self = std::unique_ptr<resolver>{new resolver{executor, timeout}};
 
@@ -136,7 +122,6 @@ class resolver {
         }
     }
 
-    
     silicon::scheduler::task<std::unique_ptr<result<executor_type>>> host_by_name(const network::hostname &hn) {
         silicon::coroutine::event resume_event{};
         auto result_ptr = std::make_unique<result<executor_type>>(m_executor, resume_event, 1);
@@ -153,7 +138,6 @@ class resolver {
                 result_ptr.get()
         );
 
-
         co_await resume_event;
         co_return result_ptr;
     }
@@ -165,16 +149,11 @@ class resolver {
           m_timeout(timeout) {
     }
 
-
     std::unique_ptr<executor_type> &m_executor;
-
 
     std::chrono::milliseconds m_timeout{0};
 
-
     ares_channel m_ares_channel{nullptr};
-
-
 
     std::unordered_map<silicon::scheduler::fd_t, silicon::scheduler::poll_op> m_active_sockets{};
 
@@ -244,7 +223,6 @@ class resolver {
             result.m_status = status::kComplete;
 
             for(ares_addrinfo_node *node = addr_info->nodes; node != nullptr; node = node->ai_next) {
-
 
                 if(node->ai_family == AF_INET) {
                     sockaddr_in *sin = reinterpret_cast<sockaddr_in *>(node->ai_addr);

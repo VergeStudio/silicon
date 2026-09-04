@@ -1,6 +1,3 @@
-
-
-
 #include <initializer_list>
 #include <string>
 #include <string_view>
@@ -16,13 +13,11 @@ namespace tui = silicon::tui;
 
 namespace {
 
-
 struct fake_terminal {
     std::string_view terminal_type() const { return "xterm-256color"; }
     int32_t width() const { return 80; }
     int32_t height() const { return 24; }
 };
-
 
 struct fake_pty {
     bool create(std::string_view, std::initializer_list<std::string>) { return true; }
@@ -30,7 +25,6 @@ struct fake_pty {
     std::string read() { return "out"; }
     void close() {}
 };
-
 
 struct fake_renderer {
     void render(std::string_view) {}

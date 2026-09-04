@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static int i=5;
@@ -35,7 +32,6 @@ int main (void)
   sffi_type *ts12a_type_elements[2];
   sffi_type *ts12b_type_elements[3];
 
-
   test_structure_12 ts12_arg;
   void (*ptr)(void)=&callback;
 
@@ -65,7 +61,6 @@ int main (void)
   ts12_type_elements[1] = &ts12b_type;
   ts12_type_elements[2] = &sffi_type_uchar;
   ts12_type_elements[3] = NULL;
-
 
   args[0] = &ts12_type;
   args[1] = &sffi_type_pointer;

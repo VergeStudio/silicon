@@ -1,5 +1,3 @@
-
-
 #include <cstdint>
 #include <cstdlib>
 #include <string>

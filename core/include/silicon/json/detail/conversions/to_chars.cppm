@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -25,10 +12,8 @@ module;
 
 export module silicon.json:detail.conversions.to_chars;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 namespace dtoa_impl {
 
@@ -50,7 +35,6 @@ export struct diyfp
 
     constexpr diyfp(std::uint64_t f_, int e_) noexcept: f(f_), e(e_) {}
 
-    
     CORE_API static diyfp sub(const diyfp &x, const diyfp &y) noexcept {
         JSON_ASSERT(x.e == y.e);
         JSON_ASSERT(x.f >= y.f);
@@ -58,32 +42,8 @@ export struct diyfp
         return {x.f - y.f, x.e};
     }
 
-    
     CORE_API static diyfp mul(const diyfp &x, const diyfp &y) noexcept {
         static_assert(kPrecision == 64, "internal error");
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         const std::uint64_t u_lo = x.f & 0xFFFFFFFFu;
         const std::uint64_t u_hi = x.f >> 32u;
@@ -103,15 +63,6 @@ export struct diyfp
 
         std::uint64_t Q = p0_hi + p1_lo + p2_lo;
 
-
-
-
-
-
-
-
-
-
         Q += std::uint64_t{1} << (64u - 32u - 1u);
 
         const std::uint64_t h = p3 + p2_hi + p1_hi + (Q >> 32u);
@@ -119,7 +70,6 @@ export struct diyfp
         return {h, x.e + y.e + 64};
     }
 
-    
     CORE_API static diyfp normalize(diyfp x) noexcept {
         JSON_ASSERT(x.f != 0);
 
@@ -131,7 +81,6 @@ export struct diyfp
         return x;
     }
 
-    
     CORE_API static diyfp normalize_to(const diyfp &x, const int target_exponent) noexcept {
         const int delta = x.e - target_exponent;
 
@@ -148,18 +97,10 @@ export struct boundaries {
     diyfp plus;
 };
 
-
 export template<typename FloatType>
 boundaries compute_boundaries(FloatType value) {
     JSON_ASSERT(std::isfinite(value));
     JSON_ASSERT(value > 0);
-
-
-
-
-
-
-
 
     static_assert(std::numeric_limits<FloatType>::is_iec559, "internal error: dtoa_short requires an IEEE-754 floating-point implementation");
 
@@ -179,96 +120,18 @@ boundaries compute_boundaries(FloatType value) {
                             ? diyfp(F, kMinExp)
                             : diyfp(F + kHiddenBit, static_cast<int>(E) - kBias);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     const bool lower_boundary_is_closer = F == 0 && E > 1;
     const diyfp m_plus = diyfp(2 * v.f + 1, v.e - 1);
     const diyfp m_minus = lower_boundary_is_closer
                                   ? diyfp(4 * v.f - 1, v.e - 2)
                                   : diyfp(2 * v.f - 1, v.e - 1);
 
-
     const diyfp w_plus = diyfp::normalize(m_plus);
-
 
     const diyfp w_minus = diyfp::normalize_to(m_minus, w_plus.e);
 
     return {diyfp::normalize(v), w_minus, w_plus};
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export constexpr int kAlpha = -60;
 export constexpr int kGamma = -32;
@@ -280,57 +143,7 @@ export struct cached_power
     int k;
 };
 
-
 export inline cached_power get_cached_power_for_binary_exponent(int e) {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     constexpr int kCachedPowersMinDecExp = -300;
     constexpr int kCachedPowersDecStep = 8;
@@ -420,10 +233,6 @@ export inline cached_power get_cached_power_for_binary_exponent(int e) {
                     }
             };
 
-
-
-
-
     JSON_ASSERT(e >= -1500);
     JSON_ASSERT(e <= 1500);
     const int f = kAlpha - e - 1;
@@ -439,7 +248,6 @@ export inline cached_power get_cached_power_for_binary_exponent(int e) {
 
     return cached;
 }
-
 
 export inline int find_largest_pow10(const std::uint32_t n, std::uint32_t &pow10) {
 
@@ -491,25 +299,6 @@ export inline void grisu2_round(char *buf, int len, std::uint64_t dist, std::uin
     JSON_ASSERT(rest <= delta);
     JSON_ASSERT(ten_k > 0);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     while(rest < dist && delta - rest >= ten_k && (rest + ten_k < dist || dist - rest > rest + ten_k - dist)) {
         JSON_ASSERT(buf[len - 1] != '0');
         buf[len - 1]--;
@@ -517,22 +306,9 @@ export inline void grisu2_round(char *buf, int len, std::uint64_t dist, std::uin
     }
 }
 
-
 export inline void grisu2_digit_gen(char *buffer, int &length, int &decimal_exponent, diyfp M_minus, diyfp w, diyfp M_plus) {
     static_assert(kAlpha >= -60, "internal error");
     static_assert(kGamma <= -32, "internal error");
-
-
-
-
-
-
-
-
-
-
-
-
 
     JSON_ASSERT(M_plus.e >= kAlpha);
     JSON_ASSERT(M_plus.e <= kGamma);
@@ -540,91 +316,32 @@ export inline void grisu2_digit_gen(char *buffer, int &length, int &decimal_expo
     std::uint64_t delta = diyfp::sub(M_plus, M_minus).f;
     std::uint64_t dist = diyfp::sub(M_plus, w).f;
 
-
-
-
-
-
-
-
     const diyfp one(std::uint64_t{1} << -M_plus.e, M_plus.e);
 
     auto p1 = static_cast<std::uint32_t>(M_plus.f >> -one.e);
     std::uint64_t p2 = M_plus.f & (one.f - 1);
-
-
-
-
 
     JSON_ASSERT(p1 > 0);
 
     std::uint32_t pow10{};
     const int k = find_largest_pow10(p1, pow10);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     int n = k;
     while(n > 0) {
-
-
-
 
         const std::uint32_t d = p1 / pow10;
         const std::uint32_t r = p1 % pow10;
 
-
-
-
         JSON_ASSERT(d <= 9);
         buffer[length++] = static_cast<char>('0' + d);
-
-
 
         p1 = r;
         n--;
 
-
-
-
-
-
-
-
-
-
-
-
-
         const std::uint64_t rest = (std::uint64_t{p1} << -one.e) + p2;
         if(rest <= delta) {
 
-
             decimal_exponent += n;
-
-
-
-
-
-
-
-
-
 
             const std::uint64_t ten_n = std::uint64_t{pow10} << -one.e;
             grisu2_round(buffer, length, dist, delta, rest, ten_n);
@@ -634,83 +351,23 @@ export inline void grisu2_digit_gen(char *buffer, int &length, int &decimal_expo
 
         pow10 /= 10;
 
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     JSON_ASSERT(p2 > delta);
 
     int m = 0;
     for(;;) {
 
-
-
-
-
-
         JSON_ASSERT(p2 <= (std::numeric_limits<std::uint64_t>::max)() / 10);
         p2 *= 10;
         const std::uint64_t d = p2 >> -one.e;
         const std::uint64_t r = p2 & (one.f - 1);
 
-
-
-
-
         JSON_ASSERT(d <= 9);
         buffer[length++] = static_cast<char>('0' + d);
 
-
-
         p2 = r;
         m++;
-
-
-
-
-
-
-
-
 
         delta *= 10;
         dist *= 10;
@@ -719,78 +376,25 @@ export inline void grisu2_digit_gen(char *buffer, int &length, int &decimal_expo
         }
     }
 
-
-
     decimal_exponent -= m;
-
-
-
-
-
-
 
     const std::uint64_t ten_m = one.f;
     grisu2_round(buffer, length, dist, delta, p2, ten_m);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
-
 
 export JSON_HEDLEY_NON_NULL(1)
 inline void grisu2(char *buf, int &len, int &decimal_exponent, diyfp m_minus, diyfp v, diyfp m_plus) {
     JSON_ASSERT(m_plus.e == m_minus.e);
     JSON_ASSERT(m_plus.e == v.e);
 
-
-
-
-
-
-
-
-
-
     const cached_power cached = get_cached_power_for_binary_exponent(m_plus.e);
 
     const diyfp c_minus_k(cached.f, cached.e);
 
-
     const diyfp w = diyfp::mul(v, c_minus_k);
     const diyfp w_minus = diyfp::mul(m_minus, c_minus_k);
     const diyfp w_plus = diyfp::mul(m_plus, c_minus_k);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     const diyfp M_minus(w_minus.f + 1, w_minus.e);
     const diyfp M_plus(w_plus.f - 1, w_plus.e);
@@ -800,7 +404,6 @@ inline void grisu2(char *buf, int &len, int &decimal_exponent, diyfp m_minus, di
     grisu2_digit_gen(buf, len, decimal_exponent, M_minus, w, M_plus);
 }
 
-
 export template<typename FloatType>
 JSON_HEDLEY_NON_NULL(1)
 void grisu2(char *buf, int &len, int &decimal_exponent, FloatType value) {
@@ -808,22 +411,6 @@ void grisu2(char *buf, int &len, int &decimal_exponent, FloatType value) {
 
     JSON_ASSERT(std::isfinite(value));
     JSON_ASSERT(value > 0);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #if 0
     const boundaries w = compute_boundaries(static_cast<double>(value));
@@ -833,7 +420,6 @@ void grisu2(char *buf, int &len, int &decimal_exponent, FloatType value) {
 
     grisu2(buf, len, decimal_exponent, w.minus, w.w, w.plus);
 }
-
 
 export JSON_HEDLEY_NON_NULL(1)
 JSON_HEDLEY_RETURNS_NON_NULL
@@ -850,7 +436,6 @@ inline char *append_exponent(char *buf, int e) {
 
     auto k = static_cast<std::uint32_t>(e);
     if(k < 10) {
-
 
         *buf++ = '0';
         *buf++ = static_cast<char>('0' + k);
@@ -869,7 +454,6 @@ inline char *append_exponent(char *buf, int e) {
     return buf;
 }
 
-
 export JSON_HEDLEY_NON_NULL(1)
 JSON_HEDLEY_RETURNS_NON_NULL
 inline char *format_buffer(char *buf, int len, int decimal_exponent, int min_exp, int max_exp) {
@@ -879,13 +463,7 @@ inline char *format_buffer(char *buf, int len, int decimal_exponent, int min_exp
     const int k = len;
     const int n = len + decimal_exponent;
 
-
-
-
-
     if(k <= n && n <= max_exp) {
-
-
 
         std::memset(buf + k, '0', static_cast<size_t>(n) - static_cast<size_t>(k));
 
@@ -896,8 +474,6 @@ inline char *format_buffer(char *buf, int len, int decimal_exponent, int min_exp
 
     if(0 < n && n <= max_exp) {
 
-
-
         JSON_ASSERT(k > n);
 
         std::memmove(buf + (static_cast<size_t>(n) + 1), buf + n, static_cast<size_t>(k) - static_cast<size_t>(n));
@@ -906,8 +482,6 @@ inline char *format_buffer(char *buf, int len, int decimal_exponent, int min_exp
     }
 
     if(min_exp < n && n <= 0) {
-
-
 
         std::memmove(buf + (2 + static_cast<size_t>(-n)), buf, static_cast<size_t>(k));
         buf[0] = '0';
@@ -918,12 +492,8 @@ inline char *format_buffer(char *buf, int len, int decimal_exponent, int min_exp
 
     if(k == 1) {
 
-
-
         buf += 1;
     } else {
-
-
 
         std::memmove(buf + 2, buf + 1, static_cast<size_t>(k) - 1);
         buf[1] = '.';
@@ -936,14 +506,12 @@ inline char *format_buffer(char *buf, int len, int decimal_exponent, int min_exp
 
 }
 
-
 export template<typename FloatType>
 JSON_HEDLEY_NON_NULL(1, 2)
 JSON_HEDLEY_RETURNS_NON_NULL
         char *to_chars(char *first, const char *last, FloatType value) {
     static_cast<void>(last);
     JSON_ASSERT(std::isfinite(value));
-
 
     if(std::signbit(value)) {
         value = -value;
@@ -968,16 +536,11 @@ JSON_HEDLEY_RETURNS_NON_NULL
 
     JSON_ASSERT(last - first >= std::numeric_limits<FloatType>::max_digits10);
 
-
-
-
-
     int len = 0;
     int decimal_exponent = 0;
     dtoa_impl::grisu2(first, len, decimal_exponent, value);
 
     JSON_ASSERT(len <= std::numeric_limits<FloatType>::max_digits10);
-
 
     constexpr int kMinExp = -4;
 

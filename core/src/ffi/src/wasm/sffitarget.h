@@ -1,5 +1,3 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
@@ -7,11 +5,8 @@
 #    error "Please do not include sffitarget.h directly into your source.  Use sffi.h instead."
 #endif
 
-
-
 typedef unsigned long sffi_arg;
 typedef signed long sffi_sarg;
-
 
 typedef void (*sffi_fp)(void);
 

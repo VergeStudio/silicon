@@ -1,4 +1,3 @@
-
 #include <memory>
 #include <string>
 #include <system_error>
@@ -31,7 +30,6 @@ struct retry_config final: iconfig {
     int retries() const override { return 3; }
 };
 
-
 struct greeting_service {
     SILICON_DI_CONSTRUCTOR(greeting_service(igreeter &greeter, iconfig &cfg))
         : greeter_(greeter),
@@ -52,7 +50,6 @@ TEST_CASE("di_error 枚举与 make_error_code 走 silicon.di category") {
     CHECK(std::string(ec.message()) == "requested type not found in container");
     CHECK(std::string(make_error_code(di::di_error::kCircularDependency).message()) == "circular dependency detected");
 
-
     static_assert(static_cast<int>(di::di_error::kDuplicateBinding) == 1);
     static_assert(static_cast<int>(di::di_error::kUnresolvedDependency) == 2);
     static_assert(static_cast<int>(di::di_error::kCircularDependency) == 3);
@@ -68,7 +65,6 @@ TEST_CASE("接口绑定：resolve 得到实现引用") {
 }
 
 TEST_CASE("scope::unique 每次解析出新实例") {
-
 
     di::container<> c;
     c.register_type<di::storage_marker<english_greeter>, di::scope<di::unique>>();
@@ -139,8 +135,6 @@ TEST_CASE("invoke 注入可调用对象的参数") {
     di::container<> c;
     c.register_type<di::interfaces<igreeter>, di::storage_marker<english_greeter>, di::scope<di::shared>>();
     c.register_type<di::interfaces<iconfig>, di::storage_marker<retry_config>, di::scope<di::shared>>();
-
-
 
     auto r = c.invoke([](igreeter &g, iconfig &cfg) { return g.greet() + std::to_string(cfg.retries()); });
     CHECK(r == "hello3");

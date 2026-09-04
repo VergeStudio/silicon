@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 module;
 
 #include <memory>
@@ -14,16 +6,12 @@ module;
 
 #include <silicon/proxy/proxy_macros.h>
 
-
-
 #include <silicon/common.h>
 export module silicon.platform;
-
 
 import silicon.proxy;
 
 export namespace silicon::platform {
-
 
 enum class os_id : unsigned {
     kFreeBsd = 0x0001,
@@ -47,7 +35,6 @@ enum class os_id : unsigned {
     kVms = 0x2001,
 };
 
-
 enum class arch_id : unsigned {
     kAlpha = 0x01,
     kIa32 = 0x02,
@@ -69,15 +56,6 @@ enum class arch_id : unsigned {
     kRiscv32 = 0x11,
     kLoongarch64 = 0x12,
 };
-
-
-
-
-
-
-
-
-
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 constexpr os_id os = os_id::kWindowsNt;
@@ -115,15 +93,6 @@ constexpr arch_id arch = arch_id::kLoongarch64;
 #    error "Unknown hardware architecture."
 #endif
 
-
-
-
-
-
-
-
-
-
 PRO_DEF_MEM_DISPATCH(MemPlatformOsName, os_name);
 PRO_DEF_MEM_DISPATCH(MemPlatformPathSeparator, path_separator);
 PRO_DEF_MEM_DISPATCH(MemPlatformLineEnding, line_ending);
@@ -139,14 +108,11 @@ template<class T, class... Args>
     );
 }
 
-
 template<class T>
     requires silicon::proxy::proxiable_target<T, platform_facade>
 [[nodiscard]] platform_view make_platform_view(T &target) noexcept {
     return silicon::proxy::make_proxy_view<platform_facade>(target);
 }
-
-
 
 [[nodiscard]] CORE_API platform_proxy create_platform();
 

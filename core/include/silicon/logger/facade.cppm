@@ -22,7 +22,6 @@ import silicon.proxy;
 
 export namespace silicon::logger {
 
-
 PRO_DEF_MEM_DISPATCH(MemLoggerTrace, trace);
 PRO_DEF_MEM_DISPATCH(MemLoggerDebug, debug);
 PRO_DEF_MEM_DISPATCH(MemLoggerInfo, info);
@@ -67,7 +66,3 @@ CORE_API void error(const std::string_view &, std::source_location &&location = 
 CORE_API void critical(const std::string_view &, std::source_location &&location = std::source_location::current());
 
 }
-
-
-
-

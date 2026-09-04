@@ -14,8 +14,6 @@ module silicon.scheduler.task;
 
 namespace silicon::scheduler {
 
-
-
 bool promise_base::final_awaitable::await_ready() const noexcept {
     return false;
 }
@@ -29,8 +27,6 @@ void promise_base::final_awaitable::await_resume() noexcept {}
 [[nodiscard]] auto task_self_deleting::promise() -> promise_self_deleting & {
     return *m_promise;
 }
-
-
 
 task_event::awaiter::awaiter(const task_event &e) noexcept: m_event(e) {}
 

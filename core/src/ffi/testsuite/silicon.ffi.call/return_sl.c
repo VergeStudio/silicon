@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 static long return_sl(long l1, long l2)
 {
@@ -30,7 +27,7 @@ int main (void)
 
   sffi_call(&cif, SFFI_FN(return_sl), &res, values);
   printf("res: %ld, %ld\n", (long)res, l1 - l2);
-  
+
   CHECK((long)res == -1);
   CHECK(l1 + 1 == l2);
 

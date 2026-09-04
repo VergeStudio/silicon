@@ -1,13 +1,11 @@
 module;
 
-
 #include <atomic>
 #include <memory>
 
 module silicon.coroutine;
 
 namespace silicon::coroutine {
-
 
 struct condition_variable::impl {
   public:
@@ -64,7 +62,6 @@ bool condition_variable::awaiter::await_suspend(std::coroutine_handle<> awaiting
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
 
-
     static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
@@ -94,7 +91,6 @@ bool condition_variable::awaiter_with_predicate::await_suspend(std::coroutine_ha
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
 
-
     static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
@@ -105,8 +101,6 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
         m_awaiting_coroutine.resume();
         co_return notify_status_t::kReady;
     }
-
-
 
     static_cast<void>(m_lock.owned_mutex()->unlock());
     co_return notify_status_t::kNotReady;
@@ -135,7 +129,6 @@ bool condition_variable::awaiter_with_predicate_stop_token::await_suspend(std::c
     m_awaiting_coroutine = awaiting_coroutine;
     silicon::scheduler::awaiter_list_push(m_condition_variable.m_p->m_awaiters, static_cast<awaiter_base *>(this));
 
-
     static_cast<void>(m_lock.owned_mutex()->unlock());
     return true;
 }
@@ -144,13 +137,10 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
     co_await m_lock.owned_mutex()->lock();
     m_predicate_result = m_predicate();
 
-
     if(m_predicate_result || m_stop_token.stop_requested()) {
         m_awaiting_coroutine.resume();
         co_return notify_status_t::kReady;
     }
-
-
 
     static_cast<void>(m_lock.owned_mutex()->unlock());
     co_return notify_status_t::kNotReady;
@@ -185,7 +175,6 @@ condition_variable::awaiter_with_wait_hook::awaiter_with_wait_hook(
 silicon::scheduler::task<condition_variable::notify_status_t> condition_variable::awaiter_with_wait_hook::do_on_notify() {
     auto event_lock = co_await m_data.m_event_mutex.scoped_lock();
 
-
     if(m_data.m_awaiter_completed.load(std::memory_order::acquire)) {
 
         event_lock.unlock();
@@ -195,7 +184,6 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
 
     auto *waiter_mutex = m_lock.owned_mutex();
     co_await waiter_mutex->lock();
-
 
     if(!m_data.m_predicate.has_value()) {
         m_data.m_awaiter_completed.exchange(true, std::memory_order::release);
@@ -207,7 +195,6 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
 
     m_data.m_predicate_result = m_data.m_predicate.value()();
 
-
     if(m_data.m_predicate_result || (m_data.m_stop_token.has_value() && m_data.m_stop_token.value().stop_requested())) {
         m_data.m_awaiter_completed.exchange(true, std::memory_order::release);
         m_data.m_status = {std::cv_status::no_timeout};
@@ -215,7 +202,6 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
         m_data.m_notify_callback.set();
         co_return notify_status_t::kReady;
     }
-
 
     static_cast<void>(waiter_mutex->unlock());
     co_return notify_status_t::kNotReady;

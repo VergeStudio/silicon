@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct my_ffi_struct {
@@ -15,7 +12,6 @@ my_ffi_struct callee(struct my_ffi_struct a1, struct my_ffi_struct a2)
   result.a = a1.a + a2.a;
   result.b = a1.b + a2.b;
   result.c = a1.c + a2.c;
-
 
   printf("%g %g %g %g %g %g: %g %g %g\n", a1.a, a1.b, a1.c,
 	 a2.a, a2.b, a2.c, result.a, result.b, result.c);
@@ -34,7 +30,6 @@ void stub(sffi_cif* cif __UNUSED__, void* resp, void** args,
 
   *(my_ffi_struct *)resp = callee(a1, a2);
 }
-
 
 int main(void)
 {
@@ -71,16 +66,14 @@ int main(void)
   args[1] = &f;
   args[2] = NULL;
   sffi_call(&cif, SFFI_FN(callee), &res, args);
-  
+
   printf("res: %g %g %g\n", res.a, res.b, res.c);
-  
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, stub, NULL, code) == SFFI_OK);
 
   res = ((my_ffi_struct(*)(struct my_ffi_struct, struct my_ffi_struct))(code))(g, f);
-  
+
   printf("res: %g %g %g\n", res.a, res.b, res.c);
-  
 
   exit(0);;
 }

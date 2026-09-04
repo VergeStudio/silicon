@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_12byte {
@@ -82,9 +79,9 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_12byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  
+
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 9);
   CHECK(res_dbl.c == 12);
@@ -96,10 +93,9 @@ int main (void)
   res_dbl.c = 0;
 
   res_dbl = ((cls_struct_12byte(*)(cls_struct_12byte, cls_struct_12byte))(code))(h_dbl, j_dbl);
-  
 
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  
+
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 9);
   CHECK(res_dbl.c == 12);

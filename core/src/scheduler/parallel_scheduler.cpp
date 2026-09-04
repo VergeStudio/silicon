@@ -15,8 +15,6 @@ import :poll_info_impl;
 
 namespace silicon::scheduler {
 
-
-
 struct parallel_scheduler::impl {
     std::unique_ptr<thread_pool> m_pool;
 };

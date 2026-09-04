@@ -42,8 +42,6 @@ std::vector<std::string> plugin_registry::list_plugins() const {
     return names;
 }
 
-
-
 auto proxy_plugin_registry::register_plugin(plugin_proxy plugin) -> result<void> {
     if(!plugin) return std::unexpected(make_error_code(plugin_error::kNullPlugin));
     auto name = std::string(plugin->name());
@@ -71,6 +69,5 @@ std::vector<std::string> proxy_plugin_registry::list() const {
     for(const auto &[k, v]: impl_->plugins_) names.push_back(k);
     return names;
 }
-
 
 }

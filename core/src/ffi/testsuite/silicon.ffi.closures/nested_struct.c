@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_16byte1 {
@@ -79,7 +76,6 @@ cls_struct_combined_gn(sffi_cif* cif __UNUSED__, void* resp, void** args,
   b1 = *(struct cls_struct_16byte2*)(args[1]);
   b2 = *(struct cls_struct_combined*)(args[2]);
 
-
   *(cls_struct_combined*)resp = cls_struct_combined_fn(b0, b1, b2);
 }
 
@@ -130,7 +126,6 @@ int main (void)
   cls_struct_fields2[1] = &cls_struct_type1;
   cls_struct_fields2[2] = NULL;
 
-
   dbl_arg_types[0] = &cls_struct_type;
   dbl_arg_types[1] = &cls_struct_type1;
   dbl_arg_types[2] = &cls_struct_type2;
@@ -145,7 +140,7 @@ int main (void)
   args_dbl[3] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_combined_fn), &res_dbl, args_dbl);
-  
+
   CHECK_DOUBLE_EQ( res_dbl.d.a, (e_dbl.a + f_dbl.dd + g_dbl.d.a));
   CHECK_FLOAT_EQ( res_dbl.d.b,  (e_dbl.b + f_dbl.ff + g_dbl.d.b));
   CHECK( res_dbl.d.c == (e_dbl.c + f_dbl.ii + g_dbl.d.c));
@@ -159,7 +154,7 @@ int main (void)
 				     cls_struct_16byte2,
 				     cls_struct_combined))
 	     (code))(e_dbl, f_dbl, g_dbl);
-  
+
   CHECK_DOUBLE_EQ( res_dbl.d.a, (e_dbl.a + f_dbl.dd + g_dbl.d.a));
   CHECK_FLOAT_EQ( res_dbl.d.b,  (e_dbl.b + f_dbl.ff + g_dbl.d.b));
   CHECK( res_dbl.d.c == (e_dbl.c + f_dbl.ii + g_dbl.d.c));

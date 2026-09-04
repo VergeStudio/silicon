@@ -1,5 +1,3 @@
-
-
 #include "ffitest.h"
 
 #include <pthread.h>

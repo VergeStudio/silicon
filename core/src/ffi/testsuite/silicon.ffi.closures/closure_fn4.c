@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 static void
@@ -66,7 +62,6 @@ int main (void)
   cl_arg_types[15] = &sffi_type_sint;
   cl_arg_types[16] = NULL;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 16,
 		     &sffi_type_sint, cl_arg_types) == SFFI_OK);
 
@@ -76,9 +71,9 @@ int main (void)
   res = (*((closure_test_type0)code))
     (1LL, 2LL, 3LL, 4LL, 127LL, 429LL, 7LL, 8LL, 9LL, 10LL, 11LL, 12LL,
      13LL, 19LL, 21LL, 1);
-  
+
   printf("res: %d\n",res);
-  
+
   CHECK(res == 680);
 
   exit(0);

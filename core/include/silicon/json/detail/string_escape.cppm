@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -18,10 +5,8 @@ module;
 
 export module silicon.json:detail.string_escape;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 export template<typename StringType>
 inline void replace_substring(StringType &s, const StringType &f, const StringType &t) {
@@ -33,14 +18,12 @@ inline void replace_substring(StringType &s, const StringType &f, const StringTy
     {}
 }
 
-
 export template<typename StringType>
 inline StringType escape(StringType s) {
     replace_substring(s, StringType{"~"}, StringType{"~0"});
     replace_substring(s, StringType{"/"}, StringType{"~1"});
     return s;
 }
-
 
 export template<typename StringType>
 inline void unescape(StringType &s) {

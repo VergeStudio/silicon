@@ -1,14 +1,9 @@
-
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sffi.h>
 #include "alignof.h"
 #include <stdarg.h>
-
 
 #ifdef DGTEST
 
@@ -46,18 +41,15 @@ int _fprintf(FILE *stream, const char *format, ...)
 #define fprintf _fprintf
 #endif
 
-
 #include "testcases.c"
 
 #ifndef ABI_NUM
 #define ABI_NUM SFFI_DEFAULT_ABI
 #endif
 
-
 static sffi_type sffi_type_char;
 #define sffi_type_slonglong sffi_type_sint64
 #define sffi_type_ulonglong sffi_type_uint64
-
 
 #define SKIP_EXTRA_STRUCTS
 
@@ -342,7 +334,7 @@ void
   double dr;
 
 #if (!defined(DGTEST)) || DGTEST == 14
-  
+
   dr = d_d(d1);
   fprintf(out,"->%g\n",dr);
   fflush(out);
@@ -470,7 +462,6 @@ void
   double dr;
   long long llr;
 
-  
 #if (!defined(DGTEST)) || DGTEST == 20
   ucr = uc_ucsil(uc1, us2, ui3, ul4);
   fprintf(out,"->%u\n",ucr);
@@ -492,7 +483,7 @@ void
 #endif
 
 #if (!defined(DGTEST)) || DGTEST == 21
-  
+
   dr = d_iidd(i1,i2,d3,d4);
   fprintf(out,"->%g\n",dr);
   fflush(out);
@@ -585,7 +576,7 @@ void
 #endif
 
 #if (!defined(DGTEST)) || DGTEST == 26
-  
+
   llr = ll_iiilli(i1,i2,i3,ll1,i13);
   fprintf(out,"->0x%lx%08lx\n",(long)(llr>>32),(long)(llr&0xffffffff));
   fflush(out);

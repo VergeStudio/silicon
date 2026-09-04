@@ -1,13 +1,10 @@
 module;
 
-
 #include <stdexcept>
 #include <chrono>
 #include <utility>
 #include <expected>
 #include <system_error>
-
-
 
 #include "silicon/common.h"
 
@@ -31,14 +28,14 @@ template<silicon::scheduler::concepts::executor executor_type>
 class task_container
 {
 public:
-    
+
   private:
     explicit task_container(std::shared_ptr<executor_type> e) : m_p(std::make_unique<impl>()) {
         m_p->m_executor = std::move(e);
     }
 
   public:
-    
+
     static std::expected<std::unique_ptr<task_container<executor_type>>, std::error_code> create(std::shared_ptr<executor_type> e) {
         if (e == nullptr) {
             return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
@@ -62,7 +59,6 @@ public:
         }
     }
 
-    
     bool start(silicon::scheduler::task<void>&& user_task) {
         m_p->m_size.fetch_add(1, std::memory_order::relaxed);
 
@@ -72,13 +68,10 @@ public:
         return m_p->m_executor->resume(task.handle());
     }
 
-    
     std::size_t size() const { return m_p->m_size.load(std::memory_order::acquire); }
 
-    
     bool empty() const { return size() == 0; }
 
-    
     silicon::scheduler::task<void> yield_until_empty() {
         while (!empty())
         {

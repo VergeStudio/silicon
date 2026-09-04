@@ -26,22 +26,16 @@ namespace silicon::scheduler {
 
 using event_t = struct ::epoll_event;
 
-
-
-
 struct io_notifier::impl {
     fd_t m_fd{-1};
     bool m_valid{false};
 };
 
-
 static uint64_t encode_udata(bool keep_registered, bool is_cancel_event, void *udata) {
-
 
     return (((uint64_t)keep_registered) << 63) | (((uint64_t)is_cancel_event) << 62) |
            (reinterpret_cast<uintptr_t>(udata) & 0x3FFFFFFFFFFFFFFFULL);
 }
-
 
 static std::tuple<bool, bool, void *> decode_udata(uint64_t encoded) {
     bool keep_registered = (bool)(encoded >> 63);
@@ -80,9 +74,6 @@ bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanosecond
     duration -= seconds;
     auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
 
-
-
-
     if(seconds <= 0s) {
         seconds = 0s;
         if(nanoseconds <= 0ns) {
@@ -104,7 +95,6 @@ bool io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_canc
     if(!keep) {
         event_data.events |= EPOLLONESHOT;
     } else {
-
 
         event_data.events |= EPOLLET;
     }
@@ -147,8 +137,6 @@ void io_notifier::next_events(
         auto [keep_registered, is_cancel_event, udata] = decode_udata(ready_set[i].data.u64);
         auto *pi = static_cast<poll_info *>(udata);
 
-
-
         if(is_cancel_event) {
             ready_events.emplace_back(pi, poll_status::cancelled);
             if(!keep_registered) {
@@ -164,8 +152,6 @@ void io_notifier::next_events(
 }
 
 bool io_notifier::post(void *) {
-
-
 
     return false;
 }

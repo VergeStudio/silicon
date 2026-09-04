@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 module;
 
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -18,7 +11,6 @@ module;
 #include <system_error>
 
 module silicon.network;
-
 
 #if defined(_MSC_VER)
 import silicon.network;
@@ -37,14 +29,6 @@ int socket_duplicate_handle(int fd) {
 
 bool socket_enable_address_reuse(int ) {
 
-
-
-
-
-
-
-
-
     return true;
 }
 
@@ -58,7 +42,6 @@ bool socket::blocking(blocking_t block) {
     if(m_fd < 0) {
         return false;
     }
-
 
     unsigned long mode = (block == blocking_t::yes) ? 0u : 1u;
     return (ioctlsocket(m_fd, FIONBIO, &mode) == 0);
@@ -93,9 +76,7 @@ void socket::close() {
 
 auto socket::accept(socket_address &client_endpoint) -> socket {
 
-
     auto [addr, addrlen] = client_endpoint.native_mutable_data();
-
 
     int len = static_cast<int>(*addrlen);
     auto raw = ::accept(m_fd, addr, &len);
@@ -108,15 +89,11 @@ int socket::last_error() const { return static_cast<int>(WSAGetLastError()); }
 int socket::connect(const socket_address &endpoint) {
     auto [addr, addrlen] = endpoint.data();
 
-
-
     int len = static_cast<int>(addrlen);
     return static_cast<int>(::connect(m_fd, const_cast<sockaddr *>(addr), len));
 }
 
 bool socket::in_progress() const {
-
-
 
     return (last_error() == WSAEWOULDBLOCK);
 }

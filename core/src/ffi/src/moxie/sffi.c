@@ -1,11 +1,7 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
 #include <stdlib.h>
-
-
 
 void *sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -78,7 +74,6 @@ void *sffi_prep_args(char *stack, extended_cif *ecif)
   return (stack + ((count > 24) ? 24 : SFFI_ALIGN_DOWN(count, 8)));
 }
 
-
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
   if (cif->rtype->type == SFFI_TYPE_STRUCT)
@@ -109,9 +104,6 @@ void sffi_call(sffi_cif *cif,
 
   ecif.cif = cif;
 
-  
-  
-
   if ((rvalue == NULL) &&
       (cif->rtype->type == SFFI_TYPE_STRUCT))
     {
@@ -120,7 +112,6 @@ void sffi_call(sffi_cif *cif,
   else
     ecif.rvalue = rvalue;
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
@@ -155,20 +146,16 @@ void sffi_call(sffi_cif *cif,
 void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
 		       unsigned arg4, unsigned arg5, unsigned arg6)
 {
-  
+
   register sffi_closure *creg __asm__ ("$r12");
   sffi_closure *closure = creg;
 
-  
   register char *frame_pointer __asm__ ("$fp");
 
-  
   void *struct_rvalue = (void *) arg1;
 
-  
   char *stack_args = frame_pointer + 9*4;
 
-  
   unsigned register_args[6] =
     { arg1, arg2, arg3, arg4, arg5, arg6 };
   char *register_args_ptr = (char *) register_args;
@@ -179,13 +166,11 @@ void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
   char *ptr = (char *) register_args;
   int i;
 
-  
   if ((cif->rtype != NULL) && (cif->rtype->type == SFFI_TYPE_STRUCT)) {
     ptr += 4;
     register_args_ptr = (char *)&register_args[1];
   }
 
-  
   for (i = 0; i < cif->nargs; i++)
     {
       switch (arg_types[i]->type)
@@ -217,10 +202,10 @@ void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
           }
 	  break;
 	default:
-	  
+
 	  if (ptr == (char *) &register_args[5])
 	    {
-	      
+
 	      unsigned *ip = alloca(8);
 	      avalue[i] = ip;
 	      ip[0] = *(unsigned *) ptr;
@@ -235,21 +220,19 @@ void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
 	}
       ptr += 4;
 
-      
       if (ptr == (char *) &register_args[6])
 	ptr = stack_args;
       else if (ptr == (char *) &register_args[7])
 	ptr = stack_args + 4;
     }
 
-  
   if (cif->rtype && (cif->rtype->type == SFFI_TYPE_STRUCT))
     {
       (closure->fun) (cif, struct_rvalue, avalue, closure->user_data);
     }
   else
     {
-      
+
       long long rvalue;
       (closure->fun) (cif, &rvalue, avalue, closure->user_data);
       __asm__ ("mov $r12, %0\n ld.l $r0, ($r12)\n ldo.l $r1, 4($r12)" : : "r" (&rvalue));

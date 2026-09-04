@@ -1,4 +1,3 @@
-
 #define REG_ARGS_SIZE (12 * 8)
 #define KVX_REGISTER_SIZE (8)
 #define KVX_ABI_SLOT_SIZE (KVX_REGISTER_SIZE)

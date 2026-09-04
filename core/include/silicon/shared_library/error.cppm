@@ -5,16 +5,11 @@ module;
 #include <string>
 #include <system_error>
 
-
-
 #include <silicon/common.h>
 
 export module silicon.library.error;
 
 import silicon.error;
-
-
-
 
 export namespace silicon::library {
 
@@ -24,7 +19,6 @@ CORE_API std::atomic<const std::error_category *> library_error_category_instanc
 
 export namespace silicon::library {
 
-
 enum class library_error {
     kAlreadyLoaded = 1,
     kLoadFailed,
@@ -32,8 +26,6 @@ enum class library_error {
     kSymbolNotFound,
     kInvalidHandle,
 };
-
-
 
 class CORE_API library_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.library"; }
@@ -49,11 +41,9 @@ class CORE_API library_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_library_error_category(const std::error_category &cat) noexcept {
     library_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &library_category() noexcept {
     const std::error_category *cat = library_error_category_instance.load(std::memory_order_acquire);
@@ -63,17 +53,11 @@ inline void inject_library_error_category(const std::error_category &cat) noexce
     return *cat;
 }
 
-
 [[nodiscard]] inline std::error_code make_error_code(library_error e) noexcept {
     return {static_cast<int>(e), library_category()};
 }
 
 }
-
-
-
-
-
 
 namespace {
     const silicon::library::library_category_impl s_default_library_category{};

@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_19byte {
@@ -21,7 +18,6 @@ cls_struct_19byte cls_struct_19byte_fn(struct cls_struct_19byte a1,
   result.c = a1.c + a2.c;
   result.d = a1.d + a2.d;
   result.e = a1.e + a2.e;
-
 
   printf("%g %d %d %g %d %g %d %d %g %d: %g %d %d %g %d\n",
 	 a1.a, a1.b, a1.c, a1.d, a1.e,
@@ -99,10 +95,10 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_19byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %g %d %d %g %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e);
-  
+
   CHECK(res_dbl.a == 5);
   CHECK(res_dbl.b == 252);
   CHECK(res_dbl.c == 250);
@@ -112,10 +108,10 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_19byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_19byte(*)(cls_struct_19byte, cls_struct_19byte))(code))(g_dbl, f_dbl);
-  
+
   printf("res: %g %d %d %g %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e);
-  
+
   CHECK(res_dbl.a == 5);
   CHECK(res_dbl.b == 252);
   CHECK(res_dbl.c == 250);

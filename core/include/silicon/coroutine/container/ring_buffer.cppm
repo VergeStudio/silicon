@@ -1,6 +1,5 @@
 module;
 
-
 #include <array>
 #include <atomic>
 #include <coroutine>
@@ -27,7 +26,6 @@ enum class consume {
 };
 }
 
-
 template<typename element, size_t num_elements>
 class ring_buffer {
   private:
@@ -41,7 +39,7 @@ class ring_buffer {
     };
 
   public:
-    
+
     ring_buffer();
 
     ~ring_buffer();
@@ -58,9 +56,7 @@ class ring_buffer {
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
 
-        
         auto await_resume() -> ring_buffer_result::produce;
-
 
         std::coroutine_handle<> m_awaiting_coroutine;
 
@@ -71,7 +67,6 @@ class ring_buffer {
       private:
         template<typename element_subtype, size_t num_elements_subtype>
         friend class ring_buffer;
-
 
         ring_buffer<element, num_elements> &m_rb;
 
@@ -84,9 +79,7 @@ class ring_buffer {
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
 
-        
         auto await_resume() -> silicon::scheduler::expected<element, ring_buffer_result::consume>;
-
 
         std::coroutine_handle<> m_awaiting_coroutine;
 
@@ -98,43 +91,32 @@ class ring_buffer {
         template<typename element_subtype, size_t num_elements_subtype>
         friend class ring_buffer;
 
-
         ring_buffer<element, num_elements> &m_rb;
 
         std::optional<element> m_e{std::nullopt};
     };
 
-    
     [[nodiscard]] silicon::scheduler::task<ring_buffer_result::produce> produce(element) ;
 
-    
     [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element, ring_buffer_result::consume>> consume() ;
 
-    
     constexpr size_t max_size() const noexcept { return num_elements; }
 
-    
     size_t size() const ;
 
-    
     [[nodiscard]] bool empty() const ;
 
-    
     bool full() const ;
 
-    
     silicon::scheduler::task<void> notify_producers() ;
 
-    
     silicon::scheduler::task<void> notify_consumers() ;
 
-    
     silicon::scheduler::task<void> shutdown() ;
 
     template<silicon::scheduler::concepts::executor executor_type>
     [[nodiscard]] silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &) ;
 
-    
     [[nodiscard]] bool is_shutdown() const ;
 
   private:
@@ -152,7 +134,6 @@ class ring_buffer {
         std::atomic<size_t> m_back{0};
 
         std::atomic<size_t> m_used{0};
-
 
         std::atomic<produce_operation *> m_produce_waiters{nullptr};
 

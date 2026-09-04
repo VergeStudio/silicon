@@ -1,9 +1,7 @@
 module;
 
-
 #include <concepts>
 #include <coroutine>
-
 
 export module silicon.scheduler:concepts.promise;
 

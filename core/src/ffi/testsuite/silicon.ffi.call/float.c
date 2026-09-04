@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 static int floating(int a, float b, double c, long double d)
@@ -34,7 +30,6 @@ int main (void)
   args[3] = &sffi_type_longdouble;
   values[3] = &ld;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &sffi_type_sint, args) == SFFI_OK);
 

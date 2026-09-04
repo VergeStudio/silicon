@@ -10,7 +10,6 @@ export module silicon.tui.error;
 
 import silicon.error;
 
-
 namespace silicon::tui {
 
 CORE_API std::atomic<const std::error_category *> tui_error_category_instance{nullptr};
@@ -19,12 +18,10 @@ CORE_API std::atomic<const std::error_category *> tui_error_category_instance{nu
 
 export namespace silicon::tui {
 
-
 enum class tui_error {
     kInitFailed = 1,
     kInvalidTerminal,
 };
-
 
 class CORE_API tui_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.tui"; }
@@ -37,11 +34,9 @@ class CORE_API tui_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_tui_error_category(const std::error_category &cat) noexcept {
     tui_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &tui_category() noexcept {
     const std::error_category *cat = tui_error_category_instance.load(std::memory_order_acquire);
@@ -51,17 +46,11 @@ inline void inject_tui_error_category(const std::error_category &cat) noexcept {
     return *cat;
 }
 
-
 [[nodiscard]] inline std::error_code make_error_code(tui_error e) noexcept {
     return {static_cast<int>(e), tui_category()};
 }
 
 }
-
-
-
-
-
 
 namespace {
     const silicon::tui::tui_category_impl s_default_tui_category{};

@@ -12,17 +12,12 @@ import silicon.error;
 
 export namespace silicon::logger {
 
-
-
 CORE_API std::atomic<const std::error_category *> logger_error_category_instance{nullptr};
-
 
 enum class logger_error {
     kInitFailed = 1,
     kInvalidLevel,
 };
-
-
 
 class CORE_API logger_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.logger"; }
@@ -35,11 +30,9 @@ class CORE_API logger_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_logger_error_category(const std::error_category &cat) noexcept {
     logger_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &logger_category() noexcept {
     const std::error_category *cat = logger_error_category_instance.load(std::memory_order_acquire);
@@ -49,16 +42,11 @@ inline void inject_logger_error_category(const std::error_category &cat) noexcep
     return *cat;
 }
 
-
 [[nodiscard]] inline std::error_code make_error_code(logger_error e) noexcept {
     return {static_cast<int>(e), logger_category()};
 }
 
 }
-
-
-
-
 
 namespace {
     const silicon::logger::logger_category_impl s_default_logger_category{};

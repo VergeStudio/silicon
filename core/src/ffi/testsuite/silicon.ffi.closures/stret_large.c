@@ -1,10 +1,4 @@
-
-
-
 #include "ffitest.h"
-
-
-
 
 typedef struct struct_108byte {
 	double a;
@@ -119,21 +113,19 @@ int main (void)
 	args_dbl[4] = NULL;
 
 	sffi_call(&cif, SFFI_FN(cls_struct_108byte_fn), &res_dbl, args_dbl);
-	
+
 	printf("res: %g %g %g %g %g %g %g %g %g %g %g %g %g %d\n", res_dbl.a, res_dbl.b,
 		res_dbl.c, res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h, res_dbl.i,
 		res_dbl.j, res_dbl.k, res_dbl.l, res_dbl.m, res_dbl.n);
-	
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_108byte_gn, NULL, code) == SFFI_OK);
 
 	res_dbl = ((struct_108byte(*)(struct_108byte, struct_108byte,
 		struct_108byte, struct_108byte))(code))(e_dbl, f_dbl, g_dbl, h_dbl);
-	
+
 	printf("res: %g %g %g %g %g %g %g %g %g %g %g %g %g %d\n", res_dbl.a, res_dbl.b,
 		res_dbl.c, res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h, res_dbl.i,
 		res_dbl.j, res_dbl.k, res_dbl.l, res_dbl.m, res_dbl.n);
-	
 
 	exit(0);
 }

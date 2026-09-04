@@ -26,12 +26,10 @@ import :poll_info_impl;
 
 namespace silicon::scheduler {
 
-
 static silicon::scheduler::task<void> make_spawned_joinable_wait_task(std::unique_ptr<silicon::scheduler::task_group<silicon::scheduler::thread_pool>> group_ptr) {
     co_await *group_ptr;
     co_return;
 }
-
 
 struct thread_pool::impl {
     options m_opts;
@@ -41,7 +39,6 @@ struct thread_pool::impl {
 
         mutable std::mutex mutex;
     };
-
 
     std::deque<ThreadState> m_states;
 
@@ -124,7 +121,6 @@ auto thread_pool::schedule() -> schedule_operation {
     if(!m_impl->m_shutdown_requested.load(std::memory_order::acquire)) {
         return schedule_operation{*this};
     } else {
-
 
         m_impl->m_size.fetch_sub(1, std::memory_order::release);
         std::terminate();

@@ -10,7 +10,6 @@ export module silicon.network.error;
 
 import silicon.error;
 
-
 namespace silicon::network {
 
 CORE_API std::atomic<const std::error_category *> network_error_category_instance{nullptr};
@@ -18,9 +17,6 @@ CORE_API std::atomic<const std::error_category *> network_error_category_instanc
 }
 
 export namespace silicon::network {
-
-
-
 
 enum class network_error {
     kUdpNotBound = 1,
@@ -50,7 +46,6 @@ enum class network_error {
     kDnsInitFailed,
     kUnknown,
 };
-
 
 class CORE_API network_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.network"; }
@@ -83,11 +78,9 @@ class CORE_API network_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_network_error_category(const std::error_category &cat) noexcept {
     network_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &network_category() noexcept {
     const std::error_category *cat = network_error_category_instance.load(std::memory_order_acquire);
@@ -97,18 +90,11 @@ inline void inject_network_error_category(const std::error_category &cat) noexce
     return *cat;
 }
 
-
 [[nodiscard]] inline std::error_code make_error_code(network_error e) noexcept {
     return {static_cast<int>(e), network_category()};
 }
 
 }
-
-
-
-
-
-
 
 namespace {
     const silicon::network::network_category_impl s_default_network_category{};

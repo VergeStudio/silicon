@@ -1,11 +1,7 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
 #include <stdlib.h>
-
-
 
 void *sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -23,7 +19,7 @@ void *sffi_prep_args(char *stack, extended_cif *ecif)
        i--, p_arg++)
     {
       size_t z;
-      
+
       z = (*p_arg)->size;
 
       if ((*p_arg)->type == SFFI_TYPE_STRUCT)
@@ -31,7 +27,7 @@ void *sffi_prep_args(char *stack, extended_cif *ecif)
 	  z = sizeof(void*);
 	  *(void **) argp = *p_argv;
 	} 
-      
+
       else if (z < sizeof(int))
 	{
 	  z = sizeof(int);
@@ -40,19 +36,19 @@ void *sffi_prep_args(char *stack, extended_cif *ecif)
 	    case SFFI_TYPE_SINT8:
 	      *(signed int *) argp = (signed int)*(SINT8 *)(* p_argv);
 	      break;
-	      
+
 	    case SFFI_TYPE_UINT8:
 	      *(unsigned int *) argp = (unsigned int)*(UINT8 *)(* p_argv);
 	      break;
-	      
+
 	    case SFFI_TYPE_SINT16:
 	      *(signed int *) argp = (signed int)*(SINT16 *)(* p_argv);
 	      break;
-		  
+
 	    case SFFI_TYPE_UINT16:
 	      *(unsigned int *) argp = (unsigned int)*(UINT16 *)(* p_argv);
 	      break;
-		  
+
 	    default:
 	      SFFI_ASSERT(0);
 	    }
@@ -72,7 +68,6 @@ void *sffi_prep_args(char *stack, extended_cif *ecif)
 
   return (stack + ((count > 24) ? 24 : SFFI_ALIGN_DOWN(count, 8)));
 }
-
 
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
@@ -101,9 +96,6 @@ void sffi_call(sffi_cif *cif,
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-  
-  
-  
 
   if ((rvalue == NULL) && 
       (cif->rtype->type == SFFI_TYPE_STRUCT))
@@ -112,8 +104,7 @@ void sffi_call(sffi_cif *cif,
     }
   else
     ecif.rvalue = rvalue;
-    
-  
+
   switch (cif->abi) 
     {
     case SFFI_EABI:
@@ -129,15 +120,13 @@ void sffi_call(sffi_cif *cif,
 void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
 		       unsigned arg4, unsigned arg5, unsigned arg6)
 {
-  
+
   register sffi_closure *creg __asm__ ("gr7");
   sffi_closure *closure = creg;
 
-  
   register char *frame_pointer __asm__ ("fp");
   char *stack_args = frame_pointer + 16;
 
-  
   unsigned register_args[6] =
     { arg1, arg2, arg3, arg4, arg5, arg6 };
 
@@ -147,7 +136,6 @@ void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
   char *ptr = (char *) register_args;
   int i;
 
-  
   for (i = 0; i < cif->nargs; i++)
     {
       switch (arg_types[i]->type)
@@ -169,32 +157,29 @@ void sffi_closure_eabi (unsigned arg1, unsigned arg2, unsigned arg3,
 	  avalue[i] = *(void**)ptr;
 	  break;
 	default:
-	  
+
 	  avalue[i] = ptr;
 	  ptr += 4;
 	  break;
 	}
       ptr += 4;
 
-      
       if (ptr == ((char *)register_args + (6*4)))
 	ptr = stack_args;
     }
 
-  
   if (cif->rtype->type == SFFI_TYPE_STRUCT)
     {
-      
+
       register void *return_struct_ptr __asm__("gr3");
       (closure->fun) (cif, return_struct_ptr, avalue, closure->user_data);
     }
   else
     {
-      
+
       long long rvalue;
       (closure->fun) (cif, &rvalue, avalue, closure->user_data);
 
-       
       __asm__ ("ldi  @(%0, #0), gr8" : : "r" (&rvalue));
       __asm__ ("ldi  @(%0, #0), gr9" : : "r" (&((int *) &rvalue)[1]));
     }
@@ -238,7 +223,6 @@ sffi_prep_closure_loc (sffi_closure* closure,
   closure->fun = fun;
   closure->user_data = user_data;
 
-  
   for (i = 0; i < SFFI_TRAMPOLINE_SIZE; i++)
     __asm__ volatile ("dcf @(%0,%1)\n\tici @(%2,%1)" :: "r" (tramp), "r" (i),
 		      "r" (codeloc));

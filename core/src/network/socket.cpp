@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 module;
 
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -24,7 +16,6 @@ module;
 #include <utility>
 
 module silicon.network;
-
 
 #if defined(_MSC_VER)
 import silicon.network;
@@ -53,8 +44,6 @@ auto socket::operator=(socket &&other) noexcept -> socket & {
 auto make_socket(const socket::options &opts, domain_t domain) -> result<socket> {
     auto os_type = socket::type_to_os(opts.type);
     if(!os_type) { return std::unexpected(os_type.error()); }
-
-
 
     socket s{static_cast<int>(::socket(static_cast<int>(domain), *os_type, 0))};
     if(s.native_handle() < 0) {

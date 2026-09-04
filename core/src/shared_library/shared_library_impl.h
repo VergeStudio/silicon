@@ -1,17 +1,5 @@
 #pragma once
 
-
-
-
-
-
-
-
-
-
-
-
-
 namespace silicon::library {
 
 struct shared_library::impl {

@@ -12,24 +12,6 @@ import :facade;
 
 export namespace silicon::scheduler {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class CORE_API inline_scheduler final {
     struct impl;
     std::unique_ptr<impl> m_impl;
@@ -42,7 +24,6 @@ class CORE_API inline_scheduler final {
     inline_scheduler(inline_scheduler &&) = delete;
     inline_scheduler & operator=(const inline_scheduler &) = delete;
     inline_scheduler & operator=(inline_scheduler &&) = delete;
-
 
     bool spawn_detached(task<void> &&task) noexcept ;
     task<void> spawn_joinable(task<void> &&t) noexcept ;

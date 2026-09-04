@@ -1,7 +1,3 @@
-
-
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -19,10 +15,6 @@ void sffi_cacheflush_OBSD (unsigned int, unsigned int);
 
 #define CIF_FLAGS_INT		(1 << 0)
 #define CIF_FLAGS_DINT		(1 << 1)
-
-
-
-
 
 void *
 sffi_prep_args (void *stack, extended_cif *ecif)
@@ -56,7 +48,6 @@ sffi_prep_args (void *stack, extended_cif *ecif)
       t = (*p_arg)->type;
       a = (*p_arg)->alignment;
 
-      
       if (t == SFFI_TYPE_STRUCT)
 	{
 	  if (z == sizeof (int) && a == sizeof (int) && regused < 8)
@@ -68,7 +59,7 @@ sffi_prep_args (void *stack, extended_cif *ecif)
 	{
 	  if (z > sizeof (int) && regused < 8 - 1)
 	    {
-	      
+
 	      if (regused & 1)
 		{
 		  regp++;
@@ -81,7 +72,6 @@ sffi_prep_args (void *stack, extended_cif *ecif)
 	    argp = stackp;
 	}
 
-      
       if (argp == stackp && a > sizeof (int))
 	{
 	  stackp = (char *) SFFI_ALIGN(stackp, a);
@@ -125,13 +115,11 @@ sffi_prep_args (void *stack, extended_cif *ecif)
 	  SFFI_ASSERT (0);
 	}
 
-      
       if ((sizeof (int) - 1) & z)
 	z = SFFI_ALIGN(z, sizeof (int));
 
       p_argv++;
 
-      
       if (argp == (char *)regp && regused < 8)
 	{
 	  regp += z / sizeof (int);
@@ -144,11 +132,10 @@ sffi_prep_args (void *stack, extended_cif *ecif)
   return struct_value_ptr;
 }
 
-
 sffi_status
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
-  
+
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -185,8 +172,6 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
   ecif.cif = cif;
   ecif.avalue = avalue;
 
-  
-
   if (rvalue == NULL
       && cif->rtype->type == SFFI_TYPE_STRUCT
       && (cif->rtype->size != sizeof (int)
@@ -206,8 +191,6 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
       break;
     }
 }
-
-
 
 static void
 sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
@@ -232,7 +215,6 @@ sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
       t = (*p_arg)->type;
       a = (*p_arg)->alignment;
 
-      
       if (t == SFFI_TYPE_STRUCT)
 	{
 	  if (z == sizeof (int) && a == sizeof (int) && regused < 8)
@@ -244,7 +226,7 @@ sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
 	{
 	  if (z > sizeof (int) && regused < 8 - 1)
 	    {
-	      
+
 	      if (regused & 1)
 		{
 		  regp++;
@@ -257,7 +239,6 @@ sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
 	    argp = stackp;
 	}
 
-      
       if (argp == stackp && a > sizeof (int))
 	{
 	  stackp = (char *) SFFI_ALIGN(stackp, a);
@@ -269,13 +250,11 @@ sffi_prep_closure_args_OBSD (sffi_cif *cif, void **avalue, unsigned int *regp,
       else
 	*p_argv = (void *) argp;
 
-      
       if ((sizeof (int) - 1) & z)
 	z = SFFI_ALIGN(z, sizeof (int));
 
       p_argv++;
 
-      
       if (argp == (char *)regp && regused < 8)
 	{
 	  regp += z / sizeof (int);
@@ -318,15 +297,14 @@ sffi_prep_closure_loc (sffi_closure* closure, sffi_cif* cif,
   else
     fn = &sffi_closure_OBSD;
 
-  
   tramp[0] = 0x5d400000 | (((unsigned int)fn) >> 16);
-  
+
   tramp[1] = 0x5da00000 | ((unsigned int)closure >> 16);
-  
+
   tramp[2] = 0x594a0000 | (((unsigned int)fn) & 0xffff);
-  
+
   tramp[3] = 0xf400c40a;
-  
+
   tramp[4] = 0x59ad0000 | ((unsigned int)closure & 0xffff);
 
   sffi_cacheflush_OBSD((unsigned int)codeloc, SFFI_TRAMPOLINE_SIZE);

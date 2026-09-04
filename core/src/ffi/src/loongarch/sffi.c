@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 #include <tramp.h>
@@ -23,7 +21,6 @@
 #define STKALIGN 16
 #define MAXCOPYARG (2 * sizeof (double))
 
-
 typedef struct call_context
 {
 #if !defined(__loongarch_soft_float)
@@ -41,8 +38,6 @@ typedef struct call_builder
   size_t *stack;	    
   size_t next_struct_area;  
 } call_builder;
-
-
 
 #if __SIZEOF_POINTER__ == 8
 # define IS_INT(type) ((type) >= SFFI_TYPE_UINT8 && (type) <= SFFI_TYPE_SINT64)
@@ -79,7 +74,6 @@ flatten_struct (sffi_type *in, sffi_type **out, sffi_type **out_end)
       out = flatten_struct (in->elements[i], out, out_end);
   return out;
 }
-
 
 static float_struct_info
 struct_passed_as_elements (call_builder *cb, sffi_type *top)
@@ -118,7 +112,6 @@ struct_passed_as_elements (call_builder *cb, sffi_type *top)
 }
 #endif
 
-
 static void
 marshal_atom (call_builder *cb, int type, void *data)
 {
@@ -137,7 +130,7 @@ marshal_atom (call_builder *cb, int type, void *data)
     case SFFI_TYPE_SINT16:
       value = *(int16_t *) data;
       break;
-    
+
     case SFFI_TYPE_UINT32:
       value = *(int32_t *) data;
       break;
@@ -221,7 +214,6 @@ unmarshal_atom (call_builder *cb, int type, void *data)
     }
 }
 
-
 static void *
 allocate_and_copy_struct_to_stack (call_builder *cb, void *data,
 				   sffi_type *type)
@@ -233,7 +225,6 @@ allocate_and_copy_struct_to_stack (call_builder *cb, void *data,
 
   return memcpy ((char *)cb->stack + dest, data, type->size);
 }
-
 
 static void
 marshal (call_builder *cb, sffi_type *type, int var, void *data)
@@ -263,7 +254,7 @@ marshal (call_builder *cb, sffi_type *type, int var, void *data)
   double promoted;
   if (var && type->type == SFFI_TYPE_FLOAT)
     {
-      
+
       promoted = *(float *) data;
       type = &sffi_type_double;
       data = &promoted;
@@ -271,7 +262,7 @@ marshal (call_builder *cb, sffi_type *type, int var, void *data)
 #endif
 
   if (type->size > 2 * __SIZEOF_POINTER__)
-    
+
     {
       allocate_and_copy_struct_to_stack (cb, data, type);
       data = (char *)cb->stack + cb->next_struct_area;
@@ -281,9 +272,7 @@ marshal (call_builder *cb, sffi_type *type, int var, void *data)
     marshal_atom (cb, type->type, data);
   else
     {
-      
 
-      
       if (type->alignment > __SIZEOF_POINTER__)
 	{
 	  if (var)
@@ -299,7 +288,6 @@ marshal (call_builder *cb, sffi_type *type, int var, void *data)
 	marshal_atom (cb, SFFI_TYPE_POINTER, realign + 1);
     }
 }
-
 
 static void *
 unmarshal (call_builder *cb, sffi_type *type, int var, void *data)
@@ -338,7 +326,7 @@ unmarshal (call_builder *cb, sffi_type *type, int var, void *data)
 
   if (type->size > 2 * __SIZEOF_POINTER__)
     {
-      
+
       unmarshal_atom (cb, SFFI_TYPE_POINTER, (char *) &pointer);
       return pointer;
     }
@@ -349,9 +337,7 @@ unmarshal (call_builder *cb, sffi_type *type, int var, void *data)
     }
   else
     {
-      
 
-      
       if (type->alignment > __SIZEOF_POINTER__)
 	{
 	  if (var)
@@ -384,14 +370,12 @@ passed_by_ref (call_builder *cb, sffi_type *type, int var)
   return type->size > 2 * __SIZEOF_POINTER__;
 }
 
-
 sffi_status
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
   cif->loongarch_nfixedargs = cif->nargs;
   return SFFI_OK;
 }
-
 
 sffi_status
 sffi_prep_cif_machdep_var (sffi_cif *cif, unsigned int nfixedargs,
@@ -400,7 +384,6 @@ sffi_prep_cif_machdep_var (sffi_cif *cif, unsigned int nfixedargs,
   cif->loongarch_nfixedargs = nfixedargs;
   return SFFI_OK;
 }
-
 
 extern void sffi_call_asm (void *stack, struct call_context *regs,
 			  void (*fn) (void), void *closure) SFFI_HIDDEN;
@@ -411,7 +394,6 @@ sffi_call_int (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
 {
   size_t arg_bytes = SFFI_ALIGN (cif->bytes, STKALIGN);
 
-  
   size_t extra_bytes = cif->nargs <= 3 ? 0 :
       SFFI_ALIGN(2 * sizeof(size_t) * (cif->nargs - 3), STKALIGN);
 
@@ -420,11 +402,10 @@ sffi_call_int (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
     rval_bytes = SFFI_ALIGN (cif->rtype->size, STKALIGN);
   size_t alloc_size = arg_bytes + extra_bytes + rval_bytes + sizeof (call_context);
 
-  
   size_t alloc_base;
-  
+
   if (_Alignof(max_align_t) >= STKALIGN)
-    
+
     alloc_base = (size_t) alloca (alloc_size);
   else
     alloc_base = SFFI_ALIGN (alloca (alloc_size + STKALIGN - 1), STKALIGN);
@@ -489,7 +470,6 @@ sffi_prep_closure_loc (sffi_closure *closure, sffi_cif *cif,
     }
 #endif
 
-  
   tramp[0] = 0x1800000c; 
   tramp[1] = 0x28c0418d; 
   tramp[2] = 0x4c0001a0; 
@@ -524,14 +504,13 @@ sffi_prep_go_closure (sffi_go_closure *closure, sffi_cif *cif,
   return SFFI_OK;
 }
 
-
 void SFFI_HIDDEN
 sffi_closure_inner (sffi_cif *cif,
 		   void (*fun) (sffi_cif *, void *, void **, void *),
 		   void *user_data, size_t *stack, call_context *aregs)
 {
   void **avalue = alloca (cif->nargs * sizeof (void *));
-  
+
   char *astorage = alloca (cif->nargs * MAXCOPYARG);
   void *rvalue;
   call_builder cb;
@@ -569,7 +548,7 @@ sffi_tramp_arch (size_t *tramp_size, size_t *map_size)
   extern void *trampoline_code_table;
 
   *tramp_size = 16;
-  
+
   *map_size = 1 << 16;
   return &trampoline_code_table;
 }

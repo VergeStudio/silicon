@@ -3,29 +3,11 @@ module;
 export module silicon.coroutine;
 export import silicon.coroutine.error;
 
-
-
-
 import std;
 
 import silicon.scheduler.task;
 
-
-
-
-
-
-
-
-
-
 export import silicon.scheduler;
-
-
-
-
-
-
 
 export import :channel;
 export import :facade;

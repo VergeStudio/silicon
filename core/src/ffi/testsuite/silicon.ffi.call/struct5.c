@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 typedef struct
 {
@@ -12,7 +9,7 @@ static test_structure_5 ABI_ATTR struct5(test_structure_5 ts1, test_structure_5 
 {
   ts1.c1 += ts2.c1;
   ts1.c2 -= ts2.c2;
-  
+
   return ts1;
 }
 
@@ -26,7 +23,6 @@ int main (void)
 
   test_structure_5 ts5_arg1, ts5_arg2;
 
-  
   test_structure_5 *ts5_result =
     (test_structure_5 *) malloc (sizeof(test_structure_5));
 
@@ -42,21 +38,19 @@ int main (void)
   args[1] = &ts5_type;
   values[0] = &ts5_arg1;
   values[1] = &ts5_arg2;
-  
-  
+
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 2, &ts5_type, args) == SFFI_OK);
-  
+
   ts5_arg1.c1 = 2;
   ts5_arg1.c2 = 6;
   ts5_arg2.c1 = 5;
   ts5_arg2.c2 = 3;
-  
+
   sffi_call (&cif, SFFI_FN(struct5), ts5_result, values);
-  
+
   CHECK(ts5_result->c1 == 7); 
   CHECK(ts5_result->c2 == 3);
-  
-  
+
   free (ts5_result);
   exit(0);
 }

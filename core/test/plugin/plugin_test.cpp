@@ -22,7 +22,6 @@ struct test_plugin {
     bool on_reload() { return true; }
 };
 
-
 struct duck_plugin {
     std::string m_name;
     int load_count = 0;
@@ -40,7 +39,6 @@ struct duck_plugin {
     bool on_reload() { return true; }
 };
 }
-
 
 TEST_CASE("plugin_registry: 注册与查询") {
     plugin_registry reg;
@@ -68,8 +66,6 @@ TEST_CASE("plugin_registry: 移除触发 on_unload") {
     CHECK(reg.get_plugin("test") == nullptr);
 }
 
-
-
 TEST_CASE("proxy: 非侵入式插件视图（无需继承基类）") {
     duck_plugin duck{.m_name = "duck"};
     plugin_view v = make_plugin_view(duck);
@@ -94,7 +90,6 @@ TEST_CASE("proxy: 拥有所有权的插件句柄") {
 }
 
 TEST_CASE("proxy: 桥接既有具约定成员的类型") {
-
 
     auto sp = std::make_shared<test_plugin>();
     plugin_proxy p = sp;

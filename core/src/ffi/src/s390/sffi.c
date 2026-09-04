@@ -1,25 +1,10 @@
-
-
-
-
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 #include <stdint.h>
 #include "internal.h"
 #include <tramp.h>
 
-
-
-
-
-
-
-
-
 #define MAX_GPRARGS 5
-
 
 #ifdef __s390x__
 #define MAX_FPRARGS 4
@@ -27,15 +12,7 @@
 #define MAX_FPRARGS 2
 #endif
 
-
 #define ROUND_SIZE(size) (((size) + 15) & ~15)
-
-
-
-
-
-
-
 
 struct call_frame
 {
@@ -52,28 +29,15 @@ extern void SFFI_HIDDEN sffi_call_SYSV(struct call_frame *, unsigned, void *,
 extern void sffi_closure_SYSV(void);
 extern void sffi_go_closure_SYSV(void);
 
-
-
-
-
-
-
-
-
-
-
-
 static int
 sffi_check_struct_type (sffi_type *arg)
 {
   size_t size = arg->size;
 
-  
   while (arg->type == SFFI_TYPE_STRUCT
          && arg->elements[0] && !arg->elements[1])
     arg = arg->elements[0];
 
-  
   switch (size)
     {
       case 1:
@@ -98,19 +62,8 @@ sffi_check_struct_type (sffi_type *arg)
 	break;
     }
 
-  
   return SFFI_TYPE_POINTER;
 }
-
-
-
-
-
-
-
-
-
-
 
 sffi_status SFFI_HIDDEN
 sffi_prep_cif_machdep(sffi_cif *cif)
@@ -123,16 +76,13 @@ sffi_prep_cif_machdep(sffi_cif *cif)
   sffi_type **ptr;
   int i;
 
-  
-
   switch (cif->rtype->type)
     {
-      
+
       case SFFI_TYPE_VOID:
 	cif->flags = FFI390_RET_VOID;
 	break;
 
-      
       case SFFI_TYPE_STRUCT:
       case SFFI_TYPE_COMPLEX:
       case SFFI_TYPE_SINT128:
@@ -144,7 +94,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 	n_gpr++;  
 	break;
 
-      
       case SFFI_TYPE_FLOAT:
 	cif->flags = FFI390_RET_FLOAT;
 	break;
@@ -153,7 +102,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 	cif->flags = FFI390_RET_DOUBLE;
 	break;
 
-      
       case SFFI_TYPE_UINT64:
       case SFFI_TYPE_SINT64:
 	cif->flags = FFI390_RET_INT64;
@@ -167,7 +115,7 @@ sffi_prep_cif_machdep(sffi_cif *cif)
       case SFFI_TYPE_SINT16:
       case SFFI_TYPE_UINT8:
       case SFFI_TYPE_SINT8:
-	
+
 #ifdef __s390x__
 	cif->flags = FFI390_RET_INT64;
 #else
@@ -179,8 +127,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
         SFFI_ASSERT (0);
         break;
     }
-
-  
 
   for (ptr = cif->arg_types, i = cif->nargs;
        i > 0;
@@ -194,7 +140,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 	  type = sffi_check_struct_type (*ptr);
 	  if (type != SFFI_TYPE_POINTER)
 	    break;
-	  
 
 	case SFFI_TYPE_COMPLEX:
 	case SFFI_TYPE_SINT128:
@@ -203,15 +148,13 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 	case SFFI_TYPE_LONGDOUBLE:
 #endif
 	  type = SFFI_TYPE_POINTER;
-	  
+
 	  struct_size += ROUND_SIZE ((*ptr)->size);
 	  break;
 	}
 
-      
       switch (type)
 	{
-	  
 
 	  case SFFI_TYPE_DOUBLE:
 	    if (n_fpr < MAX_FPRARGS)
@@ -227,8 +170,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 	      n_ov++;
 	    break;
 
-	  
-
 #ifndef __s390x__
 	  case SFFI_TYPE_UINT64:
 	  case SFFI_TYPE_SINT64:
@@ -241,8 +182,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 	    break;
 #endif
 
-	  
-
 	  default:
 	    if (n_gpr < MAX_GPRARGS)
 	      n_gpr++;
@@ -252,22 +191,10 @@ sffi_prep_cif_machdep(sffi_cif *cif)
         }
     }
 
-  
-
   cif->bytes = ROUND_SIZE (n_ov * sizeof (long)) + struct_size;
 
   return SFFI_OK;
 }
-
-
-
-
-
-
-
-
-
-
 
 static void
 sffi_call_int(sffi_cif *cif,
@@ -287,7 +214,6 @@ sffi_call_int(sffi_cif *cif,
 
   SFFI_ASSERT (cif->abi == SFFI_SYSV);
 
-  
   if (rvalue == NULL)
     {
       if (ret_type & FFI390_RET_IN_MEM)
@@ -296,28 +222,22 @@ sffi_call_int(sffi_cif *cif,
 	ret_type = FFI390_RET_VOID;
     }
 
-  
-
   stack = alloca (bytes + sizeof(struct call_frame) + rsize);
   frame = (struct call_frame *)(stack + bytes);
   if (rsize)
     rvalue = frame + 1;
 
-  
   frame->back_chain = __builtin_frame_address (0);
 
-  
   p_ov = (unsigned long *)stack;
   p_struct = (unsigned char *)frame;
   p_gpr = frame->gpr_args;
   p_fpr = frame->fpr_args;
   n_fpr = n_gpr = n_ov = 0;
 
-  
   if (cif->flags & FFI390_RET_IN_MEM)
     p_gpr[n_gpr++] = (uintptr_t) rvalue;
 
-  
   arg_types = cif->arg_types;
   for (i = 0, n = cif->nargs; i < n; ++i)
     {
@@ -394,12 +314,11 @@ sffi_call_int(sffi_cif *cif,
 	  break;
 
 	case SFFI_TYPE_STRUCT:
-          
+
 	  type = sffi_check_struct_type (ty);
-	  
+
 	  if (type != SFFI_TYPE_POINTER)
 	    goto restart;
-	  
 
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 	case SFFI_TYPE_LONGDOUBLE:
@@ -407,7 +326,7 @@ sffi_call_int(sffi_cif *cif,
 	case SFFI_TYPE_COMPLEX:
 	case SFFI_TYPE_SINT128:
 	case SFFI_TYPE_UINT128:
-	  
+
 	  p_struct -= ROUND_SIZE (ty->size);
 	  memcpy (p_struct, arg, ty->size);
 	  val = (uintptr_t)p_struct;
@@ -435,16 +354,6 @@ sffi_call_go (sffi_cif *cif, void (*fn)(void), void *rvalue,
   sffi_call_int(cif, fn, rvalue, avalue, closure);
 }
 
-
-
-
-
-
-
-
-
-
-
 void SFFI_HIDDEN
 sffi_closure_helper_SYSV (sffi_cif *cif,
 			 void (*fun)(sffi_cif*,void*,void**,void*),
@@ -466,26 +375,22 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
   sffi_type **ptr;
   int i;
 
-  
   p_arg = avalue = alloca (cif->nargs * sizeof (void *));
 
-  
   if (cif->flags & FFI390_RET_IN_MEM)
     rvalue = (void *) p_gpr[n_gpr++];
 
-  
   for (ptr = cif->arg_types, i = cif->nargs; i > 0; i--, p_arg++, ptr++)
     {
       int deref_struct_pointer = 0;
       int type = (*ptr)->type;
 
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
-      
+
       if (type == SFFI_TYPE_LONGDOUBLE)
 	type = SFFI_TYPE_STRUCT;
 #endif
 
-      
       if (type == SFFI_TYPE_STRUCT || type == SFFI_TYPE_COMPLEX)
 	{
 	  if (type == SFFI_TYPE_COMPLEX)
@@ -493,12 +398,10 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 	  else
 	    type = sffi_check_struct_type (*ptr);
 
-	  
 	  if (type == SFFI_TYPE_POINTER)
 	    deref_struct_pointer = 1;
 	}
 
-      
       if (type == SFFI_TYPE_POINTER)
 	{
 #ifdef __s390x__
@@ -508,7 +411,6 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 #endif
 	}
 
-      
       switch (type)
 	{
 	  case SFFI_TYPE_DOUBLE:
@@ -573,19 +475,15 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 	    break;
         }
 
-      
       if (deref_struct_pointer)
 	*p_arg = *(void **)*p_arg;
     }
 
-
-  
   (fun) (cif, rvalue, avalue, user_data);
 
-  
   switch (cif->rtype->type)
     {
-      
+
       case SFFI_TYPE_VOID:
       case SFFI_TYPE_STRUCT:
       case SFFI_TYPE_COMPLEX:
@@ -594,7 +492,6 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 #endif
 	break;
 
-      
       case SFFI_TYPE_FLOAT:
 	p_fpr[0] = (long long) *(unsigned int *) rvalue << 32;
 	break;
@@ -603,7 +500,6 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 	p_fpr[0] = *(unsigned long long *) rvalue;
 	break;
 
-      
       case SFFI_TYPE_UINT64:
       case SFFI_TYPE_SINT64:
 #ifdef __s390x__
@@ -634,16 +530,6 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
     }
 }
 
-
-
-
-
-
-
-
-
-
-
 sffi_status
 sffi_prep_closure_loc (sffi_closure *closure,
 		      sffi_cif *cif,
@@ -666,11 +552,10 @@ sffi_prep_closure_loc (sffi_closure *closure,
   if (cif->abi != SFFI_SYSV)
     return SFFI_BAD_ABI;
 
-
 #if defined(SFFI_EXEC_STATIC_TRAMP)
   if (sffi_tramp_is_present(closure))
     {
-      
+
       dest = sffi_closure_SYSV;
       sffi_tramp_set_parms (closure->ftramp, dest, closure);
       goto out;
@@ -690,10 +575,6 @@ out:
 
   return SFFI_OK;
 }
-
-
-
-
 
 sffi_status
 sffi_prep_go_closure (sffi_go_closure *closure, sffi_cif *cif,

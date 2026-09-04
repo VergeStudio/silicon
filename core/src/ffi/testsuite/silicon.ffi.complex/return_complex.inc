@@ -1,4 +1,3 @@
-
 #include "ffitest.h"
 #include <complex.h>
 
@@ -18,7 +17,6 @@ int main (void)
   args[0] = &T_FFI_TYPE;
   values[0] = &c;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &T_FFI_TYPE, args) == SFFI_OK);
 

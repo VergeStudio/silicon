@@ -1,5 +1,3 @@
-
-
 module;
 
 #include <cstddef>
@@ -11,7 +9,6 @@ module;
 #include <system_error>
 #include <vector>
 
-
 #include <silicon/common.h>
 
 module silicon.fs;
@@ -19,9 +16,6 @@ import silicon.fs.error;
 import silicon.proxy;
 
 namespace silicon::fs {
-
-
-
 
 template<class Derived>
 class file_system_base {
@@ -84,8 +78,6 @@ class file_system_base {
         return std::filesystem::create_directories(to_path(path), ec);
     }
 
-
-
     std::string normalize_text(const std::string &content) const { return content; }
 
   protected:
@@ -93,8 +85,6 @@ class file_system_base {
 };
 
 #if defined(SILICON_PLATFORM_WINDOWS)
-
-
 
 class win32_file_system: public file_system_base<win32_file_system> {
   public:
@@ -111,8 +101,6 @@ class win32_file_system: public file_system_base<win32_file_system> {
 };
 
 #elif defined(SILICON_PLATFORM_UNIX)
-
-
 
 class posix_file_system: public file_system_base<posix_file_system> {
   public:

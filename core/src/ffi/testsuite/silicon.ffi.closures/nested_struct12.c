@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct stru_FF stru_FF;

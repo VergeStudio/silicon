@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include <string>
 
 #include <silicon/test/test.h>
@@ -18,7 +12,6 @@ TEST_CASE("flags 枚举底层值（kShLibGlobal/kShLibLocal）") {
 }
 
 TEST_CASE("prefix/suffix 非空且 get_os_name 由其拼接") {
-
 
 #if !defined(SILICON_PLATFORM_WINDOWS)
     CHECK_FALSE(shared_library::prefix().empty());

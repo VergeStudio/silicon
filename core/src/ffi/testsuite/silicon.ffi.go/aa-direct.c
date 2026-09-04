@@ -1,11 +1,8 @@
-
-
 #include "static-chain.h"
 
 #if defined(__GNUC__) && !defined(__clang__) && defined(STATIC_CHAIN_REG)
 
 #include "ffitest.h"
-
 
 void *doit(void)
 {

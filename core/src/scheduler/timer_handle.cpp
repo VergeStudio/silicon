@@ -7,7 +7,6 @@ module;
 
 module silicon.scheduler;
 
-
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
@@ -46,7 +45,6 @@ timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
 
 timer_handle::timer_handle(const void *timer_handle_ptr, io_notifier &notifier)
     : m_p(std::make_unique<impl>()) {
-
 
     m_p->m_fd = -1;
     m_p->m_timer_handle_ptr = timer_handle_ptr;

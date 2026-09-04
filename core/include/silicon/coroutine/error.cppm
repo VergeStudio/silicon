@@ -11,10 +11,7 @@ export module silicon.coroutine.error;
 
 import silicon.error;
 
-
 namespace silicon::coroutine {
-
-
 
 CORE_API std::atomic<const std::error_category *> coroutine_error_category_instance{nullptr};
 CORE_API std::atomic<const std::error_category *> channel_error_category_instance{nullptr};
@@ -23,7 +20,6 @@ CORE_API std::atomic<const std::error_category *> channel_error_category_instanc
 
 export namespace silicon::coroutine {
 
-
 enum class coroutine_error {
     kNullExecutor = 1,
     kInvalidPoolSize,
@@ -31,15 +27,11 @@ enum class coroutine_error {
     kUnknown,
 };
 
-
 enum class channel_error {
     kClosed = 1,
     kTimeout,
     kCancelled,
 };
-
-
-
 
 class CORE_API coroutine_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.coroutine"; }
@@ -66,7 +58,6 @@ class CORE_API channel_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_coroutine_error_category(const std::error_category &cat) noexcept {
     coroutine_error_category_instance.store(&cat, std::memory_order_release);
 }
@@ -74,7 +65,6 @@ inline void inject_coroutine_error_category(const std::error_category &cat) noex
 inline void inject_channel_error_category(const std::error_category &cat) noexcept {
     channel_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &coroutine_category() noexcept {
     const std::error_category *cat = coroutine_error_category_instance.load(std::memory_order_acquire);
@@ -84,7 +74,6 @@ inline void inject_channel_error_category(const std::error_category &cat) noexce
     return *cat;
 }
 
-
 [[nodiscard]] inline const std::error_category &channel_category() noexcept {
     const std::error_category *cat = channel_error_category_instance.load(std::memory_order_acquire);
     if (cat == nullptr) {
@@ -93,11 +82,9 @@ inline void inject_channel_error_category(const std::error_category &cat) noexce
     return *cat;
 }
 
-
 [[nodiscard]] inline std::error_code make_error_code(coroutine_error e) noexcept {
     return {static_cast<int>(e), coroutine_category()};
 }
-
 
 [[nodiscard]] inline std::error_code make_error_code(channel_error e) noexcept {
     return {static_cast<int>(e), channel_category()};

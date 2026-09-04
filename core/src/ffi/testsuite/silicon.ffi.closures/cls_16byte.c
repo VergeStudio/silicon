@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_16byte {
@@ -32,7 +29,6 @@ cls_struct_16byte cls_struct_16byte_fn(struct cls_struct_16byte b1,
   CHECK(result.a == 8);
   CHECK(result.b == 17);
   CHECK(result.c == 12);
-
 
   return result;
 }
@@ -84,9 +80,8 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_16byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %d %g %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  
 
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 17);
@@ -99,14 +94,12 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_16byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_16byte(*)(cls_struct_16byte, cls_struct_16byte))(code))(h_dbl, j_dbl);
-  
+
   printf("res: %d %g %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  
 
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 17);
   CHECK(res_dbl.c == 12);
-
 
   exit(0);
 }

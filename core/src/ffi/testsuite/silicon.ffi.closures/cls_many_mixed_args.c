@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 #include <float.h>
 #include <math.h>
@@ -51,7 +48,6 @@ int main (void)
       cl_arg_types[i] = &sffi_type_double;
     }
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, NARGS,
 		     &sffi_type_double, cl_arg_types) == SFFI_OK);
 

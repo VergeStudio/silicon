@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -26,17 +24,11 @@ static inline int sffi_struct_type(sffi_type *t)
 {
   int sz = t->size;
 
-  
-
   if (sz <= 16)
     return -sz;
   else
     return SFFI_TYPE_STRUCT;
 }
-
-
-
-
 
 void sffi_prep_args_pa64(UINT64 *stack, extended_cif *ecif, unsigned bytes)
 {
@@ -93,12 +85,12 @@ void sffi_prep_args_pa64(UINT64 *stack, extended_cif *ecif, unsigned bytes)
 	  break;
 
 	case SFFI_TYPE_FLOAT:
-	  
+
 	  debug(3, "Storing UINT32(float) in slot %u\n", slot);
 	  *(UINT64 *)(stack + slot) = *(UINT32 *)(*p_argv);
 	  switch (slot - FIRST_ARG_SLOT)
 	    {
-	    
+
 	    case 0: fldw(stack + slot, fr4); break;
 	    case 1: fldw(stack + slot, fr5); break;
 	    case 2: fldw(stack + slot, fr6); break;
@@ -115,7 +107,7 @@ void sffi_prep_args_pa64(UINT64 *stack, extended_cif *ecif, unsigned bytes)
 	  *(UINT64 *)(stack + slot) = *(UINT64 *)(*p_argv);
 	  switch (slot - FIRST_ARG_SLOT)
 	    {
-	    
+
 	    case 0: fldd(stack + slot, fr4); break;
 	    case 1: fldd(stack + slot, fr5); break;
 	    case 2: fldd(stack + slot, fr6); break;
@@ -129,7 +121,7 @@ void sffi_prep_args_pa64(UINT64 *stack, extended_cif *ecif, unsigned bytes)
 
 #ifdef PA64_HPUX
 	case SFFI_TYPE_LONGDOUBLE:
-	  
+
 	  slot += (slot & 1);
 	  *(UINT64 *)(stack + slot) = *(UINT64 *)(*p_argv);
 	  *(UINT64 *)(stack + slot + 1) = *(UINT64 *)(*p_argv + 8);
@@ -137,7 +129,7 @@ void sffi_prep_args_pa64(UINT64 *stack, extended_cif *ecif, unsigned bytes)
 #endif
 
 	case SFFI_TYPE_STRUCT:
-	  
+
 	  if (len > 8)
 	    slot += (slot & 1);
 	  memcpy((char *)(stack + slot), (char *)*p_argv, len);
@@ -187,26 +179,23 @@ static void sffi_size_stack_pa64(sffi_cif *cif)
 	}
     }
 
-  
   if (z <= 8)
     z = 8;
   else
     z += (z & 1);
 
-  
   cif->bytes = z * 8 + 64;
   debug(3, "Calculated stack size is %u bytes\n", cif->bytes);
 }
 
-
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
-  
+
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_COMPLEX:
     case SFFI_TYPE_STRUCT:
-      
+
       cif->flags = sffi_struct_type(cif->rtype);
       break;
 
@@ -215,7 +204,6 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
       break;
     }
 
-  
   switch (cif->abi)
     {
     case SFFI_PA64:
@@ -241,8 +229,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   ecif.cif = cif;
   ecif.avalue = avalue;
 
-  
-
   if (rvalue == NULL
       && (cif->rtype->type == SFFI_TYPE_STRUCT
 	  || cif->rtype->type == SFFI_TYPE_COMPLEX)
@@ -250,7 +236,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
     ecif.rvalue = alloca(ROUND_UP (cif->rtype->size, 16));
   else
     ecif.rvalue = rvalue;
-
 
   switch (cif->abi)
     {
@@ -273,7 +258,7 @@ sffi_status sffi_closure_inner_pa64(sffi_closure *closure, UINT64 *stack)
   sffi_cif *cif;
   void **avalue;
   void *rvalue;
-  
+
   union { long double rld; UINT64 ret[2]; } u;
   sffi_type **p_arg;
   char *tmp;
@@ -283,7 +268,6 @@ sffi_status sffi_closure_inner_pa64(sffi_closure *closure, UINT64 *stack)
 
   cif = closure->cif;
 
-  
   if (cif->flags == SFFI_TYPE_STRUCT)
     rvalue = (void *)r28;
   else
@@ -321,7 +305,7 @@ sffi_status sffi_closure_inner_pa64(sffi_closure *closure, UINT64 *stack)
 	  break;
 
 	case SFFI_TYPE_FLOAT:
-	  
+
 	  switch (slot + FIRST_ARG_SLOT)
 	    {
 	    case 0: fstw(fr4, (void *)(stack + slot)); break;
@@ -337,7 +321,7 @@ sffi_status sffi_closure_inner_pa64(sffi_closure *closure, UINT64 *stack)
 	  break;
 
 	case SFFI_TYPE_DOUBLE:
-	  
+
 	  switch (slot + FIRST_ARG_SLOT)
 	    {
 	    case 0: fstd(fr4, (void *)(stack + slot)); break;
@@ -354,14 +338,14 @@ sffi_status sffi_closure_inner_pa64(sffi_closure *closure, UINT64 *stack)
 
 #ifdef PA64_HPUX
 	case SFFI_TYPE_LONGDOUBLE:
-	  
+
 	  slot += (slot & 1);
 	  avalue[i] = (void *)(stack + slot);
 	  break;
 #endif
 
 	case SFFI_TYPE_STRUCT:
-	  
+
 	  if((*p_arg)->size > 8)
 	    slot += (slot & 1);
 	  avalue[i] = (void *) (stack + slot);
@@ -375,13 +359,11 @@ sffi_status sffi_closure_inner_pa64(sffi_closure *closure, UINT64 *stack)
       p_arg++;
     }
 
-  
   (closure->fun) (cif, rvalue, avalue, closure->user_data);
 
   debug(3, "after calling function, ret[0] = %16lx, ret[1] = %16lx\n", u.ret[0],
 	u.ret[1]);
 
-  
   switch (cif->flags)
     {
     case SFFI_TYPE_UINT8:
@@ -419,12 +401,12 @@ sffi_status sffi_closure_inner_pa64(sffi_closure *closure, UINT64 *stack)
       break;
 
     case SFFI_TYPE_FLOAT:
-      
+
       fldw(rvalue - 4, fr4);
       break;
 
     case SFFI_TYPE_STRUCT:
-      
+
       break;
 
     case -1:
@@ -458,8 +440,6 @@ sffi_status sffi_closure_inner_pa64(sffi_closure *closure, UINT64 *stack)
   return SFFI_OK;
 }
 
-
-
 extern void sffi_closure_pa64(void);
 
 sffi_status
@@ -469,7 +449,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 		      void *user_data,
 		      void *codeloc)
 {
-  
+
   struct pa64_fd
   {
     UINT64 tmp1;
@@ -492,10 +472,8 @@ sffi_prep_closure_loc (sffi_closure* closure,
   if (cif->abi != SFFI_PA64)
     return SFFI_BAD_ABI;
 
-  
   fd = (struct pa64_fd *)((UINT64)sffi_closure_pa64);
 
-  
   tramp = (struct sffi_pa64_trampoline_struct *)closure->tramp;
   tramp->code_pointer = fd->code_pointer;
   tramp->fake_gp = (UINT64)codeloc;

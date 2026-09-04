@@ -1,18 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <atomic>
@@ -43,21 +28,15 @@ module;
 
 module silicon.scheduler;
 
-
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
 
 import :io_op;
 
-
-
 using namespace silicon::scheduler;
 
 namespace silicon::scheduler {
-
-
-
 
 static bool completion_file_is_regular(fd_t fd) {
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -78,13 +57,7 @@ static bool completion_file_is_regular(fd_t fd) {
 
 namespace {
 
-
-
-
 constexpr std::chrono::milliseconds kCompletionWorkerIdleTick{10};
-
-
-
 
 class completion_engine {
   public:
@@ -99,11 +72,9 @@ class completion_engine {
     [[nodiscard]] io_ring::backend backend() const noexcept { return m_backend; }
     [[nodiscard]] bool available() const noexcept { return m_backend != io_ring::backend::none; }
 
-
     [[nodiscard]] bool start() noexcept;
 
     void stop_and_join() noexcept;
-
 
     [[nodiscard]] bool enqueue(io_op *op) noexcept;
 
@@ -132,7 +103,6 @@ class completion_engine {
     std::chrono::milliseconds m_idle_tick{kCompletionWorkerIdleTick};
 #if defined(SILICON_PLATFORM_LINUX)
 
-
     silicon::scheduler::pipe_t m_wake_pipe{};
     bool m_wake_registered{false};
 #endif
@@ -154,7 +124,6 @@ completion_engine::completion_engine(const io_scheduler::options &opts, io_notif
         return;
     }
     m_wake_pipe = std::move(*created);
-
 
     if(!m_notifier.watch(m_wake_pipe.read_fd(), poll_op::read, m_sentinel, true, false)) {
         m_wake_pipe.close();
@@ -248,9 +217,6 @@ void completion_engine::handle_completion(const io_ring::completion &completion)
     auto *op = reinterpret_cast<io_op *>(static_cast<std::uintptr_t>(completion.user_data));
     if(op == nullptr) { return; }
 
-
-
-
     if(completion.result > 0) {
         op->complete(static_cast<std::int64_t>(completion.result));
     } else if(completion.result == 0) {
@@ -278,7 +244,6 @@ void completion_engine::wake_driver() noexcept {
 #elif defined(SILICON_PLATFORM_WINDOWS)
     if(m_sentinel != nullptr) {
 
-
         m_notifier.post(m_sentinel);
     }
 #endif
@@ -297,8 +262,6 @@ void completion_engine::worker_main() noexcept {
         }
     }
 
-
-
     submit_pending();
     while(io_op *op = silicon::scheduler::awaiter_list_pop(m_pending)) {
         op->complete_error(make_error_code(scheduler_error::kShuttingDown));
@@ -306,8 +269,6 @@ void completion_engine::worker_main() noexcept {
     }
     wake_driver();
 }
-
-
 
 completion_engine * create_completion_engine(
         const io_scheduler::options &opts, io_notifier &notifier, void *sentinel
@@ -327,14 +288,9 @@ completion_engine * create_completion_engine(
 
 #endif
 
-
-
-
-
 silicon::scheduler::task<result<int64_t>> io_scheduler::read_at(
         fd_t fd, void *buffer, std::uint32_t length, std::uint64_t offset
 ) {
-
 
     if(!completion_file_is_regular(fd)) {
         co_return std::unexpected(make_error_code(scheduler_error::kNotRegularFile));
@@ -369,9 +325,6 @@ silicon::scheduler::task<result<int64_t>> io_scheduler::read_at(
         m_p->m_size.fetch_sub(1, std::memory_order::release);
         co_return std::unexpected(make_error_code(scheduler_error::kCompletionSubmitFailed));
     }
-
-
-
 
     co_await op;
     co_return op.result();
@@ -431,10 +384,6 @@ silicon::scheduler::task<result<int64_t>> io_scheduler::write_at(
 #endif
 }
 
-
-
-
-
 auto io_scheduler::completion_backend() const noexcept -> io_ring::backend {
     if(m_p == nullptr || m_p->m_completion_engine == nullptr) {
         return io_ring::backend::none;
@@ -454,7 +403,6 @@ void io_scheduler::drain_ring_completions() {
 
     auto *engine = static_cast<completion_engine *>(m_p->m_completion_engine);
 
-
     engine->drain_wake_pipe();
 
     io_op *ops = engine->take_all_completed();
@@ -465,7 +413,6 @@ void io_scheduler::drain_ring_completions() {
         io_op *next = ops->m_next;
         if(!ops->m_processed) {
             ops->m_processed = true;
-
 
             while(ops->m_awaiting_coroutine == nullptr) {
                 std::atomic_thread_fence(std::memory_order::acquire);

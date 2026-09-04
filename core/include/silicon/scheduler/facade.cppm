@@ -9,31 +9,9 @@ export module silicon.scheduler:facade;
 
 import silicon.scheduler.task;
 
-
-
-
 import silicon.proxy;
 
 export namespace silicon::scheduler {
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 PRO_DEF_MEM_DISPATCH(MemSchedulerSpawnDetached, spawn_detached);
 PRO_DEF_MEM_DISPATCH(MemSchedulerSpawnJoinable, spawn_joinable);

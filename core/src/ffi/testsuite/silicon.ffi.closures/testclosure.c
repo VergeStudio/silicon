@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_combined {
@@ -34,7 +31,6 @@ cls_struct_combined_gn(sffi_cif* cif __UNUSED__, void* resp __UNUSED__,
   cls_struct_combined_fn(a0);
 }
 
-
 int main (void)
 {
   sffi_cif cif;
@@ -66,6 +62,6 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_combined_gn, NULL, code) == SFFI_OK);
 
   ((void(*)(cls_struct_combined)) (code))(g_dbl);
-  
+
   exit(0);
 }

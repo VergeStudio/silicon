@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -27,16 +14,13 @@ import :detail.meta.cpp_future;
 import :detail.meta.type_traits;
 import :detail.value_t;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 export template<typename IteratorType>
 class iteration_proxy;
 export template<typename IteratorType>
 class iteration_proxy_value;
-
 
 export template<typename BasicJsonType>
 class iter_impl
@@ -58,12 +42,7 @@ class iter_impl
 
   public:
 
-
-
-
-
     using iterator_category = std::bidirectional_iterator_tag;
-
 
     using value_type = typename BasicJsonType::value_type;
 
@@ -79,7 +58,6 @@ class iter_impl
     iter_impl(iter_impl &&) noexcept = default;
     iter_impl &operator=(iter_impl &&) noexcept = default;
 
-    
     explicit iter_impl(pointer object) noexcept: m_object(object) {
         JSON_ASSERT(m_object != nullptr);
 
@@ -109,13 +87,9 @@ class iter_impl
         }
     }
 
-    
-
-    
     iter_impl(const iter_impl<const BasicJsonType> &other) noexcept
         : m_object(other.m_object), m_it(other.m_it) {}
 
-    
     iter_impl &operator=(const iter_impl<const BasicJsonType> &other) noexcept {
         if(&other != this) {
             m_object = other.m_object;
@@ -124,11 +98,9 @@ class iter_impl
         return *this;
     }
 
-    
     iter_impl(const iter_impl<typename std::remove_const<BasicJsonType>::type> &other) noexcept
         : m_object(other.m_object), m_it(other.m_it) {}
 
-    
     iter_impl &operator=(const iter_impl<typename std::remove_const<BasicJsonType>::type> &other) noexcept
     {
         m_object = other.m_object;
@@ -137,7 +109,7 @@ class iter_impl
     }
 
     JSON_PRIVATE_UNLESS_TESTED:
-        
+
         void
         set_begin() noexcept {
         JSON_ASSERT(m_object != nullptr);
@@ -173,7 +145,6 @@ class iter_impl
         }
     }
 
-    
     void set_end() noexcept {
         JSON_ASSERT(m_object != nullptr);
 
@@ -204,7 +175,7 @@ class iter_impl
     }
 
   public:
-    
+
     reference operator*() const {
         JSON_ASSERT(m_object != nullptr);
 
@@ -239,7 +210,6 @@ class iter_impl
         }
     }
 
-    
     pointer operator->() const {
         JSON_ASSERT(m_object != nullptr);
 
@@ -272,7 +242,6 @@ class iter_impl
         }
     }
 
-    
     iter_impl operator++(int) &
     {
         auto result = *this;
@@ -280,7 +249,6 @@ class iter_impl
         return result;
     }
 
-    
     iter_impl &operator++() {
         JSON_ASSERT(m_object != nullptr);
 
@@ -312,7 +280,6 @@ class iter_impl
         return *this;
     }
 
-    
     iter_impl operator--(int) &
     {
         auto result = *this;
@@ -320,7 +287,6 @@ class iter_impl
         return result;
     }
 
-    
     iter_impl &operator--() {
         JSON_ASSERT(m_object != nullptr);
 
@@ -352,7 +318,6 @@ class iter_impl
         return *this;
     }
 
-    
     template<typename IterImpl, detail::enable_if_t<(std::is_same<IterImpl, iter_impl>::value || std::is_same<IterImpl, other_iter_impl>::value), std::nullptr_t> = nullptr>
     bool operator==(const IterImpl &other) const {
 
@@ -382,13 +347,11 @@ class iter_impl
         }
     }
 
-    
     template<typename IterImpl, detail::enable_if_t<(std::is_same<IterImpl, iter_impl>::value || std::is_same<IterImpl, other_iter_impl>::value), std::nullptr_t> = nullptr>
     bool operator!=(const IterImpl &other) const {
         return !operator==(other);
     }
 
-    
     bool operator<(const iter_impl &other) const {
 
         if(JSON_HEDLEY_UNLIKELY(m_object != other.m_object)) {
@@ -417,22 +380,18 @@ class iter_impl
         }
     }
 
-    
     bool operator<=(const iter_impl &other) const {
         return !other.operator<(*this);
     }
 
-    
     bool operator>(const iter_impl &other) const {
         return !operator<=(other);
     }
 
-    
     bool operator>=(const iter_impl &other) const {
         return !operator<(other);
     }
 
-    
     iter_impl &operator+=(difference_type i) {
         JSON_ASSERT(m_object != nullptr);
 
@@ -462,33 +421,28 @@ class iter_impl
         return *this;
     }
 
-    
     iter_impl &operator-=(difference_type i) {
         return operator+=(-i);
     }
 
-    
     iter_impl operator+(difference_type i) const {
         auto result = *this;
         result += i;
         return result;
     }
 
-    
     friend iter_impl operator+(difference_type i, const iter_impl &it) {
         auto result = it;
         result += i;
         return result;
     }
 
-    
     iter_impl operator-(difference_type i) const {
         auto result = *this;
         result -= i;
         return result;
     }
 
-    
     difference_type operator-(const iter_impl &other) const {
         JSON_ASSERT(m_object != nullptr);
 
@@ -512,7 +466,6 @@ class iter_impl
         }
     }
 
-    
     reference operator[](difference_type n) const {
         JSON_ASSERT(m_object != nullptr);
 
@@ -543,7 +496,6 @@ class iter_impl
         }
     }
 
-    
     const typename object_t::key_type &key() const {
         JSON_ASSERT(m_object != nullptr);
 
@@ -554,7 +506,6 @@ class iter_impl
         JSON_THROW(invalid_iterator::create(207, "cannot use key() for non-object iterators", m_object));
     }
 
-    
     reference value() const {
         return operator*();
     }

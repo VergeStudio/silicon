@@ -10,8 +10,6 @@ module silicon.ai.llm.types;
 
 namespace silicon::ai::llm {
 
-
-
 struct chat_response::impl {
   public:
     std::string content_;
@@ -37,8 +35,6 @@ int32_t &chat_response::prompt_tokens() { return impl_->prompt_tokens_; }
 const int32_t &chat_response::prompt_tokens() const { return impl_->prompt_tokens_; }
 int32_t &chat_response::completion_tokens() { return impl_->completion_tokens_; }
 const int32_t &chat_response::completion_tokens() const { return impl_->completion_tokens_; }
-
-
 
 struct message::impl {
   public:
@@ -69,8 +65,6 @@ const std::string &message::content() const { return impl_->content_; }
 std::string &message::tool_call_id() { return impl_->tool_call_id_; }
 const std::string &message::tool_call_id() const { return impl_->tool_call_id_; }
 
-
-
 struct model_request_options::impl {
   public:
     std::string model_;
@@ -96,8 +90,6 @@ int32_t &model_request_options::max_tokens() { return impl_->max_tokens_; }
 const int32_t &model_request_options::max_tokens() const { return impl_->max_tokens_; }
 std::map<std::string, std::string, std::less<>> &model_request_options::extra() { return impl_->extra_; }
 const std::map<std::string, std::string, std::less<>> &model_request_options::extra() const { return impl_->extra_; }
-
-
 
 struct tool_call::impl {
   public:
@@ -127,8 +119,6 @@ std::string &tool_call::name() { return impl_->name_; }
 const std::string &tool_call::name() const { return impl_->name_; }
 std::string &tool_call::arguments() { return impl_->arguments_; }
 const std::string &tool_call::arguments() const { return impl_->arguments_; }
-
-
 
 struct tool_output::impl {
   public:

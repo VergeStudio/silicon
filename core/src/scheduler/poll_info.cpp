@@ -1,6 +1,5 @@
 module;
 
-
 #include <atomic>
 #include <coroutine>
 #include <map>
@@ -8,9 +7,7 @@ module;
 #include <optional>
 #include <utility>
 
-
 module silicon.scheduler;
-
 
 #if defined(_MSC_VER)
 import silicon.scheduler;

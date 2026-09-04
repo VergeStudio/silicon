@@ -1,14 +1,9 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
 #ifndef SILICON_FFI_H
 #    error "Please do not include sffitarget.h directly into your source.  Use sffi.h instead."
 #endif
-
-
-
 
 #define X86_ANY
 
@@ -30,8 +25,6 @@
 #ifdef X86_64
 #    define SFFI_TARGET_HAS_INT128
 #endif
-
-
 
 #ifndef SILICON_FFI_ASM
 #    ifdef X86_WIN64
@@ -100,8 +93,6 @@ typedef enum sffi_abi {
 #    endif
 } sffi_abi;
 #endif
-
-
 
 #define SFFI_CLOSURES 1
 #define SFFI_GO_CLOSURES 1

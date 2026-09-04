@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 #include <stdlib.h>
@@ -35,7 +32,6 @@ int main (void)
       fa[i] = (float) i;
     }
 
-    
     CHECK(sffi_prep_cif(&cif, ABI_NUM, 13,
 		       &sffi_type_float, args) == SFFI_OK);
 

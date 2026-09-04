@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static void
@@ -39,7 +36,6 @@ int main (void)
   cl_arg_types[3] = &sffi_type_uint;
   cl_arg_types[4] = NULL;
 
-  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 4,
 		     &sffi_type_sint, cl_arg_types) == SFFI_OK);
 
@@ -47,10 +43,9 @@ int main (void)
                              (void *) 3 , code) == SFFI_OK);
 
   res = (*(closure_test_type0)code)(0, 1, 2, 3);
-  
 
   printf("res: %d\n",res);
-  
+
   CHECK(res == 9);
 
   exit(0);

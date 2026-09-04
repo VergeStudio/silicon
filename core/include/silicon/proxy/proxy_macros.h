@@ -1,7 +1,3 @@
-
-
-
-
 #ifndef MSFT_PROXY_PROXY_MACROS_H_
 #define MSFT_PROXY_PROXY_MACROS_H_
 
@@ -142,8 +138,6 @@
 #define PRO4_DEF_FREE_AS_MEM_DISPATCH(name, ...) \
     PRO4D_EXPAND_MACRO(PRO4D_DEF_FREE_AS_MEM_DISPATCH, name, __VA_ARGS__)
 
-
-
 #define PRO4D_AMBIGUOUS_MACRO_DIAGNOSTIC_ASSERT(name, qualified_name) \
     static_assert(false, "The use of macro `" #name                   \
                          "` is ambiguous. \
@@ -191,19 +185,11 @@ stick to a specific major version of the Proxy library.")
         PRO4_DEF_FREE_AS_MEM_DISPATCH(name, __VA_ARGS__)
 #endif
 
-
-
-
-
-
 #ifndef PROD_UNREACHABLE
 #    define PROD_UNREACHABLE() ::std::unreachable()
 #endif
 
 #ifndef PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE
-
-
-
 
 #    if defined(_MSC_VER)
 #        define PROD_NO_UNIQUE_ADDRESS_ATTRIBUTE msvc::no_unique_address

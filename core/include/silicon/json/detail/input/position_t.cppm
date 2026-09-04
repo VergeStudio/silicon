@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -19,10 +6,8 @@ module;
 
 export module silicon.json:detail.input.position_t;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 export struct position_t {
 
@@ -31,7 +16,6 @@ export struct position_t {
     std::size_t chars_read_current_line = 0;
 
     std::size_t lines_read = 0;
-
 
     constexpr operator size_t() const {
         return chars_read_total;

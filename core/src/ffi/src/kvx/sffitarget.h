@@ -1,13 +1,9 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
 #ifndef SILICON_FFI_H
 #    error "Please do not include sffitarget.h directly into your source. Use sffi.h instead."
 #endif
-
-
 
 #ifndef SILICON_FFI_ASM
 typedef unsigned long sffi_arg;
@@ -20,7 +16,6 @@ typedef enum sffi_abi {
     SFFI_DEFAULT_ABI = SFFI_SYSV
 } sffi_abi;
 
-
 typedef enum kvx_intext_method {
     KVX_RET_NONE = 0,
     KVX_RET_SXBD = 1,
@@ -32,9 +27,6 @@ typedef enum kvx_intext_method {
 } kvx_intext_method;
 
 #endif
-
-
-
 
 #define SFFI_CLOSURES 1
 #define SFFI_TRAMPOLINE_SIZE 0

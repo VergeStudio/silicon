@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 #include "internal.h"
@@ -31,7 +29,7 @@ typedef struct call_context
     float_reg fa[8];
 #endif
     size_t a[8];
-    
+
     char frame[16];
 } call_context;
 
@@ -43,8 +41,6 @@ typedef struct call_builder
     size_t *used_stack;
     void *struct_stack;
 } call_builder;
-
-
 
 #if __SIZEOF_POINTER__ == 8
 #define IS_INT(type) ((type) >= SFFI_TYPE_UINT8 && (type) <= SFFI_TYPE_SINT64)
@@ -74,7 +70,6 @@ static sffi_type **flatten_struct(sffi_type *in, sffi_type **out, sffi_type **ou
     }
     return out;
 }
-
 
 static float_struct_info struct_passed_as_elements(call_builder *cb, sffi_type *top) {
     float_struct_info ret = {0, 0, 0, 0};
@@ -131,7 +126,6 @@ static void unmarshal_float(call_builder *cb, void *data) {
 #endif
 #endif
 
-
 static void marshal_atom(call_builder *cb, int type, void *data) {
     size_t value = 0;
     switch (type) {
@@ -139,7 +133,7 @@ static void marshal_atom(call_builder *cb, int type, void *data) {
         case SFFI_TYPE_SINT8: value = *(int8_t *)data; break;
         case SFFI_TYPE_UINT16: value = *(uint16_t *)data; break;
         case SFFI_TYPE_SINT16: value = *(int16_t *)data; break;
-        
+
         case SFFI_TYPE_UINT32: value = *(int32_t *)data; break;
         case SFFI_TYPE_SINT32: value = *(int32_t *)data; break;
 #if __SIZEOF_POINTER__ == 8
@@ -213,7 +207,6 @@ static void unmarshal_atom(call_builder *cb, int type, void *data) {
     }
 }
 
-
 static void marshal(call_builder *cb, sffi_type *type, int var, void *data) {
     size_t realign[2];
 
@@ -235,16 +228,14 @@ static void marshal(call_builder *cb, sffi_type *type, int var, void *data) {
 #endif
 
     if (type->size > 2 * __SIZEOF_POINTER__) {
-        
+
         data = memcpy (cb->struct_stack, data, type->size);
         cb->struct_stack = (size_t *) SFFI_ALIGN ((char *) cb->struct_stack + type->size, __SIZEOF_POINTER__);
         marshal_atom(cb, SFFI_TYPE_POINTER, &data);
     } else if (IS_INT(type->type) || type->type == SFFI_TYPE_POINTER) {
         marshal_atom(cb, type->type, data);
     } else {
-        
 
-        
         if (type->alignment > __SIZEOF_POINTER__) {
             if (var)
                 cb->used_integer = SFFI_ALIGN(cb->used_integer, 2);
@@ -258,7 +249,6 @@ static void marshal(call_builder *cb, sffi_type *type, int var, void *data) {
             marshal_atom(cb, SFFI_TYPE_POINTER, realign + 1);
     }
 }
-
 
 static void *unmarshal(call_builder *cb, sffi_type *type, int var, void *data) {
     size_t realign[2];
@@ -282,16 +272,14 @@ static void *unmarshal(call_builder *cb, sffi_type *type, int var, void *data) {
 #endif
 
     if (type->size > 2 * __SIZEOF_POINTER__) {
-        
+
         unmarshal_atom(cb, SFFI_TYPE_POINTER, (char*)&pointer);
         return pointer;
     } else if (IS_INT(type->type) || type->type == SFFI_TYPE_POINTER) {
         unmarshal_atom(cb, type->type, data);
         return data;
     } else {
-        
 
-        
         if (type->alignment > __SIZEOF_POINTER__) {
             if (var)
                 cb->used_integer = SFFI_ALIGN(cb->used_integer, 2);
@@ -318,19 +306,15 @@ static int passed_by_ref(call_builder *cb, sffi_type *type, int var) {
     return type->size > 2 * __SIZEOF_POINTER__;
 }
 
-
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif) {
     cif->riscv_nfixedargs = cif->nargs;
     return SFFI_OK;
 }
 
-
-
 sffi_status sffi_prep_cif_machdep_var(sffi_cif *cif, unsigned int nfixedargs, unsigned int ntotalargs) {
     cif->riscv_nfixedargs = nfixedargs;
     return SFFI_OK;
 }
-
 
 extern void sffi_call_asm (void *stack, struct call_context *regs,
 			  void (*fn) (void), void *closure) SFFI_HIDDEN;
@@ -339,21 +323,20 @@ static void
 sffi_call_int (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
 	      void *closure)
 {
-    
+
     size_t arg_bytes = cif->nargs <= 3 ? 0 :
         SFFI_ALIGN(2 * sizeof(size_t) * (cif->nargs - 3), STKALIGN);
-    
+
     size_t struct_bytes = SFFI_ALIGN (cif->bytes, STKALIGN);
     size_t rval_bytes = 0;
     if (rvalue == NULL && cif->rtype->size > 2*__SIZEOF_POINTER__)
         rval_bytes = SFFI_ALIGN(cif->rtype->size, STKALIGN);
     size_t alloc_size = arg_bytes + rval_bytes + struct_bytes + sizeof(call_context);
 
-    
     size_t alloc_base;
-    
+
     if (_Alignof(max_align_t) >= STKALIGN) {
-        
+
         alloc_base = (size_t)alloca(alloc_size);
     } else {
         alloc_base = SFFI_ALIGN(alloca(alloc_size + STKALIGN - 1), STKALIGN);
@@ -384,7 +367,7 @@ sffi_call_int (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
 	if (IS_INT(cif->rtype->type)
 	    && cif->rtype->size < sizeof (sffi_arg))
 	  {
-	    
+
 	    switch (cif->rtype->type)
 	      {
 	      case SFFI_TYPE_SINT8:
@@ -431,7 +414,7 @@ sffi_status sffi_prep_closure_loc(sffi_closure *closure, sffi_cif *cif, void (*f
 #ifdef SFFI_EXEC_STATIC_TRAMP
   if (sffi_tramp_is_present (closure))
     {
-      
+
       void (*dest)(void) = sffi_closure_asm;
       sffi_tramp_set_parms (closure->ftramp, dest, closure);
     }
@@ -440,8 +423,6 @@ sffi_status sffi_prep_closure_loc(sffi_closure *closure, sffi_cif *cif, void (*f
     {
       uint32_t *tramp = (uint32_t *) &closure->tramp[0];
       uint64_t fn = (uint64_t) (uintptr_t) sffi_closure_asm;
-
-      
 
       tramp[0] = 0x00000317; 
 #if __SIZEOF_POINTER__ == 8
@@ -481,7 +462,6 @@ sffi_prep_go_closure (sffi_go_closure *closure, sffi_cif *cif,
   return SFFI_OK;
 }
 
-
 void SFFI_HIDDEN
 sffi_closure_inner (sffi_cif *cif,
 		   void (*fun) (sffi_cif *, void *, void **, void *),
@@ -489,7 +469,7 @@ sffi_closure_inner (sffi_cif *cif,
 		   size_t *stack, call_context *aregs)
 {
     void **avalue = alloca(cif->nargs * sizeof(void*));
-    
+
     char *astorage = alloca(cif->nargs * MAXCOPYARG);
     void *rvalue;
     call_builder cb;

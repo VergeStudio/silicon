@@ -1,15 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
 export module silicon.network;
 export import silicon.network.error;
 

@@ -1,8 +1,3 @@
-
-
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_1_1byte {
@@ -71,16 +66,15 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_1_1byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %d\n", res_dbl.a);
-  
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_1_1byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_1_1byte(*)(cls_struct_1_1byte, cls_struct_1_1byte))(code))(g_dbl, f_dbl);
-  
+
   printf("res: %d\n", res_dbl.a);
-  
+
   CHECK(res_dbl.a == 190);
 
   exit(0);

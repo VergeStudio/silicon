@@ -1,6 +1,5 @@
 module;
 
-
 #include <atomic>
 #include <coroutine>
 #include <cstdint>
@@ -10,15 +9,11 @@ module;
 
 module silicon.scheduler;
 
-
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
 
 import :io_op;
-
-
-
 
 namespace silicon::scheduler {
 
@@ -40,7 +35,6 @@ auto io_op::result() const noexcept -> std::expected<std::int64_t, std::error_co
 }
 
 void io_op::io_awaiter::await_suspend(std::coroutine_handle<> awaiting) noexcept {
-
 
     m_op.m_awaiting_coroutine = awaiting;
     std::atomic_thread_fence(std::memory_order::release);

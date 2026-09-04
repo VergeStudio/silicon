@@ -10,7 +10,6 @@ export module silicon.scheduler.error;
 
 import silicon.error;
 
-
 namespace silicon::scheduler {
 
 CORE_API std::atomic<const std::error_category *> scheduler_error_category_instance{nullptr};
@@ -18,7 +17,6 @@ CORE_API std::atomic<const std::error_category *> scheduler_error_category_insta
 }
 
 export namespace silicon::scheduler {
-
 
 enum class scheduler_error {
     kShuttingDown = 1,
@@ -29,12 +27,10 @@ enum class scheduler_error {
     kNullExecutor,
     kUnknown,
 
-
     kNoCompletionBackend,
     kNotRegularFile,
     kCompletionSubmitFailed,
 };
-
 
 class CORE_API scheduler_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.scheduler"; }
@@ -58,11 +54,9 @@ class CORE_API scheduler_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_scheduler_error_category(const std::error_category &cat) noexcept {
     scheduler_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &scheduler_category() noexcept {
     const std::error_category *cat = scheduler_error_category_instance.load(std::memory_order_acquire);
@@ -72,18 +66,11 @@ inline void inject_scheduler_error_category(const std::error_category &cat) noex
     return *cat;
 }
 
-
 [[nodiscard]] inline std::error_code make_error_code(scheduler_error e) noexcept {
     return {static_cast<int>(e), scheduler_category()};
 }
 
 }
-
-
-
-
-
-
 
 namespace {
     const silicon::scheduler::scheduler_category_impl s_default_scheduler_category{};

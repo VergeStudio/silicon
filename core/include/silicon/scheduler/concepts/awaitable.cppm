@@ -1,6 +1,5 @@
 module;
 
-
 #include <concepts>
 #include <coroutine>
 #include <type_traits>
@@ -12,8 +11,6 @@ export namespace silicon::scheduler::concepts {
 
 template<typename type, typename... types>
 concept in_types = (std::same_as<type, types> || ...);
-
-
 
 template<typename type>
 concept awaiter = requires(type t, std::coroutine_handle<> c)
@@ -34,7 +31,6 @@ concept global_co_await_awaitable = requires(type t)
 {
     { operator co_await(t) } -> awaiter;
 };
-
 
 template<typename type>
 concept awaitable = member_co_await_awaitable<type> || global_co_await_awaitable<type> || awaiter<type>;
@@ -89,7 +85,6 @@ struct awaitable_traits<awaitable>
     using awaiter_return_type = decltype(std::declval<awaiter_type>().await_resume());
 };
 
-
 template<typename entry_type>
 concept awaiter_forward_list_entry = requires(entry_type* e)
 {
@@ -98,9 +93,5 @@ concept awaiter_forward_list_entry = requires(entry_type* e)
 
     { std::same_as<std::coroutine_handle<>, decltype(e->m_awaiting_coroutine)> };
 };
-
-
-
-
 
 }

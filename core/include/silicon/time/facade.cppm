@@ -11,23 +11,12 @@ module;
 
 #include <silicon/common.h>
 
-
 #include <silicon/time/system_clock.h>
 export module silicon.time;
-
 
 import silicon.proxy;
 
 export namespace silicon::time {
-
-
-
-
-
-
-
-
-
 
 PRO_DEF_MEM_DISPATCH(MemClockNow, now);
 PRO_DEF_MEM_DISPATCH(MemClockNowMs, now_ms);
@@ -45,19 +34,13 @@ template <class T, class... Args>
         std::forward<Args>(args)...);
 }
 
-
 template <class T>
     requires silicon::proxy::proxiable_target<T, clock_facade>
 [[nodiscard]] clock_view make_clock_view(T &target) noexcept {
     return silicon::proxy::make_proxy_view<clock_facade>(target);
 }
 
-
-
-
-
 using silicon::time::system_clock;
-
 
 PRO_DEF_MEM_DISPATCH(MemDateSourceCurrentDate, current_date);
 struct date_source_facade : silicon::proxy::facade_builder
@@ -71,10 +54,6 @@ template <class T, class... Args>
     return silicon::proxy::make_proxy<date_source_facade, T>(
         std::forward<Args>(args)...);
 }
-
-
-
-
 
 class CORE_API date_source {
     struct impl {

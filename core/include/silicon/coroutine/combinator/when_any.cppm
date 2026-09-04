@@ -1,9 +1,6 @@
 module;
 
-
 #include <variant>
-
-
 
 #ifndef EMSCRIPTEN
 #    include <atomic>
@@ -14,8 +11,6 @@ module;
 #    include <utility>
 #    include <vector>
 #endif
-
-
 
 export module silicon.coroutine:when_any;
 
@@ -28,8 +23,6 @@ import :mutex;
 import :when_all;
 
 export namespace silicon::coroutine {
-
-
 
 template<typename T>
 struct when_any_variant_traits {
@@ -97,7 +90,6 @@ silicon::scheduler::task<void> make_when_any_task(
     auto expected = false;
     auto result = co_await static_cast<awaitable &&>(a);
 
-
     if(first_completed.compare_exchange_strong(expected, true, std::memory_order::acq_rel, std::memory_order::relaxed)) {
         return_value = std::move(result);
         notify.set();
@@ -132,10 +124,7 @@ silicon::scheduler::task_self_deleting make_when_any_controller_task(
         range_type awaitables, silicon::coroutine::event &notify, std::optional<return_type_base> &return_value
 ) {
 
-
-
     std::atomic<bool> first_completed{false};
-
 
     std::vector<silicon::scheduler::task<void>> tasks{};
 
@@ -152,8 +141,6 @@ silicon::scheduler::task_self_deleting make_when_any_controller_task(
     co_await silicon::coroutine::when_all(std::move(tasks));
     co_return;
 }
-
-
 
 template<silicon::scheduler::concepts::awaitable... awaitable_type>
 [[nodiscard]] silicon::scheduler::task<std::variant<typename when_any_variant_traits<

@@ -1,10 +1,6 @@
-
-
-
 #include "ffitest.h"
 
 static int call_count = 0;
-
 
 struct big3 { double a, b, c; };
 
@@ -18,12 +14,10 @@ static struct big3 make_big3(double a, double b, double c)
   return r;
 }
 
-
 static double sum_big3(struct big3 s)
 {
   return s.a + s.b + s.c;
 }
-
 
 struct pair2 { long x, y; };
 
@@ -57,7 +51,6 @@ int main (void)
   pair2_t.type = SFFI_TYPE_STRUCT;
   pair2_t.elements = pair2_elements;
 
-  
   {
     sffi_cif cif;
     sffi_type *args[3];
@@ -86,7 +79,6 @@ int main (void)
     CHECK_DOUBLE_EQ(rp.b, b + 2.0);
     CHECK_DOUBLE_EQ(rp.c, c + 3.0);
 
-    
     before = call_count;
     sffi_call_plan_invoke(plan, SFFI_FN(make_big3), NULL, values);
     CHECK(call_count == before + 1);
@@ -94,7 +86,6 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  
   {
     sffi_cif cif;
     sffi_type *args[1];
@@ -120,7 +111,6 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  
   {
     sffi_cif cif;
     sffi_type *args[2];

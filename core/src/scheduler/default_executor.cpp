@@ -1,6 +1,5 @@
 module;
 
-
 #include <atomic>
 #include <chrono>
 #include <exception>
@@ -16,8 +15,6 @@ module;
 module silicon.scheduler;
 
 import :poll_info_impl;
-
-
 
 static const auto s_initialization_check_interval = std::chrono::milliseconds(1);
 

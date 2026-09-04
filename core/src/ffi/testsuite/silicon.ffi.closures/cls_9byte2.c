@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_9byte {
@@ -77,18 +74,18 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_9byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %g %d\n", res_dbl.a, res_dbl.b);
-  
+
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 17);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_9byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_9byte(*)(cls_struct_9byte, cls_struct_9byte))(code))(h_dbl, j_dbl);
-  
+
   printf("res: %g %d\n", res_dbl.a, res_dbl.b);
-  
+
   CHECK(res_dbl.a == 8);
   CHECK(res_dbl.b == 17);
 

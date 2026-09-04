@@ -1,5 +1,3 @@
-
-
 #include "sffi.h"
 #include "sffi_common.h"
 #include "sffi_powerpc.h"
@@ -20,7 +18,6 @@ sffi_prep_types (sffi_abi abi)
 # endif
 }
 #endif
-
 
 sffi_status SFFI_HIDDEN
 sffi_prep_cif_machdep (sffi_cif *cif)
@@ -51,7 +48,7 @@ sffi_call_int (sffi_cif *cif,
 	      void **avalue,
 	      void *closure)
 {
-  
+
   float128 smst_buffer[8];
   extended_cif ecif;
 
@@ -61,7 +58,7 @@ sffi_call_int (sffi_cif *cif,
   ecif.rvalue = rvalue;
   if ((cif->flags & FLAG_RETURNS_SMST) != 0)
     ecif.rvalue = smst_buffer;
-  
+
   else if (!rvalue && cif->rtype->type == SFFI_TYPE_STRUCT)
     ecif.rvalue = alloca (cif->rtype->size);
 
@@ -72,12 +69,11 @@ sffi_call_int (sffi_cif *cif,
   sffi_call_SYSV (&ecif, fn, ecif.rvalue, cif->flags, closure, -cif->bytes);
 #endif
 
-  
   if (rvalue && ecif.rvalue == smst_buffer)
     {
       unsigned int rsize = cif->rtype->size;
 #ifdef SFFI_TARGET_HAS_COMPLEX_TYPE
-      
+
       if (cif->rtype->type == SFFI_TYPE_COMPLEX
 	  && (cif->flags & (FLAG_RETURNS_FP | FLAG_RETURNS_VEC)) == 0)
 	{
@@ -93,13 +89,13 @@ sffi_call_int (sffi_cif *cif,
       else
 #endif
 #ifndef __LITTLE_ENDIAN__
-      
+
 # ifndef POWERPC64
       if (rsize <= 4)
 	memcpy (rvalue, (char *) smst_buffer + 4 - rsize, rsize);
       else
 # endif
-	
+
 	if (rsize <= 8 && (cif->flags & FLAG_RETURNS_FP) == 0)
 	  memcpy (rvalue, (char *) smst_buffer + 8 - rsize, rsize);
 	else
@@ -158,7 +154,7 @@ sffi_tramp_arch (size_t *tramp_size, size_t *map_size)
   *tramp_size = PPC_TRAMP_SIZE;
   *map_size = PPC_TRAMP_MAP_SIZE;
 #if defined (_CALL_AIX) || _CALL_ELF == 1
-  
+
   return *(void **)trampoline_code_table;
 #else
   return &trampoline_code_table;

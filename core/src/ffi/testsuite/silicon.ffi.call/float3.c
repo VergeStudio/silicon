@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 #include "float.h"
 
@@ -35,7 +31,6 @@ int main (void)
   args[2] = &sffi_type_longdouble;
   values[2] = &ld;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3,
 		     &sffi_type_double, args) == SFFI_OK);
 
@@ -56,7 +51,6 @@ int main (void)
   args[2] = &sffi_type_float;
   values[2] = &f;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3,
 		     &sffi_type_double, args) == SFFI_OK);
 

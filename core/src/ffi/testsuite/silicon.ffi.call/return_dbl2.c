@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static double return_dbl(double dbl1, double dbl2, unsigned int in3, double dbl4)
@@ -23,7 +20,6 @@ int main (void)
   values[2] = &in3;
   values[3] = &dbl4;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &sffi_type_double, args) == SFFI_OK);
   dbl1 = 127.0;

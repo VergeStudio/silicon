@@ -1,12 +1,9 @@
 module;
 
-
 #include <memory>
 #include <utility>
 
-
 #include <coroutine>
-
 
 #include <atomic>
 #include <condition_variable>
@@ -22,7 +19,6 @@ export module silicon.scheduler:sync_wait;
 import :concepts.awaitable;
 
 export namespace silicon::scheduler {
-
 
 struct CORE_API unset_return_value {
     unset_return_value() {}
@@ -191,9 +187,6 @@ class CORE_API sync_wait_task_promise<void>: public sync_wait_task_promise_base 
 
     auto get_return_object() noexcept { return coroutine_type::from_promise(*this); }
 
-
-
-
     struct CORE_API completion_notifier {
         auto await_ready() const noexcept { return false; }
         auto await_suspend(coroutine_type coroutine) const noexcept { coroutine.promise().m_p->m_event->set(); }
@@ -272,8 +265,6 @@ sync_wait_task<return_type> make_sync_wait_task(awaitable_type &&a) {
         co_return co_await std::forward<awaitable_type>(a);
     }
 }
-
-
 
 template<
         concepts::awaitable awaitable_type,

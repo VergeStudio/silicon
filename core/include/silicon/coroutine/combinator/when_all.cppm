@@ -1,10 +1,7 @@
 module;
 
-
 #include <memory>
 #include <exception>
-
-
 
 #include <atomic>
 #include <coroutine>
@@ -21,8 +18,6 @@ import silicon.scheduler;
 import :void_value;
 
 export namespace silicon::coroutine {
-
-
 
 class CORE_API when_all_latch {
   public:
@@ -54,7 +49,6 @@ class when_all_ready_awaitable;
 template<typename return_type>
 class when_all_task;
 
-
 template<>
 class when_all_ready_awaitable<std::tuple<>> {
   public:
@@ -69,7 +63,6 @@ class when_all_ready_awaitable<std::tuple<>> {
 template<typename... task_types>
 class when_all_ready_awaitable<std::tuple<task_types...>> {
   public:
-
 
     explicit when_all_ready_awaitable(task_types &&...tasks) noexcept(
             std::conjunction<std::is_nothrow_move_constructible<task_types>...>::value
@@ -270,8 +263,6 @@ class when_all_task_promise {
 
     void return_void() noexcept {
 
-
-
         std::unreachable();
     }
 
@@ -287,7 +278,6 @@ class when_all_task_promise {
 
 template<>
 
-
 class CORE_API when_all_task_promise<void> {
   public:
     using coroutine_handle_type = std::coroutine_handle<when_all_task_promise<void>>;
@@ -297,11 +287,6 @@ class CORE_API when_all_task_promise<void> {
     auto get_return_object() noexcept { return coroutine_handle_type::from_promise(*this); }
 
     std::suspend_always initial_suspend() noexcept { return {}; }
-
-
-
-
-
 
     struct CORE_API completion_notifier {
         bool await_ready() const noexcept { return false; }
@@ -444,8 +429,6 @@ when_all_task<return_type> make_when_all_task(awaitable a) {
     }
 }
 
-
-
 template<silicon::scheduler::concepts::awaitable... awaitables_type>
 [[nodiscard]] auto when_all(awaitables_type... awaitables) {
     return when_all_ready_awaitable<std::tuple<
@@ -462,16 +445,13 @@ template<
         -> when_all_ready_awaitable<std::vector<when_all_task<return_type>>> {
     std::vector<when_all_task<return_type>> output_tasks;
 
-
     if constexpr(std::ranges::sized_range<range_type>) {
         output_tasks.reserve(std::size(awaitables));
     }
 
-
     for(auto &&a: awaitables) {
         output_tasks.emplace_back(make_when_all_task(std::move(a)));
     }
-
 
     return when_all_ready_awaitable(std::move(output_tasks));
 }

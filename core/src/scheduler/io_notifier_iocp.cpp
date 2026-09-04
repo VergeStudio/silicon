@@ -20,7 +20,6 @@ module;
 
 module silicon.scheduler;
 
-
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
@@ -33,35 +32,23 @@ using namespace std::chrono_literals;
 
 namespace silicon::scheduler {
 
-
-
 struct timer_post_ctx {
     HANDLE iocp;
     poll_info *pi;
 };
-
-
 
 static void CALLBACK timer_post_callback(PTP_CALLBACK_INSTANCE, void *ctx, PTP_TIMER) noexcept {
     auto *tc = static_cast<timer_post_ctx *>(ctx);
     PostQueuedCompletionStatus(tc->iocp, 0, reinterpret_cast<ULONG_PTR>(tc->pi), nullptr);
 }
 
-
-
-
-
-
 struct io_notifier::impl {
 
     HANDLE m_iocp{};
 
-
     bool m_valid{false};
 
-
     std::mutex m_mutex;
-
 
     struct watch_entry {
         poll_op op;
@@ -71,17 +58,9 @@ struct io_notifier::impl {
     };
     std::unordered_map<fd_t, watch_entry> m_watched_fds;
 
-
-
-
-
     timer_post_ctx m_timer_ctx{};
     PTP_TIMER m_tp_timer{nullptr};
 };
-
-
-
-
 
 io_notifier::io_notifier()
     : m_p(std::make_unique<impl>()) {
@@ -141,12 +120,6 @@ bool io_notifier::unwatch(poll_info &pi) {
 
 bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) {
 
-
-
-
-
-
-
     auto *pi = reinterpret_cast<poll_info *>(const_cast<void *>(timer.get_inner()));
     if (!pi || !m_p->m_valid) {
         return false;
@@ -165,7 +138,6 @@ bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanosecond
             return false;
         }
     }
-
 
     LARGE_INTEGER liDueTime{};
     liDueTime.QuadPart = -static_cast<LONGLONG>((duration.count() + 99) / 100);
@@ -190,8 +162,6 @@ void io_notifier::next_events(
         std::chrono::milliseconds timeout
 ) {
 
-
-
     using steady_clock = std::chrono::steady_clock;
     const auto deadline = steady_clock::now() + timeout;
     auto remaining_ms = [&deadline]() -> DWORD {
@@ -199,16 +169,12 @@ void io_notifier::next_events(
         return left.count() > 0 ? static_cast<DWORD>(left.count()) : 0;
     };
 
-
     auto drain_packets = [&](DWORD wait_ms) {
         DWORD bytes_transferred;
         ULONG_PTR completion_key;
         LPOVERLAPPED overlapped;
         while (GetQueuedCompletionStatus(
                 m_p->m_iocp, &bytes_transferred, &completion_key, &overlapped, wait_ms)) {
-
-
-
 
             auto *pi = reinterpret_cast<poll_info *>(completion_key);
             if (pi) {
@@ -218,10 +184,7 @@ void io_notifier::next_events(
         }
     };
 
-
     drain_packets(0);
-
-
 
     std::vector<WSAPOLLFD> poll_fds;
     std::vector<poll_info *> poll_info_map;
@@ -241,14 +204,11 @@ void io_notifier::next_events(
         }
     }
 
-
     if (!poll_fds.empty()) {
         int poll_timeout = static_cast<int>(remaining_ms());
 
         int result = WSAPoll(poll_fds.data(), static_cast<ULONG>(poll_fds.size()), poll_timeout);
         if (result == SOCKET_ERROR && ready_events.empty()) {
-
-
 
             drain_packets(remaining_ms());
             return;
@@ -287,7 +247,6 @@ void io_notifier::next_events(
             }
         }
 
-
         drain_packets(0);
     } else if (ready_events.empty()) {
 
@@ -297,10 +256,6 @@ void io_notifier::next_events(
 
 bool io_notifier::post(void *data) {
     if(!m_p->m_valid) { return false; }
-
-
-
-
 
     return ::PostQueuedCompletionStatus(
                    m_p->m_iocp, 0, reinterpret_cast<ULONG_PTR>(data), nullptr

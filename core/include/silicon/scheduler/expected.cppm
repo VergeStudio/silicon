@@ -1,6 +1,5 @@
 module;
 
-
 #include <expected>
 
 export module silicon.scheduler:expected;

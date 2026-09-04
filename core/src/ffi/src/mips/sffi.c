@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -41,9 +39,6 @@ if (argp == &stack[bytes]) \
 #define FIX_ARGP 
 #endif
 
-
-
-
 static void sffi_prep_args(char *stack, 
 			  extended_cif *ecif,
 			  int bytes,
@@ -59,8 +54,7 @@ static void sffi_prep_args(char *stack,
 #ifdef SFFI_MIPS_N32
   int soft_float = (ecif->cif->abi == SFFI_N32_SOFT_FLOAT
 		    || ecif->cif->abi == SFFI_N64_SOFT_FLOAT);
-  
-  
+
   if (ecif->cif->rtype->type == SFFI_TYPE_COMPLEX && ecif->cif->rtype->elements[0]->type == SFFI_TYPE_LONGDOUBLE)
     {
       if (bytes + 16 > 8 * sizeof(sffi_arg))
@@ -101,11 +95,10 @@ static void sffi_prep_args(char *stack,
       size_t z;
       unsigned int a;
 
-      
       a = (*p_arg)->alignment;
       if (a < sizeof(sffi_arg))
         a = sizeof(sffi_arg);
-      
+
       if ((a - 1) & (unsigned long) argp)
 	{
 	  argp = (char *) SFFI_ALIGN(argp, a);
@@ -118,7 +111,6 @@ static void sffi_prep_args(char *stack,
           int type = (*p_arg)->type;
 	  z = sizeof(sffi_arg);
 
-          
           if (type == SFFI_TYPE_POINTER)
             type = (ecif->cif->abi == SFFI_N64
 		    || ecif->cif->abi == SFFI_N64_SOFT_FLOAT)
@@ -148,22 +140,22 @@ static void sffi_prep_args(char *stack,
 	      case SFFI_TYPE_UINT8:
 		*(sffi_arg *)argp = *(UINT8 *)(* p_argv);
 		break;
-		  
+
 	      case SFFI_TYPE_SINT16:
 		*(sffi_arg *)argp = *(SINT16 *)(* p_argv);
 		break;
-		  
+
 	      case SFFI_TYPE_UINT16:
 		*(sffi_arg *)argp = *(UINT16 *)(* p_argv);
 		break;
-		  
+
 	      case SFFI_TYPE_SINT32:
 		*(sffi_arg *)argp = *(SINT32 *)(* p_argv);
 		break;
-		  
+
 	      case SFFI_TYPE_UINT32:
 #ifdef SFFI_MIPS_N32
-		
+
 		*(sffi_arg *)argp = *(SINT32 *)(* p_argv);
 #else
 		*(sffi_arg *)argp = *(UINT32 *)(* p_argv);
@@ -172,9 +164,7 @@ static void sffi_prep_args(char *stack,
 
 #ifdef SFFI_MIPS_N32
 	      case SFFI_TYPE_COMPLEX:
-		
-		
-		
+
 	        if(!soft_float
 		    && (*p_arg)->elements[0]->type == SFFI_TYPE_FLOAT
 		    && argp>=argp_f
@@ -189,12 +179,11 @@ static void sffi_prep_args(char *stack,
 		  memcpy(argp, *p_argv, (*p_arg)->size);
 		break;
 #endif
-	      
+
 	      case SFFI_TYPE_FLOAT:
 		*(float *) argp = *(float *)(* p_argv);
 		break;
 
-	      
 	      default:
 		memcpy(argp, *p_argv, (*p_arg)->size);
 		break;
@@ -208,8 +197,6 @@ static void sffi_prep_args(char *stack,
 	  {
 	    unsigned long end = (unsigned long) argp + z;
 	    unsigned long cap = (unsigned long) stack + bytes;
-
-	    
 
 	    if (end <= cap)
 	      memcpy(argp, *p_argv, z);
@@ -234,17 +221,15 @@ static void sffi_prep_args(char *stack,
 
 #ifdef SFFI_MIPS_N32
 
-
-
 static int
 calc_n32_struct_flags_element(unsigned *flags, sffi_type *e,
 			      unsigned *loc, unsigned *arg_reg)
 {
-  
+
   *loc = SFFI_ALIGN(*loc, e->alignment);
   if (e->type == SFFI_TYPE_DOUBLE)
     {
-      
+
       *arg_reg = *loc / SFFI_SIZEOF_ARG;
       if (*arg_reg > 7)
 	return 1;
@@ -280,7 +265,7 @@ calc_n32_struct_flags(int soft_float, sffi_type *arg,
 	  break;
       index++;
     }
-  
+
   *arg_reg = SFFI_ALIGN(*loc, SFFI_SIZEOF_ARG) / SFFI_SIZEOF_ARG;
 
   return flags;
@@ -293,8 +278,6 @@ calc_n32_return_struct_flags(int soft_float, sffi_type *arg)
   unsigned small = SFFI_TYPE_SMALLSTRUCT;
   sffi_type *e;
 
-  
-  
   if (arg->size > 16)
     return 0;
 
@@ -312,7 +295,7 @@ calc_n32_return_struct_flags(int soft_float, sffi_type *arg)
 
       if (arg->elements[1])
 	{
-	  
+
 	  return small;
 	}
 
@@ -333,7 +316,7 @@ calc_n32_return_struct_flags(int soft_float, sffi_type *arg)
 
 	  if (arg->elements[2])
 	    {
-	      
+
 	      return small;
 	    }
 
@@ -348,14 +331,12 @@ calc_n32_return_struct_flags(int soft_float, sffi_type *arg)
 
 #endif
 
-
 static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 {
   cif->flags = 0;
   cif->mips_nfixedargs = nfixedargs;
 
 #ifdef SFFI_MIPS_O32
-  
 
   if (cif->rtype->type != SFFI_TYPE_STRUCT && cif->rtype->type != SFFI_TYPE_COMPLEX && cif->abi == SFFI_O32)
     {
@@ -367,14 +348,14 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	    case SFFI_TYPE_DOUBLE:
 	      cif->flags += (cif->arg_types)[0]->type;
 	      break;
-	      
+
 	    default:
 	      break;
 	    }
 
 	  if (cif->nargs > 1)
 	    {
-	      
+
 	      if (cif->flags)
 		{
 		  switch ((cif->arg_types)[1]->type)
@@ -383,7 +364,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 		    case SFFI_TYPE_DOUBLE:
 		      cif->flags += (cif->arg_types)[1]->type << SFFI_FLAG_BITS;
 		      break;
-		      
+
 		    default:
 		      break;
 		    }
@@ -391,8 +372,6 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	    }
 	}
     }
-      
-  
 
   if (cif->abi == SFFI_O32_SOFT_FLOAT)
     {
@@ -408,7 +387,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
         case SFFI_TYPE_DOUBLE:
           cif->flags += SFFI_TYPE_UINT64 << (SFFI_FLAG_BITS * 2);
           break;
-      
+
         case SFFI_TYPE_FLOAT:
         default:
           cif->flags += SFFI_TYPE_INT << (SFFI_FLAG_BITS * 2);
@@ -417,7 +396,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
     }
   else
     {
-            
+
       switch (cif->rtype->type)
         {
         case SFFI_TYPE_VOID:
@@ -434,7 +413,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
         case SFFI_TYPE_UINT64:
           cif->flags += SFFI_TYPE_UINT64 << (SFFI_FLAG_BITS * 2);
           break;
-      
+
         default:
           cif->flags += SFFI_TYPE_INT << (SFFI_FLAG_BITS * 2);
           break;
@@ -443,7 +422,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 #endif
 
 #ifdef SFFI_MIPS_N32
-  
+
   {
     unsigned arg_reg = 0;
     unsigned loc = 0;
@@ -460,7 +439,6 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 
 	if (struct_flags == 0)
 	  {
-	    
 
 	    arg_reg = 1;
 	    count = (cif->nargs < 7) ? cif->nargs : 7;
@@ -486,9 +464,9 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	    arg_reg++;
 	    break;
           case SFFI_TYPE_LONGDOUBLE:
-            
+
             arg_reg = SFFI_ALIGN(arg_reg, 2);
-            
+
 	    if (soft_float || index >= nfixedargs)
 	      {
 		arg_reg += 2;
@@ -528,11 +506,11 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 		    if (arg_reg >= 8)
 		        continue;
 		  }
-		
+
 	      case SFFI_TYPE_FLOAT:
 
 		cif->bytes += 16;
-		
+
 	      case SFFI_TYPE_SINT32:
 	      case SFFI_TYPE_UINT32:
 	      case SFFI_TYPE_DOUBLE:
@@ -573,26 +551,25 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	index++;
       }
 
-  
     switch (cif->rtype->type)
       {
       case SFFI_TYPE_STRUCT:
 	{
 	  if (struct_flags == 0)
 	    {
-	      
+
 	    }
 	  else
 	    {
-	      
+
 	      cif->flags += SFFI_TYPE_STRUCT << (SFFI_FLAG_BITS * 8);
 	      cif->flags += struct_flags << (4 + (SFFI_FLAG_BITS * 8));
 	    }
 	  break;
 	}
-      
+
       case SFFI_TYPE_VOID:
-	
+
 	break;
 
       case SFFI_TYPE_POINTER:
@@ -608,7 +585,7 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	    cif->flags += SFFI_TYPE_SINT32 << (SFFI_FLAG_BITS * 8);
 	    break;
 	  }
-	
+
       case SFFI_TYPE_DOUBLE:
 	if (soft_float)
 	  cif->flags += SFFI_TYPE_UINT64 << (SFFI_FLAG_BITS * 8);
@@ -617,10 +594,10 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	break;
 
       case SFFI_TYPE_LONGDOUBLE:
-	
+
 	if (soft_float)
 	  {
-	    
+
 	    cif->flags += SFFI_TYPE_LONGDOUBLE << (SFFI_FLAG_BITS * 8);
  	  }
 	else
@@ -658,13 +635,12 @@ static sffi_status sffi_prep_cif_machdep_int(sffi_cif *cif, unsigned nfixedargs)
 	  else
 	    {
 
-
 	      cif->flags += type << (4 + (SFFI_FLAG_BITS * 8));
 	    }
 	  break;
 	}
       case SFFI_TYPE_UINT32:
-	
+
 	cif->flags += SFFI_TYPE_SINT32 << (SFFI_FLAG_BITS * 8);
 	break;
       case SFFI_TYPE_SINT64:
@@ -691,11 +667,9 @@ sffi_status sffi_prep_cif_machdep_var(sffi_cif *cif,
     return sffi_prep_cif_machdep_int(cif, nfixedargs);
 }
 
-
 extern int sffi_call_O32(void (*)(char *, extended_cif *, int, int), 
 			extended_cif *, unsigned, 
 			unsigned, unsigned *, void (*)(void), void *closure);
-
 
 extern int sffi_call_N32(void (*)(char *, extended_cif *, int, int), 
 			extended_cif *, unsigned, 
@@ -708,16 +682,13 @@ void sffi_call_int(sffi_cif *cif, void (*fn)(void), void *rvalue,
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-  
-  
-  
-  
+
   if ((rvalue == NULL) && 
       (cif->rtype->type == SFFI_TYPE_STRUCT || cif->rtype->type == SFFI_TYPE_COMPLEX))
     ecif.rvalue = alloca(cif->rtype->size);
   else
     ecif.rvalue = rvalue;
-    
+
   switch (cif->abi) 
     {
 #ifdef SFFI_MIPS_O32
@@ -739,7 +710,7 @@ void sffi_call_int(sffi_cif *cif, void (*fn)(void), void *rvalue,
         char *rvalue_copy = ecif.rvalue;
         if (cif->rtype->type == SFFI_TYPE_STRUCT && cif->rtype->size < 16)
           {
-            
+
             rvalue_copy = alloca(16);
             copy_rvalue = 1;
           }
@@ -780,7 +751,6 @@ sffi_call_go (sffi_cif *cif, void (*fn)(void), void *rvalue,
   sffi_call_int (cif, fn, rvalue, avalue, closure);
 }
 
-
 #if SFFI_CLOSURES
 #if defined(SFFI_MIPS_O32)
 extern void sffi_closure_O32(void);
@@ -819,51 +789,50 @@ sffi_prep_closure_loc (sffi_closure *closure,
 #endif 
 
 #if defined(SFFI_MIPS_O32) || (_MIPS_SIM ==_ABIN32)
-  
+
   tramp[0] = 0x3c190000 | ((unsigned)fn >> 16);
-  
+
   tramp[1] = 0x37390000 | ((unsigned)fn & 0xffff);
-  
+
   tramp[2] = 0x3c0c0000 | ((unsigned)codeloc >> 16);
-  
+
 #if !defined(__mips_isa_rev) || (__mips_isa_rev<6)
   tramp[3] = 0x03200008;
 #else
   tramp[3] = 0x03200009;
 #endif
-  
+
   tramp[4] = 0x358c0000 | ((unsigned)codeloc & 0xffff);
 #else
-  
-  
+
   tramp[0] = 0x3c190000 | ((unsigned long)fn >> 48);
-  
+
   tramp[1] = 0x3c0c0000 | ((unsigned long)codeloc >> 48);
-  
+
   tramp[2] = 0x37390000 | (((unsigned long)fn >> 32 ) & 0xffff);
-  
+
   tramp[3] = 0x358c0000 | (((unsigned long)codeloc >> 32) & 0xffff);
-  
+
   tramp[4] = 0x0019cc38;
-  
+
   tramp[5] = 0x000c6438;
-  
+
   tramp[6] = 0x37390000 | (((unsigned long)fn >> 16 ) & 0xffff);
-  
+
   tramp[7] = 0x358c0000 | (((unsigned long)codeloc >> 16) & 0xffff);
-  
+
   tramp[8] = 0x0019cc38;
-  
+
   tramp[9] = 0x000c6438;
-  
+
   tramp[10] = 0x37390000 | ((unsigned long)fn  & 0xffff);
-  
+
 #if !defined(__mips_isa_rev) || (__mips_isa_rev<6)
   tramp[11] = 0x03200008;
 #else
   tramp[11] = 0x03200009;
 #endif
-  
+
   tramp[12] = 0x358c0000 | ((unsigned long)codeloc & 0xffff);
 
 #endif
@@ -881,7 +850,6 @@ sffi_prep_closure_loc (sffi_closure *closure,
 #endif 
   return SFFI_OK;
 }
-
 
 int
 sffi_closure_mips_inner_O32 (sffi_cif *cif,
@@ -946,12 +914,12 @@ sffi_closure_mips_inner_O32 (sffi_cif *cif,
 		avaluep[i] = &avalue[i];
 		*(UINT8 *) &avalue[i] = (UINT8) ar[argn];
 		break;
-		  
+
 	      case SFFI_TYPE_SINT16:
 		avaluep[i] = &avalue[i];
 		*(SINT16 *) &avalue[i] = (SINT16) ar[argn];
 		break;
-		  
+
 	      case SFFI_TYPE_UINT16:
 		avaluep[i] = &avalue[i];
 		*(UINT16 *) &avalue[i] = (UINT16) ar[argn];
@@ -967,7 +935,6 @@ sffi_closure_mips_inner_O32 (sffi_cif *cif,
       i++;
     }
 
-  
   fun(cif, rvalue, avaluep, user_data);
 
   if (cif->abi == SFFI_O32_SOFT_FLOAT)
@@ -1030,7 +997,6 @@ copy_struct_N32(char *target, unsigned offset, sffi_abi abi, sffi_type *type,
       arg_offset = arg_offset % sizeof(sffi_arg);
     }
 }
-
 
 int
 sffi_closure_mips_inner_N32 (sffi_cif *cif, 
@@ -1095,7 +1061,7 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
         }
       else if (arg_types[i]->type == SFFI_TYPE_COMPLEX && arg_types[i]->elements[0]->type == SFFI_TYPE_LONGDOUBLE)
         {
-	  
+
 	  argn += ((argn & 0x1)? 1 : 0);
           argp = (argn >= 8 || i >= cif->mips_nfixedargs || soft_float) ? ar + argn : fpr + argn;
           avaluep[i] = (char *) argp;
@@ -1107,7 +1073,7 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
 	  else
 	    {
 	      argp = fpr + argn;
-	      
+
 	      uint32_t *tmp = (uint32_t *)argp;
 	      tmp[1] = tmp[2];
 	    }
@@ -1122,7 +1088,6 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
 
           argp = ar + argn;
 
-          
           if (type == SFFI_TYPE_POINTER)
             type = (cif->abi == SFFI_N64 || cif->abi == SFFI_N64_SOFT_FLOAT)
 	      ? SFFI_TYPE_SINT64 : SFFI_TYPE_UINT32;
@@ -1165,14 +1130,14 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
             case SFFI_TYPE_STRUCT:
               if (argn < 8)
                 {
-                  
+
                   avaluep[i] = alloca(arg_types[i]->size);
                   copy_struct_N32(avaluep[i], 0, cif->abi, arg_types[i],
                                   argn, 0, ar, fpr, i >= cif->mips_nfixedargs || soft_float);
 
                   break;
                 }
-              
+
             default:
               avaluep[i] = (char *) argp;
               break;
@@ -1182,7 +1147,6 @@ sffi_closure_mips_inner_N32 (sffi_cif *cif,
       i++;
     }
 
-  
   fun (cif, rvalue, avaluep, user_data);
 
   return cif->flags >> (SFFI_FLAG_BITS * 8);

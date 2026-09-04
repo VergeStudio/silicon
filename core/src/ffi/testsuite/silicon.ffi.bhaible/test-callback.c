@@ -1,14 +1,9 @@
-
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sffi.h>
 #include "alignof.h"
 #include <stdarg.h>
-
 
 #ifdef DGTEST
 
@@ -45,18 +40,15 @@ int _fprintf(FILE *stream, const char *format, ...)
 #define fprintf _fprintf
 #endif
 
-
 #include "testcases.c"
 
 #ifndef ABI_NUM
 #define ABI_NUM SFFI_DEFAULT_ABI
 #endif
 
-
 static sffi_type sffi_type_char;
 #define sffi_type_slonglong sffi_type_sint64
 #define sffi_type_ulonglong sffi_type_uint64
-
 
 #define SKIP_EXTRA_STRUCTS
 
@@ -74,17 +66,12 @@ static sffi_type sffi_type_char;
 #define SKIP_X
 #endif
 
-
-
-
-
 void v_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&v_v) { fprintf(out,"wrong data for v_v\n"); exit(1); }
   fprintf(out,"void f(void):\n");
   fflush(out);
 }
-
 
 void i_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
@@ -166,7 +153,6 @@ void i_i16_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
   fflush(out);
   *(sffi_arg*)retp = r;
 }}
-
 
 void f_f_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
@@ -272,7 +258,6 @@ void f_f24_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
   *(float*)retp = r;
 }}
 
-
 void d_d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&d_d) { fprintf(out,"wrong data for d_d\n"); exit(1); }
@@ -345,7 +330,6 @@ void d_d16_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
   *(double*)retp = r;
 }}
 
-
 void vp_vpdpcpsp_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&vp_vpdpcpsp) { fprintf(out,"wrong data for vp_vpdpcpsp\n"); exit(1); }
@@ -358,7 +342,6 @@ void vp_vpdpcpsp_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data
   fflush(out);
   *(void* *)retp = ret;
 }}
-
 
 void uc_ucsil_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
@@ -701,7 +684,6 @@ void d_d13i_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
   *(double*)retp = r;
 }}
 
-
 void S1_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
   if (data != (void*)&S1_v) { fprintf(out,"wrong data for S1_v\n"); exit(1); }
@@ -774,7 +756,6 @@ void S16_v_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
   fflush(out);
   *(Size16*)retp = r;
 }}
-
 
 void I_III_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
@@ -878,7 +859,6 @@ void X_BcdB_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
   *(X*)retp = r;
 }}
 #endif
-
 
 void l_l0K_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
 {
@@ -1204,8 +1184,6 @@ void d_l7d_simulator (sffi_cif* cif, void* retp,  void*  *args, void* data)
   *(double*)retp = r;
 }}
 
-
-
 long clear_traces_i (long a, long b, long c, long d, long e, long f, long g, long h,
                      long i, long j, long k, long l, long m, long n, long o, long p)
 { return 0; }
@@ -1242,7 +1220,7 @@ int main (void)
   out = stdout;
 
 #if (!defined(DGTEST)) || DGTEST == 1  
-  
+
   v_v();
   clear_traces();
   ALLOC_CALLBACK();
@@ -1255,7 +1233,6 @@ int main (void)
   FREE_CALLBACK();
 #endif
 
-  
   { int ir;
 
 #if (!defined(DGTEST)) || DGTEST == 2
@@ -1346,7 +1323,7 @@ int main (void)
     fprintf(out,"->%d\n",ir);
     fflush(out);
 #endif
-  
+
 #if (!defined(DGTEST)) || DGTEST == 7
     ir = i_i16(i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15,i16);
     fprintf(out,"->%d\n",ir);
@@ -1366,7 +1343,6 @@ int main (void)
 #endif
   }
 
-  
   { float fr;
 
 #if (!defined(DGTEST)) || DGTEST == 8  
@@ -1479,7 +1455,6 @@ int main (void)
 
   }
 
-  
   { double dr;
 
 #if (!defined(DGTEST)) || DGTEST == 14
@@ -1517,7 +1492,7 @@ int main (void)
     fprintf(out,"->%g\n",dr);
     fflush(out);
 #endif
-  
+
 #if (!defined(DGTEST)) || DGTEST == 16    
     dr = d_d4(d1,d2,d3,d4);
     fprintf(out,"->%g\n",dr);
@@ -1573,7 +1548,6 @@ int main (void)
 #endif
   }
 
-  
   { void* vpr;
 
 #if (!defined(DGTEST)) || DGTEST == 19 
@@ -1595,7 +1569,6 @@ int main (void)
 #endif
   }
 
-  
   { uchar ucr;
     ushort usr;
     float fr;
@@ -2017,7 +1990,6 @@ int main (void)
 #endif
   }
 
-  
 #if (!defined(DGTEST)) || DGTEST == 43
   {
     Size1 r = S1_v();
@@ -2243,8 +2215,6 @@ int main (void)
   }
 #endif
 
-  
-  
   { Int Ir;
     Char Cr;
     Float Fr;
@@ -2452,8 +2422,6 @@ int main (void)
 #endif
   }
 
-  
-  
   {
     sffi_type* sffi_type_K_elements[] = { &sffi_type_slong, &sffi_type_slong, &sffi_type_slong, &sffi_type_slong, NULL };
     sffi_type sffi_type_K;
@@ -2853,7 +2821,6 @@ int main (void)
 #endif
 
   }
-  
+
   exit(0);
 }
-

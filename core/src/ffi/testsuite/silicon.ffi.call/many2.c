@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 #define NARGS 7

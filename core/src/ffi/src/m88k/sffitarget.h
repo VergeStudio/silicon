@@ -1,7 +1,3 @@
-
-
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
@@ -16,8 +12,6 @@ typedef enum sffi_abi {
     SFFI_LAST_ABI = SFFI_DEFAULT_ABI + 1
 } sffi_abi;
 #endif
-
-
 
 #define SFFI_CLOSURES 1
 #define SFFI_TRAMPOLINE_SIZE 0x14

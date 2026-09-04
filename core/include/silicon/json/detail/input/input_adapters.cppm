@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -34,12 +21,8 @@ export module silicon.json:detail.input.input_adapters;
 import :detail.iterators.iterator_traits;
 import :detail.meta.type_traits;
 
-
-
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 export enum class input_format_t { json,
                             cbor,
@@ -47,10 +30,6 @@ export enum class input_format_t { json,
                             ubjson,
                             bson,
                             bjdata };
-
-
-
-
 
 #ifndef JSON_NO_IO
 
@@ -63,7 +42,6 @@ export class file_input_adapter {
         : m_file(f) {
         JSON_ASSERT(m_file != nullptr);
     }
-
 
     file_input_adapter(const file_input_adapter &) = delete;
     file_input_adapter(file_input_adapter &&) noexcept = default;
@@ -80,13 +58,11 @@ export class file_input_adapter {
     std::FILE *m_file;
 };
 
-
 export class input_stream_adapter {
   public:
     using char_type = char;
 
     ~input_stream_adapter() {
-
 
         if(is != nullptr) {
             is->clear(is->rdstate() & std::ios::eofbit);
@@ -95,7 +71,6 @@ export class input_stream_adapter {
 
     explicit input_stream_adapter(std::istream &i)
         : is(&i), sb(i.rdbuf()) {}
-
 
     input_stream_adapter(const input_stream_adapter &) = delete;
     input_stream_adapter &operator=(input_stream_adapter &) = delete;
@@ -106,9 +81,6 @@ export class input_stream_adapter {
         rhs.is = nullptr;
         rhs.sb = nullptr;
     }
-
-
-
 
     std::char_traits<char>::int_type get_character() {
         auto res = sb->sbumpc();
@@ -125,8 +97,6 @@ export class input_stream_adapter {
     std::streambuf *sb = nullptr;
 };
 #endif
-
-
 
 export template<typename IteratorType>
 class iterator_input_adapter {
@@ -174,7 +144,6 @@ struct wide_string_input_helper<BaseInputAdapter, 4> {
 
             const auto wc = input.get_character();
 
-
             if(wc < 0x80) {
                 utf8_bytes[0] = static_cast<std::char_traits<char>::int_type>(wc);
                 utf8_bytes_filled = 1;
@@ -215,7 +184,6 @@ struct wide_string_input_helper<BaseInputAdapter, 2> {
 
             const auto wc = input.get_character();
 
-
             if(wc < 0x80) {
                 utf8_bytes[0] = static_cast<std::char_traits<char>::int_type>(wc);
                 utf8_bytes_filled = 1;
@@ -246,7 +214,6 @@ struct wide_string_input_helper<BaseInputAdapter, 2> {
     }
 };
 
-
 export template<typename BaseInputAdapter, typename WideCharType>
 class wide_string_input_adapter {
   public:
@@ -264,7 +231,6 @@ class wide_string_input_adapter {
             JSON_ASSERT(utf8_bytes_index == 0);
         }
 
-
         JSON_ASSERT(utf8_bytes_filled > 0);
         JSON_ASSERT(utf8_bytes_index < utf8_bytes_filled);
         return utf8_bytes[utf8_bytes_index++];
@@ -278,9 +244,7 @@ class wide_string_input_adapter {
         wide_string_input_helper<BaseInputAdapter, T>::fill_buffer(base_adapter, utf8_bytes, utf8_bytes_index, utf8_bytes_filled);
     }
 
-
     std::array<std::char_traits<char>::int_type, 4> utf8_bytes = {{0, 0, 0, 0}};
-
 
     std::size_t utf8_bytes_index = 0;
 
@@ -318,16 +282,11 @@ struct iterator_input_adapter_factory<IteratorType, enable_if_t<is_iterator_of_m
     }
 };
 
-
 export template<typename IteratorType>
 typename iterator_input_adapter_factory<IteratorType>::adapter_type input_adapter(IteratorType first, IteratorType last) {
     using factory_type = iterator_input_adapter_factory<IteratorType>;
     return factory_type::create(first, last);
 }
-
-
-
-
 
 namespace container_input_adapter_factory_impl {
 
@@ -370,7 +329,6 @@ export inline input_stream_adapter input_adapter(std::istream &&stream) {
 
 export using contiguous_bytes_input_adapter = decltype(input_adapter(std::declval<const char *>(), std::declval<const char *>()));
 
-
 export template<typename CharT, typename std::enable_if<std::is_pointer<CharT>::value && !std::is_array<CharT>::value && std::is_integral<typename std::remove_pointer<CharT>::type>::value && sizeof(typename std::remove_pointer<CharT>::type) == 1, int>::type = 0>
 contiguous_bytes_input_adapter input_adapter(CharT b) {
     auto length = std::strlen(reinterpret_cast<const char *>(b));
@@ -383,9 +341,6 @@ auto input_adapter(T (&array)[N]) -> decltype(input_adapter(array, array + N))
 {
     return input_adapter(array, array + N);
 }
-
-
-
 
 export class span_input_adapter {
   public:

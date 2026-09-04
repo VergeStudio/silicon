@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -23,7 +10,6 @@ export module silicon.json:detail.meta.is_sax;
 
 import :detail.meta.detected;
 import :detail.meta.type_traits;
-
 
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {

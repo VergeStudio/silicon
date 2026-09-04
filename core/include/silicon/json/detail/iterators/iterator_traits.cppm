@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -21,7 +8,6 @@ export module silicon.json:detail.iterators.iterator_traits;
 
 import :detail.meta.cpp_future;
 import :detail.meta.void_t;
-
 
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
@@ -39,8 +25,6 @@ struct iterator_types<
     using reference = typename It::reference;
     using iterator_category = typename It::iterator_category;
 };
-
-
 
 export template<typename T, typename = void>
 struct iterator_traits {

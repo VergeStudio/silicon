@@ -2,7 +2,6 @@ module;
 
 #include <memory>
 
-
 #include <silicon/common.h>
 export module silicon.scheduler:timer_handle;
 
@@ -13,8 +12,6 @@ import :time;
 import :io_notifier;
 
 export namespace silicon::scheduler {
-
-
 
 class CORE_API timer_handle {
     struct impl;
@@ -29,7 +26,5 @@ class CORE_API timer_handle {
 
     const void *get_inner() const;
 };
-
-
 
 }

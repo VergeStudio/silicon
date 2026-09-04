@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include "ffitest.h"
 
 long double cls_ldouble_fn(
@@ -91,9 +85,9 @@ int main(void)
 	args[8] = NULL;
 
 	sffi_call(&cif, SFFI_FN(cls_ldouble_fn), &res, args);
-	
+
 	printf("res: %Lg\n", res);
-	
+
 	CHECK(res == 36);
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_ldouble_gn, NULL, code) == SFFI_OK);
@@ -101,9 +95,9 @@ int main(void)
 	res = ((long double(*)(long double, long double, long double, long double,
 		long double, long double, long double, long double))(code))(arg1, arg2,
 		arg3, arg4, arg5, arg6, arg7, arg8);
-	
+
 	printf("res: %Lg\n", res);
-	
+
 	CHECK(res == 36);
 
 	return 0;

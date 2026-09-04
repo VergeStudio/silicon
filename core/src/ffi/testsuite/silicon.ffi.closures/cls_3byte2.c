@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_3byte_1 {
@@ -78,18 +75,18 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_3byte_fn1), &res_dbl, args_dbl);
-  
+
   printf("res: %d %d\n", res_dbl.a, res_dbl.b);
-  
+
   CHECK(res_dbl.a == 24);
   CHECK(res_dbl.b == 144);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_3byte_gn1, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_3byte_1(*)(cls_struct_3byte_1, cls_struct_3byte_1))(code))(g_dbl, f_dbl);
-  
+
   printf("res: %d %d\n", res_dbl.a, res_dbl.b);
-  
+
   CHECK(res_dbl.a == 24);
   CHECK(res_dbl.b == 144);
 

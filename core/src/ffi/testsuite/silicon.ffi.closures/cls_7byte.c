@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_7byte {
@@ -28,7 +25,7 @@ static cls_struct_7byte cls_struct_7byte_fn(struct cls_struct_7byte a1,
   CHECK(a1.b == 120);
   CHECK(a1.c == 1);
   CHECK(a1.d == 254);
-	
+
   CHECK(a2.a == 12);
   CHECK(a2.b == 128);
   CHECK(a2.c == 9);
@@ -38,7 +35,6 @@ static cls_struct_7byte cls_struct_7byte_fn(struct cls_struct_7byte a1,
   CHECK(result.b == 248);
   CHECK(result.c == 10);
   CHECK(result.d == 509);
-
 
   return  result;
 }
@@ -93,9 +89,9 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_7byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  
+
   CHECK(res_dbl.a == 139);
   CHECK(res_dbl.b == 248);
   CHECK(res_dbl.c == 10);
@@ -104,9 +100,9 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_7byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_7byte(*)(cls_struct_7byte, cls_struct_7byte))(code))(g_dbl, f_dbl);
-  
+
   printf("res: %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  
+
   CHECK(res_dbl.a == 139);
   CHECK(res_dbl.b == 248);
   CHECK(res_dbl.c == 10);

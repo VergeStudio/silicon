@@ -1,6 +1,5 @@
 module;
 
-
 export module silicon.scheduler:fd;
 
 export namespace silicon::scheduler {

@@ -6,17 +6,11 @@ module;
 
 module silicon.platform;
 
-
-
-
 #if defined(_MSC_VER)
 import silicon.platform;
 #endif
 
 namespace silicon::platform {
-
-
-
 
 constexpr bool is_unix_family(os_id o) {
     return o == os_id::kFreeBsd || o == os_id::kAix ||
@@ -105,7 +99,6 @@ class unix_platform {
     char path_separator() const { return '/'; }
     std::string line_ending() const { return "\n"; }
 };
-
 
 CORE_API platform_proxy create_platform() {
     if constexpr(os == os_id::kWindowsNt) {

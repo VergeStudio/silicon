@@ -1,11 +1,6 @@
-
-
-
-
 #include <stdarg.h>
 
 #include "ffitest.h"
-
 
 double float_va_fn(unsigned int x, double y,...)
 {
@@ -42,12 +37,9 @@ int main (void)
   unsigned int firstarg;
   double        resfp;
 
-  
-  
   resfp=float_va_fn(0,2.0);
-  
+
   printf("compiled: %.1f\n", resfp);
-  
 
   arg_types[0] = &sffi_type_uint;
   arg_types[1] = &sffi_type_double;
@@ -60,17 +52,15 @@ int main (void)
   values[0] = &firstarg;
   values[1] = &doubles[0];
   sffi_call(&cif, SFFI_FN(float_va_fn), &resfp, values);
-  
+
   printf("ffi: %.1f\n", resfp);
-  
+
   CHECK_DOUBLE_EQ(resfp, 2);
 
-  
-  
   resfp=float_va_fn(2,2.0,3.0,4.0);
-  
+
   printf("compiled: %.1f\n", resfp);
-  
+
   CHECK_DOUBLE_EQ(resfp, 11);
 
   arg_types[0] = &sffi_type_uint;
@@ -90,9 +80,9 @@ int main (void)
   values[2] = &doubles[1];
   values[3] = &doubles[2];
   sffi_call(&cif, SFFI_FN(float_va_fn), &resfp, values);
-  
+
   printf("ffi: %.1f\n", resfp);
-  
+
   CHECK_DOUBLE_EQ(resfp, 11);
 
   exit(0);

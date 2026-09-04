@@ -1,5 +1,3 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
@@ -19,11 +17,8 @@ typedef enum sffi_abi {
 } sffi_abi;
 #endif
 
-
-
 #define SFFI_CLOSURES 1
 #define SFFI_TRAMPOLINE_SIZE 24 
-
 
 #define SFFI_TARGET_SPECIFIC_VARIADIC 1
 #define SFFI_EXTRA_CIF_FIELDS unsigned nfixedargs

@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct
@@ -26,7 +23,6 @@ int main (void)
   sffi_type ts2_type;
   sffi_type *ts2_type_elements[3];
 
-  
   test_structure_2 *ts2_result =
     (test_structure_2 *) malloc (sizeof(test_structure_2));
 
@@ -40,24 +36,23 @@ int main (void)
 
   args[0] = &ts2_type;
   values[0] = &ts2_arg;
-  
-  
+
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 1, &ts2_type, args) == SFFI_OK);
-  
+
   ts2_arg.d1 = 5.55;
   ts2_arg.d2 = 6.66;
-  
+
   printf ("%g\n", ts2_arg.d1);
   printf ("%g\n", ts2_arg.d2);
-  
+
   sffi_call(&cif, SFFI_FN(struct2), ts2_result, values);
-  
+
   printf ("%g\n", ts2_result->d1);
   printf ("%g\n", ts2_result->d2);
-  
+
   CHECK(ts2_result->d1 == 5.55 - 1);
   CHECK(ts2_result->d2 == 6.66 - 1);
-  
+
   free (ts2_result);
   exit(0);
 }

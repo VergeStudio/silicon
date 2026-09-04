@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -28,9 +15,6 @@ export module silicon.json:detail.iterators.iteration_proxy;
 
 import :detail.meta.type_traits;
 import :detail.value_t;
-
-
-
 
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
@@ -75,11 +59,9 @@ class iteration_proxy_value {
     iteration_proxy_value &operator=(iteration_proxy_value &&) noexcept(std::is_nothrow_move_assignable<IteratorType>::value && std::is_nothrow_move_assignable<string_type>::value) = default;
     ~iteration_proxy_value() = default;
 
-
     const iteration_proxy_value &operator*() const {
         return *this;
     }
-
 
     iteration_proxy_value &operator++() {
         ++anchor;
@@ -96,16 +78,13 @@ class iteration_proxy_value {
         return tmp;
     }
 
-
     bool operator==(const iteration_proxy_value &o) const {
         return anchor == o.anchor;
     }
 
-
     bool operator!=(const iteration_proxy_value &o) const {
         return anchor != o.anchor;
     }
-
 
     const string_type &key() const {
         JSON_ASSERT(anchor.m_object != nullptr);
@@ -120,10 +99,8 @@ class iteration_proxy_value {
                 return array_index_str;
             }
 
-
             case value_t::object:
                 return anchor.key();
-
 
             case value_t::null:
             case value_t::string:
@@ -138,12 +115,10 @@ class iteration_proxy_value {
         }
     }
 
-
     typename IteratorType::reference value() const {
         return anchor.value();
     }
 };
-
 
 export template<typename IteratorType>
 class iteration_proxy {
@@ -154,7 +129,6 @@ class iteration_proxy {
   public:
     explicit iteration_proxy() = default;
 
-
     explicit iteration_proxy(typename IteratorType::reference cont) noexcept
         : container(&cont) {}
 
@@ -164,26 +138,19 @@ class iteration_proxy {
     iteration_proxy &operator=(iteration_proxy &&) noexcept = default;
     ~iteration_proxy() = default;
 
-
     iteration_proxy_value<IteratorType> begin() const noexcept {
         return iteration_proxy_value<IteratorType>(container->begin());
     }
-
 
     iteration_proxy_value<IteratorType> end() const noexcept {
         return iteration_proxy_value<IteratorType>(container->end());
     }
 };
 
-
-
-
 export template<std::size_t N, typename IteratorType, enable_if_t<N == 0, int> = 0>
 auto get(const silicon::json::impl::detail::iteration_proxy_value<IteratorType> &i) -> decltype(i.key()) {
     return i.key();
 }
-
-
 
 export template<std::size_t N, typename IteratorType, enable_if_t<N == 1, int> = 0>
 auto get(const silicon::json::impl::detail::iteration_proxy_value<IteratorType> &i) -> decltype(i.value()) {
@@ -192,10 +159,6 @@ auto get(const silicon::json::impl::detail::iteration_proxy_value<IteratorType> 
 
 }
 SILICON_JSON_NAMESPACE_END
-
-
-
-
 
 namespace std {
 

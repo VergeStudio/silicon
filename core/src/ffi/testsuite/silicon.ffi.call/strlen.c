@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static unsigned int ABI_ATTR my_strlen(char *s)
@@ -19,7 +16,6 @@ int main (void)
   args[0] = &sffi_type_pointer;
   values[0] = (void*) &s;
 
-  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 1,
 		     &sffi_type_uint, args) == SFFI_OK);
 

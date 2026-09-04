@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct
@@ -26,7 +23,6 @@ int main (void)
   sffi_type *args[] = { &s55_type, &sffi_type_float };
   sffi_type *s55_type_elements[] = { &sffi_type_float, NULL };
 
-  
   s55 *s55_result =
     (s55 *) malloc (sizeof(s55));
 
@@ -35,7 +31,6 @@ int main (void)
   s55_type.type = SFFI_TYPE_STRUCT;
   s55_type.elements = s55_type_elements;
 
-  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 2, &s55_type, args) == SFFI_OK);
 
   F.f = 1;

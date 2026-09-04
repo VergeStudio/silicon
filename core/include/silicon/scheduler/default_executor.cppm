@@ -1,9 +1,6 @@
 module;
 
-
 #include <memory>
-
-
 
 #ifdef LIBCORO_FEATURE_NETWORKING
 #else
@@ -16,9 +13,7 @@ import :thread_pool;
 
 export namespace silicon::scheduler::default_executor {
 
-
 void set_executor_options(thread_pool::options);
-
 
 std::unique_ptr<silicon::scheduler::thread_pool> & executor() ;
 
@@ -26,10 +21,8 @@ std::unique_ptr<silicon::scheduler::thread_pool> & executor() ;
 
 void set_io_executor_options(io_scheduler::options);
 
-
 std::unique_ptr<silicon::scheduler::io_scheduler> & io_executor() ;
 #endif
-
 
 template<typename return_type>
 inline return_type & perfect() {

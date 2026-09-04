@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -21,10 +8,8 @@ export module silicon.json:detail.meta.detected;
 
 import :detail.meta.void_t;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 export struct nonesuch {
     nonesuch() = delete;

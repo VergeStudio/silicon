@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 int main (void)

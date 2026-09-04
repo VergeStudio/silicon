@@ -1,19 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <chrono>
@@ -29,19 +13,12 @@ import :fd;
 
 export namespace silicon::scheduler {
 
-
-
-
-
-
 struct io_ring_config {
 
     std::uint32_t queue_depth{256};
 
-
     bool sq_poll{false};
 };
-
 
 class CORE_API io_ring {
     struct impl;
@@ -49,20 +26,17 @@ class CORE_API io_ring {
 
   public:
 
-
     enum class op {
         read,
         write,
         cancel
     };
 
-
     enum class backend {
         none,
         io_uring,
         windows_io_ring
     };
-
 
     struct completion {
 
@@ -76,38 +50,26 @@ class CORE_API io_ring {
     explicit io_ring(io_ring_config = {});
     ~io_ring();
 
-
     io_ring(const io_ring &) = delete;
     io_ring(io_ring &&) = delete;
     io_ring & operator=(const io_ring &) = delete;
     io_ring & operator=(io_ring &&) = delete;
 
-
     [[nodiscard]] bool is_valid() const noexcept;
-
 
     [[nodiscard]] backend active_backend() const noexcept;
 
-
     [[nodiscard]] bool supports(op) const noexcept;
-
-
 
     bool submit_read(fd_t, void *, std::uint32_t, std::uint64_t, std::uint64_t) ;
 
-
     bool submit_write(fd_t, const void *, std::uint32_t, std::uint64_t, std::uint64_t) ;
-
-
 
     bool submit_cancel(std::uint64_t, std::uint64_t) ;
 
-
     std::uint32_t submit() ;
 
-
     [[nodiscard]] std::optional<completion> wait_completion(std::chrono::milliseconds) ;
-
 
     [[nodiscard]] std::optional<completion> peek_completion() ;
 };

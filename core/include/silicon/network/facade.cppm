@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -50,23 +39,16 @@ import silicon.error;
 
 export namespace silicon::network {
 
-
-
-
 template<typename T>
 using result = silicon::error::result<T>;
-
-
 
 [[nodiscard]] inline std::error_code system_error(int errno_value) noexcept {
     return {errno_value, std::generic_category()};
 }
 
-
 [[nodiscard]] inline std::error_code system_error(std::errc e) noexcept {
     return std::make_error_code(e);
 }
-
 
 enum class connect_status {
 
@@ -78,7 +60,6 @@ enum class connect_status {
 
     kError
 };
-
 
 CORE_API auto to_string(const connect_status &) -> result<std::string_view>;
 
@@ -143,14 +124,12 @@ struct io_status {
 
     explicit operator bool() const { return is_ok(); }
 
-    
     [[nodiscard]] std::string message() const ;
 };
 
 std::string_view to_string(io_status::kind) ;
 io_status make_io_status_from_native(int) ;
 auto make_io_status_from_poll_status(silicon::scheduler::poll_status) -> io_status;
-
 
 [[nodiscard]] std::string message_impl(int);
 io_status make_io_status_from_native_impl(int) ;
@@ -204,8 +183,6 @@ enum class domain_t : int {
     kIpv6 = AF_INET6
 };
 
-
-
 auto to_string(domain_t) -> result<std::string_view>;
 
 class CORE_API ip_address {
@@ -214,8 +191,6 @@ class CORE_API ip_address {
     static const constexpr size_t ipv6_len{16};
 
     ip_address() = default;
-
-
 
     static auto from_binary(std::span<const uint8_t> binary_address,
                             domain_t domain = domain_t::kIpv4) -> result<ip_address> {
@@ -231,7 +206,6 @@ class CORE_API ip_address {
         std::copy(binary_address.begin(), binary_address.end(), addr.m_p->m_data.begin());
         return addr;
     }
-
 
     ip_address(const ip_address &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     ip_address(ip_address &&) noexcept = default;
@@ -251,8 +225,6 @@ class CORE_API ip_address {
         }
     }
 
-
-
     static auto from_string(std::string_view address, domain_t domain = domain_t::kIpv4) -> result<ip_address> {
         ip_address addr{};
         addr.m_p->m_domain = domain;
@@ -264,7 +236,6 @@ class CORE_API ip_address {
 
         return addr;
     }
-
 
     auto to_string() const -> result<std::string> {
         std::string output;
@@ -301,15 +272,6 @@ class CORE_API ip_address {
     std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 };
 
-
-
-
-
-
-
-
-
-
 PRO_DEF_MEM_DISPATCH(MemSocketIsOk, is_ok);
 PRO_DEF_MEM_DISPATCH(MemSocketBlocking, blocking);
 PRO_DEF_MEM_DISPATCH(MemSocketShutdown, shutdown);
@@ -325,27 +287,20 @@ struct socket_facade
       ::add_convention<MemSocketNativeHandle, int() const>
       ::build {};
 
-
 using socket_proxy = silicon::proxy::proxy<socket_facade>;
 
-
 using socket_view = silicon::proxy::proxy_view<socket_facade>;
-
-
-
 
 template<class T, class... Args>
 [[nodiscard]] socket_proxy make_socket_proxy(Args &&...args) {
     return silicon::proxy::make_proxy<socket_facade, T>(std::forward<Args>(args)...);
 }
 
-
 template<class T>
     requires silicon::proxy::proxiable_target<T, socket_facade>
 [[nodiscard]] socket_view make_socket_view(T &target) noexcept {
     return silicon::proxy::make_proxy_view<socket_facade>(target);
 }
-
 
 class CORE_API socket_address {
     struct impl {
@@ -356,7 +311,6 @@ class CORE_API socket_address {
     std::shared_ptr<impl> m_p{std::make_shared<impl>()};
 
   public:
-
 
     static auto create(std::string_view ip, std::uint16_t port,
                        domain_t domain = domain_t::kIpv4) -> result<socket_address> {
@@ -373,7 +327,6 @@ class CORE_API socket_address {
             sin->sin_family = AF_INET;
             sin->sin_port = htons(port);
 
-
 #    if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
             sin->sin_len = sizeof(sockaddr_in);
 #    endif
@@ -385,7 +338,6 @@ class CORE_API socket_address {
             sin6->sin6_family = AF_INET6;
             sin6->sin6_port = htons(port);
 
-
 #    if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
             sin6->sin6_len = sizeof(sockaddr_in6);
 #    endif
@@ -393,11 +345,8 @@ class CORE_API socket_address {
             std::memcpy(&sin6->sin6_addr, ip.data().data(), sizeof(in6_addr));
             len = sizeof(sockaddr_in6);
 
-
-
         }
     }
-
 
     socket_address(const socket_address &o): m_p(std::make_shared<impl>(*o.m_p)) {}
     socket_address(socket_address &&) noexcept = default;
@@ -408,20 +357,16 @@ class CORE_API socket_address {
     socket_address & operator=(socket_address &&) noexcept = default;
     ~socket_address() = default;
 
-    
     [[nodiscard]] std::pair<const sockaddr *, socklen_t> data() const & {
         return {reinterpret_cast<const sockaddr *>(&m_p->m_storage), m_p->m_len};
     }
 
-
     std::pair<const sockaddr *, socklen_t> data() const && = delete;
 
-    
     [[nodiscard]] std::pair<sockaddr *, socklen_t *> native_mutable_data() & {
         return {reinterpret_cast<sockaddr *>(&m_p->m_storage), &m_p->m_len};
     }
 
-    
     [[nodiscard]] result<ip_address> ip() const {
         if(m_p->m_storage.ss_family == AF_INET) {
             auto *sin = reinterpret_cast<const sockaddr_in *>(&m_p->m_storage);
@@ -438,7 +383,6 @@ class CORE_API socket_address {
         return std::unexpected(make_error_code(network_error::kInvalidDomain));
     }
 
-    
     [[nodiscard]] result<domain_t> domain() const {
         if(m_p->m_storage.ss_family == AF_INET) {
             return domain_t::kIpv4;
@@ -449,7 +393,6 @@ class CORE_API socket_address {
         return std::unexpected(make_error_code(network_error::kInvalidDomain));
     }
 
-    
     [[nodiscard]] auto port() const -> result<std::uint16_t> {
         if(m_p->m_storage.ss_family == AF_INET) {
             return ntohs(reinterpret_cast<const sockaddr_in *>(&m_p->m_storage)->sin_port);
@@ -459,7 +402,6 @@ class CORE_API socket_address {
         }
         return std::unexpected(make_error_code(network_error::kInvalidDomain));
     }
-
 
     bool operator==(const socket_address &other) const {
         if(m_p->m_len != other.m_p->m_len) { return false; }
@@ -471,9 +413,7 @@ class CORE_API socket_address {
         return a && oa && *a == *oa;
     }
 
-    
     static socket_address make_uninitialised() { return socket_address{}; }
-
 
     auto to_string() const -> result<std::string> {
         auto addr = ip();
@@ -490,17 +430,12 @@ class CORE_API socket_address {
     socket_address() = default;
 };
 
-
 inline std::ostream & operator<<(std::ostream &os, const socket_address &ep) {
     auto text = ep.to_string();
     return os << (text ? *text : std::string{"<invalid socket_address: "} + text.error().message() + ">");
 }
 
-
-
 int socket_duplicate_handle(int) ;
-
-
 
 bool socket_enable_address_reuse(int) ;
 
@@ -527,8 +462,6 @@ class CORE_API socket final {
         blocking_t blocking;
     };
 
-
-
     static result<int> type_to_os(type_t) ;
 
     socket() = default;
@@ -541,44 +474,33 @@ class CORE_API socket final {
 
     ~socket() { close(); }
 
-    
     [[nodiscard]] bool is_ok() const { return m_fd != -1; }
 
     explicit operator bool() const { return is_ok(); }
 
-    
     bool blocking(blocking_t) ;
     bool blocking(int block) { return blocking(static_cast<blocking_t>(block)); }
 
-    
     bool shutdown(silicon::scheduler::poll_op = silicon::scheduler::poll_op::read_write) ;
     bool shutdown(int how) { return shutdown(static_cast<silicon::scheduler::poll_op>(how)); }
 
-    
     void close() ;
 
-    
     int native_handle() const { return m_fd; }
 
-    
     socket accept(socket_address &) ;
 
-    
     int last_error() const ;
 
-    
     int connect(const socket_address &) ;
 
-    
     bool in_progress() const ;
 
   private:
     int m_fd{-1};
 };
 
-
 auto make_socket(const socket::options &, domain_t) -> result<socket>;
-
 
 auto make_accept_socket(const socket::options &, const network::socket_address &,
                         int32_t) -> result<socket>;

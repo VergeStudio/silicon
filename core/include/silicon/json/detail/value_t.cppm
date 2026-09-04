@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -25,14 +12,8 @@ module;
 
 export module silicon.json:detail.value_t;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
-
-
-
-
 
 export enum class value_t : std::uint8_t {
     null,
@@ -46,7 +27,6 @@ export enum class value_t : std::uint8_t {
     binary,
     discarded
 };
-
 
 #if JSON_HAS_THREE_WAY_COMPARISON
 export inline std::partial_ordering operator<=>(const value_t lhs, const value_t rhs) noexcept
@@ -71,10 +51,6 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
     return l_index < order.size() && r_index < order.size() && order[l_index] < order[r_index];
 #endif
 }
-
-
-
-
 
 #if JSON_HAS_THREE_WAY_COMPARISON && defined(__GNUC__)
 export inline bool operator<(const value_t lhs, const value_t rhs) noexcept {

@@ -5,15 +5,6 @@
 
 namespace silicon::time {
 
-
-
-
-
-
-
-
-
-
 class system_clock {
   public:
     std::chrono::system_clock::time_point now() const {

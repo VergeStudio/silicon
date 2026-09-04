@@ -1,4 +1,3 @@
-
 #include "ffitest.h"
 #include <complex.h>
 
@@ -49,7 +48,6 @@ int main(int argc __UNUSED__, char** argv __UNUSED__)
 
   cl_arg_types[0] = &ts1_type;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_void, cl_arg_types) == SFFI_OK);
 
@@ -58,13 +56,13 @@ int main(int argc __UNUSED__, char** argv __UNUSED__)
   gc.x = 0.0 + 0.0 * I;
   gc.y = 0.0 + 0.0 * I;
   ((void*(*)(Cs))(code))(arg);
-  
+
   CHECK (gc.x == arg.x && gc.y == arg.y);
 
   gc.x = 0.0 + 0.0 * I;
   gc.y = 0.0 + 0.0 * I;
   closure_test_fn(arg);
-  
+
   CHECK (gc.x == arg.x && gc.y == arg.y);
 
   return 0;

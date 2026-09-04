@@ -45,7 +45,6 @@
         }                                                            \
     } while(0)
 
-
 #undef __UNUSED__
 #if defined(__GNUC__)
 #    define __UNUSED__ __attribute__((__unused__))
@@ -64,7 +63,6 @@
 #    define ABI_NUM SFFI_DEFAULT_ABI
 #    define ABI_ATTR
 #endif
-
 
 #ifdef HAVE_MMAP_ANON
 #    undef HAVE_MMAP_DEV_ZERO
@@ -90,7 +88,6 @@
 
 #endif
 
-
 #if defined(_MSC_VER)
 #    define PRIdLL "I64d"
 #    define PRIuLL "I64u"
@@ -98,7 +95,6 @@
 #    define PRIdLL "lld"
 #    define PRIuLL "llu"
 #endif
-
 
 #if defined(__alpha__) && defined(__osf__)
 
@@ -113,11 +109,9 @@
 #    define PRIuPTR "lu"
 #endif
 
-
 #if defined(__hppa__) && defined(__hpux__) && !defined(PRIuPTR)
 #    define PRIuPTR "lu"
 #endif
-
 
 #if defined(__sgi)
 
@@ -136,7 +130,6 @@
 #    define PRIuPTR "lu"
 #endif
 
-
 #if defined(__sun__) && defined(__svr4__) && !defined(PRIuPTR)
 #    if defined(__arch64__) || defined(__x86_64__)
 #        define PRIuPTR "lu"
@@ -144,7 +137,6 @@
 #        define PRIuPTR "u"
 #    endif
 #endif
-
 
 #if defined _MSC_VER
 #    if !defined(__cplusplus) || defined(__STDC_FORMAT_MACROS)

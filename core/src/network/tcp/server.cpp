@@ -1,5 +1,3 @@
-
-
 module;
 
 #include <chrono>
@@ -14,7 +12,6 @@ import silicon.coroutine;
 import silicon.scheduler;
 
 namespace silicon::network::tcp {
-
 
 struct server::impl {
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
@@ -36,7 +33,6 @@ server::impl::impl(silicon::scheduler::io_scheduler *scheduler, options opts, ne
       m_options(std::move(opts)),
       m_accept_socket(std::move(accept_socket)) {
 
-
 }
 
 server::impl::impl(impl &&other) noexcept
@@ -55,7 +51,6 @@ auto server::impl::operator=(impl &&other) noexcept -> impl & {
 }
 
 server::impl::~impl() = default;
-
 
 auto server::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint, options opts)
         -> network::result<server> {
@@ -115,7 +110,6 @@ silicon::scheduler::task<silicon::scheduler::expected<network::tcp::client, io_s
             co_return client;
         }
     }
-
 
     auto pstatus = co_await poll(timeout);
     if(pstatus != silicon::scheduler::poll_status::read) {

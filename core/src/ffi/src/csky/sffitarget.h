@@ -1,5 +1,3 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
@@ -28,8 +26,6 @@ typedef enum sffi_abi {
 #    define TRAMPOLINE_SIZE 20
 #    define SFFI_TRAMPOLINE_SIZE 28
 #endif
-
-
 
 #define SFFI_CLOSURES 1
 #define SFFI_NATIVE_RAW_API 0

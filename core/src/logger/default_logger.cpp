@@ -22,7 +22,6 @@ import silicon.logger.error;
 
 namespace silicon::logger {
 
-
 struct default_logger::impl {
     std::shared_ptr<spdlog::logger> spdlog_logger{nullptr};
     const std::string_view pattern{"%^[%Y-%m-%d %H:%M:%S.%e][%t][%l]%v%$"};
@@ -44,7 +43,6 @@ std::expected<void, std::error_code> default_logger::init(const std::string_view
         }
         return {};
     } catch(const spdlog::spdlog_ex &) {
-
 
         stop();
         return std::unexpected(make_error_code(logger_error::kInitFailed));

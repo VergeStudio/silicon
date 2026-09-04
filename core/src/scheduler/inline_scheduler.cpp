@@ -14,14 +14,10 @@ import :poll_info_impl;
 
 namespace silicon::scheduler {
 
-
-
-
 static auto make_spawned_joinable_wait_task(std::unique_ptr<task_group<inline_scheduler>> group_ptr) -> task<void> {
     co_await *group_ptr;
     co_return;
 }
-
 
 struct inline_scheduler::impl {
     std::atomic<bool> m_stop{false};
@@ -40,8 +36,6 @@ bool inline_scheduler::spawn_detached(task<void> &&task) noexcept {
     if(impl.m_stop.load(std::memory_order::acquire)) {
         return false;
     }
-
-
 
     impl.m_size.fetch_add(1, std::memory_order::release);
     auto wrapper = make_task_self_deleting(std::move(task));

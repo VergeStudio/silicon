@@ -30,28 +30,17 @@ import :time;
 
 import :poll_info;
 
-
-
 namespace silicon::scheduler {
 export class timer_handle;
 }
 
 export namespace silicon::scheduler {
 
-
-
-
-
-
-
-
-
 class CORE_API io_notifier {
     struct impl;
     std::unique_ptr<impl> m_p;
 
     friend class timer_handle;
-
 
     static constexpr std::size_t m_max_events =
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -64,8 +53,6 @@ class CORE_API io_notifier {
 
   public:
     io_notifier();
-
-
 
     [[nodiscard]] bool is_valid() const noexcept;
 
@@ -90,11 +77,6 @@ class CORE_API io_notifier {
 
     void next_events(std::vector<std::pair<poll_info *, poll_status>> &,
                      std::chrono::milliseconds) ;
-
-
-
-
-
 
     bool post(void *) ;
 

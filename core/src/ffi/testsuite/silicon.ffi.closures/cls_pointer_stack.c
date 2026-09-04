@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static	long dummyVar;
@@ -102,10 +99,8 @@ int main (void)
         void *code;
 	sffi_closure*	pcl = sffi_closure_alloc(sizeof(sffi_closure), &code);
 	void*			args[3];
-	
+
 	sffi_type*		arg_types[3];
-
-
 
 	void*	arg1	= (void*)0x01234567;
 	void*	arg2	= (void*)0x89abcdef;
@@ -126,9 +121,7 @@ int main (void)
 	sffi_call(&cif, SFFI_FN(cls_pointer_fn1), &res, args);
 
 	printf("res: 0x%08x\n", (unsigned int) res);
-	
-	
-	
+
 	CHECK(res == 0x8bf258bd);
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_pointer_gn, NULL, code) == SFFI_OK);
@@ -136,9 +129,7 @@ int main (void)
 	res = (sffi_arg)(uintptr_t)((void*(*)(void*, void*))(code))(arg1, arg2);
 
 	printf("res: 0x%08x\n", (unsigned int) res);
-	
-	
-	
+
 	CHECK(res == 0x8bf258bd);
 
 	exit(0);

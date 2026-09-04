@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct A {
@@ -120,8 +117,7 @@ int main (void)
 		       arg_types) == SFFI_OK);
 
   sffi_call (&cif, SFFI_FN (C_fn), &result, args);
-  
-  
+
   CHECK_FLOAT_EQ(result.a.a_x, source.a.a_x);
   CHECK_FLOAT_EQ(result.a.a_y, source.a.a_y);
   CHECK_FLOAT_EQ(result.b.b_x, source.b.b_x);

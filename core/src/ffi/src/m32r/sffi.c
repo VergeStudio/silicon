@@ -1,11 +1,7 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
 #include <stdlib.h>
-
-
 
 void sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -34,7 +30,6 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
     {
       size_t z;
 
-      
       if (((*p_arg)->alignment - 1) & (unsigned) argp)
 	argp = (char *) SFFI_ALIGN (argp, (*p_arg)->alignment);
 
@@ -98,7 +93,7 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
 	        }
 	      else
 	        {
-		  
+
 	          memcpy (argp, *p_argv, z);
 	        }
 	    }
@@ -110,11 +105,10 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   return;
 }
 
-
 sffi_status
 sffi_prep_cif_machdep(sffi_cif *cif)
 {
-  
+
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -159,7 +153,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   ecif.cif = cif;
 
-  
   if ((rvalue == NULL) &&
       (cif->rtype->type == SFFI_TYPE_STRUCT))
     {
@@ -168,7 +161,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   else
     ecif.rvalue = rvalue;
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];

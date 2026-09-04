@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -23,7 +10,6 @@ export module silicon.json:detail.string_concat;
 
 import :detail.meta.cpp_future;
 import :detail.meta.detected;
-
 
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {

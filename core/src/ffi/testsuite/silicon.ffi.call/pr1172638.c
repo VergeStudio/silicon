@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct {
@@ -38,13 +35,12 @@ int main (void)
   sffi_type point_type, rect_type;
   sffi_type *point_type_elements[3];  
   sffi_type *rect_type_elements[5];  
-  
+
   int i;
   POINT cp, fp;
   RECT ar, br, dr, er, gr; 
   RECT *p1, *p2;
 
-  
   RECT *rect_result =
     (RECT *) malloc (sizeof(RECT));
 
@@ -74,8 +70,7 @@ int main (void)
   args[5] = &sffi_type_pointer;
   args[6] = &point_type;
   args[7] = &rect_type;
-  
-  
+
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 8, &rect_type, args) == SFFI_OK);
 
   i = 1;
@@ -103,7 +98,7 @@ int main (void)
   gr.right = 23;
   gr.top = 24;
   gr.bottom = 25;
-  
+
   values[0] = &i;
   values[1] = &ar;
   p1 = &br;
@@ -116,9 +111,9 @@ int main (void)
   values[7] = &gr;
 
   sffi_call (&cif, SFFI_FN(pr_test), rect_result, values);
-  
+
   CHECK(rect_result->top == 20);
- 
+
   free (rect_result);
   exit(0);
 }

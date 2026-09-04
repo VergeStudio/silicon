@@ -1,5 +1,3 @@
-
-
 module;
 
 #include <expected>
@@ -65,7 +63,6 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
 
         const bool is_long = arg.size() >= 2 && arg[1] == '-';
 
-
         if(is_long && arg.size() == 2) {
             positional_only = true;
             ++i;
@@ -79,7 +76,6 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
         const size_t name_start = is_long ? 2 : 1;
         std::string name(arg.substr(name_start));
 
-
         std::optional<std::string> inline_value;
         if(is_long) {
             if(auto eq = name.find('='); eq != std::string::npos) {
@@ -90,8 +86,6 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
         if(name.empty()) {
             return std::unexpected(make_error_code(cli_error::kInvalidValue));
         }
-
-
 
         const auto it = impl_->flags.find(name);
         bool takes_value;
@@ -118,7 +112,6 @@ std::expected<parse_result, std::error_code> parser::parse(int argc, const char 
             ++i;
         }
     }
-
 
     if(!impl_->subcommands.empty() && !result.command().empty()
        && impl_->subcommands.find(result.command()) == impl_->subcommands.end()) {

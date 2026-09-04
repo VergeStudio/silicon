@@ -1,10 +1,7 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 #include <stdlib.h>
 #include "internal.h"
-
 
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 # if SFFI_TYPE_LONGDOUBLE != 4
@@ -16,8 +13,6 @@
 #endif
 
 #ifdef SPARC64
-
-
 
 static int
 sffi_struct_float_mask (sffi_type *outer_type, int size_mask)
@@ -55,7 +50,7 @@ sffi_struct_float_mask (sffi_type *outer_type, int size_mask)
 	      && tt != SFFI_TYPE_DOUBLE
 	      && tt != SFFI_TYPE_LONGDOUBLE)
 	    break;
-	  
+
 	case SFFI_TYPE_FLOAT:
 	case SFFI_TYPE_DOUBLE:
 	case SFFI_TYPE_LONGDOUBLE:
@@ -72,8 +67,6 @@ sffi_struct_float_mask (sffi_type *outer_type, int size_mask)
 
   return size_mask;
 }
-
-
 
 static void *
 sffi_struct_float_merge (int size_mask, void *vi, void *vf)
@@ -99,8 +92,6 @@ sffi_struct_float_merge (int size_mask, void *vi, void *vf)
     }
 }
 
-
-
 void SFFI_HIDDEN
 sffi_struct_float_copy (int size_mask, void *vd, void *vi, void *vf)
 {
@@ -124,8 +115,6 @@ sffi_struct_float_copy (int size_mask, void *vd, void *vi, void *vf)
   memcpy (vd, vi, size);
 }
 
-
-
 static sffi_status
 sffi_prep_cif_machdep_core(sffi_cif *cif)
 {
@@ -134,7 +123,6 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
   size_t bytes = 0;
   int i, n, flags;
 
-  
   switch (rtt)
     {
     case SFFI_TYPE_VOID:
@@ -166,7 +154,6 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
 
 	  flags = (size_mask << SPARC_SIZEMASK_SHIFT) | SPARC_RET_STRUCT;
 
-	  
 	  if (fp_mask == 0)
 	    {
 	      if (rtype->alignment >= 8)
@@ -184,9 +171,9 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
 	      case 2: flags = SPARC_RET_F_2; break;
 	      case 3: flags = SP_V9_RET_F_3; break;
 	      case 4: flags = SPARC_RET_F_4; break;
-	      
+
 	      case 6: flags = SPARC_RET_F_6; break;
-	      
+
 	      case 8: flags = SPARC_RET_F_8; break;
 	      }
 	}
@@ -232,18 +219,18 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
 	{
 	case SFFI_TYPE_COMPLEX:
 	case SFFI_TYPE_STRUCT:
-	  
+
 	  if (z > 16)
 	    {
 	      a = z = 8;
 	      break;
 	    }
-	  
+
 	  if (bytes >= 16*8)
 	    break;
 	  if ((sffi_struct_float_mask (ty, 0) & 0xff00) == 0)
 	    break;
-	  
+
 	case SFFI_TYPE_FLOAT:
 	case SFFI_TYPE_DOUBLE:
 	case SFFI_TYPE_LONGDOUBLE:
@@ -254,14 +241,11 @@ sffi_prep_cif_machdep_core(sffi_cif *cif)
       bytes += SFFI_ALIGN(z, 8);
     }
 
-  
   if (bytes < 6 * 8)
     bytes = 6 * 8;
 
-  
   bytes = SFFI_ALIGN(bytes, 16);
 
-  
   bytes += 8*16 + 8*8;
 
   cif->bytes = bytes;
@@ -286,8 +270,6 @@ sffi_prep_cif_machdep_var(sffi_cif *cif, unsigned nfixedargs, unsigned ntotalarg
 extern void sffi_call_v9(sffi_cif *cif, void (*fn)(void), void *rvalue,
 			void **avalue, size_t bytes, void *closure) SFFI_HIDDEN;
 
-
-
 int SFFI_HIDDEN
 sffi_prep_args_v9(sffi_cif *cif, unsigned long *argp, void *rvalue, void **avalue)
 {
@@ -299,18 +281,18 @@ sffi_prep_args_v9(sffi_cif *cif, unsigned long *argp, void *rvalue, void **avalu
     {
       if (flags & SPARC_FLAG_RET_IN_MEM)
 	{
-	  
+
 	  rvalue = (char *)argp + cif->bytes;
 	}
       else
 	{
-	  
+
 	  flags = SPARC_RET_VOID;
 	}
     }
 
 #ifdef USING_PURIFY
-  
+
   memset(argp, 0, 6*8);
 #endif
 
@@ -365,7 +347,7 @@ sffi_prep_args_v9(sffi_cif *cif, unsigned long *argp, void *rvalue, void **avalu
 	  z = ty->size;
 	  if (z > 16)
 	    {
-	      
+
 	      *argp++ = (unsigned long)a;
 	      break;
 	    }
@@ -397,7 +379,6 @@ sffi_call_int(sffi_cif *cif, void (*fn)(void), void *rvalue,
   if (rvalue == NULL && (cif->flags & SPARC_FLAG_RET_IN_MEM))
     bytes += SFFI_ALIGN (cif->rtype->size, 16);
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
@@ -415,7 +396,7 @@ sffi_call_int(sffi_cif *cif, void (*fn)(void), void *rvalue,
           avalue[i] = argcopy;
         }
     }
-  
+
   sffi_call_v9(cif, fn, rvalue, avalue, -bytes, closure);
 }
 
@@ -458,7 +439,6 @@ sffi_prep_closure_loc (sffi_closure* closure,
   if (cif->abi != SFFI_V9)
     return SFFI_BAD_ABI;
 
-  
   fn = (unsigned long) sffi_closure_v9;
   tramp[0] = 0x83414000;	
   tramp[1] = 0xca586010;	
@@ -506,17 +486,15 @@ sffi_closure_sparc_inner_v9(sffi_cif *cif,
 
   avalue = alloca(nargs * sizeof(void *));
 
-  
   if (flags & SPARC_FLAG_RET_IN_MEM)
     {
       rvalue = (void *) gpr[0];
-      
+
       argn = 1;
     }
   else
     argn = 0;
 
-  
   for (i = 0; i < nargs; i++, argn = argx)
     {
       int named = i < nfixedargs;
@@ -540,7 +518,6 @@ sffi_closure_sparc_inner_v9(sffi_cif *cif,
 		  int size_mask = sffi_struct_float_mask (ty, 0);
 		  int argn_mask = (0xffff00 >> argn) & 0xff00;
 
-		  
 		  size_mask = (size_mask & 0xff) | (size_mask & argn_mask);
 		  a = sffi_struct_float_merge (size_mask, gpr+argn, fpr+argn);
 		}
@@ -586,10 +563,8 @@ sffi_closure_sparc_inner_v9(sffi_cif *cif,
       avalue[i] = a;
     }
 
-  
   fun (cif, rvalue, avalue, user_data);
 
-  
   return flags;
 }
 #endif 

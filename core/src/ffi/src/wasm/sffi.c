@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -46,10 +44,6 @@ EM_JS_DEPS(SILICON_FFI, "$getWasmTableEntry,$setWasmTableEntry,$getEmptyTableSlo
 #define DEREF_PTR(addr, offset) DEREF_U32(addr, offset)
 #define DEREF_PTR_NUMBER(addr, offset) DEREF_PTR(addr, offset)
 
-
-
-
-
 #define STORE_ARG_WIDENED_UNSIGNED(rvalue, x) (DEREF_U32(rvalue, 0) = (x))
 #define STORE_ARG_WIDENED_SIGNED(rvalue, x) (DEREF_U32(rvalue, 0) = (x))
 
@@ -82,21 +76,12 @@ CHECK_FIELD_OFFSET(sffi_type, elements, 8);
 #define SFFI_EMSCRIPTEN_ABI SFFI_WASM64_EMSCRIPTEN
 #define PTR_SIG 'j'
 
-
-
-
 #define DEC_PTR(p) bigintToI53Checked(p)
 
 #define ENC_PTR(p) BigInt(p)
 
 #define DEREF_PTR(addr, offset) DEREF_U64(addr, offset)
 #define DEREF_PTR_NUMBER(addr, offset) DEC_PTR(DEREF_PTR(addr, offset))
-
-
-
-
-
-
 
 #define STORE_ARG_WIDENED_UNSIGNED(rvalue, x) \
   (DEREF_U64(rvalue, 0) = BigInt(x) & BigInt(4294967295))
@@ -133,7 +118,6 @@ CHECK_FIELD_OFFSET(sffi_type, elements, 16);
 #define ALIGN_ADDRESS(addr, align) (addr &= (~((align) - 1)))
 #define STACK_ALLOC(stack, size, align) ((stack -= (size)), ALIGN_ADDRESS(stack, align))
 
-
 #define MAX_ARGS 1000
 
 #include <stddef.h>
@@ -151,7 +135,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 {
   if (cif->abi != SFFI_EMSCRIPTEN_ABI)
     return SFFI_BAD_ABI;
-
 
   if (!(cif->flags & VARARGS_FLAG))
     cif->nfixedargs = cif->nargs;
@@ -177,22 +160,12 @@ sffi_prep_cif_machdep_var(sffi_cif *cif, unsigned nfixedargs, unsigned ntotalarg
   return SFFI_OK;
 }
 
-
 EM_JS_MACROS(
 void,
 unbox_small_structs, (sffi_type type_ptr), {
   type_ptr = DEC_PTR(type_ptr);
   var type_id = SFFI_TYPE__TYPEID(type_ptr);
   while (type_id === SFFI_TYPE_STRUCT) {
-
-
-
-
-
-
-
-
-
 
     if (DEC_PTR(SFFI_TYPE__SIZE(type_ptr)) > 16) {
       break;
@@ -229,14 +202,11 @@ sffi_call_js, (sffi_cif *cif, sffi_fp fn, void *rvalue, void **avalue),
   var rtype_ptr = rtype_unboxed[0];
   var rtype_id = rtype_unboxed[1];
 
-
-
   var rtype_widen = SFFI_TYPE__TYPEID(DEC_PTR(CIF__RTYPE(cif))) !== SFFI_TYPE_STRUCT;
   var orig_stack_ptr = stackSave();
   var cur_stack_ptr = orig_stack_ptr;
 
   var args = [];
-
 
   var ret_by_arg = false;
 
@@ -247,14 +217,8 @@ sffi_call_js, (sffi_cif *cif, sffi_fp fn, void *rvalue, void **avalue),
     throw new Error('Unexpected rtype ' + rtype_id);
   }
 
-
-
-
-
   if (rtype_id === SFFI_TYPE_LONGDOUBLE || rtype_id === SFFI_TYPE_STRUCT) {
     if (rvalue === 0) {
-
-
 
       var rsize = DEC_PTR(SFFI_TYPE__SIZE(rtype_ptr));
       var ralign = SFFI_TYPE__ALIGN(rtype_ptr);
@@ -265,18 +229,11 @@ sffi_call_js, (sffi_cif *cif, sffi_fp fn, void *rvalue, void **avalue),
     ret_by_arg = true;
   }
 
-
-
-
-
   for (var i = 0; i < nfixedargs; i++) {
     var arg_ptr = DEREF_PTR_NUMBER(avalue, i);
     var arg_unboxed = unbox_small_structs(DEREF_PTR(arg_types_ptr, i));
     var arg_type_ptr = arg_unboxed[0];
     var arg_type_id = arg_unboxed[1];
-
-
-
 
     switch (arg_type_id) {
     case SFFI_TYPE_INT:
@@ -313,8 +270,6 @@ sffi_call_js, (sffi_cif *cif, sffi_fp fn, void *rvalue, void **avalue),
       break;
     case SFFI_TYPE_STRUCT:
 
-
-
       var size = DEC_PTR(SFFI_TYPE__SIZE(arg_type_ptr));
       var align = SFFI_TYPE__ALIGN(arg_type_ptr);
       STACK_ALLOC(cur_stack_ptr, size, align);
@@ -330,15 +285,6 @@ sffi_call_js, (sffi_cif *cif, sffi_fp fn, void *rvalue, void **avalue),
       throw new Error('Unexpected type ' + arg_type_id);
     }
   }
-
-
-
-
-
-
-
-
-
 
   if (flags & VARARGS_FLAG) {
     var struct_arg_info = [];
@@ -381,8 +327,6 @@ sffi_call_js, (sffi_cif *cif, sffi_fp fn, void *rvalue, void **avalue),
         break;
       case SFFI_TYPE_STRUCT:
 
-
-
         STACK_ALLOC(cur_stack_ptr, __SIZEOF_POINTER__, __SIZEOF_POINTER__);
         struct_arg_info.push([cur_stack_ptr, arg_ptr, DEC_PTR(SFFI_TYPE__SIZE(arg_type_ptr)), SFFI_TYPE__ALIGN(arg_type_ptr)]);
         break;
@@ -415,24 +359,15 @@ sffi_call_js, (sffi_cif *cif, sffi_fp fn, void *rvalue, void **avalue),
   LOG_DEBUG("CALL_FUNC_PTR", "fn:", fn, "args:", args);
   var result = getWasmTableEntry(fn).apply(null, args);
 
-
   stackRestore(orig_stack_ptr);
-
-
 
   if (ret_by_arg) {
     return;
   }
 
-
   if (rvalue === 0) {
     return;
   }
-
-
-
-
-
 
   switch (rtype_id) {
   case SFFI_TYPE_VOID:
@@ -571,8 +506,6 @@ sffi_prep_closure_loc_js,
   var rtype_ptr = rtype_unboxed[0];
   var rtype_id = rtype_unboxed[1];
 
-
-
   var sig;
   var ret_by_arg = false;
   switch (rtype_id) {
@@ -668,7 +601,6 @@ sffi_prep_closure_loc_js,
     var ret_ptr;
     var jsarg_idx = 0;
 
-
     if (ret_by_arg) {
       ret_ptr = args[jsarg_idx++];
     } else {
@@ -680,12 +612,7 @@ sffi_prep_closure_loc_js,
     var args_ptr = cur_ptr;
     var carg_idx = 0;
 
-
-
-
-
     for (; carg_idx < nfixedargs; carg_idx++) {
-
 
       var cur_arg = args[jsarg_idx++];
       var arg_type_info = unboxed_arg_type_info_list[carg_idx];
@@ -715,7 +642,6 @@ sffi_prep_closure_loc_js,
         DEREF_U32(cur_ptr, 0) = cur_arg;
         break;
       case SFFI_TYPE_STRUCT:
-
 
         STACK_ALLOC(cur_ptr, arg_size, arg_align);
         HEAP8.subarray(cur_ptr, cur_ptr + arg_size).set(HEAP8.subarray(DEC_PTR(cur_arg), DEC_PTR(cur_arg) + arg_size));
@@ -754,19 +680,12 @@ sffi_prep_closure_loc_js,
 
     var varargs = DEC_PTR(args[args.length - 1]);
 
-
-
-
-
-
-
     for (; carg_idx < nargs; carg_idx++) {
       var arg_type_id = unboxed_arg_type_id_list[carg_idx];
       var arg_type_info = unboxed_arg_type_info_list[carg_idx];
       var arg_size = arg_type_info[0];
       var arg_align = arg_type_info[1];
       if (arg_type_id === SFFI_TYPE_STRUCT) {
-
 
         var struct_ptr = DEREF_PTR_NUMBER(varargs, 0);
         STACK_ALLOC(cur_ptr, arg_size, arg_align);
@@ -785,7 +704,6 @@ sffi_prep_closure_loc_js,
         CLOSURE__user_data(closure)
     );
     stackRestore(orig_stack_ptr);
-
 
     if (!ret_by_arg) {
       switch (sig[0]) {
@@ -811,8 +729,6 @@ sffi_prep_closure_loc_js,
   CLOSURE__user_data(closure) = ENC_PTR(user_data);
   return SFFI_OK_MACRO;
 })
-
-
 
 sffi_status sffi_prep_closure_loc(sffi_closure *closure, sffi_cif *cif,
                                 void (*fun)(sffi_cif *, void *, void **, void *),

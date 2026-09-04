@@ -9,8 +9,6 @@ import silicon.proxy;
 
 using namespace silicon::ai::llm;
 
-
-
 class echo_tool {
   public:
     std::string_view name() const { return "echo"; }
@@ -21,7 +19,6 @@ class echo_tool {
         return out;
     }
 };
-
 
 class const_provider {
     std::string text_;
@@ -37,9 +34,6 @@ class const_provider {
         return result<chat_response>(std::move(r));
     }
 };
-
-
-
 
 TEST_CASE("tool_registry 注册并按 name 查询") {
     tool_registry reg;
@@ -67,8 +61,6 @@ TEST_CASE("tool_registry get_tool 未知 name 返回空句柄") {
     CHECK_FALSE(reg.get_tool("missing"));
 }
 
-
-
 TEST_CASE("provider_registry 注册/查询/列举") {
     provider_registry reg;
     CHECK(reg.register_provider("openai", make_provider<const_provider>("a")));
@@ -90,8 +82,6 @@ TEST_CASE("provider_registry 重复 id 注册返回 false") {
     CHECK_FALSE(reg.register_provider("openai", make_provider<const_provider>("b")));
     CHECK(reg.list_providers().size() == 1);
 }
-
-
 
 TEST_CASE("scripted_provider 按 FIFO 返回预置响应") {
     scripted_provider p;
@@ -118,8 +108,6 @@ TEST_CASE("scripted_provider 队列耗尽返回 llm_error") {
     CHECK_FALSE(r);
     CHECK(r.error().message() == "llm provider unavailable");
 }
-
-
 
 TEST_CASE("json_protocol_adapter::encode_request 含 model/messages/tools") {
     json_protocol_adapter adapter;
@@ -166,16 +154,12 @@ TEST_CASE("json_protocol_adapter::decode_response 非法 JSON 返回 llm_error")
     CHECK(r.error().message() == "invalid llm response");
 }
 
-
 namespace {
     struct di_probe_category : std::error_category {
         const char *name() const noexcept override { return "di-probe"; }
         std::string message(int) const override { return "probe"; }
     };
 }
-
-
-
 
 TEST_CASE("DI: 模块统一引用组合根注入的 category 实例") {
     di_probe_category probe;

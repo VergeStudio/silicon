@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 static int ABI_ATTR fn(int *a)

@@ -1,5 +1,3 @@
-
-
 module;
 
 #ifdef SILICON_FEATURE_TLS
@@ -86,9 +84,6 @@ client::client(
       m_connect_status(connection_status::kConnected),
       m_tls_info(tls_connection_type::accept) {
 
-
-
-
     m_socket.blocking(silicon::network::socket::blocking_t::no);
 }
 
@@ -122,16 +117,13 @@ auto client::operator=(client &&other) noexcept -> client & {
 
 silicon::scheduler::task<connection_status> client::connect(std::chrono::milliseconds timeout) {
 
-
     if(m_connect_status.has_value()) {
         co_return m_connect_status.value();
     }
 
-
     if(m_tls_ctx == nullptr) {
         co_return connection_status::kContextRequired;
     }
-
 
     auto return_value = [this](connection_status s) -> connection_status {
         m_connect_status = s;
@@ -142,7 +134,6 @@ silicon::scheduler::task<connection_status> client::connect(std::chrono::millise
     if(cret == 0) {
         co_return return_value(co_await handshake(timeout));
     } else if(cret == -1) {
-
 
         if(m_socket.in_progress()) {
             auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), silicon::scheduler::poll_op::write, timeout);
@@ -196,11 +187,8 @@ silicon::scheduler::task<connection_status> client::handshake(std::chrono::milli
             op = silicon::scheduler::poll_op::read;
         } else {
 
-
-
             co_return connection_status::kHandshakeFailed;
         }
-
 
         auto pstatus = co_await m_scheduler->poll(m_socket.native_handle(), op, timeout);
         switch(pstatus) {

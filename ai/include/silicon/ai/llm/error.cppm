@@ -10,19 +10,13 @@ export module silicon.ai.llm.error;
 
 import silicon.error;
 
-
-
 namespace silicon::ai::llm {
-
-
-
 
 AI_API std::atomic<const std::error_category *> llm_error_category_instance{nullptr};
 
 }
 
 export namespace silicon::ai::llm {
-
 
 enum class llm_error {
     kProviderUnavailable = 1,
@@ -31,11 +25,6 @@ enum class llm_error {
     kTimeout,
     kUnknown,
 };
-
-
-
-
-
 
 class AI_API llm_category_impl final: public std::error_category {
     const char *name() const noexcept override { return "silicon.ai.llm"; }
@@ -56,15 +45,9 @@ class AI_API llm_category_impl final: public std::error_category {
     }
 };
 
-
-
 inline void inject_llm_error_category(const std::error_category &cat) noexcept {
     llm_error_category_instance.store(&cat, std::memory_order_release);
 }
-
-
-
-
 
 [[nodiscard]] inline const std::error_category &llm_error_category() noexcept {
     const std::error_category *cat = llm_error_category_instance.load(std::memory_order_acquire);
@@ -73,7 +56,6 @@ inline void inject_llm_error_category(const std::error_category &cat) noexcept {
     }
     return *cat;
 }
-
 
 [[nodiscard]] inline std::error_code make_error_code(llm_error e) noexcept {
     return {static_cast<int>(e), llm_error_category()};

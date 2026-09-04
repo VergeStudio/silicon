@@ -8,8 +8,6 @@ module;
 #include <expected>
 #include <system_error>
 
-
-
 #include "silicon/common.h"
 
 export module silicon.logger:global_logger;

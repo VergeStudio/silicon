@@ -1,16 +1,12 @@
 module;
 
-
 #include <atomic>
 #include <variant>
 #include <string>
 #include <mutex>
 #include <utility>
 
-
 #include <coroutine>
-
-
 
 #if !defined(SILICON_PLATFORM_WINDOWS)
 #    include <unistd.h>
@@ -28,7 +24,6 @@ module;
 #include <type_traits>
 #include <vector>
 
-
 #include <expected>
 #include <system_error>
 
@@ -36,12 +31,7 @@ module;
 export module silicon.scheduler:io_scheduler;
 export import silicon.scheduler.error;
 
-
-
-
 import silicon.error;
-
-
 
 import :concepts.range_of;
 import :awaiter_list;
@@ -56,25 +46,17 @@ import silicon.scheduler.task;
 import :facade;
 import :thread_pool;
 
-
-
 import :poll_info;
 import :io_notifier;
 import :io_ring;
 import :timer_handle;
 
-
-
-
 using namespace silicon::scheduler;
 
 export namespace silicon::scheduler {
 
-
-
 template<typename T>
 using result = silicon::error::result<T>;
-
 
 enum class timeout_status {
     kNoTimeout,
@@ -101,27 +83,16 @@ class CORE_API io_scheduler {
 
     enum class execution_strategy_t {
 
-
-
-
         process_tasks_on_thread_pool,
-
-
 
         process_tasks_inline
     };
-
-
-
-
-
 
     enum class io_completion_policy {
 
         disabled,
 
         enabled,
-
 
         auto_
     };
@@ -140,13 +111,7 @@ class CORE_API io_scheduler {
                 .on_thread_stop_functor = nullptr
         };
 
-
-
         execution_strategy_t execution_strategy{execution_strategy_t::process_tasks_on_thread_pool};
-
-
-
-
 
         io_completion_policy completion_policy{
 #if defined(SILICON_FEATURE_IO_RING)
@@ -156,18 +121,11 @@ class CORE_API io_scheduler {
 #endif
         };
 
-
-
-
-
-
         io_ring_config io_ring_cfg{};
     };
 
-    
     explicit io_scheduler(options &&opts, private_constructor);
 
-    
     static auto create(
             options = options{
                     .thread_strategy = thread_strategy_t::spawn,
@@ -179,8 +137,6 @@ class CORE_API io_scheduler {
                              .on_thread_start_functor = nullptr,
                              .on_thread_stop_functor = nullptr},
                     .execution_strategy = execution_strategy_t::process_tasks_on_thread_pool,
-
-
 
 #if defined(SILICON_FEATURE_IO_RING)
                     .completion_policy = io_completion_policy::auto_,
@@ -198,7 +154,6 @@ class CORE_API io_scheduler {
 
     ~io_scheduler();
 
-    
     auto process_events(std::chrono::milliseconds = std::chrono::milliseconds{0}) -> std::size_t;
 
     class schedule_operation {
@@ -206,16 +161,14 @@ class CORE_API io_scheduler {
         explicit schedule_operation(io_scheduler &scheduler) noexcept: m_scheduler(scheduler) {}
 
       public:
-        
+
         bool await_ready() noexcept { return false; }
 
-        
         void await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
             if(m_scheduler.m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
                 m_scheduler.m_p->m_size.fetch_add(1, std::memory_order::release);
                 m_awaiting_coroutine = awaiting_coroutine;
                 silicon::scheduler::awaiter_list_push(m_scheduler.m_p->m_scheduled_ops, this);
-
 
                 bool expected{false};
                 if(m_scheduler.m_p->m_schedule_pipe_triggered.compare_exchange_strong(
@@ -235,7 +188,6 @@ class CORE_API io_scheduler {
             }
         }
 
-        
         void await_resume() noexcept {}
 
         std::coroutine_handle<> m_awaiting_coroutine;
@@ -247,27 +199,21 @@ class CORE_API io_scheduler {
         io_scheduler &m_scheduler;
     };
 
-    
     schedule_operation schedule() { return schedule_operation{*this}; }
 
-    
     bool spawn_detached(silicon::scheduler::task<void> &&task) ;
 
-    
     silicon::scheduler::task<void> spawn_joinable(silicon::scheduler::task<void> &&task) ;
 
-    
     template<typename return_type>
     [[nodiscard]] silicon::scheduler::task<return_type> schedule(silicon::scheduler::task<return_type> task) {
         co_await schedule();
         co_return co_await task;
     }
 
-    
     template<typename return_type, typename rep, typename period>
     [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<return_type, timeout_status>> schedule(silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
         using namespace std::chrono_literals;
-
 
         auto timeout_ms = std::max(std::chrono::duration_cast<std::chrono::milliseconds>(timeout), 0ms);
         if(timeout_ms == 0ms) {
@@ -292,11 +238,10 @@ class CORE_API io_scheduler {
     }
 
 #ifndef EMSCRIPTEN
-    
+
     template<typename return_type, typename rep, typename period>
     [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<return_type, timeout_status>> schedule(std::stop_source stop_source, silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
         using namespace std::chrono_literals;
-
 
         auto timeout_ms = std::max(std::chrono::duration_cast<std::chrono::milliseconds>(timeout), 0ms);
         if(timeout_ms == 0ms) {
@@ -321,28 +266,22 @@ class CORE_API io_scheduler {
     }
 #endif
 
-    
     template<class rep_type, class period_type>
     [[nodiscard]] silicon::scheduler::task<void> schedule_after(std::chrono::duration<rep_type, period_type> amount) {
         return yield_for_internal(std::chrono::duration_cast<std::chrono::nanoseconds>(amount));
     }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> schedule_at(time_point) ;
 
-    
     [[nodiscard]] schedule_operation yield() { return schedule_operation{*this}; };
 
-    
     template<class rep_type, class period_type>
     [[nodiscard]] silicon::scheduler::task<void> yield_for(std::chrono::duration<rep_type, period_type> amount) {
         return yield_for_internal(std::chrono::duration_cast<std::chrono::nanoseconds>(amount));
     }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> yield_until(time_point) ;
 
-    
     [[nodiscard]] auto poll(
             fd_t,
             silicon::scheduler::poll_op,
@@ -350,15 +289,12 @@ class CORE_API io_scheduler {
             std::optional<poll_stop_token> = std::nullopt
     ) -> silicon::scheduler::task<poll_status>;
 
-    
     [[nodiscard]] silicon::scheduler::task<result<int64_t>> read_at(
             fd_t, void *, std::uint32_t, std::uint64_t) ;
 
-    
     [[nodiscard]] silicon::scheduler::task<result<int64_t>> write_at(
             fd_t, const void *, std::uint32_t, std::uint64_t) ;
 
-    
     bool resume(std::coroutine_handle<>) ;
 
     template<silicon::scheduler::concepts::sized_range_of<std::coroutine_handle<>> range_type>
@@ -374,7 +310,6 @@ class CORE_API io_scheduler {
         return size - invalid_handles;
     }
 
-    
     std::size_t size() const noexcept {
         if(m_p->m_opts.execution_strategy == execution_strategy_t::process_tasks_inline) {
             return m_p->m_size.load(std::memory_order::acquire);
@@ -383,17 +318,14 @@ class CORE_API io_scheduler {
         }
     }
 
-    
     bool empty() const noexcept { return size() == 0; }
 
-    
     void shutdown() noexcept ;
 
     [[nodiscard]] bool is_shutdown() const { return m_p->m_shutdown_requested.load(std::memory_order::acquire); }
 
     silicon::scheduler::io_notifier & io_notifier() { return m_p->m_io_notifier; }
 
-    
     [[nodiscard]] io_ring::backend completion_backend() const noexcept ;
 
   private:
@@ -410,14 +342,9 @@ class CORE_API io_scheduler {
               m_schedule_ptr(&m_schedule_poll),
               m_timer_ptr(&m_timer_poll) {}
 
-
         options m_opts;
 
-
         ::silicon::scheduler::io_notifier m_io_notifier;
-
-
-
 
         silicon::scheduler::poll_info m_shutdown_poll{};
         silicon::scheduler::poll_info m_schedule_poll{};
@@ -425,20 +352,14 @@ class CORE_API io_scheduler {
 
         silicon::scheduler::timer_handle m_timer;
 
-
         void *m_shutdown_ptr = &m_shutdown_poll;
         void *m_schedule_ptr = &m_schedule_poll;
         void *m_timer_ptr = &m_timer_poll;
-
-
-
-
 
         silicon::scheduler::poll_info m_completion_poll{};
         void *m_completion_ptr = &m_completion_poll;
 
         std::once_flag m_completion_once{};
-
 
         void *m_completion_engine{nullptr};
 
@@ -450,9 +371,7 @@ class CORE_API io_scheduler {
 
         std::atomic<schedule_operation *> m_scheduled_ops{nullptr};
 
-
         std::atomic<std::size_t> m_size{0};
-
 
         std::thread m_io_thread;
 
@@ -460,9 +379,7 @@ class CORE_API io_scheduler {
 
         std::mutex m_timed_events_mutex{};
 
-
         timed_events m_timed_events{};
-
 
         std::atomic<bool> m_shutdown_requested{false};
 
@@ -488,8 +405,6 @@ class CORE_API io_scheduler {
 
     void process_event_execute(silicon::scheduler::poll_info *, poll_status) ;
     void process_timeout_execute() ;
-
-
 
     void drain_ring_completions() ;
 

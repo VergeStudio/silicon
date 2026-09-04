@@ -1,5 +1,3 @@
-
-
 #if defined(__i386__) || defined(_M_IX86)
 #include <sffi.h>
 #include <sffi_common.h>
@@ -7,7 +5,6 @@
 #include <stdlib.h>
 #include <tramp.h>
 #include "internal.h"
-
 
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 # if SFFI_TYPE_LONGDOUBLE != 4
@@ -28,7 +25,6 @@
 #else
 #define STACK_ALIGN(bytes) SFFI_ALIGN (bytes, 16)
 #endif
-
 
 sffi_status SFFI_HIDDEN
 sffi_prep_cif_machdep(sffi_cif *cif)
@@ -114,7 +110,7 @@ sffi_prep_cif_machdep(sffi_cif *cif)
                 flags = X86_RET_STRUCTPOP;
                 break;
               }
-            
+
             bytes += SFFI_ALIGN (sizeof(void*), SFFI_SIZEOF_ARG);
           }
       }
@@ -216,7 +212,7 @@ static const struct abi_params abi_params[SFFI_LAST_ABI] = {
   [SFFI_FASTCALL] = { 1, R_EAX, 2, { R_ECX, R_EDX } },
   [SFFI_STDCALL] = { 1, R_ECX, 0 },
   [SFFI_PASCAL] = { -1, R_ECX, 0 },
-  
+
   [SFFI_REGISTER] = { -1, R_ECX, 3, { R_EAX, R_EDX, R_ECX } },
   [SFFI_MS_CDECL] = { 1, R_ECX, 0 }
 };
@@ -232,7 +228,6 @@ static const struct abi_params abi_params[SFFI_LAST_ABI] = {
 #endif
 
 extern void SFFI_DECLARE_FASTCALL sffi_call_i386(struct call_frame *, char *) SFFI_HIDDEN;
-
 
 #if defined(_MSC_VER)
 #pragma runtime_checks("s", off)
@@ -265,11 +260,11 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 	case X86_RET_LDOUBLE:
 	case X86_RET_STRUCTPOP:
 	case X86_RET_STRUCTARG:
-	  
+
 	  rsize = cif->rtype->size;
 	  break;
 	default:
-	  
+
 	  flags = X86_RET_VOID;
 	  break;
 	}
@@ -291,14 +286,14 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
   switch (flags)
     {
     case X86_RET_STRUCTARG:
-      
+
       if (pabi->nregs > 0)
 	{
 	  frame->regs[pabi->regs[0]] = (unsigned)rvalue;
 	  narg_reg = 1;
 	  break;
 	}
-      
+
     case X86_RET_STRUCTPOP:
       *(void **)argp = rvalue;
       argp += sizeof(void *);
@@ -335,20 +330,18 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 	  size_t za = SFFI_ALIGN (z, SFFI_SIZEOF_ARG);
 	  size_t align = SFFI_SIZEOF_ARG;
 
-	  
 	  if ((cabi == SFFI_THISCALL || cabi == SFFI_FASTCALL)
 	      && (t == SFFI_TYPE_SINT64
 		  || t == SFFI_TYPE_UINT64
 		  || t == SFFI_TYPE_STRUCT))
 	    narg_reg = 2;
 
-	  
 	  if (t == SFFI_TYPE_STRUCT && ty->alignment >= 16)
 	    align = 16;
 
 	  if (dir < 0)
 	    {
-	      
+
 	      argp -= za;
 	      memcpy (argp, valp, z);
 	    }
@@ -382,8 +375,6 @@ sffi_call_go (sffi_cif *cif, void (*fn)(void), void *rvalue,
   sffi_call_int (cif, fn, rvalue, avalue, closure);
 }
 #endif
-
-
 
 void SFFI_HIDDEN sffi_closure_i386(void);
 void SFFI_HIDDEN sffi_closure_STDCALL(void);
@@ -432,7 +423,7 @@ sffi_closure_inner (struct closure_frame *frame, char *stack)
 	  frame->rettemp[0] = (unsigned)rvalue;
 	  break;
 	}
-      
+
     case X86_RET_STRUCTPOP:
       rvalue = *(void **)argp;
       argp += sizeof(void *);
@@ -471,11 +462,9 @@ sffi_closure_inner (struct closure_frame *frame, char *stack)
 	  size_t za = SFFI_ALIGN (z, SFFI_SIZEOF_ARG);
 	  size_t align = SFFI_SIZEOF_ARG;
 
-	  
 	  if (t == SFFI_TYPE_STRUCT && ty->alignment >= 16)
 	    align = 16;
 
-	  
 	  if ((cabi == SFFI_THISCALL || cabi == SFFI_FASTCALL)
 	      && (t == SFFI_TYPE_SINT64
 		  || t == SFFI_TYPE_UINT64
@@ -484,7 +473,7 @@ sffi_closure_inner (struct closure_frame *frame, char *stack)
 
 	  if (dir < 0)
 	    {
-	      
+
 	      argp -= za;
 	      valp = argp;
 	    }
@@ -507,7 +496,7 @@ sffi_closure_inner (struct closure_frame *frame, char *stack)
       return flags | (cif->bytes << X86_RET_POP_SHIFT);
     case SFFI_THISCALL:
     case SFFI_FASTCALL:
-      
+
       return flags | (((unsigned) (argp - stack)) << X86_RET_POP_SHIFT);
     default:
       return flags;
@@ -548,7 +537,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 #if defined(SFFI_EXEC_STATIC_TRAMP)
   if (sffi_tramp_is_present(closure))
     {
-      
+
       if (dest == sffi_closure_i386)
         dest = sffi_closure_i386_alt;
       else if (dest == sffi_closure_STDCALL)
@@ -560,15 +549,11 @@ sffi_prep_closure_loc (sffi_closure* closure,
     }
 #endif
 
-  
-  
   *(UINT32 *) tramp = 0xfb1e0ff3;
 
-  
   tramp[4] = op;
   *(void **)(tramp + 5) = codeloc;
 
-  
   tramp[9] = 0xe9;
   *(unsigned *)(tramp + 10) = (unsigned)dest - ((unsigned)codeloc + 14);
 
@@ -622,8 +607,6 @@ sffi_prep_go_closure (sffi_go_closure* closure, sffi_cif* cif,
 
 #endif 
 
-
-
 #if !SFFI_NO_RAW_API
 
 void SFFI_HIDDEN sffi_closure_raw_SYSV(void);
@@ -640,7 +623,6 @@ sffi_prep_raw_closure_loc (sffi_raw_closure *closure,
   void (*dest)(void);
   int i;
 
-  
   for (i = cif->nargs-1; i >= 0; i--)
     switch (cif->arg_types[i]->type)
       {
@@ -661,11 +643,9 @@ sffi_prep_raw_closure_loc (sffi_raw_closure *closure,
       return SFFI_BAD_ABI;
     }
 
-  
   tramp[0] = 0xb8;
   *(void **)(tramp + 1) = codeloc;
 
-  
   tramp[5] = 0xe9;
   *(unsigned *)(tramp + 6) = (unsigned)dest - ((unsigned)codeloc + 10);
 
@@ -700,11 +680,11 @@ sffi_raw_call(sffi_cif *cif, void (*fn)(void), void *rvalue, sffi_raw *avalue)
 	case X86_RET_LDOUBLE:
 	case X86_RET_STRUCTPOP:
 	case X86_RET_STRUCTARG:
-	  
+
 	  rsize = cif->rtype->size;
 	  break;
 	default:
-	  
+
 	  flags = X86_RET_VOID;
 	  break;
 	}
@@ -725,14 +705,14 @@ sffi_raw_call(sffi_cif *cif, void (*fn)(void), void *rvalue, sffi_raw *avalue)
   switch (flags)
     {
     case X86_RET_STRUCTARG:
-      
+
       if (pabi->nregs > 0)
 	{
 	  frame->regs[pabi->regs[0]] = (unsigned)rvalue;
 	  narg_reg = 1;
 	  break;
 	}
-      
+
     case X86_RET_STRUCTPOP:
       *(void **)argp = rvalue;
       argp += sizeof(void *);

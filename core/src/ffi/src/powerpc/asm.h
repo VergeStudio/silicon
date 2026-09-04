@@ -1,7 +1,4 @@
-
-
 #define ASM_GLOBAL_DIRECTIVE .globl
-
 
 #define C_SYMBOL_NAME(name) name
 
@@ -11,12 +8,10 @@
 #    define C_LABEL(name) name :
 #endif
 
-
 #define ALIGNARG(log2) log2
 
 #define ASM_TYPE_DIRECTIVE(name, typearg) .type name, typearg;
 #define ASM_SIZE_DIRECTIVE(name) .size name, .- name
-
 
 #ifdef PROF
 
@@ -78,7 +73,6 @@
     EALIGN_W_6;    \
     nop
 
-
 #ifdef PROF
 #    define EFFI_ALIGN(name, alignt, words)                \
         ASM_GLOBAL_DIRECTIVE C_SYMBOL_NAME(name);          \
@@ -107,6 +101,5 @@
 #else
 #    define JUMPTARGET(name) name
 #endif
-
 
 #define L(x) .L##x

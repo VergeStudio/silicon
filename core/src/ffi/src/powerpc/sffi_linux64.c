@@ -1,5 +1,3 @@
-
-
 #include "sffi.h"
 #include <tramp.h>
 #include <stdlib.h>
@@ -8,15 +6,12 @@
 #include "sffi_common.h"
 #include "sffi_powerpc.h"
 
-
-
 enum {
   NUM_GPR_ARG_REGISTERS64 = 8,
   NUM_FPR_ARG_REGISTERS64 = 13,
   NUM_VEC_ARG_REGISTERS64 = 12,
 };
 enum { ASM_NEEDS_REGISTERS64 = 4 };
-
 
 #if HAVE_LONG_DOUBLE_VARIANT && SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 
@@ -36,7 +31,6 @@ sffi_prep_types_linux64 (sffi_abi abi)
 }
 #endif
 
-
 static unsigned int
 discover_homogeneous_aggregate (sffi_abi abi,
                                 const sffi_type *t,
@@ -46,19 +40,19 @@ discover_homogeneous_aggregate (sffi_abi abi,
     {
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
     case SFFI_TYPE_LONGDOUBLE:
-      
+
       if ((abi & SFFI_LINUX_LONG_DOUBLE_128) == 0)
         {
           *elnum = 1;
           return SFFI_TYPE_DOUBLE;
         }
-      
+
       else if ((abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) == 0)
         {
           *elnum = 2;
           return SFFI_TYPE_LONGDOUBLE;
         }
-      
+
 #endif
     case SFFI_TYPE_FLOAT:
     case SFFI_TYPE_DOUBLE:
@@ -67,7 +61,7 @@ discover_homogeneous_aggregate (sffi_abi abi,
 
 #ifdef SFFI_TARGET_HAS_COMPLEX_TYPE
     case SFFI_TYPE_COMPLEX:
-      
+
       {
 	unsigned int inner_elnum = 0;
 	unsigned int inner
@@ -112,8 +106,6 @@ discover_homogeneous_aggregate (sffi_abi abi,
     }
 }
 
-
-
 static sffi_status
 sffi_prep_cif_linux64_core (sffi_cif *cif)
 {
@@ -124,37 +116,33 @@ sffi_prep_cif_linux64_core (sffi_cif *cif)
   unsigned elt, elnum, rtype;
 
 #if SFFI_TYPE_LONGDOUBLE == SFFI_TYPE_DOUBLE
-  
+
   if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_128) != 0 ||
       (cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
     return SFFI_BAD_ABI;
 #elif !defined(__VEC__)
-  
+
   if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
     return SFFI_BAD_ABI;
 #else
-  
+
   if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_128) == 0 &&
       (cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
     return SFFI_BAD_ABI;
 #endif
 
-  
 #if _CALL_ELF == 2
-  
+
   bytes = (4 + ASM_NEEDS_REGISTERS64) * sizeof (long);
 
-  
   bytes += NUM_GPR_ARG_REGISTERS64 * sizeof (long);
 #else
-  
+
   bytes = (6 + ASM_NEEDS_REGISTERS64) * sizeof (long);
 
-  
   bytes += 2 * NUM_GPR_ARG_REGISTERS64 * sizeof (long);
 #endif
 
-  
   rtype = cif->rtype->type;
 #if _CALL_ELF == 2
 homogeneous:
@@ -170,11 +158,11 @@ homogeneous:
         }
       if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_128) != 0)
 	flags |= FLAG_RETURNS_128BITS;
-      
+
 #endif
     case SFFI_TYPE_DOUBLE:
       flags |= FLAG_RETURNS_64BITS;
-      
+
     case SFFI_TYPE_FLOAT:
       flags |= FLAG_RETURNS_FP;
       break;
@@ -202,7 +190,7 @@ homogeneous:
 #endif
       intarg_count++;
       flags |= FLAG_RETVAL_REFERENCE;
-      
+
     case SFFI_TYPE_VOID:
       flags |= FLAG_RETURNS_NOTHING;
       break;
@@ -214,12 +202,12 @@ homogeneous:
         {
         case SFFI_TYPE_FLOAT:
         case SFFI_TYPE_DOUBLE:
-          
+
           flags |= FLAG_RETURNS_SMST;
           goto homogeneous;
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
         case SFFI_TYPE_LONGDOUBLE:
-          
+
           if ((cif->abi & (SFFI_LINUX_LONG_DOUBLE_128
                            | SFFI_LINUX_LONG_DOUBLE_IEEE128)) != 0)
             return SFFI_BAD_TYPEDEF;
@@ -233,7 +221,7 @@ homogeneous:
         case SFFI_TYPE_SINT32: case SFFI_TYPE_UINT32:
         case SFFI_TYPE_SINT64: case SFFI_TYPE_UINT64:
         case SFFI_TYPE_POINTER:
-          
+
           flags |= FLAG_RETURNS_SMST;
           break;
         default:
@@ -243,7 +231,7 @@ homogeneous:
 #endif
 
     default:
-      
+
       break;
     }
 
@@ -258,7 +246,7 @@ homogeneous:
           if ((cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
             {
               vecarg_count++;
-              
+
               intarg_count = (intarg_count + 3) & ~0x1;
               if (vecarg_count > NUM_VEC_ARG_REGISTERS64)
                 flags |= FLAG_ARG_NEEDS_PSAVE;
@@ -269,7 +257,7 @@ homogeneous:
 	      fparg_count++;
 	      intarg_count++;
 	    }
-	  
+
 #endif
 	case SFFI_TYPE_DOUBLE:
 	case SFFI_TYPE_FLOAT:
@@ -325,7 +313,7 @@ homogeneous:
 	case SFFI_TYPE_SINT16:
 	case SFFI_TYPE_UINT8:
 	case SFFI_TYPE_SINT8:
-	  
+
 	  intarg_count++;
 	  if (intarg_count > NUM_GPR_ARG_REGISTERS64)
 	    flags |= FLAG_ARG_NEEDS_PSAVE;
@@ -333,7 +321,7 @@ homogeneous:
 
 #ifdef SFFI_TARGET_HAS_COMPLEX_TYPE
 	case SFFI_TYPE_COMPLEX:
-	  
+
 	  elt = (*ptr)->elements[0]->type;
 	  switch (elt)
 	    {
@@ -383,16 +371,14 @@ homogeneous:
   if (vecarg_count != 0)
     flags |= FLAG_VEC_ARGUMENTS;
 
-  
   if (fparg_count != 0)
     bytes += NUM_FPR_ARG_REGISTERS64 * sizeof (double);
-  
+
   if (vecarg_count != 0) {
     bytes = (bytes + 15) & ~0xF;
     bytes += NUM_VEC_ARG_REGISTERS64 * sizeof (float128);
   }
 
-  
 #if _CALL_ELF == 2
   if ((flags & FLAG_ARG_NEEDS_PSAVE) != 0)
     bytes += intarg_count * sizeof (long);
@@ -401,7 +387,6 @@ homogeneous:
     bytes += (intarg_count - NUM_GPR_ARG_REGISTERS64) * sizeof (long);
 #endif
 
-  
   bytes = (bytes + 15) & ~0xF;
 
   cif->flags = flags;
@@ -418,9 +403,9 @@ sffi_prep_cif_linux64 (sffi_cif *cif)
 #if _CALL_ELF != 2
   else if (cif->abi == SFFI_COMPAT_LINUX64)
     {
-      
+
       cif->flags |= FLAG_COMPAT;
-      
+
       cif->abi = SFFI_LINUX | SFFI_LINUX_LONG_DOUBLE_128;
     }
 #endif
@@ -439,9 +424,9 @@ sffi_prep_cif_linux64_var (sffi_cif *cif,
 #if _CALL_ELF != 2
   else if (cif->abi == SFFI_COMPAT_LINUX64)
     {
-      
+
       cif->flags |= FLAG_COMPAT;
-      
+
       cif->abi = SFFI_LINUX | SFFI_LINUX_LONG_DOUBLE_128;
     }
 #endif
@@ -452,9 +437,6 @@ sffi_prep_cif_linux64_var (sffi_cif *cif,
 #endif
   return sffi_prep_cif_linux64_core (cif);
 }
-
-
-
 
 void SFFI_HIDDEN
 sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
@@ -472,20 +454,16 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
     size_t p;
   } valp;
 
-  
   valp stacktop;
 
-  
   valp gpr_base;
   valp gpr_end;
   valp rest;
   valp next_arg;
 
-  
   valp fpr_base;
   unsigned int fparg_count;
 
-  
   valp vec_base;
   unsigned int vecarg_count;
 
@@ -520,7 +498,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 #endif
   fpr_base.d = gpr_base.d - NUM_FPR_ARG_REGISTERS64;
   fparg_count = 0;
-  
+
   if (ecif->cif->flags & FLAG_FP_ARGUMENTS)
     vec_base.p = fpr_base.p & ~0xF;
   else
@@ -529,7 +507,6 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
   vecarg_count = 0;
   next_arg.ul = gpr_base.ul;
 
-  
   SFFI_ASSERT (((unsigned long) (char *) stack & 0xF) == 0);
   SFFI_ASSERT (((unsigned long) stacktop.c & 0xF) == 0);
   SFFI_ASSERT (((unsigned long) gpr_base.c & 0xF) == 0);
@@ -537,11 +514,9 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
   SFFI_ASSERT (((unsigned long) vec_base.c & 0xF) == 0);
   SFFI_ASSERT ((bytes & 0xF) == 0);
 
-  
   if (flags & FLAG_RETVAL_REFERENCE)
     *next_arg.ul++ = (unsigned long) (char *) ecif->rvalue;
 
-  
   p_argv.v = ecif->avalue;
   nargs = ecif->cif->nargs;
 #if _CALL_ELF != 2
@@ -609,7 +584,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 	      SFFI_ASSERT (flags & FLAG_FP_ARGUMENTS);
 	      break;
 	    }
-	  
+
 #endif
 	case SFFI_TYPE_DOUBLE:
 #if _CALL_ELF != 2
@@ -669,7 +644,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 	case SFFI_TYPE_COMPLEX:
 	  elt = (*ptr)->elements[0]->type;
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
-	  
+
 	  if (elt == SFFI_TYPE_LONGDOUBLE)
 	    elt = SFFI_TYPE_DOUBLE;
 #endif
@@ -715,7 +690,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 	    }
 	  else
 	    {
-	      
+
 	      char *cval = (char *) *p_argv.v;
 	      size_t hsize = (*ptr)->elements[0]->size;
 	      unsigned int j;
@@ -853,7 +828,7 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 		  char *where = next_arg.c;
 
 #ifndef __LITTLE_ENDIAN__
-		  
+
 		  if ((*ptr)->size < 8)
 		    where += 8 - (*ptr)->size;
 #endif
@@ -902,7 +877,6 @@ sffi_prep_args64 (extended_cif *ecif, unsigned long *const stack)
 		  && next_arg.ul <= gpr_base.ul + 4));
 }
 
-
 #if _CALL_ELF == 2
 #define MIN_CACHE_LINE_SIZE 8
 
@@ -919,7 +893,6 @@ flush_icache (char *wraddr, char *xaddr, int size)
 }
 #endif
 
-
 sffi_status SFFI_HIDDEN
 sffi_prep_closure_loc_linux64 (sffi_closure *closure,
 			      sffi_cif *cif,
@@ -933,7 +906,7 @@ sffi_prep_closure_loc_linux64 (sffi_closure *closure,
 #ifdef SFFI_EXEC_STATIC_TRAMP
   if (sffi_tramp_is_present(closure))
     {
-      
+
       void (*dest)(void) = sffi_closure_LINUX64;
       sffi_tramp_set_parms (closure->ftramp, dest, closure);
     }
@@ -946,13 +919,12 @@ sffi_prep_closure_loc_linux64 (sffi_closure *closure,
       tramp[1] = 0xe98c0010;	
       tramp[2] = 0x7d8903a6;	
       tramp[3] = 0x4e800420;	
-				
-				
+
       *(void **) &tramp[4] = (void *) sffi_closure_LINUX64;
       *(void **) &tramp[6] = codeloc;
       flush_icache ((char *) tramp, (char *) codeloc, 4 * 4);
 #else
-      
+
       void **tramp = (void **) &closure->tramp[0];
       memcpy (&tramp[0], (void **) sffi_closure_LINUX64, sizeof (void *));
       tramp[1] = codeloc;
@@ -967,7 +939,6 @@ sffi_prep_closure_loc_linux64 (sffi_closure *closure,
   return SFFI_OK;
 }
 
-
 int SFFI_HIDDEN
 sffi_closure_helper_LINUX64 (sffi_cif *cif,
 			    void (*fun) (sffi_cif *, void *, void **, void *),
@@ -977,10 +948,6 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
                             sffi_dblfl *pfr,
                             float128 *pvec)
 {
-  
-  
-  
-  
 
   void **avalue;
   sffi_type **arg_types;
@@ -991,7 +958,6 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 
   avalue = alloca (cif->nargs * sizeof (void *));
 
-  
   if (cif->rtype->type == SFFI_TYPE_STRUCT
       && (cif->flags & FLAG_RETURNS_SMST) == 0)
     {
@@ -1008,7 +974,6 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
     nfixedargs = cif->nfixedargs;
   arg_types = cif->arg_types;
 
-  
   while (i < avn)
     {
       unsigned int elt, elnum;
@@ -1068,7 +1033,6 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 		size_t p;
 	      } to, from;
 
-	      
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
               if (elt == SFFI_TYPE_LONGDOUBLE &&
                   (cif->abi & SFFI_LINUX_LONG_DOUBLE_IEEE128) != 0)
@@ -1146,7 +1110,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	  else
 	    {
 #ifndef __LITTLE_ENDIAN__
-	      
+
 	      if (arg_types[i]->size < 8)
 		avalue[i] = (char *) pst + 8 - arg_types[i]->size;
 	      else
@@ -1180,7 +1144,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 		{
 		  if (pfr < end_pfr && i < nfixedargs)
 		    {
-		      
+
 		      *pst = *(unsigned long *) pfr;
 		      pfr++;
 		    }
@@ -1189,14 +1153,12 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	      pst += 2;
 	      break;
 	    }
-	  
+
 #endif
 	case SFFI_TYPE_DOUBLE:
 #if _CALL_ELF != 2
 	do_double:
 #endif
-	  
-	  
 
 	  if (pfr < end_pfr && i < nfixedargs)
 	    {
@@ -1214,7 +1176,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 #endif
 	  if (pfr < end_pfr && i < nfixedargs)
 	    {
-	      
+
 	      pfr->f = (float) pfr->d;
 	      avalue[i] = pfr;
 	      pfr++;
@@ -1232,7 +1194,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 
 #ifdef SFFI_TARGET_HAS_COMPLEX_TYPE
 	case SFFI_TYPE_COMPLEX:
-	  
+
 	  {
 	    unsigned int j;
 	    elt = arg_types[i]->elements[0]->type;
@@ -1280,7 +1242,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	      }
 	    else
 	      {
-		
+
 		size_t hsize = arg_types[i]->elements[0]->size;
 		char *cval = alloca (2 * hsize);
 		for (j = 0; j < 2; j++)
@@ -1309,7 +1271,6 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 
   (*fun) (cif, rvalue, avalue, user_data);
 
-  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -1354,7 +1315,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	  return PPC64_LD_FLOAT_HOMOG;
 	if (inner == SFFI_TYPE_DOUBLE)
 	  return PPC64_LD_DOUBLE_HOMOG;
-	
+
 	{
 	  char *rv = rvalue;
 	  unsigned long re, im;
@@ -1404,7 +1365,7 @@ sffi_closure_helper_LINUX64 (sffi_cif *cif,
 	{
 	  if ((cif->flags & (FLAG_RETURNS_FP | FLAG_RETURNS_VEC)) == 0)
 	    {
-	      
+
 	      switch (cif->rtype->size)
 		{
 		case 0:

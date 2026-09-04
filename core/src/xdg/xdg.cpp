@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 module;
 
 #include <sstream>
@@ -16,7 +8,6 @@ module;
 module silicon.xdg;
 
 namespace silicon::xdg {
-
 
 std::string env_or(const char *, const std::string &);
 std::string join(const std::string &, const std::string &);
@@ -29,7 +20,6 @@ std::string state_home_default();
 std::string config_dirs_default();
 std::string data_dirs_default();
 
-
 std::vector<std::string> split_paths(const char *env, const std::string &def) {
     std::vector<std::string> out;
     std::string s = env_or(env, def);
@@ -41,7 +31,6 @@ std::vector<std::string> split_paths(const char *env, const std::string &def) {
     }
     return out;
 }
-
 
 CORE_API std::string home_dir() { return home(); }
 

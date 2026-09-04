@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 #include <stdlib.h>
@@ -9,10 +7,7 @@
 #include <arch/icache.h>
 #include <arch/opcode.h>
 
-
-
 #define NUM_ARG_REGS 10
-
 
 extern void sffi_call_tile(sffi_sarg reg_args[NUM_ARG_REGS],
                           const sffi_sarg *stack_args,
@@ -20,14 +15,12 @@ extern void sffi_call_tile(sffi_sarg reg_args[NUM_ARG_REGS],
                           void (*fnaddr)(void))
   SFFI_HIDDEN;
 
-
 extern void sffi_closure_tile(void) SFFI_HIDDEN;
-
 
 sffi_status
 sffi_prep_cif_machdep(sffi_cif *cif)
 {
-  
+
   if (cif->bytes < NUM_ARG_REGS * SFFI_SIZEOF_ARG)
     cif->bytes = NUM_ARG_REGS * SFFI_SIZEOF_ARG;
 
@@ -36,10 +29,8 @@ sffi_prep_cif_machdep(sffi_cif *cif)
   else
     cif->flags = SFFI_TYPE_INT;
 
-  
   return SFFI_OK;
 }
-
 
 static long
 assign_to_ffi_arg(sffi_sarg *out, void *in, const sffi_type *type,
@@ -68,7 +59,7 @@ assign_to_ffi_arg(sffi_sarg *out, void *in, const sffi_type *type,
 #ifndef __LP64__
     case SFFI_TYPE_POINTER:
 #endif
-      
+
       *out = *(SINT32 *)in;
       return 1;
 
@@ -76,7 +67,7 @@ assign_to_ffi_arg(sffi_sarg *out, void *in, const sffi_type *type,
 #ifdef __tilegx__
       if (write_to_reg)
         {
-          
+
           union { float f; SINT32 s32; } val;
           val.f = *(float *)in;
           *out = val.s32;
@@ -102,7 +93,7 @@ assign_to_ffi_arg(sffi_sarg *out, void *in, const sffi_type *type,
       return (type->size + SFFI_SIZEOF_ARG - 1) / SFFI_SIZEOF_ARG;
 
     case SFFI_TYPE_VOID:
-      
+
       return 0;
 
     default:
@@ -110,7 +101,6 @@ assign_to_ffi_arg(sffi_sarg *out, void *in, const sffi_type *type,
       return -1;
     }
 }
-
 
 void
 sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
@@ -125,10 +115,9 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   if (cif->flags == SFFI_TYPE_STRUCT)
     {
-      
+
       *argp++ = (intptr_t)(rvalue ? rvalue : alloca(cif->rtype->size));
 
-      
       rvalue = NULL;
     }
 
@@ -139,7 +128,7 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
       ptrdiff_t arg_word = argp - arg_mem;
 
 #ifndef __tilegx__
-      
+
       long align = arg_word & (type->alignment > SFFI_SIZEOF_ARG);
       argp += align;
       arg_word += align;
@@ -153,7 +142,7 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
           if (arg_word < NUM_ARG_REGS &&
               arg_word + arg_size_in_words > NUM_ARG_REGS)
             {
-              
+
               argp = stack_args;
             }
 
@@ -166,7 +155,6 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
         }
     }
 
-  
   sffi_call_tile(reg_args, stack_args,
                 cif->bytes - (NUM_ARG_REGS * SFFI_SIZEOF_ARG), fn);
 
@@ -174,10 +162,7 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
     assign_to_ffi_arg(rvalue, reg_args, cif->rtype, 0);
 }
 
-
-
 extern const UINT64 sffi_template_tramp_tile[] SFFI_HIDDEN;
-
 
 sffi_status
 sffi_prep_closure_loc (sffi_closure *closure,
@@ -187,7 +172,7 @@ sffi_prep_closure_loc (sffi_closure *closure,
                       void *codeloc)
 {
 #ifdef __tilegx__
-  
+
   SINT64 c;
   SINT64 h;
   int s;
@@ -202,14 +187,12 @@ sffi_prep_closure_loc (sffi_closure *closure,
   h = (intptr_t)sffi_closure_tile;
   s = 0;
 
-  
   while ((c >> s) != (SINT16)(c >> s) || (h >> s) != (SINT16)(h >> s))
     s += 16;
 
 #define OPS(a, b, shift) \
   (create_Imm16_X0((a) >> (shift)) | create_Imm16_X1((b) >> (shift)))
 
-  
   *out++ = sffi_template_tramp_tile[0] | OPS(c, h, s);
   for (s -= 16; s >= 0; s -= 16)
     *out++ = sffi_template_tramp_tile[1] | OPS(c, h, s);
@@ -219,7 +202,7 @@ sffi_prep_closure_loc (sffi_closure *closure,
   *out++ = sffi_template_tramp_tile[2];
 
 #else
-  
+
   UINT64 *out;
   intptr_t delta;
 
@@ -242,8 +225,6 @@ sffi_prep_closure_loc (sffi_closure *closure,
   return SFFI_OK;
 }
 
-
-
 void SFFI_HIDDEN
 sffi_closure_tile_inner(sffi_closure *closure,
                        sffi_sarg reg_args[2][NUM_ARG_REGS],
@@ -257,27 +238,24 @@ sffi_closure_tile_inner(sffi_closure *closure,
   sffi_sarg * const reg_args_out = reg_args[1];
   sffi_sarg * argp;
   long i, arg_word, nargs = cif->nargs;
-  
+
   union { sffi_sarg arg[NUM_ARG_REGS]; double d; UINT64 u64; } closure_ret;
 
-  
   argp = reg_args_in;
 
-  
   if (cif->flags == SFFI_TYPE_STRUCT)
     {
-      
+
       rvalue = (void *)(intptr_t)*argp++;
       arg_word = 1;
     }
   else
     {
-      
+
       rvalue = &closure_ret;
       arg_word = 0;
     }
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type * const type = arg_types[i];
@@ -285,7 +263,7 @@ sffi_closure_tile_inner(sffi_closure *closure,
         (type->size + SFFI_SIZEOF_ARG - 1) / SFFI_SIZEOF_ARG;
 
 #ifndef __tilegx__
-      
+
       long align = arg_word & (type->alignment > SFFI_SIZEOF_ARG);
       argp += align;
       arg_word += align;
@@ -295,7 +273,7 @@ sffi_closure_tile_inner(sffi_closure *closure,
           (arg_word < NUM_ARG_REGS &&
            arg_word + arg_size_in_words > NUM_ARG_REGS))
         {
-          
+
           argp = stack_args;
           arg_word = NUM_ARG_REGS;
         }
@@ -305,12 +283,11 @@ sffi_closure_tile_inner(sffi_closure *closure,
       arg_word += arg_size_in_words;
     }
 
-  
   closure->fun(cif, rvalue, avalue, closure->user_data);
 
   if (cif->flags != SFFI_TYPE_STRUCT)
     {
-      
+
       assign_to_ffi_arg(reg_args_out, &closure_ret, cif->rtype, 1);
     }
 }

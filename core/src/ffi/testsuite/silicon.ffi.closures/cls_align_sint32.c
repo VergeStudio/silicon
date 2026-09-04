@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_align {
@@ -83,18 +80,18 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_align_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  
+
   CHECK(res_dbl.a == 13);
   CHECK(res_dbl.b == 14271);
   CHECK(res_dbl.c == 140);
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_align_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_align(*)(cls_struct_align, cls_struct_align))(code))(g_dbl, f_dbl);
-  
+
   printf("res: %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c);
-  
+
   CHECK(res_dbl.a == 13);
   CHECK(res_dbl.b == 14271);
   CHECK(res_dbl.c == 140);

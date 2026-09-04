@@ -1,5 +1,3 @@
-
-
 #include "sffi.h"
 #include <tramp.h>
 #include <stdlib.h>
@@ -8,12 +6,9 @@
 #include "sffi_common.h"
 #include "sffi_powerpc.h"
 
-
-
 #define ASM_NEEDS_REGISTERS 6
 #define NUM_GPR_ARG_REGISTERS 8
 #define NUM_FPR_ARG_REGISTERS 8
-
 
 #if HAVE_LONG_DOUBLE_VARIANT && SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 
@@ -32,7 +27,6 @@ sffi_prep_types_sysv (sffi_abi abi)
     }
 }
 #endif
-
 
 static int
 translate_float (int abi, int type)
@@ -61,7 +55,6 @@ translate_float (int abi, int type)
   return type;
 }
 
-
 static sffi_status
 sffi_prep_cif_sysv_core (sffi_cif *cif)
 {
@@ -73,15 +66,9 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
   unsigned type = cif->rtype->type;
   unsigned size = cif->rtype->size;
 
-  
-
-  
   bytes = (2 + ASM_NEEDS_REGISTERS) * sizeof (int);
 
-  
   bytes += NUM_GPR_ARG_REGISTERS * sizeof (int);
-
-  
 
   type = translate_float (cif->abi, type);
 
@@ -90,11 +77,11 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
     case SFFI_TYPE_LONGDOUBLE:
       flags |= FLAG_RETURNS_128BITS;
-      
+
 #endif
     case SFFI_TYPE_DOUBLE:
       flags |= FLAG_RETURNS_64BITS;
-      
+
     case SFFI_TYPE_FLOAT:
       flags |= FLAG_RETURNS_FP;
 #ifdef __NO_FPRS__
@@ -104,14 +91,14 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 
     case SFFI_TYPE_UINT128:
       flags |= FLAG_RETURNS_128BITS;
-      
+
     case SFFI_TYPE_UINT64:
     case SFFI_TYPE_SINT64:
       flags |= FLAG_RETURNS_64BITS;
       break;
 
     case SFFI_TYPE_STRUCT:
-      
+
       if ((cif->abi & SFFI_SYSV_STRUCT_RET) != 0 && size <= 8)
 	{
 	  flags |= FLAG_RETURNS_SMST;
@@ -119,17 +106,16 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	}
       gpr_count++;
       flags |= FLAG_RETVAL_REFERENCE;
-      
+
     case SFFI_TYPE_VOID:
       flags |= FLAG_RETURNS_NOTHING;
       break;
 
     default:
-      
+
       break;
     }
 
-  
   for (ptr = cif->arg_types, i = cif->nargs; i > 0; i--, ptr++)
     {
       unsigned short typenum = (*ptr)->type;
@@ -143,7 +129,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	  if (fpr_count >= NUM_FPR_ARG_REGISTERS - 1)
 	    {
 	      fpr_count = NUM_FPR_ARG_REGISTERS;
-	      
+
 	      stack_count += stack_count & 1;
 	      stack_count += 4;
 	    }
@@ -158,7 +144,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	case SFFI_TYPE_DOUBLE:
 	  if (fpr_count >= NUM_FPR_ARG_REGISTERS)
 	    {
-	      
+
 	      stack_count += stack_count & 1;
 	      stack_count += 2;
 	    }
@@ -171,7 +157,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 
 	case SFFI_TYPE_FLOAT:
 	  if (fpr_count >= NUM_FPR_ARG_REGISTERS)
-	    
+
 	    stack_count += 1;
 	  else
 	    fpr_count += 1;
@@ -181,7 +167,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	  break;
 
 	case SFFI_TYPE_UINT128:
-	  
+
 	  if (gpr_count >= NUM_GPR_ARG_REGISTERS - 3)
 	    gpr_count = NUM_GPR_ARG_REGISTERS;
 	  if (gpr_count >= NUM_GPR_ARG_REGISTERS)
@@ -192,7 +178,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 
 	case SFFI_TYPE_UINT64:
 	case SFFI_TYPE_SINT64:
-	  
+
 	  gpr_count += gpr_count & 1;
 	  if (gpr_count >= NUM_GPR_ARG_REGISTERS)
 	    {
@@ -204,9 +190,8 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	  break;
 
 	case SFFI_TYPE_STRUCT:
-	  
+
 	  struct_copy_size += ((*ptr)->size + 15) & ~0xF;
-	  
 
 	case SFFI_TYPE_POINTER:
 	case SFFI_TYPE_INT:
@@ -216,7 +201,7 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
 	case SFFI_TYPE_SINT16:
 	case SFFI_TYPE_UINT8:
 	case SFFI_TYPE_SINT8:
-	  
+
 	  if (gpr_count >= NUM_GPR_ARG_REGISTERS)
 	    stack_count += 1;
 	  else
@@ -235,17 +220,13 @@ sffi_prep_cif_sysv_core (sffi_cif *cif)
   if (struct_copy_size != 0)
     flags |= FLAG_ARG_NEEDS_COPY;
 
-  
   if (fpr_count != 0)
     bytes += NUM_FPR_ARG_REGISTERS * sizeof (double);
 
-  
   bytes += stack_count * sizeof (int);
 
-  
   bytes = (bytes + 15) & ~0xF;
 
-  
   bytes += struct_copy_size;
 
   cif->flags = flags;
@@ -259,7 +240,7 @@ sffi_prep_cif_sysv (sffi_cif *cif)
 {
   if ((cif->abi & SFFI_SYSV) == 0)
     {
-      
+
       cif->flags |= FLAG_COMPAT;
       switch (cif->abi)
 	{
@@ -288,8 +269,6 @@ sffi_prep_cif_sysv (sffi_cif *cif)
   return sffi_prep_cif_sysv_core (cif);
 }
 
-
-
 void SFFI_HIDDEN
 sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 {
@@ -305,23 +284,19 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
     double *d;
   } valp;
 
-  
   valp stacktop;
 
-  
   valp gpr_base;
   valp gpr_end;
 
 #ifndef __NO_FPRS__
-  
+
   valp fpr_base;
   valp fpr_end;
 #endif
 
-  
   valp copy_space;
 
-  
   valp next_arg;
 
   int i;
@@ -357,18 +332,15 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 #endif
   next_arg.u = stack + 2;
 
-  
   SFFI_ASSERT (((unsigned long) (char *) stack & 0xF) == 0);
   SFFI_ASSERT (((unsigned long) copy_space.c & 0xF) == 0);
   SFFI_ASSERT (((unsigned long) stacktop.c & 0xF) == 0);
   SFFI_ASSERT ((bytes & 0xF) == 0);
   SFFI_ASSERT (copy_space.c >= next_arg.c);
 
-  
   if (flags & FLAG_RETVAL_REFERENCE)
     *gpr_base.u++ = (unsigned) (char *) ecif->rvalue;
 
-  
   p_argv.v = ecif->avalue;
   for (ptr = ecif->cif->arg_types, i = ecif->cif->nargs;
        i > 0;
@@ -378,7 +350,6 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 
       typenum = translate_float (ecif->cif->abi, typenum);
 
-      
       switch (typenum)
 	{
 #ifndef __NO_FPRS__
@@ -435,7 +406,7 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 #endif 
 
 	case SFFI_TYPE_UINT128:
-	  
+
 	  if (gpr_base.u >= gpr_end.u - 3)
 	    {
 	      unsigned int ii;
@@ -469,7 +440,7 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 	    }
 	  else
 	    {
-	      
+
 	      if (((gpr_end.u - gpr_base.u) & 1) != 0)
 		gpr_base.u++;
 	      *gpr_base.ll++ = **p_argv.ll;
@@ -516,7 +487,6 @@ sffi_prep_args_SYSV (extended_cif *ecif, unsigned *const stack)
 	}
     }
 
-  
   SFFI_ASSERT (copy_space.c >= next_arg.c);
   SFFI_ASSERT (gpr_base.u <= gpr_end.u);
 #ifndef __NO_FPRS__
@@ -553,7 +523,7 @@ sffi_prep_closure_loc_sysv (sffi_closure *closure,
 #ifdef SFFI_EXEC_STATIC_TRAMP
   if (sffi_tramp_is_present(closure))
     {
-      
+
       void (*dest)(void) = sffi_closure_SYSV;
       sffi_tramp_set_parms (closure->ftramp, dest, closure);
     }
@@ -572,7 +542,6 @@ sffi_prep_closure_loc_sysv (sffi_closure *closure,
       *(void **) &tramp[8] = (void *) sffi_closure_SYSV; 
       *(void **) &tramp[9] = codeloc;			
 
-      
       flush_icache ((char *)tramp, (char *)codeloc, 8 * 4);
     }
 
@@ -583,8 +552,6 @@ sffi_prep_closure_loc_sysv (sffi_closure *closure,
   return SFFI_OK;
 }
 
-
-
 int
 sffi_closure_helper_SYSV (sffi_cif *cif,
 			 void (*fun) (sffi_cif *, void *, void **, void *),
@@ -594,10 +561,6 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 			 sffi_dblfl *pfr,
 			 unsigned long *pst)
 {
-  
-  
-  
-  
 
   void **          avalue;
   sffi_type **      arg_types;
@@ -612,10 +575,8 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 
   avalue = alloca (cif->nargs * sizeof (void *));
 
-  
   rtypenum = translate_float (cif->abi, rtypenum);
 
-  
   if (rtypenum == SFFI_TYPE_STRUCT
       && !((cif->abi & SFFI_SYSV_STRUCT_RET) != 0 && size <= 8))
     {
@@ -628,21 +589,19 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
   avn = cif->nargs;
   arg_types = cif->arg_types;
 
-  
   while (i < avn) {
     unsigned short typenum = arg_types[i]->type;
 
-    
     typenum = translate_float (cif->abi, typenum);
 
     switch (typenum)
       {
 #ifndef __NO_FPRS__
       case SFFI_TYPE_FLOAT:
-	
+
 	if (nf < NUM_FPR_ARG_REGISTERS)
 	  {
-	    
+
 	    double temp = pfr->d;
 	    pfr->f = (float) temp;
 	    avalue[i] = pfr;
@@ -693,7 +652,7 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 #endif
 
       case SFFI_TYPE_UINT128:
-	
+
 	if (ng < NUM_GPR_ARG_REGISTERS - 3)
 	  {
 	    avalue[i] = pgr;
@@ -759,7 +718,7 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 	break;
 
       case SFFI_TYPE_STRUCT:
-	
+
 	if (ng < NUM_GPR_ARG_REGISTERS)
 	  {
 	    avalue[i] = (void *) *pgr;
@@ -775,12 +734,12 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 
       case SFFI_TYPE_SINT64:
       case SFFI_TYPE_UINT64:
-	
+
 	if (ng < NUM_GPR_ARG_REGISTERS - 1)
 	  {
 	    if (ng & 1)
 	      {
-		
+
 		ng++;
 		pgr++;
 	      }
@@ -807,7 +766,6 @@ sffi_closure_helper_SYSV (sffi_cif *cif,
 
   (*fun) (cif, rvalue, avalue, user_data);
 
-  
   switch (rtypenum)
     {
     case SFFI_TYPE_VOID:

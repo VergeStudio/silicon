@@ -28,9 +28,6 @@ namespace silicon::scheduler {
 
 using event_t = struct ::kevent;
 
-
-
-
 struct io_notifier::impl {
     fd_t m_fd{-1};
     bool m_valid{false};
@@ -69,7 +66,6 @@ bool io_notifier::is_valid() const noexcept {
 io_notifier::~io_notifier() = default;
 
 bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanoseconds duration) {
-
 
     if(duration < 0ns) {
         duration = 0ns;
@@ -167,8 +163,6 @@ void io_notifier::next_events(
 
         auto keep_registered = !(ready_set[i].flags & EV_ONESHOT);
 
-
-
         if(pi->m_p->m_cancel_trigger.has_value() &&
            ready_set[i].ident == static_cast<uintptr_t>(pi->m_p->m_cancel_trigger.value().native_handle())) {
             ready_events.emplace_back(pi, poll_status::cancelled);
@@ -185,8 +179,6 @@ void io_notifier::next_events(
 }
 
 bool io_notifier::post(void *) {
-
-
 
     return false;
 }

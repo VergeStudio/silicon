@@ -1,13 +1,9 @@
-
-
-
 #include "ffitest.h"
 
 #define NARGS 16
 #define SSIZE 32
 
 typedef struct { unsigned char b[SSIZE]; } big_struct;
-
 
 static int ABI_ATTR
 sum_bytes (big_struct s0, big_struct s1, big_struct s2, big_struct s3,
@@ -49,7 +45,6 @@ int main (void)
   bs_elements[SSIZE] = NULL;
   bs_type.elements = bs_elements;
 
-  
   for (i = 0; i < NARGS; i++)
     {
       for (j = 0; j < SSIZE; j++)

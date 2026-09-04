@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 #include <float.h>
 #include <math.h>
@@ -35,7 +32,6 @@ int main (void)
                           &sffi_type_double, &sffi_type_double, &sffi_type_double,
                           &sffi_type_double, &sffi_type_float, &sffi_type_float,
                           &sffi_type_double, &sffi_type_float, &sffi_type_float};
-
 
     closure = sffi_closure_alloc(sizeof(sffi_closure), (void**)&code);
     if(closure ==NULL)

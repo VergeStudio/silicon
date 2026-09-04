@@ -6,23 +6,9 @@ module;
 export module silicon.scheduler;
 export import silicon.scheduler.error;
 
-
-
-
-
-
-
 import std;
 
-
-
-
-
-
-
-
 export import silicon.scheduler.task;
-
 
 export import :concepts.awaitable;
 export import :concepts.buffer;
@@ -37,25 +23,13 @@ export import :poll;
 export import :sync_wait;
 export import :time;
 
-
 export import :poll_info;
 
-
-
-
-
-
-
 import :poll_info_impl;
-
-
-
 
 import :io_op;
 
 export import :io_notifier;
-
-
 
 export import :io_ring;
 export import :timer_handle;

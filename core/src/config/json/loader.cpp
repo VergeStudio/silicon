@@ -14,14 +14,12 @@ import silicon.config.error;
 
 namespace silicon::config {
 
-
 struct json_file_config::impl {
     std::map<std::string, config_value, std::less<>> entries_;
 };
 
 json_file_config::json_file_config(): impl_(std::make_unique<impl>()) {}
 json_file_config::~json_file_config() = default;
-
 
 auto json_file_config::load(const std::string &path, const fs::file_system_view &filesystem) -> result<void> {
     auto content = filesystem->read(path);

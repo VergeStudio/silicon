@@ -1,9 +1,3 @@
-
-
-
-
-
-
 module;
 
 #if defined(SILICON_PLATFORM_WINDOWS)

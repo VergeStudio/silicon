@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include <inttypes.h>
 
 #include "ffitest.h"
@@ -290,7 +284,7 @@ int main (void)
 	CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 50, &ret_struct_type, argTypes) == SFFI_OK);
 
 	sffi_call(&cif, SFFI_FN(test_large_fn), &retVal, argValues);
-	
+
 	printf("res: %" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
 		"%" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
 		"%" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
@@ -303,7 +297,6 @@ int main (void)
 	       retVal.ee, retVal.ff, retVal.gg, retVal.hh, retVal.ii, (long)(intptr_t)retVal.jj,
 		retVal.kk, retVal.ll, retVal.mm, retVal.nn, retVal.oo, retVal.pp,
 	       retVal.qq, retVal.rr, retVal.ss, retVal.tt, retVal.uu, (long)(intptr_t)retVal.vv, retVal.ww, retVal.xx);
-	
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_large_fn, NULL, code) == SFFI_OK);
 
@@ -318,7 +311,7 @@ int main (void)
 		ui8, si8, ui16, si16, ui32, si32, ui64, si64, f, d, ld, p,
 		ui8, si8, ui16, si16, ui32, si32, ui64, si64, f, d, ld, p,
 		ui8, si8);
-	
+
 	printf("res: %" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
 		"%" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
 		"%" PRIu8 " %" PRId8 " %hu %hd %u %d %" PRIu64 " %" PRId64 " %.0f %.0f %.0Lf %#lx "
@@ -331,7 +324,6 @@ int main (void)
 	       retVal.ee, retVal.ff, retVal.gg, retVal.hh, retVal.ii, (long)(intptr_t)retVal.jj,
 		retVal.kk, retVal.ll, retVal.mm, retVal.nn, retVal.oo, retVal.pp,
 	       retVal.qq, retVal.rr, retVal.ss, retVal.tt, retVal.uu, (long)(intptr_t)retVal.vv, retVal.ww, retVal.xx);
-	
 
     return 0;
 }

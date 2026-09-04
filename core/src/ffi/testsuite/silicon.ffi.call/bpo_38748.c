@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 #include "sffi_common.h"
 
@@ -23,7 +19,6 @@ int main(void)
   UINT64 l2 = 2;
   void *values[2] = {&l1, &l2};
 
-  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 2,
 		     &sffi_type_uint32, args) == SFFI_OK);
 

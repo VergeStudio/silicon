@@ -1,7 +1,3 @@
-
-
-
-
 module;
 
 #include <cstdlib>

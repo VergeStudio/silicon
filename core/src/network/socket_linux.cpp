@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 module;
 
 #if defined(SILICON_PLATFORM_UNIX)
@@ -37,8 +30,6 @@ bool socket_enable_address_reuse(int fd) {
     }
 #endif
 
-
-
     if(setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &sock_opt, static_cast<int>(sizeof(sock_opt))) < 0) {
         return false;
     }
@@ -61,7 +52,6 @@ bool socket::blocking(blocking_t block) {
     if(flags == -1) {
         return false;
     }
-
 
     flags = (block == blocking_t::yes) ? flags & ~O_NONBLOCK : (flags | O_NONBLOCK);
 
@@ -97,7 +87,6 @@ void socket::close() {
 
 auto socket::accept(socket_address &client_endpoint) -> socket {
 
-
     auto [addr, addrlen] = client_endpoint.native_mutable_data();
 
     return socket{::accept(m_fd, addr, addrlen)};
@@ -112,8 +101,6 @@ int socket::connect(const socket_address &endpoint) {
 }
 
 bool socket::in_progress() const {
-
-
 
     return (last_error() == EINPROGRESS);
 }

@@ -5,17 +5,10 @@ module;
 
 module silicon.coroutine;
 
-
-
 namespace silicon::coroutine {
 
 struct event::impl {
   public:
-
-
-
-
-
 
     mutable std::atomic<void *> m_state;
 };
@@ -36,14 +29,12 @@ void * event::exchange_set_state() noexcept {
 
 void event::set(resume_order_policy policy) noexcept {
 
-
     void *old_value = m_p->m_state.exchange(this, std::memory_order::acq_rel);
     if(old_value != this) {
 
         if(policy == resume_order_policy::kFifo) {
             old_value = reverse(static_cast<awaiter *>(old_value));
         }
-
 
         auto *waiters = static_cast<awaiter *>(old_value);
         while(waiters != nullptr) {
@@ -62,7 +53,6 @@ bool event::awaiter::await_suspend(std::coroutine_handle<> awaiting_coroutine) n
     const void *const set_state = &m_event;
 
     m_awaiting_coroutine = awaiting_coroutine;
-
 
     void *old_value = m_event.m_p->m_state.load(std::memory_order::acquire);
     do {

@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -25,8 +23,6 @@ void sffi_closure_SYSV (sffi_closure *);
 void sffi_closure_struct_SYSV (sffi_closure *);
 unsigned int sffi_closure_SYSV_inner (sffi_closure *closure,
 				     void *resp, void *args);
-
-
 
 void *
 sffi_prep_args (void *stack, extended_cif *ecif)
@@ -98,7 +94,6 @@ sffi_prep_args (void *stack, extended_cif *ecif)
 	{
 	  memcpy (argp, *p_argv, z);
 
-	  
 	  if ((sizeof(int) - 1) & z)
 	    z = SFFI_ALIGN(z, sizeof(int));
 	}
@@ -121,11 +116,10 @@ sffi_prep_args (void *stack, extended_cif *ecif)
 #define CIF_FLAGS_SINT8		256
 #define CIF_FLAGS_SINT16	512
 
-
 sffi_status
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
-  
+
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -221,8 +215,6 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
   ecif.cif = cif;
   ecif.avalue = avalue;
 
-  
-
   if (rvalue == NULL
       && cif->rtype->type == SFFI_TYPE_STRUCT
       && cif->rtype->size > 8)
@@ -289,7 +281,6 @@ sffi_prep_incoming_args_SYSV (char *stack, void **avalue, sffi_cif *cif)
 	{
 	  *p_argv = (void *) argp;
 
-	  
 	  if ((sizeof(int) - 1) & z)
 	    z = SFFI_ALIGN(z, sizeof(int));
 	}

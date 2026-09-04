@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -21,10 +8,7 @@ module;
 
 export module silicon.json:byte_container_with_subtype;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
-
-
 
 export template<typename BinaryType>
 class byte_container_with_subtype: public BinaryType {
@@ -32,22 +16,17 @@ class byte_container_with_subtype: public BinaryType {
     using container_type = BinaryType;
     using subtype_type = std::uint64_t;
 
-
     byte_container_with_subtype() noexcept(noexcept(container_type()))
         : container_type() {}
-
 
     byte_container_with_subtype(const container_type &b) noexcept(noexcept(container_type(b)))
         : container_type(b) {}
 
-
     byte_container_with_subtype(container_type &&b) noexcept(noexcept(container_type(std::move(b))))
         : container_type(std::move(b)) {}
 
-
     byte_container_with_subtype(const container_type &b, subtype_type subtype_) noexcept(noexcept(container_type(b)))
         : container_type(b), m_subtype(subtype_), m_has_subtype(true) {}
-
 
     byte_container_with_subtype(container_type &&b, subtype_type subtype_) noexcept(noexcept(container_type(std::move(b))))
         : container_type(std::move(b)), m_subtype(subtype_), m_has_subtype(true) {}
@@ -61,26 +40,18 @@ class byte_container_with_subtype: public BinaryType {
         return !(rhs == *this);
     }
 
-
-
     void set_subtype(subtype_type subtype_) noexcept {
         m_subtype = subtype_;
         m_has_subtype = true;
     }
 
-
-
     constexpr subtype_type subtype() const noexcept {
         return m_has_subtype ? m_subtype : static_cast<subtype_type>(-1);
     }
 
-
-
     constexpr bool has_subtype() const noexcept {
         return m_has_subtype;
     }
-
-
 
     void clear_subtype() noexcept {
         m_subtype = 0;

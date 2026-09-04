@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static void cls_ret_double_fn(sffi_cif* cif __UNUSED__, void* resp, void** args,
@@ -24,16 +21,14 @@ int main (void)
   cl_arg_types[0] = &sffi_type_double;
   cl_arg_types[1] = NULL;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_double, cl_arg_types) == SFFI_OK);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_ret_double_fn, NULL, code)  == SFFI_OK);
 
   res = (*((cls_ret_double)code))(21474.789);
-  
+
   printf("res: %.6f\n", res);
-  
 
   exit(0);
 }

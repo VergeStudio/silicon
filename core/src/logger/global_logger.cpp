@@ -23,7 +23,6 @@ import silicon.logger.error;
 
 namespace silicon::logger {
 
-
 struct global_logger::impl {
     std::shared_ptr<spdlog::logger> spdlog_logger{nullptr};
     const std::string_view pattern{"%^[%Y-%m-%d %H:%M:%S.%e][%t][%l]%v%$"};

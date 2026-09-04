@@ -1,13 +1,9 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
 #ifndef SILICON_FFI_H
 #    error "Please do not include sffitarget.h directly into your source.  Use sffi.h instead."
 #endif
-
-
 
 #if defined(POWERPC) && defined(__powerpc64__) 
 #    ifndef POWERPC64
@@ -46,7 +42,7 @@ typedef enum sffi_abi {
     SFFI_LAST_ABI
 
 #    else
-    
+
     SFFI_COMPAT_SYSV,
     SFFI_COMPAT_GCC_SYSV,
     SFFI_COMPAT_LINUX64,
@@ -54,9 +50,9 @@ typedef enum sffi_abi {
     SFFI_COMPAT_LINUX_SOFT_FLOAT,
 
 #        if defined(POWERPC64)
-    
+
     SFFI_LINUX = 8,
-    
+
     SFFI_LINUX_STRUCT_ALIGN = 1,
     SFFI_LINUX_LONG_DOUBLE_128 = 2,
     SFFI_LINUX_LONG_DOUBLE_IEEE128 = 4,
@@ -74,9 +70,9 @@ typedef enum sffi_abi {
     SFFI_LAST_ABI = 16
 
 #        else
-    
+
     SFFI_SYSV = 8,
-    
+
     SFFI_SYSV_SOFT_FLOAT = 1,
     SFFI_SYSV_STRUCT_RET = 2,
     SFFI_SYSV_IBM_LONG_DOUBLE = 4,
@@ -103,8 +99,6 @@ typedef enum sffi_abi {
 } sffi_abi;
 #endif
 
-
-
 #define SFFI_CLOSURES 1
 #define SFFI_NATIVE_RAW_API 0
 #if defined(POWERPC) || defined(POWERPC_FREEBSD)
@@ -115,7 +109,6 @@ typedef enum sffi_abi {
 #if defined(POWERPC_AIX)
 #    define SFFI_GO_CLOSURES 1
 #endif
-
 
 #if defined(POWERPC64) && _CALL_ELF == 2
 #    define SFFI_TARGET_HAS_COMPLEX_TYPE

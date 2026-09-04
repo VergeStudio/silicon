@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -37,15 +24,8 @@ import :detail.meta.std_fs;
 import :detail.meta.type_traits;
 import :detail.value_t;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
-
-
-
-
-
 
 export template<value_t>
 struct external_constructor;
@@ -232,10 +212,6 @@ struct external_constructor<value_t::object> {
     }
 };
 
-
-
-
-
 export template<typename BasicJsonType, typename T, enable_if_t<std::is_same<T, typename BasicJsonType::boolean_t>::value, int> = 0>
 inline void to_json(BasicJsonType &j, T b) noexcept {
     external_constructor<value_t::boolean>::construct(j, b);
@@ -331,7 +307,6 @@ inline void to_json(BasicJsonType &j, const std::pair<T1, T2> &p) {
     j = {p.first, p.second};
 }
 
-
 export template<typename BasicJsonType, typename T, enable_if_t<std::is_same<T, iteration_proxy_value<typename BasicJsonType::iterator>>::value, int> = 0>
 inline void to_json(BasicJsonType &j, const T &b) {
     j = {{b.key(), b.value()}};
@@ -364,8 +339,6 @@ export struct to_json_fn {
 }
 
 #ifndef JSON_HAS_CPP_17
-
-
 
 namespace
 export {

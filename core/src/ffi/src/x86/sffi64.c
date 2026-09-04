@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -37,7 +35,7 @@ union big_int_union
 
 struct register_args
 {
-  
+
   UINT64 gpr[MAX_GPR_REGS];
   union big_int_union sse[MAX_SSE_REGS];
   UINT64 rax;	
@@ -46,9 +44,6 @@ struct register_args
 
 extern void sffi_call_unix64 (void *args, unsigned long bytes, unsigned flags,
 			     void *raddr, void (*fnaddr)(void)) SFFI_HIDDEN;
-
-
-
 
 enum x86_64_reg_class
   {
@@ -69,7 +64,6 @@ enum x86_64_reg_class
 
 #define SSE_CLASS_P(X)	((X) >= X86_64_SSE_CLASS && X <= X86_64_SSEUP_CLASS)
 
-
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE \
     && defined(__LDBL_MANT_DIG__) && __LDBL_MANT_DIG__ == 113
 # define SFFI_LONGDOUBLE_BINARY128 1
@@ -77,28 +71,21 @@ enum x86_64_reg_class
 # define SFFI_LONGDOUBLE_BINARY128 0
 #endif
 
-
-
-
-
 static enum x86_64_reg_class
 merge_classes (enum x86_64_reg_class class1, enum x86_64_reg_class class2)
 {
-  
+
   if (class1 == class2)
     return class1;
 
-  
   if (class1 == X86_64_NO_CLASS)
     return class2;
   if (class2 == X86_64_NO_CLASS)
     return class1;
 
-  
   if (class1 == X86_64_MEMORY_CLASS || class2 == X86_64_MEMORY_CLASS)
     return X86_64_MEMORY_CLASS;
 
-  
   if ((class1 == X86_64_INTEGERSI_CLASS && class2 == X86_64_SSESF_CLASS)
       || (class2 == X86_64_INTEGERSI_CLASS && class1 == X86_64_SSESF_CLASS))
     return X86_64_INTEGERSI_CLASS;
@@ -106,7 +93,6 @@ merge_classes (enum x86_64_reg_class class1, enum x86_64_reg_class class2)
       || class2 == X86_64_INTEGER_CLASS || class2 == X86_64_INTEGERSI_CLASS)
     return X86_64_INTEGER_CLASS;
 
-  
   if (class1 == X86_64_X87_CLASS
       || class1 == X86_64_X87UP_CLASS
       || class1 == X86_64_COMPLEX_X87_CLASS
@@ -115,10 +101,8 @@ merge_classes (enum x86_64_reg_class class1, enum x86_64_reg_class class2)
       || class2 == X86_64_COMPLEX_X87_CLASS)
     return X86_64_MEMORY_CLASS;
 
-  
   return X86_64_SSE_CLASS;
 }
-
 
 static size_t
 classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
@@ -177,7 +161,7 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
     case SFFI_TYPE_LONGDOUBLE:
 #if SFFI_LONGDOUBLE_BINARY128
-      
+
       classes[0] = X86_64_SSE_CLASS;
       classes[1] = X86_64_SSEUP_CLASS;
 #else
@@ -195,14 +179,12 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 	unsigned int i;
 	enum x86_64_reg_class subclasses[MAX_CLASSES];
 
-	
 	if (type->size > 32)
 	  return 0;
 
 	for (i = 0; i < words; i++)
 	  classes[i] = X86_64_NO_CLASS;
 
-	
 	if (!words)
 	  {
     case SFFI_TYPE_VOID:
@@ -210,7 +192,6 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 	    return 1;
 	  }
 
-	
 	for (ptr = type->elements; *ptr != NULL; ptr++)
 	  {
 	    size_t num, pos;
@@ -233,7 +214,7 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 
 	if (words > 2)
 	  {
-	    
+
 	    if (classes[0] != X86_64_SSE_CLASS)
 	      return 0;
 
@@ -242,28 +223,25 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 		return 0;
 	  }
 
-	
 	for (i = 0; i < words; i++)
 	  {
-	    
+
 	    if (classes[i] == X86_64_MEMORY_CLASS)
 	      return 0;
 
-	    
 	    if (i > 1 && classes[i] == X86_64_SSEUP_CLASS
 		&& classes[i - 1] != X86_64_SSE_CLASS
 		&& classes[i - 1] != X86_64_SSEUP_CLASS)
 	      {
-		
+
 		SFFI_ASSERT (i != 0);
 		classes[i] = X86_64_SSE_CLASS;
 	      }
 
-	    
 	    if (i > 1 && classes[i] == X86_64_X87UP_CLASS
 		&& (classes[i - 1] != X86_64_X87_CLASS))
 	      {
-		
+
 		SFFI_ASSERT (i != 0);
 		return 0;
 	      }
@@ -304,7 +282,7 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 	  case SFFI_TYPE_LONGDOUBLE:
 #if SFFI_LONGDOUBLE_BINARY128
-	    
+
 	    return 0;
 #else
 	    classes[0] = X86_64_COMPLEX_X87_CLASS;
@@ -316,8 +294,6 @@ classify_argument (sffi_type *type, enum x86_64_reg_class classes[],
     }
   abort();
 }
-
-
 
 static size_t
 examine_argument (sffi_type *type, enum x86_64_reg_class classes[MAX_CLASSES],
@@ -360,8 +336,6 @@ examine_argument (sffi_type *type, enum x86_64_reg_class classes[MAX_CLASSES],
 
   return n;
 }
-
-
 
 #ifndef __ILP32__
 extern sffi_status
@@ -442,9 +416,9 @@ sffi_prep_cif_machdep (sffi_cif *cif)
       n = examine_argument (cif->rtype, classes, 1, &ngpr, &nsse);
       if (n == 0)
 	{
-	  
+
 	  gprcount++;
-	  
+
 	  flags = UNIX64_RET_VOID | UNIX64_FLAG_RET_IN_MEM;
 	}
       else
@@ -493,7 +467,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 	case SFFI_TYPE_LONGDOUBLE:
 #if SFFI_LONGDOUBLE_BINARY128
-	  
+
 	  gprcount++;
 	  flags = UNIX64_RET_VOID | UNIX64_FLAG_RET_IN_MEM;
 #else
@@ -514,7 +488,6 @@ sffi_prep_cif_machdep (sffi_cif *cif)
       return SFFI_BAD_TYPEDEF;
     }
 
-  
   for (bytes = 0, i = 0, avn = cif->nargs; i < avn; i++)
     {
       if (examine_argument (cif->arg_types[i], classes, 0, &ngpr, &nsse) == 0
@@ -544,7 +517,6 @@ sffi_prep_cif_machdep (sffi_cif *cif)
   return SFFI_OK;
 }
 
-
 SFFI_ASAN_NO_SANITIZE
 static void
 sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
@@ -556,10 +528,8 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
   int gprcount, ssecount, ngpr, nsse, i, avn, flags;
   struct register_args *reg_args;
 
-  
   SFFI_ASSERT (cif->abi == SFFI_UNIX64);
 
-  
   flags = cif->flags;
   if (rvalue == NULL)
     {
@@ -572,7 +542,6 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
   arg_types = cif->arg_types;
   avn = cif->nargs;
 
-  
   stack = alloca (sizeof (struct register_args) + cif->bytes + 4*8);
   reg_args = (struct register_args *) stack;
   argp = stack + sizeof (struct register_args);
@@ -581,7 +550,6 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 
   gprcount = ssecount = 0;
 
-  
   if (flags & UNIX64_FLAG_RET_IN_MEM)
     reg_args->gpr[gprcount++] = (unsigned long) rvalue;
 
@@ -596,11 +564,9 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 	{
 	  long align = arg_types[i]->alignment;
 
-	  
 	  if (align < 8)
 	    align = 8;
 
-          
           argp = (void *) SFFI_ALIGN (argp, align);
           memcpy (argp, avalue[i], size);
 
@@ -608,7 +574,7 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
         }
       else
 	{
-	  
+
 	  char *a = (char *) avalue[i];
 	  unsigned int j;
 
@@ -619,13 +585,13 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 		case X86_64_NO_CLASS:
 		  break;
 		case X86_64_SSEUP_CLASS:
-		  
+
 		  memcpy ((char *) &reg_args->sse[ssecount - 1] + 8, a,
 			  size < 8 ? size : 8);
 		  break;
 		case X86_64_INTEGER_CLASS:
 		case X86_64_INTEGERSI_CLASS:
-		  
+
 		  switch (arg_types[i]->type)
 		    {
 		    case SFFI_TYPE_SINT8:
@@ -664,7 +630,6 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 
 #ifndef __ILP32__
 
-
 enum sffi_move_op
 {
   SFFI_MOVE_SE8, SFFI_MOVE_SE16, SFFI_MOVE_SE32,  
@@ -696,11 +661,9 @@ typedef struct
   sffi_move moves[];
 } sffi_plan;
 
-
 struct sffi_ret2 { UINT64 i; double d; };
 extern struct sffi_ret2 sffi_plan_fast_call (struct register_args *img,
 					   void (*fn) (void)) SFFI_HIDDEN;
-
 
 extern struct sffi_ret2 sffi_plan_gp0 (void **, void (*)(void)) SFFI_HIDDEN;
 extern struct sffi_ret2 sffi_plan_gp1 (void **, void (*)(void)) SFFI_HIDDEN;
@@ -712,7 +675,6 @@ extern struct sffi_ret2 sffi_plan_gp6 (void **, void (*)(void)) SFFI_HIDDEN;
 static struct sffi_ret2 (*const sffi_gp_thunks[7]) (void **, void (*)(void)) =
   { sffi_plan_gp0, sffi_plan_gp1, sffi_plan_gp2, sffi_plan_gp3,
     sffi_plan_gp4, sffi_plan_gp5, sffi_plan_gp6 };
-
 
 static inline void
 store_ret (void *rvalue, unsigned retcode, struct sffi_ret2 r)
@@ -732,7 +694,6 @@ store_ret (void *rvalue, unsigned retcode, struct sffi_ret2 r)
     }
 }
 
-
 static sffi_plan *
 build_plan (sffi_cif *cif)
 {
@@ -746,7 +707,6 @@ build_plan (sffi_cif *cif)
   if (cif->abi != SFFI_UNIX64)
     return NULL;
 
-  
   for (i = 0; i < avn; i++)
     {
       int t = cif->arg_types[i]->type;
@@ -758,7 +718,6 @@ build_plan (sffi_cif *cif)
 #endif
     }
 
-  
   plan = malloc (sizeof (sffi_plan) + sizeof (sffi_move) * (2 * avn + 1));
   if (plan == NULL)
     return NULL;
@@ -851,16 +810,15 @@ build_plan (sffi_cif *cif)
   plan->bytes = cif->bytes;
   plan->flags = cif->flags;
   plan->retcode = cif->flags & 0xff;	
-  
+
   plan->fast = (cif->bytes == 0 && plan->retcode <= UNIX64_RET_XMM64) ? 1 : 0;
-  
+
   plan->thunk_n =
     (all_gp64 && !plan->ret_in_mem && nm == avn && avn <= MAX_GPR_REGS
      && plan->fast)
     ? (int) avn : -1;
   return plan;
 }
-
 
 SFFI_ASAN_NO_SANITIZE
 static inline __attribute__ ((always_inline)) void
@@ -883,7 +841,7 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
 
   if (plan->thunk_n >= 0)
     {
-      
+
       struct sffi_ret2 r = sffi_gp_thunks[plan->thunk_n] (avalue, fn);
       if (rvalue != NULL)
 	store_ret (rvalue, plan->retcode, r);
@@ -908,7 +866,7 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
       char *dst = (char *) reg_args + m->dst_off;
       switch (m->op)
 	{
-	
+
 	case SFFI_MOVE_SE8:   *(UINT64 *) dst = (UINT64) (SINT64) *(SINT8 *)  src; break;
 	case SFFI_MOVE_SE16:  *(UINT64 *) dst = (UINT64) (SINT64) *(SINT16 *) src; break;
 	case SFFI_MOVE_SE32:  *(UINT64 *) dst = (UINT64) (SINT64) *(SINT32 *) src; break;
@@ -923,7 +881,7 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
 
   if (plan->fast)
     {
-      
+
       struct sffi_ret2 r = sffi_plan_fast_call (reg_args, fn);
       if (rvalue != NULL)
 	store_ret (rvalue, plan->retcode, r);
@@ -933,7 +891,6 @@ plan_exec (sffi_cif *cif, sffi_plan *plan, void (*fn) (void),
   sffi_call_unix64 (stack, plan->bytes + sizeof (struct register_args),
 		   flags, rvalue, fn);
 }
-
 
 struct sffi_call_plan
 {
@@ -984,7 +941,6 @@ sffi_call (sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   int i, nargs = cif->nargs;
   const int max_reg_struct_size = cif->abi == SFFI_GNUW64 ? 8 : 16;
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
@@ -1061,13 +1017,13 @@ sffi_prep_closure_loc (sffi_closure* closure,
 		      void *codeloc)
 {
   static const unsigned char trampoline[24] = {
-    
+
     0xf3, 0x0f, 0x1e, 0xfa,
-    
+
     0x4c, 0x8d, 0x15, 0xf5, 0xff, 0xff, 0xff,
-    
+
     0xff, 0x25, 0x07, 0x00, 0x00, 0x00,
-    
+
     0x0f, 0x1f, 0x80, 0x00, 0x00, 0x00, 0x00
   };
   void (*dest)(void);
@@ -1088,7 +1044,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 #if defined(SFFI_EXEC_STATIC_TRAMP)
   if (sffi_tramp_is_present(closure))
     {
-      
+
       if (dest == sffi_closure_unix64_sse)
         dest = sffi_closure_unix64_sse_alt;
       else
@@ -1098,7 +1054,6 @@ sffi_prep_closure_loc (sffi_closure* closure,
     }
 #endif
 
-  
   memcpy (tramp, trampoline, sizeof(trampoline));
   *(UINT64 *)(tramp + sizeof (trampoline)) = (uintptr_t)dest;
 
@@ -1134,7 +1089,7 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 
   if (flags & UNIX64_FLAG_RET_IN_MEM)
     {
-      
+
       void *r = (void *)(uintptr_t)reg_args->gpr[gprcount++];
       *(void **)rvalue = r;
       rvalue = r;
@@ -1154,21 +1109,19 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 	{
 	  long align = arg_types[i]->alignment;
 
-	  
 	  if (align < 8)
 	    align = 8;
 
-	  
 	  argp = (void *) SFFI_ALIGN (argp, align);
 	  avalue[i] = argp;
 	  argp += arg_types[i]->size;
 	}
-      
+
       else if (n == 1
 	       || (n == 2 && !(SSE_CLASS_P (classes[0])
 			       || SSE_CLASS_P (classes[1]))))
 	{
-	  
+
 	  if (SSE_CLASS_P (classes[0]))
 	    {
 	      avalue[i] = &reg_args->sse[ssecount];
@@ -1180,7 +1133,7 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 	      gprcount += n;
 	    }
 	}
-      
+
       else
 	{
 	  char *a = alloca (n * 8);
@@ -1190,7 +1143,7 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 	  for (j = 0; j < n; j++, a += 8)
 	    {
 	      if (classes[j] == X86_64_SSEUP_CLASS)
-		
+
 		memcpy (a, (char *) &reg_args->sse[ssecount - 1] + 8, 8);
 	      else if (SSE_CLASS_P (classes[j]))
 		memcpy (a, &reg_args->sse[ssecount++], 8);
@@ -1200,10 +1153,8 @@ sffi_closure_unix64_inner(sffi_cif *cif,
 	}
     }
 
-  
   fun (cif, rvalue, avalue, user_data);
 
-  
   return flags;
 }
 

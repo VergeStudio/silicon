@@ -1,10 +1,7 @@
 module;
 
-
 #include <utility>
 #include <memory>
-
-
 
 #include <array>
 #include <iostream>
@@ -22,7 +19,6 @@ module;
 #if !defined(SILICON_PLATFORM_WINDOWS)
 #    include <unistd.h>
 #endif
-
 
 #include <silicon/common.h>
 export module silicon.scheduler:poll;
@@ -90,9 +86,6 @@ auto to_string(poll_status) -> const std::string &;
 class CORE_API poll_stop_token {
   public:
     explicit poll_stop_token(fd_t);
-
-
-
 
     poll_stop_token(const poll_stop_token &other);
 

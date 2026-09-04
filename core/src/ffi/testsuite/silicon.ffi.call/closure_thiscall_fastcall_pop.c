@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 #if defined(__i386__) && defined(__GNUC__) && !defined(__APPLE__)
@@ -15,7 +12,6 @@ cb (sffi_cif *cif, void *resp, void **args, void *userdata)
   received = *(uint64_t *) args[cif->nargs - 1];
   ran++;
 }
-
 
 static int
 esp_delta (void *code, uint64_t stackarg, unsigned ecxv)
@@ -76,12 +72,10 @@ main (void)
   sffi_type *thiscall_args[2] = { &sffi_type_pointer, &sffi_type_uint64 };
   int d;
 
-  
   d = check_abi (SFFI_FASTCALL, 1, fastcall_args, 0);
   printf ("FASTCALL uint64 esp delta: %d\n", d);
   CHECK (d == 0);
 
-  
   d = check_abi (SFFI_THISCALL, 2, thiscall_args, 0xdeadbeef);
   printf ("THISCALL this+uint64 esp delta: %d\n", d);
   CHECK (d == 0);
@@ -94,7 +88,7 @@ main (void)
 int
 main (void)
 {
-  
+
   exit (0);
 }
 

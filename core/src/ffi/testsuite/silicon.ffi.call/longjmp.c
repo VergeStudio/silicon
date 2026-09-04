@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include "ffitest.h"
 #include "sffi_common.h"
 
@@ -20,7 +14,6 @@ static void ABI_ATTR lev2(const char *str) {
 static void ABI_ATTR lev1(const char *str) {
   lev2(str);
 
-
   printf("lev1 %s\n", str);
 }
 
@@ -31,10 +24,10 @@ int main()
   void *values[1];
   char *s;
   sffi_arg rc;
-  
+
   args[0] = &sffi_type_pointer;
   values[0] = &s;
-  
+
   if (sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
     &sffi_type_sint, args) == SFFI_OK)
   {

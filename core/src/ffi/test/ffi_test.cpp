@@ -17,7 +17,6 @@ double mix3(std::int32_t a, double b, float c) {
 
 const char *greet() { return "hello-ffi"; }
 
-
 void mul_closure(ffi::cif *, void *ret, void **args, void *user_data) {
     auto a = *static_cast<int *>(args[0]);
     auto b = *static_cast<int *>(args[1]);

@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -15,7 +13,6 @@ return_type (sffi_type *arg)
   if (arg->type != SFFI_TYPE_STRUCT)
     return arg->type;
 
-  
   if (arg->size <= sizeof (UINT8))
     return SFFI_TYPE_UINT8;
   else if (arg->size <= sizeof (UINT16))
@@ -27,8 +24,6 @@ return_type (sffi_type *arg)
 
   return SFFI_TYPE_STRUCT;
 }
-
-
 
 void sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -63,19 +58,19 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
 	    case SFFI_TYPE_SINT8:
 	      *(SINT64 *) argp = (SINT64) *(SINT8 *)(*p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_UINT8:
 	      *(UINT64 *) argp = (UINT64) *(UINT8 *)(*p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_SINT16:
 	      *(SINT64 *) argp = (SINT64) *(SINT16 *)(*p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_UINT16:
 	      *(UINT64 *) argp = (UINT64) *(UINT16 *)(*p_argv);
 	      break;
-  
+
 	    case SFFI_TYPE_STRUCT:
 	      memcpy (argp, *p_argv, z);
 	      break;
@@ -126,7 +121,6 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   return;
 }
 
-
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
   int i, j;
@@ -171,7 +165,7 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 	  else
 	    cif->flags2 += SFFI_TYPE_INT << (2 * j++);
 	  break;
-	      
+
 	default:
 	  size = (cif->arg_types)[i]->size;
 	  if (size < sizeof (UINT64))
@@ -189,7 +183,6 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 	}
     }
 
-  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_STRUCT:
@@ -212,15 +205,11 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
   return SFFI_OK;
 }
 
-
-
 extern void sffi_call_SYSV(void (*)(char *, extended_cif *), 
 			   extended_cif *, 
 			  unsigned, unsigned, long long,
 			   unsigned *, 
 			  void (*fn)(void));
-
-
 
 void sffi_call( sffi_cif *cif, 
 	      void (*fn)(void), 
@@ -232,9 +221,6 @@ void sffi_call( sffi_cif *cif,
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-  
-  
-  
 
   if (cif->rtype->type == SFFI_TYPE_STRUCT
       && return_type (cif->rtype) != SFFI_TYPE_STRUCT)
@@ -280,7 +266,7 @@ sffi_prep_closure_loc (sffi_closure *closure,
     return SFFI_BAD_ABI;
 
   tramp = (unsigned int *) &closure->tramp[0];
-  
+
 #ifdef __LITTLE_ENDIAN__
   tramp[0] = 0x7001c701;
   tramp[1] = 0x0009402b;
@@ -299,14 +285,11 @@ sffi_prep_closure_loc (sffi_closure *closure,
   closure->fun = fun;
   closure->user_data = user_data;
 
-  
   __asm__ volatile ("ocbwb %0,0; synco; icbi %1,0; synci" : : "r" (tramp),
 		"r"(codeloc));
 
   return SFFI_OK;
 }
-
-
 
 int
 sffi_closure_helper_SYSV (sffi_closure *closure, UINT64 *rvalue, 
@@ -322,7 +305,6 @@ sffi_closure_helper_SYSV (sffi_closure *closure, UINT64 *rvalue,
   cif = closure->cif;
   avalue = alloca (cif->nargs * sizeof (void *));
 
-  
   if (return_type (cif->rtype) == SFFI_TYPE_STRUCT)
     {
       rvalue = (UINT64 *) *pgr;
@@ -335,7 +317,6 @@ sffi_closure_helper_SYSV (sffi_closure *closure, UINT64 *rvalue,
   cif = closure->cif;
   avn = cif->nargs;
 
-  
   for (i = 0, p_arg = cif->arg_types; i < avn; i++, p_arg++)
     {
       size_t z;
@@ -424,7 +405,5 @@ sffi_closure_helper_SYSV (sffi_closure *closure, UINT64 *rvalue,
 
   (closure->fun) (cif, rvalue, avalue, closure->user_data);
 
-  
   return return_type (cif->rtype);
 }
-

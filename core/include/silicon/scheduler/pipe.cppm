@@ -1,11 +1,9 @@
 module;
 
-
 #include <array>
 #include <expected>
 #include <memory>
 #include <system_error>
-
 
 #include <silicon/common.h>
 export module silicon.scheduler:pipe;
@@ -19,10 +17,7 @@ class CORE_API pipe_t {
     explicit pipe_t();
     ~pipe_t();
 
-
-
     [[nodiscard]] bool is_valid() const noexcept;
-
 
     [[nodiscard]] static std::expected<pipe_t, std::error_code> create();
 

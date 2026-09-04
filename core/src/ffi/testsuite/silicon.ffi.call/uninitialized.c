@@ -1,4 +1,3 @@
-
 #include "ffitest.h"
 
 typedef struct
@@ -36,14 +35,13 @@ int main (void)
   ts1_type_elements[3] = NULL;
 
   test_structure_1 ts1_arg;
-  
+
   test_structure_1 *ts1_result =
     (test_structure_1 *) malloc (sizeof(test_structure_1));
 
   args[0] = &ts1_type;
   values[0] = &ts1_arg;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &ts1_type, args) == SFFI_OK);
 

@@ -1,8 +1,6 @@
 module;
 
-
 #include <atomic>
-
 
 export module silicon.scheduler:awaiter_list;
 
@@ -67,6 +65,5 @@ awaiter_type * awaiter_list_reverse(awaiter_type *curr) {
 
     return prev;
 }
-
 
 }

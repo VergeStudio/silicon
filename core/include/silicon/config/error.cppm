@@ -13,15 +13,10 @@ import silicon.error;
 
 export namespace silicon::config {
 
-
-
 CORE_API std::atomic<const std::error_category *> config_error_category_instance{nullptr};
-
-
 
 template<typename T>
 using result = silicon::error::result<T>;
-
 
 enum class config_error {
     kLoadFailed = 1,
@@ -29,8 +24,6 @@ enum class config_error {
     kInvalidValue,
     kUnknown,
 };
-
-
 
 class CORE_API config_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.config"; }
@@ -45,11 +38,9 @@ class CORE_API config_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_config_error_category(const std::error_category &cat) noexcept {
     config_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &config_category() noexcept {
     const std::error_category *cat = config_error_category_instance.load(std::memory_order_acquire);
@@ -59,16 +50,11 @@ inline void inject_config_error_category(const std::error_category &cat) noexcep
     return *cat;
 }
 
-
 [[nodiscard]] inline std::error_code make_error_code(config_error e) noexcept {
     return {static_cast<int>(e), config_category()};
 }
 
 }
-
-
-
-
 
 namespace {
     const silicon::config::config_category_impl s_default_config_category{};

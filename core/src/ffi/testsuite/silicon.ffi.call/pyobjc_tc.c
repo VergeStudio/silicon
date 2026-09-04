@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct Point {
@@ -25,7 +22,6 @@ int doit(int o, char* s, Point p, Rect r, int last)
 	return 42;
 }
 
-
 int main(void)
 {
 	sffi_type point_type;
@@ -35,8 +31,6 @@ int main(void)
 	sffi_type* arglist[6];
 	void* values[6];
 	int r;
-
-	
 
 	point_type.size = 0; 
 	point_type.alignment = 0; 
@@ -62,7 +56,6 @@ int main(void)
 	rect_type.elements[1] = &size_type;
 	rect_type.elements[2] = NULL;
 
-	
 	arglist[0] = &sffi_type_sint;
 	arglist[1] = &sffi_type_pointer;
 	arglist[2] = &point_type;
@@ -75,9 +68,6 @@ int main(void)
 	if (r != SFFI_OK) {
 		abort();
 	}
-
-
-	
 
 	{
 	Point p = { 1.0, 2.0 };

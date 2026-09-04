@@ -11,8 +11,6 @@ module;
 
 module silicon.tui;
 
-
-
 import silicon.util;
 
 namespace silicon::tui {

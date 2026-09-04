@@ -1,9 +1,5 @@
-
-
 #include <sffi.h>
 #include "sffi_common.h"
-
-
 
 void* sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -26,7 +22,6 @@ void* sffi_prep_args(char *stack, extended_cif *ecif)
   for(i=0; i<ecif->cif->nargs; i++)
   {
 
-    
     if ((nfixedargs == 0) && (count < 24))
       {
         count = 24;
@@ -90,15 +85,12 @@ extern void sffi_call_SYSV(unsigned,
                           void (*fn)(void),
                           unsigned);
 
-
 void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 {
   int i;
   int size;
   sffi_type **arg;
   void **avalue_copy = NULL;
-
-  
 
   for(i = 0, arg = cif->arg_types, size=0; i < cif->nargs; i++, arg++)
     {
@@ -110,7 +102,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
       else
         size += 8;
 
-      
       {
         sffi_type *at = cif->arg_types[i];
         int size = at->size;
@@ -129,13 +120,11 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
       }
     }
 
-  
   if (cif->nargs != cif->nfixedargs)
     size += 24;
 
   if (cif->rtype->type == SFFI_TYPE_STRUCT)
     size += 4;
-
 
   extended_cif ecif;
   ecif.cif = cif;
@@ -153,7 +142,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   }
 }
 
-
 void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
                       unsigned long r6, unsigned long r7, unsigned long r8)
 {
@@ -163,11 +151,9 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
   sffi_closure* closure = (sffi_closure*) r13;
   char *stack_args = (char*) sp;
 
-  
   unsigned register_args[6] =
     { r3, r4, r5, r6, r7, r8 };
 
-  
   void *struct_rvalue = (void *) r3;
 
   sffi_cif *cif = closure->cif;
@@ -178,19 +164,15 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
   int nfixedargs = cif->nfixedargs;
   int i;
 
-  
-
   if ((cif->rtype != NULL) && (cif->rtype->type == SFFI_TYPE_STRUCT))
   {
     ptr += 4;
     count = 4;
   }
 
-  
   for (i = 0; i < cif->nargs; i++)
     {
 
-      
       if ((nfixedargs == 0) && (count < 24))
         {
           ptr = stack_args;
@@ -222,9 +204,7 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
           break;
 
         default:
-          
 
-          
           if (ptr == &register_args[5])
             ptr = stack_args;
           avalue[i] = ptr;
@@ -234,8 +214,6 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
         }
       ptr += 4;
       count += 4;
-
-      
 
       if (count == 24)
         ptr = stack_args;
@@ -252,7 +230,6 @@ void sffi_closure_SYSV(unsigned long r3, unsigned long r4, unsigned long r5,
         __asm__ ("l.ori r12, %0, 0x0\n l.lwz r11, 0(r12)\n l.lwz r12, 4(r12)" : : "r" (&rvalue));
     }
 }
-
 
 sffi_status
 sffi_prep_closure_loc (sffi_closure* closure,
@@ -272,7 +249,6 @@ sffi_prep_closure_loc (sffi_closure* closure,
   closure->user_data = user_data;
   closure->fun = fun;
 
-  
   tramp[0] = (0x6 << 10) | (13 << 5); 
   tramp[1] = cls >> 16;
   tramp[2] = (0x2a << 10) | (13 << 5) | 13; 
@@ -292,12 +268,10 @@ sffi_prep_closure_loc (sffi_closure* closure,
   return SFFI_OK;
 }
 
-
 sffi_status sffi_prep_cif_machdep (sffi_cif *cif)
 {
   cif->flags = 0;
 
-  
   if (cif->rtype->type == SFFI_TYPE_STRUCT)
     cif->flags = SFFI_TYPE_STRUCT;
   else
@@ -308,7 +282,6 @@ sffi_status sffi_prep_cif_machdep (sffi_cif *cif)
 
   return SFFI_OK;
 }
-
 
 sffi_status sffi_prep_cif_machdep_var(sffi_cif *cif,
          unsigned int nfixedargs, unsigned int ntotalargs)

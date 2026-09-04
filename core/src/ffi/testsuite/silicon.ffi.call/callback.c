@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static int i=5;
@@ -56,7 +53,6 @@ int main (void)
   ts12_type_elements[1] = &ts12a_type;
   ts12_type_elements[2] = &sffi_type_uchar;
   ts12_type_elements[3] = NULL;
-
 
   args[0] = &ts12_type;
   args[1] = &sffi_type_pointer;

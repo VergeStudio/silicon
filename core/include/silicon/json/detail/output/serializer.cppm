@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -38,14 +25,8 @@ import :detail.output.output_adapters;
 import :detail.string_concat;
 import :detail.value_t;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
-
-
-
-
 
 export enum class error_handler_t {
     strict,
@@ -64,10 +45,9 @@ class serializer {
     static constexpr std::uint8_t UTF8_REJECT = 1;
 
   public:
-    
+
     serializer(output_adapter_t<char> s, const char ichar, error_handler_t error_handler_ = error_handler_t::strict)
         : o(std::move(s)), loc(std::localeconv()), thousands_sep(loc->thousands_sep == nullptr ? '\0' : std::char_traits<char>::to_char_type(*(loc->thousands_sep))), decimal_point(loc->decimal_point == nullptr ? '\0' : std::char_traits<char>::to_char_type(*(loc->decimal_point))), indent_char(ichar), indent_string(512, indent_char), error_handler(error_handler_) {}
-
 
     serializer(const serializer &) = delete;
     serializer &operator=(const serializer &) = delete;
@@ -75,7 +55,6 @@ class serializer {
     serializer &operator=(serializer &&) = delete;
     ~serializer() = default;
 
-    
     void dump(const BasicJsonType &val, const bool pretty_print, const bool ensure_ascii, const unsigned int indent_step, const unsigned int current_indent = 0) {
         switch(val.m_data.m_type) {
             case value_t::object: {
@@ -87,12 +66,10 @@ class serializer {
                 if(pretty_print) {
                     o->write_characters("{\n", 2);
 
-
                     const auto new_indent = current_indent + indent_step;
                     if(JSON_HEDLEY_UNLIKELY(indent_string.size() < new_indent)) {
                         indent_string.resize(indent_string.size() * 2, ' ');
                     }
-
 
                     auto i = val.m_data.m_value.object->cbegin();
                     for(std::size_t cnt = 0; cnt < val.m_data.m_value.object->size() - 1; ++cnt, ++i) {
@@ -103,7 +80,6 @@ class serializer {
                         dump(i->second, true, ensure_ascii, indent_step, new_indent);
                         o->write_characters(",\n", 2);
                     }
-
 
                     JSON_ASSERT(i != val.m_data.m_value.object->cend());
                     JSON_ASSERT(std::next(i) == val.m_data.m_value.object->cend());
@@ -119,7 +95,6 @@ class serializer {
                 } else {
                     o->write_character('{');
 
-
                     auto i = val.m_data.m_value.object->cbegin();
                     for(std::size_t cnt = 0; cnt < val.m_data.m_value.object->size() - 1; ++cnt, ++i) {
                         o->write_character('\"');
@@ -128,7 +103,6 @@ class serializer {
                         dump(i->second, false, ensure_ascii, indent_step, current_indent);
                         o->write_character(',');
                     }
-
 
                     JSON_ASSERT(i != val.m_data.m_value.object->cend());
                     JSON_ASSERT(std::next(i) == val.m_data.m_value.object->cend());
@@ -152,12 +126,10 @@ class serializer {
                 if(pretty_print) {
                     o->write_characters("[\n", 2);
 
-
                     const auto new_indent = current_indent + indent_step;
                     if(JSON_HEDLEY_UNLIKELY(indent_string.size() < new_indent)) {
                         indent_string.resize(indent_string.size() * 2, ' ');
                     }
-
 
                     for(auto i = val.m_data.m_value.array->cbegin();
                         i != val.m_data.m_value.array->cend() - 1; ++i) {
@@ -165,7 +137,6 @@ class serializer {
                         dump(*i, true, ensure_ascii, indent_step, new_indent);
                         o->write_characters(",\n", 2);
                     }
-
 
                     JSON_ASSERT(!val.m_data.m_value.array->empty());
                     o->write_characters(indent_string.c_str(), new_indent);
@@ -177,13 +148,11 @@ class serializer {
                 } else {
                     o->write_character('[');
 
-
                     for(auto i = val.m_data.m_value.array->cbegin();
                         i != val.m_data.m_value.array->cend() - 1; ++i) {
                         dump(*i, false, ensure_ascii, indent_step, current_indent);
                         o->write_character(',');
                     }
-
 
                     JSON_ASSERT(!val.m_data.m_value.array->empty());
                     dump(val.m_data.m_value.array->back(), false, ensure_ascii, indent_step, current_indent);
@@ -204,7 +173,6 @@ class serializer {
             case value_t::binary: {
                 if(pretty_print) {
                     o->write_characters("{\n", 2);
-
 
                     const auto new_indent = current_indent + indent_step;
                     if(JSON_HEDLEY_UNLIKELY(indent_string.size() < new_indent)) {
@@ -299,13 +267,12 @@ class serializer {
     }
 
     JSON_PRIVATE_UNLESS_TESTED:
-        
+
         void
         dump_escaped(const string_t &s, const bool ensure_ascii) {
         std::uint32_t codepoint{};
         std::uint8_t state = UTF8_ACCEPT;
         std::size_t bytes = 0;
-
 
         std::size_t bytes_after_last_accept = 0;
         std::size_t undumped_chars = 0;
@@ -368,7 +335,6 @@ class serializer {
 
                         default: {
 
-
                             if((codepoint <= 0x1F) || (ensure_ascii && (codepoint >= 0x7F))) {
                                 if(codepoint <= 0xFFFF) {
 
@@ -384,21 +350,16 @@ class serializer {
                                 }
                             } else {
 
-
                                 string_buffer[bytes++] = s[i];
                             }
                             break;
                         }
                     }
 
-
-
-
                     if(string_buffer.size() - bytes < 13) {
                         o->write_characters(string_buffer.data(), bytes);
                         bytes = 0;
                     }
-
 
                     bytes_after_last_accept = bytes;
                     undumped_chars = 0;
@@ -415,14 +376,9 @@ class serializer {
                         case error_handler_t::ignore:
                         case error_handler_t::replace: {
 
-
-
-
                             if(undumped_chars > 0) {
                                 --i;
                             }
-
-
 
                             bytes = bytes_after_last_accept;
 
@@ -441,9 +397,6 @@ class serializer {
                                     string_buffer[bytes++] = detail::binary_writer<BasicJsonType, char>::to_char_type('\xBD');
                                 }
 
-
-
-
                                 if(string_buffer.size() - bytes < 13) {
                                     o->write_characters(string_buffer.data(), bytes);
                                     bytes = 0;
@@ -453,7 +406,6 @@ class serializer {
                             }
 
                             undumped_chars = 0;
-
 
                             state = UTF8_ACCEPT;
                             break;
@@ -476,7 +428,6 @@ class serializer {
                 }
             }
         }
-
 
         if(JSON_HEDLEY_LIKELY(state == UTF8_ACCEPT)) {
 
@@ -515,7 +466,7 @@ class serializer {
     }
 
   private:
-    
+
     inline unsigned int count_digits(number_unsigned_t x) noexcept {
         unsigned int n_digits = 1;
         for(;;) {
@@ -536,7 +487,6 @@ class serializer {
         }
     }
 
-    
     static std::string hex_bytes(std::uint8_t byte) {
         std::string result = "FF";
         constexpr const char *nibble_to_hex = "0123456789ABCDEF";
@@ -544,7 +494,6 @@ class serializer {
         result[1] = nibble_to_hex[byte % 16];
         return result;
     }
-
 
     template<typename NumberType, enable_if_t<std::is_signed<NumberType>::value, int> = 0>
     bool is_negative_number(NumberType x) {
@@ -556,7 +505,6 @@ class serializer {
         return false;
     }
 
-    
     template<typename NumberType, detail::enable_if_t<std::is_integral<NumberType>::value || std::is_same<NumberType, number_unsigned_t>::value || std::is_same<NumberType, number_integer_t>::value || std::is_same<NumberType, binary_char_t>::value, int> = 0>
     void dump_integer(NumberType x) {
         static constexpr std::array<std::array<char, 2>, 100> digits_to_99{
@@ -664,12 +612,10 @@ class serializer {
                 }
         };
 
-
         if(x == 0) {
             o->write_character('0');
             return;
         }
-
 
         auto buffer_ptr = number_buffer.begin();
 
@@ -681,21 +627,15 @@ class serializer {
             *buffer_ptr = '-';
             abs_value = remove_sign(static_cast<number_integer_t>(x));
 
-
             n_chars = 1 + count_digits(abs_value);
         } else {
             abs_value = static_cast<number_unsigned_t>(x);
             n_chars = count_digits(abs_value);
         }
 
-
         JSON_ASSERT(n_chars < number_buffer.size() - 1);
 
-
-
         buffer_ptr += n_chars;
-
-
 
         while(abs_value >= 100) {
             const auto digits_index = static_cast<unsigned>((abs_value % 100));
@@ -715,18 +655,12 @@ class serializer {
         o->write_characters(number_buffer.data(), n_chars);
     }
 
-    
     void dump_float(number_float_t x) {
 
         if(!std::isfinite(x)) {
             o->write_characters("null", 4);
             return;
         }
-
-
-
-
-
 
         static constexpr bool is_ieee_single_or_double = (std::numeric_limits<number_float_t>::is_iec559 && std::numeric_limits<number_float_t>::digits == 24 && std::numeric_limits<number_float_t>::max_exponent == 128) ||
                                                          (std::numeric_limits<number_float_t>::is_iec559 && std::numeric_limits<number_float_t>::digits == 53 && std::numeric_limits<number_float_t>::max_exponent == 1024);
@@ -745,15 +679,11 @@ class serializer {
 
         static constexpr auto d = std::numeric_limits<number_float_t>::max_digits10;
 
-
-
         std::ptrdiff_t len = (std::snprintf)(number_buffer.data(), number_buffer.size(), "%.*g", d, x);
-
 
         JSON_ASSERT(len > 0);
 
         JSON_ASSERT(static_cast<std::size_t>(len) < number_buffer.size());
-
 
         if(thousands_sep != '\0') {
 
@@ -762,7 +692,6 @@ class serializer {
             JSON_ASSERT((end - number_buffer.begin()) <= len);
             len = (end - number_buffer.begin());
         }
-
 
         if(decimal_point != '\0' && decimal_point != '.') {
 
@@ -774,7 +703,6 @@ class serializer {
 
         o->write_characters(number_buffer.data(), static_cast<std::size_t>(len));
 
-
         const bool value_is_int_like =
                 std::none_of(number_buffer.begin(), number_buffer.begin() + len + 1, [](char c) {
                     return c == '.' || c == 'e';
@@ -785,7 +713,6 @@ class serializer {
         }
     }
 
-    
     static std::uint8_t decode(std::uint8_t &state, std::uint32_t &codep, const std::uint8_t byte) noexcept {
         static const std::array<std::uint8_t, 400> utf8d =
                 {
@@ -820,13 +747,11 @@ class serializer {
         return state;
     }
 
-    
     number_unsigned_t remove_sign(number_unsigned_t x) {
         JSON_ASSERT(false);
         return x;
     }
 
-    
     inline number_unsigned_t remove_sign(number_integer_t x) noexcept {
         JSON_ASSERT(x < 0 && x < (std::numeric_limits<number_integer_t>::max)());
         return static_cast<number_unsigned_t>(-(x + 1)) + 1;
@@ -836,9 +761,7 @@ class serializer {
 
     output_adapter_t<char> o = nullptr;
 
-
     std::array<char, 64> number_buffer{{}};
-
 
     const std::lconv *loc = nullptr;
 
@@ -846,14 +769,11 @@ class serializer {
 
     const char decimal_point = '\0';
 
-
     std::array<char, 512> string_buffer{{}};
-
 
     const char indent_char;
 
     string_t indent_string;
-
 
     const error_handler_t error_handler;
 };

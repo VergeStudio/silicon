@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 struct small_tag
@@ -112,9 +108,9 @@ main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, test_fn, NULL, code) == SFFI_OK);
 
   res = ((int (*)(int, ...))(code))(si, s1, l1, s2);
-  
+
   printf("res: %d\n", (int) res);
-  
+
   CHECK(res == 42);
 
   exit(0);

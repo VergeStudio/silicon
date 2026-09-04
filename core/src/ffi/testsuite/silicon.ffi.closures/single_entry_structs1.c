@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct A {
@@ -56,7 +53,6 @@ int main (void)
 
   res_dbl = A_fn(e_dbl, f_dbl);
   printf("0 res: %d\n", res_dbl.a);
-  
 
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 2, &cls_struct_type,
                     dbl_arg_types) == SFFI_OK);
@@ -65,17 +61,16 @@ int main (void)
   args_dbl[1] = &f_dbl;
   args_dbl[2] = NULL;
 
-
   sffi_call(&cif, SFFI_FN(A_fn), &res_dbl, args_dbl);
   printf("1 res: %d\n", res_dbl.a);
-  
+
   CHECK( res_dbl.a == (e_dbl + f_dbl.a));
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, A_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((A(*)(int, A))(code))(e_dbl, f_dbl);
   printf("2 res: %d\n", res_dbl.a);
-  
+
   CHECK( res_dbl.a == (e_dbl + f_dbl.a));
 
   exit(0);

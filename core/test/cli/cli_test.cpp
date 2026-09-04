@@ -56,7 +56,6 @@ TEST_CASE("en_malformed_flag") {
     CHECK_FALSE(r1.has_value());
     CHECK(r1.error() == make_error_code(cli_error::kInvalidValue));
 
-
     const char *argv2[] = {"prog", "--", "--weird", "pos"};
     auto r2 = p.parse(4, argv2);
     REQUIRE(r2.has_value());

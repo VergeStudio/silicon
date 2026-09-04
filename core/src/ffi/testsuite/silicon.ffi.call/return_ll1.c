@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 static long long return_ll(int ll0, long long ll1, int ll2)
 {
@@ -27,7 +23,6 @@ int main (void)
   values[1] = &ll1;
   values[2] = &ll2;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3,
 		     &sffi_type_sint64, args) == SFFI_OK);
 
@@ -37,7 +32,7 @@ int main (void)
 
   sffi_call(&cif, SFFI_FN(return_ll), &rlonglong, values);
   printf("res: %" PRIdLL ", %" PRIdLL "\n", rlonglong, ll0 + ll1 + ll2);
-  
+
   CHECK(rlonglong == 11111133333222);
   CHECK(ll0 + ll1 + ll2 == 11111133333222);
   exit(0);

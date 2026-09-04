@@ -5,16 +5,11 @@ module;
 #include <string>
 #include <system_error>
 
-
-
 #include <silicon/common.h>
 
 export module silicon.fs.error;
 
 import silicon.error;
-
-
-
 
 export namespace silicon::fs {
 
@@ -23,7 +18,6 @@ CORE_API std::atomic<const std::error_category *> fs_error_category_instance{nul
 }
 
 export namespace silicon::fs {
-
 
 enum class fs_error {
     kOpenFailed = 1,
@@ -35,8 +29,6 @@ enum class fs_error {
     kAlreadyExists,
     kUnknown,
 };
-
-
 
 class CORE_API fs_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.fs"; }
@@ -55,11 +47,9 @@ class CORE_API fs_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_fs_error_category(const std::error_category &cat) noexcept {
     fs_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &fs_category() noexcept {
     const std::error_category *cat = fs_error_category_instance.load(std::memory_order_acquire);
@@ -68,7 +58,6 @@ inline void inject_fs_error_category(const std::error_category &cat) noexcept {
     }
     return *cat;
 }
-
 
 [[nodiscard]] inline std::error_code make_error_code(fs_error e) noexcept {
     return {static_cast<int>(e), fs_category()};

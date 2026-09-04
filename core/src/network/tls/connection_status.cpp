@@ -1,5 +1,3 @@
-
-
 module;
 
 #ifdef SILICON_FEATURE_TLS

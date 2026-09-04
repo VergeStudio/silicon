@@ -10,7 +10,6 @@ export module silicon.plugin.error;
 
 import silicon.error;
 
-
 namespace silicon::plugin {
 
 CORE_API std::atomic<const std::error_category *> plugin_error_category_instance{nullptr};
@@ -19,7 +18,6 @@ CORE_API std::atomic<const std::error_category *> plugin_error_category_instance
 
 export namespace silicon::plugin {
 
-
 enum class plugin_error {
     kLoadFailed = 1,
     kUnloadFailed,
@@ -27,7 +25,6 @@ enum class plugin_error {
     kNotFound,
     kNullPlugin,
 };
-
 
 class CORE_API plugin_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.plugin"; }
@@ -43,11 +40,9 @@ class CORE_API plugin_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_plugin_error_category(const std::error_category &cat) noexcept {
     plugin_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &plugin_category() noexcept {
     const std::error_category *cat = plugin_error_category_instance.load(std::memory_order_acquire);
@@ -56,7 +51,6 @@ inline void inject_plugin_error_category(const std::error_category &cat) noexcep
     }
     return *cat;
 }
-
 
 [[nodiscard]] inline std::error_code make_error_code(plugin_error e) noexcept {
     return {static_cast<int>(e), plugin_category()};

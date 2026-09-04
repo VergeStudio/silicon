@@ -1,6 +1,5 @@
 module;
 
-
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -28,7 +27,6 @@ sync_wait_event::sync_wait_event(bool initially_set): m_p(std::make_unique<impl>
 sync_wait_event::~sync_wait_event() = default;
 
 void sync_wait_event::set() noexcept {
-
 
     {
         std::unique_lock<std::mutex> lk{m_p->m_mutex};

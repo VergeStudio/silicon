@@ -21,9 +21,6 @@ import silicon.platform;
 #include "libloaderapi.h"
 #include "minwindef.h"
 
-
-
-
 namespace silicon::library {
 
 std::expected<void, std::error_code> shared_library::load(const std::string &path, int32_t) {
@@ -69,7 +66,6 @@ void *shared_library::find_symbol(const std::string &name) {
         UnicodeConverter::toUTF16(name, uname);
         return static_cast<void *>(GetProcAddressW(static_cast<HMODULE>(impl_->handle_), uname.c_str()));
 #else
-
 
         return reinterpret_cast<void *>(GetProcAddress(static_cast<HMODULE>(impl_->handle_), name.data()));
 #endif

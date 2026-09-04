@@ -1,8 +1,3 @@
-
-
-
-
-
 #include "ffitest.h"
 
 static void cls_ret_schar_fn(sffi_cif* cif __UNUSED__, void* resp, void** args,
@@ -27,16 +22,15 @@ int main (void)
   cl_arg_types[0] = &sffi_type_schar;
   cl_arg_types[1] = NULL;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_schar, cl_arg_types) == SFFI_OK);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_ret_schar_fn, NULL, code)  == SFFI_OK);
 
   res = (*((cls_ret_schar)code))(127);
-  
+
   printf("res: %d\n", res);
-  
+
   CHECK(res == 127);
 
   exit(0);

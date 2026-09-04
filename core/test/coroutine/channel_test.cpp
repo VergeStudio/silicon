@@ -1,7 +1,5 @@
 #include <silicon/test/test.h>
 
-
-
 #include <coroutine>
 #include <memory>
 #include <optional>
@@ -64,7 +62,6 @@ TEST_CASE("channel: 满时 send 挂起，消费者腾槽后按 FIFO 入槽") {
 
     sync_wait(when_all(sender_a(), sender_b(), consumer()));
 
-
     REQUIRE(produced.size() == 2);
     CHECK(produced[0] == 2);
     CHECK(produced[1] == 3);
@@ -113,7 +110,6 @@ TEST_CASE("channel: 无缓冲多接收者 FIFO 公平") {
     };
 
     sync_wait(when_all(receiver(1), receiver(2), sender(10), sender(20)));
-
 
     REQUIRE(order.size() == 2);
     CHECK(order[0] == 1);
@@ -179,7 +175,6 @@ TEST_CASE("channel: close 唤醒挂起的消费者与生产者") {
     sync_wait(when_all(receiver(), closer()));
     CHECK(got_closed);
     CHECK(!got.has_value());
-
 
     channel<int> ch2{1};
     CHECK(sync_wait(ch2.send(1)) == cr::send::kSent);

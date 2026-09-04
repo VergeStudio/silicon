@@ -1,6 +1,5 @@
 module;
 
-
 #include <atomic>
 #include <coroutine>
 #include <memory>
@@ -27,7 +26,6 @@ enum class recv {
     kClosed,
 };
 }
-
 
 template<typename element_type>
 class channel {
@@ -76,7 +74,6 @@ class channel {
         std::optional<element_type> m_e;
     };
 
-    
     explicit channel(size_t);
 
     ~channel();
@@ -86,40 +83,28 @@ class channel {
     channel & operator=(const channel &) = delete;
     channel & operator=(channel &&) = delete;
 
-    
     silicon::scheduler::task<channel_result::send> send(const element_type &) ;
 
-    
     silicon::scheduler::task<channel_result::send> send(element_type &&element) ;
 
-    
     auto try_send(const element_type &) -> channel_result::send;
 
-    
     auto try_send(element_type &&element) -> channel_result::send;
 
-    
     [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element_type, channel_result::recv>> recv() ;
 
-    
     [[nodiscard]] auto try_recv() -> silicon::scheduler::expected<element_type, channel_result::recv>;
 
-    
     silicon::scheduler::task<void> close() ;
 
-    
     [[nodiscard]] bool closed() const ;
 
-    
     [[nodiscard]] size_t capacity() const ;
 
-    
     [[nodiscard]] size_t size() const ;
 
-    
     [[nodiscard]] bool empty() const ;
 
-    
     [[nodiscard]] bool full() const ;
 
   private:
@@ -157,18 +142,6 @@ class channel {
     std::unique_ptr<impl> m_p;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
 template<typename element_type>
 channel<element_type>::send_operation::send_operation(channel<element_type> &ch, element_type e) noexcept
     : m_ch(ch),
@@ -178,13 +151,11 @@ template<typename element_type>
 bool channel<element_type>::send_operation::await_ready() noexcept {
     auto &mutex = m_ch.m_p->m_mutex;
 
-
     if(m_ch.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = channel_result::send::kClosed;
         static_cast<void>(mutex.unlock());
         return true;
     }
-
 
     if(auto *waiter = m_ch.m_p->pop_recv_waiter()) {
         waiter->m_e = std::move(m_e);
@@ -193,13 +164,11 @@ bool channel<element_type>::send_operation::await_ready() noexcept {
         return true;
     }
 
-
     if(m_ch.m_p->m_count.load(std::memory_order::acquire) < m_ch.m_p->m_capacity) {
         m_ch.m_p->store(std::move(m_e).value());
         static_cast<void>(mutex.unlock());
         return true;
     }
-
 
     return false;
 }
@@ -215,10 +184,6 @@ bool channel<element_type>::send_operation::await_suspend(std::coroutine_handle<
 template<typename element_type>
 auto channel<element_type>::send_operation::await_resume() noexcept -> channel_result::send { return m_result; }
 
-
-
-
-
 template<typename element_type>
 channel<element_type>::recv_operation::recv_operation(channel<element_type> &ch) noexcept
     : m_ch(ch) {}
@@ -227,13 +192,11 @@ template<typename element_type>
 bool channel<element_type>::recv_operation::await_ready() noexcept {
     auto &mutex = m_ch.m_p->m_mutex;
 
-
     if(m_ch.m_p->m_count.load(std::memory_order::acquire) > 0) {
         m_e = m_ch.m_p->take();
         static_cast<void>(mutex.unlock());
         return true;
     }
-
 
     if(auto *waiter = m_ch.m_p->pop_send_waiter()) {
         m_e = std::move(waiter->m_e);
@@ -242,13 +205,11 @@ bool channel<element_type>::recv_operation::await_ready() noexcept {
         return true;
     }
 
-
     if(m_ch.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = channel_result::recv::kClosed;
         static_cast<void>(mutex.unlock());
         return true;
     }
-
 
     return false;
 }
@@ -269,19 +230,12 @@ auto channel<element_type>::recv_operation::await_resume() noexcept -> silicon::
     return silicon::scheduler::unexpected<channel_result::recv>(m_result);
 }
 
-
-
-
-
 template<typename element_type>
 channel<element_type>::channel(size_t capacity)
     : m_p(std::make_unique<impl>(capacity)) {}
 
 template<typename element_type>
 channel<element_type>::~channel() {
-
-
-
 
     if(m_p->m_running_state.exchange(running_state_t::kStopped, std::memory_order::acq_rel) == running_state_t::kStopped) {
         return;
@@ -481,10 +435,6 @@ silicon::scheduler::task<void> channel<element_type>::try_resume_receivers() {
     }
 }
 
-
-
-
-
 template<typename element_type>
 channel<element_type>::impl::impl(size_t capacity)
     : m_capacity(capacity),
@@ -553,6 +503,5 @@ auto channel<element_type>::impl::pop_recv_waiter() -> recv_operation * {
     }
     return op;
 }
-
 
 }

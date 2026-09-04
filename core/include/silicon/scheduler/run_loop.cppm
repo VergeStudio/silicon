@@ -12,27 +12,6 @@ import :facade;
 
 export namespace silicon::scheduler {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class CORE_API run_loop final {
     struct impl;
     std::unique_ptr<impl> m_impl;
@@ -46,17 +25,9 @@ class CORE_API run_loop final {
     run_loop & operator=(const run_loop &) = delete;
     run_loop & operator=(run_loop &&) = delete;
 
-
-
-
-
     void run() noexcept ;
 
-
-
-
     void finish() noexcept ;
-
 
     bool spawn_detached(task<void> &&task) noexcept ;
     task<void> spawn_joinable(task<void> &&t) noexcept ;

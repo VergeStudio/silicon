@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -9,21 +7,16 @@
 
 #include "ia64_flags.h"
 
-
 #ifdef __hpux
 typedef void *PTR64;
 #else
 typedef void *PTR64 __attribute__((mode(DI)));
 #endif
 
-
 typedef struct
 {
   UINT64 x[2] __attribute__((aligned(16)));
 } fpreg;
-
-
-
 
 struct ia64_args
 {
@@ -31,9 +24,6 @@ struct ia64_args
   UINT64 gp_regs[8];	
   UINT64 other_args[];	
 };
-
-
-
 
 static inline void *
 endian_adjust (void *addr, size_t len)
@@ -45,8 +35,6 @@ endian_adjust (void *addr, size_t len)
 #endif
 }
 
-
-
 #ifdef __hpux
 #define stf_spill(addr, value)
 #else
@@ -54,16 +42,12 @@ endian_adjust (void *addr, size_t len)
   __asm__ ("stf.spill %0 = %1%P0" : "=m" (*addr) : "f"(value));
 #endif
 
-
-
 #ifdef __hpux
 #define ldf_fill(result, addr)
 #else
 #define ldf_fill(result, addr)	\
   __asm__ ("ldf.fill %0 = %1%P1" : "=f"(result) : "m"(*addr));
 #endif
-
-
 
 static size_t
 hfa_type_size (int type)
@@ -80,8 +64,6 @@ hfa_type_size (int type)
       abort ();
     }
 }
-
-
 
 static void
 hfa_type_load (fpreg *fpaddr, int type, void *addr)
@@ -101,8 +83,6 @@ hfa_type_load (fpreg *fpaddr, int type, void *addr)
       abort ();
     }
 }
-
-
 
 static void
 hfa_type_store (int type, void *addr, fpreg *fpaddr)
@@ -135,8 +115,6 @@ hfa_type_store (int type, void *addr, fpreg *fpaddr)
     }
 }
 
-
-
 static int
 hfa_element_type (sffi_type *type, int nested)
 {
@@ -145,19 +123,19 @@ hfa_element_type (sffi_type *type, int nested)
   switch (type->type)
     {
     case SFFI_TYPE_FLOAT:
-      
+
       if (nested)
 	element = SFFI_IA64_TYPE_HFA_FLOAT;
       break;
 
     case SFFI_TYPE_DOUBLE:
-      
+
       if (nested)
 	element = SFFI_IA64_TYPE_HFA_DOUBLE;
       break;
 
     case SFFI_TYPE_LONGDOUBLE:
-      
+
       if (LDBL_MANT_DIG == 64 && nested)
 	element = SFFI_IA64_TYPE_HFA_LDOUBLE;
       break;
@@ -187,25 +165,20 @@ hfa_element_type (sffi_type *type, int nested)
   return element;
 }
 
-
-
-
 static sffi_status
 sffi_prep_cif_machdep_core(sffi_cif *cif)
 {
   int flags;
 
-  
   cif->bytes += offsetof(struct ia64_args, gp_regs[0]);
   if (cif->bytes < sizeof(struct ia64_args))
     cif->bytes = sizeof(struct ia64_args);
 
-  
   flags = cif->rtype->type;
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_LONGDOUBLE:
-      
+
       if (LDBL_MANT_DIG != 64)
 	flags = SFFI_IA64_TYPE_SMALL_STRUCT | (16 << 8);
       break;
@@ -264,11 +237,9 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   SFFI_ASSERT (cif->abi == SFFI_UNIX);
 
-  
   if (rvalue == NULL && cif->rtype->type != SFFI_TYPE_VOID)
     rvalue = alloca (cif->rtype->size);
-    
-  
+
   stack = alloca (cif->bytes);
 
   gpcount = fpcount = 0;
@@ -370,8 +341,6 @@ sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   sffi_call_unix (stack, rvalue, fn, cif->flags);
 }
 
-
-
 extern void sffi_closure_unix ();
 
 sffi_status
@@ -381,7 +350,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 		      void *user_data,
 		      void *codeloc)
 {
-  
+
   struct ia64_fd
   {
     UINT64 code_pointer;
@@ -414,7 +383,6 @@ sffi_prep_closure_loc (sffi_closure* closure,
   return SFFI_OK;
 }
 
-
 UINT64
 sffi_closure_unix_inner (sffi_closure *closure, struct ia64_args *stack,
 			void *rvalue, void *r8)
@@ -429,7 +397,6 @@ sffi_closure_unix_inner (sffi_closure *closure, struct ia64_args *stack,
   nfixedargs = cif->nfixedargs;
   avalue = alloca (avn * sizeof (void *));
 
-  
   if (cif->flags == SFFI_TYPE_STRUCT)
     rvalue = r8;
 

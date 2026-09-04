@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -28,10 +15,7 @@ export module silicon.json:ordered_map;
 
 import :detail.meta.type_traits;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
-
-
 
 export template<class Key, class T, class IgnoredLess = std::less<Key>, class Allocator = std::allocator<std::pair<const Key, T>>>
 struct ordered_map: std::vector<std::pair<const Key, T>, Allocator> {
@@ -47,8 +31,6 @@ struct ordered_map: std::vector<std::pair<const Key, T>, Allocator> {
 #else
     using key_compare = std::equal_to<Key>;
 #endif
-
-
 
     ordered_map() noexcept(noexcept(Container())): Container{} {}
     explicit ordered_map(const Allocator &alloc) noexcept(noexcept(Container(alloc))): Container{alloc} {}
@@ -185,44 +167,12 @@ struct ordered_map: std::vector<std::pair<const Key, T>, Allocator> {
         const auto elements_affected = std::distance(first, last);
         const auto offset = std::distance(Container::begin(), first);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         for(auto it = first; std::next(it, elements_affected) != Container::end(); ++it) {
             it->~value_type();
             new(&*it) value_type{std::move(*std::next(it, elements_affected))};
         }
 
-
-
-
-
-
         Container::resize(this->size() - static_cast<size_type>(elements_affected));
-
-
-
-
-
-
-
 
         return Container::begin() + offset;
     }

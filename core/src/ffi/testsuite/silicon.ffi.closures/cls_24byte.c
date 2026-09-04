@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_24byte {
@@ -113,9 +110,9 @@ int main (void)
   args_dbl[4] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_24byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %g %g %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  
+
   CHECK_DOUBLE_EQ(res_dbl.a, 22);
   CHECK_DOUBLE_EQ(res_dbl.b, 15);
   CHECK(res_dbl.c == 17);
@@ -128,9 +125,9 @@ int main (void)
 				   cls_struct_24byte,
 				   cls_struct_24byte))
 	     (code))(e_dbl, f_dbl, g_dbl, h_dbl);
-  
+
   printf("res: %g %g %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  
+
   CHECK_DOUBLE_EQ(res_dbl.a, 22);
   CHECK_DOUBLE_EQ(res_dbl.b, 15);
   CHECK(res_dbl.c == 17);

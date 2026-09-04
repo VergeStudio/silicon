@@ -1,9 +1,5 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
-
-
 
 #ifndef SILICON_FFI_ASM
 typedef unsigned long sffi_arg;
@@ -17,11 +13,8 @@ typedef enum sffi_abi {
 } sffi_abi;
 #endif
 
-
-
 #define SFFI_CLOSURES 1
 #define SFFI_NATIVE_RAW_API 0
-
 
 #define SFFI_TRAMPOLINE_SIZE (12)
 

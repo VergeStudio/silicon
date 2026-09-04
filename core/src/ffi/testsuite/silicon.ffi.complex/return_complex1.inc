@@ -1,4 +1,3 @@
-
 #include "ffitest.h"
 #include <complex.h>
 
@@ -23,7 +22,6 @@ int main (void)
   values[2] = &in3;
   values[3] = &c4;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 4,
 		     &T_FFI_TYPE, args) == SFFI_OK);
   c1 = 127.0 + 255.0 * I;

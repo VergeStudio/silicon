@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -34,15 +21,8 @@ import :detail.string_concat;
 import :detail.string_escape;
 import :detail.value_t;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
-
-
-
-
-
 
 export class exception: public std::exception {
   public:
@@ -50,7 +30,6 @@ export class exception: public std::exception {
     CORE_API const char *what() const noexcept override {
         return m.what();
     }
-
 
     const int id;
 
@@ -124,11 +103,9 @@ export class exception: public std::exception {
     std::runtime_error m;
 };
 
-
-
 export class parse_error: public exception {
   public:
-    
+
     template<typename BasicJsonContext, enable_if_t<is_basic_json_context<BasicJsonContext>::value, int> = 0>
     static parse_error create(int id_, const position_t &pos, const std::string &what_arg, BasicJsonContext context) {
         const std::string w = concat(exception::name("parse_error", id_), "parse error", position_string(pos), ": ", exception::diagnostics(context), what_arg);
@@ -141,7 +118,6 @@ export class parse_error: public exception {
         return {id_, byte_, w.c_str()};
     }
 
-    
     const std::size_t byte;
 
   private:
@@ -152,8 +128,6 @@ export class parse_error: public exception {
         return concat(" at line ", std::to_string(pos.lines_read + 1), ", column ", std::to_string(pos.chars_read_current_line));
     }
 };
-
-
 
 export class invalid_iterator: public exception {
   public:
@@ -169,8 +143,6 @@ export class invalid_iterator: public exception {
         : exception(id_, what_arg) {}
 };
 
-
-
 export class type_error: public exception {
   public:
     template<typename BasicJsonContext, enable_if_t<is_basic_json_context<BasicJsonContext>::value, int> = 0>
@@ -184,8 +156,6 @@ export class type_error: public exception {
     CORE_API type_error(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
-
-
 export class out_of_range: public exception {
   public:
     template<typename BasicJsonContext, enable_if_t<is_basic_json_context<BasicJsonContext>::value, int> = 0>
@@ -198,8 +168,6 @@ export class out_of_range: public exception {
     JSON_HEDLEY_NON_NULL(3)
     CORE_API out_of_range(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
-
-
 
 export class other_error: public exception {
   public:

@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 typedef unsigned int T;
@@ -31,15 +27,14 @@ int main (void)
   cl_arg_types[1] = &sffi_type_uint;
   cl_arg_types[2] = NULL;
 
-  
   CHECK(sffi_prep_cif_var(&cif, SFFI_DEFAULT_ABI, 1, 2,
 			 &sffi_type_uint, cl_arg_types) == SFFI_OK);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_ret_T_fn, NULL, code)  == SFFI_OK);
   res = ((((cls_ret_T)code)(67, 4)));
-  
+
   printf("res: %d\n", res);
-  
+
   CHECK(res == 67);
   exit(0);
 }

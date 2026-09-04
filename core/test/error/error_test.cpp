@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include <concepts>
 #include <expected>
 #include <memory>
@@ -49,7 +43,6 @@ TEST_CASE("result 失败路径：error_code 可用、!has_value") {
 TEST_CASE("category_deleter 契约：可调用、noexcept、包真实 category 不释放") {
     static_assert(std::is_invocable_v<category_deleter, const std::error_category*>);
     static_assert(noexcept(std::declval<category_deleter>()(std::declval<const std::error_category*>())));
-
 
     std::unique_ptr<const std::error_category, category_deleter> hold{&std::system_category()};
     REQUIRE(hold.get() == &std::system_category());

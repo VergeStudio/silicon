@@ -1,12 +1,10 @@
 module;
 
-
 #include <atomic>
 #include <memory>
 #include <expected>
 #include <system_error>
 #include <coroutine>
-
 
 export module silicon.coroutine:shared_mutex;
 
@@ -17,7 +15,6 @@ import silicon.coroutine.error;
 export namespace silicon::coroutine {
 template<silicon::scheduler::concepts::executor executor_type>
 class shared_mutex;
-
 
 template<silicon::scheduler::concepts::executor executor_type>
 struct shared_lock_operation {
@@ -32,7 +29,6 @@ struct shared_lock_operation {
     shared_lock_operation & operator=(shared_lock_operation &&) = delete;
 
     bool await_ready() const noexcept {
-
 
         if(m_exclusive) {
             if(m_shared_mutex.try_lock_locked()) {
@@ -49,8 +45,6 @@ struct shared_lock_operation {
 
     bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
 
-
-
         auto *tail_waiter = m_shared_mutex.m_p->m_tail_waiter.load(std::memory_order::acquire);
 
         if(tail_waiter == nullptr) {
@@ -60,8 +54,6 @@ struct shared_lock_operation {
             tail_waiter->m_next = this;
             m_shared_mutex.m_p->m_tail_waiter = this;
         }
-
-
 
         if(m_exclusive) {
             ++m_shared_mutex.m_p->m_exclusive_waiters;
@@ -83,19 +75,17 @@ struct shared_lock_operation {
     bool m_exclusive{false};
 };
 
-
-
 template<silicon::scheduler::concepts::executor executor_type>
 class shared_mutex {
   public:
-    
+
   private:
     explicit shared_mutex(std::unique_ptr<executor_type> &e): m_p(std::make_unique<impl>()) {
         m_p->m_executor = e.get();
     }
 
   public:
-    
+
     static std::expected<std::unique_ptr<shared_mutex<executor_type>>, std::error_code> create(std::unique_ptr<executor_type> &e) {
         if(e == nullptr) {
             return std::unexpected(make_error_code(coroutine_error::kNullExecutor));
@@ -112,7 +102,6 @@ class shared_mutex {
     shared_mutex & operator=(const shared_mutex &) = delete;
     shared_mutex & operator=(shared_mutex &&) = delete;
 
-    
     [[nodiscard]] silicon::scheduler::task<void> scoped_lock_shared(silicon::scheduler::task<void> scoped_task) {
         co_await m_p->m_mutex.lock();
         co_await shared_lock_operation<executor_type>{*this, false};
@@ -121,7 +110,6 @@ class shared_mutex {
         co_return;
     }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> scoped_lock(silicon::scheduler::task<void> scoped_task) {
         co_await m_p->m_mutex.lock();
         co_await shared_lock_operation<executor_type>{*this, true};
@@ -130,27 +118,19 @@ class shared_mutex {
         co_return;
     }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> lock_shared() {
         co_await m_p->m_mutex.lock();
         co_await shared_lock_operation<executor_type>{*this, false};
         co_return;
     }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> lock() {
         co_await m_p->m_mutex.lock();
         co_await shared_lock_operation<executor_type>{*this, true};
         co_return;
     }
 
-    
     [[nodiscard]] bool try_lock_shared() {
-
-
-
-
-
 
         if(m_p->m_mutex.try_lock()) {
             silicon::coroutine::scoped_lock lk{m_p->m_mutex};
@@ -159,7 +139,6 @@ class shared_mutex {
         return false;
     }
 
-    
     [[nodiscard]] bool try_lock() {
 
         if(m_p->m_mutex.try_lock()) {
@@ -169,11 +148,9 @@ class shared_mutex {
         return false;
     }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> unlock_shared() {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         auto users = m_p->m_shared_users.fetch_sub(1, std::memory_order::acq_rel);
-
 
         if(users == 1) {
             auto *head_waiter = m_p->m_head_waiter.load(std::memory_order::acquire);
@@ -187,7 +164,6 @@ class shared_mutex {
         co_return;
     }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> unlock() {
         auto lk = co_await m_p->m_mutex.scoped_lock();
         auto *head_waiter = m_p->m_head_waiter.load(std::memory_order::acquire);
@@ -200,7 +176,6 @@ class shared_mutex {
         co_return;
     }
 
-    
     [[nodiscard]] executor_type & executor() {
         return *m_p->m_executor;
     }
@@ -226,7 +201,6 @@ class shared_mutex {
 
         std::atomic<state> m_state{state::unlocked};
 
-
         std::atomic<uint64_t> m_shared_users{0};
 
         std::atomic<uint64_t> m_exclusive_waiters{0};
@@ -245,15 +219,9 @@ class shared_mutex {
             return true;
         } else if(m_p->m_state == state::locked_shared && m_p->m_exclusive_waiters == 0) {
 
-
             ++m_p->m_shared_users;
             return true;
         }
-
-
-
-
-
 
         return false;
     }
@@ -282,11 +250,9 @@ class shared_mutex {
 
             m_p->m_exclusive_waiters.fetch_sub(1, std::memory_order::release);
 
-
             lk.unlock();
             head_waiter->m_awaiting_coroutine.resume();
         } else {
-
 
             m_p->m_state.store(state::locked_shared, std::memory_order::release);
             while(true) {
@@ -306,9 +272,6 @@ class shared_mutex {
 
                 m_p->m_executor->resume(to_resume->m_awaiting_coroutine);
             }
-
-
-
 
             lk.unlock();
         }

@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 #include <stddef.h>
 

@@ -1,7 +1,5 @@
 module;
 
-
-
 #include <array>
 #include <atomic>
 #include <coroutine>
@@ -13,10 +11,6 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-
-
-
-
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::produce_operation::produce_operation(ring_buffer<element, num_elements> &rb, element e)
     : m_rb(rb),
@@ -25,7 +19,6 @@ ring_buffer<element, num_elements>::produce_operation::produce_operation(ring_bu
 template<typename element, size_t num_elements>
 bool ring_buffer<element, num_elements>::produce_operation::await_ready() noexcept {
     auto &mutex = m_rb.m_p->m_mutex;
-
 
     if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
         m_result = ring_buffer_result::produce::kStopped;
@@ -58,10 +51,6 @@ auto ring_buffer<element, num_elements>::produce_operation::await_resume() -> ri
     return m_result;
 }
 
-
-
-
-
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::consume_operation::consume_operation(ring_buffer<element, num_elements> &rb)
     : m_rb(rb) {}
@@ -69,7 +58,6 @@ ring_buffer<element, num_elements>::consume_operation::consume_operation(ring_bu
 template<typename element, size_t num_elements>
 bool ring_buffer<element, num_elements>::consume_operation::await_ready() noexcept {
     auto &mutex = m_rb.m_p->m_mutex;
-
 
     if(m_rb.m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
         m_result = ring_buffer_result::consume::kStopped;
@@ -106,10 +94,6 @@ auto ring_buffer<element, num_elements>::consume_operation::await_resume() -> si
         return silicon::scheduler::unexpected<ring_buffer_result::consume>(m_result);
     }
 }
-
-
-
-
 
 template<typename element, size_t num_elements>
 ring_buffer<element, num_elements>::ring_buffer()
@@ -258,10 +242,6 @@ silicon::scheduler::task<void> ring_buffer<element, num_elements>::shutdown_drai
 
 template<typename element, size_t num_elements>
 bool ring_buffer<element, num_elements>::is_shutdown() const { return m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning; }
-
-
-
-
 
 template<typename element, size_t num_elements>
 silicon::scheduler::task<void> ring_buffer<element, num_elements>::try_resume_producers() {

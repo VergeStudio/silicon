@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -31,13 +18,8 @@ import :detail.input.input_adapters;
 import :detail.input.position_t;
 import :detail.meta.type_traits;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
-
-
-
 
 export template<typename BasicJsonType>
 class lexer_base {
@@ -62,7 +44,6 @@ class lexer_base {
         end_of_input,
         literal_or_value
     };
-
 
     JSON_HEDLEY_RETURNS_NON_NULL
     JSON_HEDLEY_CONST
@@ -123,7 +104,6 @@ class lexer: public lexer_base<BasicJsonType> {
     explicit lexer(InputAdapterType &&adapter, bool ignore_comments_ = false) noexcept
         : ia(std::move(adapter)), ignore_comments(ignore_comments_), decimal_point_char(static_cast<char_int_type>(get_decimal_point())) {}
 
-
     lexer(const lexer &) = delete;
     lexer(lexer &&) = default;
     lexer &operator=(lexer &) = delete;
@@ -132,10 +112,6 @@ class lexer: public lexer_base<BasicJsonType> {
 
   private:
 
-
-
-
-
     JSON_HEDLEY_PURE
     static char get_decimal_point() noexcept {
         const auto *loc = localeconv();
@@ -143,11 +119,6 @@ class lexer: public lexer_base<BasicJsonType> {
         return (loc->decimal_point == nullptr) ? '.' : *(loc->decimal_point);
     }
 
-
-
-
-
-    
     int get_codepoint() {
 
         JSON_ASSERT(current == 'u');
@@ -172,7 +143,6 @@ class lexer: public lexer_base<BasicJsonType> {
         return codepoint;
     }
 
-    
     bool next_byte_in_range(std::initializer_list<char_int_type> ranges) {
         JSON_ASSERT(ranges.size() == 2 || ranges.size() == 4 || ranges.size() == 6);
         add(current);
@@ -191,11 +161,9 @@ class lexer: public lexer_base<BasicJsonType> {
         return true;
     }
 
-    
     token_type scan_string() {
 
         reset();
-
 
         JSON_ASSERT(current == '\"');
 
@@ -208,11 +176,9 @@ class lexer: public lexer_base<BasicJsonType> {
                     return token_type::parse_error;
                 }
 
-
                 case '\"': {
                     return token_type::value_string;
                 }
-
 
                 case '\\': {
                     switch(get()) {
@@ -249,7 +215,6 @@ class lexer: public lexer_base<BasicJsonType> {
                             add('\t');
                             break;
 
-
                         case 'u': {
                             const int codepoint1 = get_codepoint();
                             int codepoint = codepoint1;
@@ -258,7 +223,6 @@ class lexer: public lexer_base<BasicJsonType> {
                                 error_message = "invalid string: '\\u' must be followed by 4 hex digits";
                                 return token_type::parse_error;
                             }
-
 
                             if(0xD800 <= codepoint1 && codepoint1 <= 0xDBFF) {
 
@@ -270,7 +234,6 @@ class lexer: public lexer_base<BasicJsonType> {
                                         return token_type::parse_error;
                                     }
 
-
                                     if(JSON_HEDLEY_LIKELY(0xDC00 <= codepoint2 && codepoint2 <= 0xDFFF)) {
 
                                         codepoint = static_cast<int>(
@@ -278,8 +241,6 @@ class lexer: public lexer_base<BasicJsonType> {
                                                 (static_cast<unsigned int>(codepoint1) << 10u)
 
                                                 + static_cast<unsigned int>(codepoint2)
-
-
 
                                                 - 0x35FDC00u
                                         );
@@ -298,9 +259,7 @@ class lexer: public lexer_base<BasicJsonType> {
                                 }
                             }
 
-
                             JSON_ASSERT(0x00 <= codepoint && codepoint <= 0x10FFFF);
-
 
                             if(codepoint < 0x80) {
 
@@ -325,7 +284,6 @@ class lexer: public lexer_base<BasicJsonType> {
                             break;
                         }
 
-
                         default:
                             error_message = "invalid string: forbidden character after backslash";
                             return token_type::parse_error;
@@ -333,7 +291,6 @@ class lexer: public lexer_base<BasicJsonType> {
 
                     break;
                 }
-
 
                 case 0x00: {
                     error_message = "invalid string: control character U+0000 (NUL) must be escaped to \\u0000";
@@ -495,7 +452,6 @@ class lexer: public lexer_base<BasicJsonType> {
                     return token_type::parse_error;
                 }
 
-
                 case 0x20:
                 case 0x21:
                 case 0x23:
@@ -594,7 +550,6 @@ class lexer: public lexer_base<BasicJsonType> {
                     break;
                 }
 
-
                 case 0xC2:
                 case 0xC3:
                 case 0xC4:
@@ -631,15 +586,12 @@ class lexer: public lexer_base<BasicJsonType> {
                     break;
                 }
 
-
                 case 0xE0: {
                     if(JSON_HEDLEY_UNLIKELY(!(next_byte_in_range({0xA0, 0xBF, 0x80, 0xBF})))) {
                         return token_type::parse_error;
                     }
                     break;
                 }
-
-
 
                 case 0xE1:
                 case 0xE2:
@@ -661,7 +613,6 @@ class lexer: public lexer_base<BasicJsonType> {
                     break;
                 }
 
-
                 case 0xED: {
                     if(JSON_HEDLEY_UNLIKELY(!(next_byte_in_range({0x80, 0x9F, 0x80, 0xBF})))) {
                         return token_type::parse_error;
@@ -669,14 +620,12 @@ class lexer: public lexer_base<BasicJsonType> {
                     break;
                 }
 
-
                 case 0xF0: {
                     if(JSON_HEDLEY_UNLIKELY(!(next_byte_in_range({0x90, 0xBF, 0x80, 0xBF, 0x80, 0xBF})))) {
                         return token_type::parse_error;
                     }
                     break;
                 }
-
 
                 case 0xF1:
                 case 0xF2:
@@ -687,14 +636,12 @@ class lexer: public lexer_base<BasicJsonType> {
                     break;
                 }
 
-
                 case 0xF4: {
                     if(JSON_HEDLEY_UNLIKELY(!(next_byte_in_range({0x80, 0x8F, 0x80, 0xBF, 0x80, 0xBF})))) {
                         return token_type::parse_error;
                     }
                     break;
                 }
-
 
                 default: {
                     error_message = "invalid string: ill-formed UTF-8 byte";
@@ -704,7 +651,6 @@ class lexer: public lexer_base<BasicJsonType> {
         }
     }
 
-    
     bool scan_comment() {
         switch(get()) {
 
@@ -722,7 +668,6 @@ class lexer: public lexer_base<BasicJsonType> {
                     }
                 }
             }
-
 
             case '*': {
                 while(true) {
@@ -751,7 +696,6 @@ class lexer: public lexer_base<BasicJsonType> {
                 }
             }
 
-
             default: {
                 error_message = "invalid comment; expecting '/' or '*' after '/'";
                 return false;
@@ -774,16 +718,12 @@ class lexer: public lexer_base<BasicJsonType> {
         f = std::strtold(str, endptr);
     }
 
-    
     token_type scan_number()
     {
 
         reset();
 
-
-
         token_type number_type = token_type::value_unsigned;
-
 
         switch(current) {
             case '-': {
@@ -808,7 +748,6 @@ class lexer: public lexer_base<BasicJsonType> {
                 add(current);
                 goto scan_number_any1;
             }
-
 
             default:
                 JSON_ASSERT(false);
@@ -1020,16 +959,13 @@ class lexer: public lexer_base<BasicJsonType> {
 
     scan_number_done:
 
-
         unget();
 
         char *endptr = nullptr;
         errno = 0;
 
-
         if(number_type == token_type::value_unsigned) {
             const auto x = std::strtoull(token_buffer.data(), &endptr, 10);
-
 
             JSON_ASSERT(endptr == token_buffer.data() + token_buffer.size());
 
@@ -1042,7 +978,6 @@ class lexer: public lexer_base<BasicJsonType> {
         } else if(number_type == token_type::value_integer) {
             const auto x = std::strtoll(token_buffer.data(), &endptr, 10);
 
-
             JSON_ASSERT(endptr == token_buffer.data() + token_buffer.size());
 
             if(errno == 0) {
@@ -1053,17 +988,13 @@ class lexer: public lexer_base<BasicJsonType> {
             }
         }
 
-
-
         strtof(value_float, token_buffer.data(), &endptr);
-
 
         JSON_ASSERT(endptr == token_buffer.data() + token_buffer.size());
 
         return token_type::value_float;
     }
 
-    
     JSON_HEDLEY_NON_NULL(2)
     token_type scan_literal(const char_type *literal_text, const std::size_t length, token_type return_type) {
         JSON_ASSERT(char_traits<char_type>::to_char_type(current) == literal_text[0]);
@@ -1076,18 +1007,12 @@ class lexer: public lexer_base<BasicJsonType> {
         return return_type;
     }
 
-
-
-
-
-
     void reset() noexcept {
         token_buffer.clear();
         token_string.clear();
         token_string.push_back(char_traits<char_type>::to_char_type(current));
     }
 
-    
     char_int_type get() {
         ++position.chars_read_total;
         ++position.chars_read_current_line;
@@ -1111,12 +1036,10 @@ class lexer: public lexer_base<BasicJsonType> {
         return current;
     }
 
-    
     void unget() {
         next_unget = true;
 
         --position.chars_read_total;
-
 
         if(position.chars_read_current_line == 0) {
             if(position.lines_read > 0) {
@@ -1132,47 +1055,31 @@ class lexer: public lexer_base<BasicJsonType> {
         }
     }
 
-
     void add(char_int_type c) {
         token_buffer.push_back(static_cast<typename string_t::value_type>(c));
     }
 
   public:
 
-
-
-
-
     constexpr number_integer_t get_number_integer() const noexcept {
         return value_integer;
     }
-
 
     constexpr number_unsigned_t get_number_unsigned() const noexcept {
         return value_unsigned;
     }
 
-
     constexpr number_float_t get_number_float() const noexcept {
         return value_float;
     }
-
 
     string_t &get_string() {
         return token_buffer;
     }
 
-
-
-
-
-
     constexpr position_t get_position() const noexcept {
         return position;
     }
-
-
-
 
     std::string get_token_string() const {
 
@@ -1192,24 +1099,16 @@ class lexer: public lexer_base<BasicJsonType> {
         return result;
     }
 
-
     JSON_HEDLEY_RETURNS_NON_NULL
     constexpr const char *get_error_message() const noexcept {
         return error_message;
     }
 
-
-
-
-
-    
     bool skip_bom() {
         if(get() == 0xEF) {
 
             return get() == 0xBB && get() == 0xBF;
         }
-
-
 
         unget();
         return true;
@@ -1228,15 +1127,12 @@ class lexer: public lexer_base<BasicJsonType> {
             return token_type::parse_error;
         }
 
-
         skip_whitespace();
-
 
         while(ignore_comments && current == '/') {
             if(!scan_comment()) {
                 return token_type::parse_error;
             }
-
 
             skip_whitespace();
         }
@@ -1256,7 +1152,6 @@ class lexer: public lexer_base<BasicJsonType> {
             case ',':
                 return token_type::value_separator;
 
-
             case 't': {
                 std::array<char_type, 4> true_literal = {{static_cast<char_type>('t'), static_cast<char_type>('r'), static_cast<char_type>('u'), static_cast<char_type>('e')}};
                 return scan_literal(true_literal.data(), true_literal.size(), token_type::literal_true);
@@ -1270,10 +1165,8 @@ class lexer: public lexer_base<BasicJsonType> {
                 return scan_literal(null_literal.data(), null_literal.size(), token_type::literal_null);
             }
 
-
             case '\"':
                 return scan_string();
-
 
             case '-':
             case '0':
@@ -1288,12 +1181,9 @@ class lexer: public lexer_base<BasicJsonType> {
             case '9':
                 return scan_number();
 
-
-
             case '\0':
             case char_traits<char_type>::eof():
                 return token_type::end_of_input;
-
 
             default:
                 error_message = "invalid literal";
@@ -1305,32 +1195,23 @@ class lexer: public lexer_base<BasicJsonType> {
 
     InputAdapterType ia;
 
-
     const bool ignore_comments = false;
-
 
     char_int_type current = char_traits<char_type>::eof();
 
-
     bool next_unget = false;
-
 
     position_t position{};
 
-
     std::vector<char_type> token_string{};
-
 
     string_t token_buffer{};
 
-
     const char *error_message = "";
-
 
     number_integer_t value_integer = 0;
     number_unsigned_t value_unsigned = 0;
     number_float_t value_float = 0;
-
 
     const char_int_type decimal_point_char = '.';
 };

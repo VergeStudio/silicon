@@ -1,5 +1,3 @@
-
-
 module;
 
 #include <string>
@@ -10,7 +8,6 @@ module silicon.network;
 
 import silicon.coroutine;
 
-
 std::string silicon::network::io_status::message() const {
     if(not is_native()) {
         return std::string{to_string(type)};
@@ -20,15 +17,12 @@ std::string silicon::network::io_status::message() const {
         return "Success";
     }
 
-
     return message_impl(native_code);
 }
-
 
 silicon::network::io_status silicon::network::make_io_status_from_native(int native_code) {
     return make_io_status_from_native_impl(native_code);
 }
-
 
 silicon::network::io_status silicon::network::make_io_status_from_poll_status(silicon::scheduler::poll_status status) {
     switch(status) {
@@ -47,7 +41,6 @@ silicon::network::io_status silicon::network::make_io_status_from_poll_status(si
             return io_status{io_status::kind::kUnknown};
     }
 }
-
 
 std::string_view silicon::network::to_string(silicon::network::io_status::kind k) {
     using kind = io_status::kind;

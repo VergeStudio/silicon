@@ -1,6 +1,5 @@
 module;
 
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -19,7 +18,6 @@ module;
 module silicon.scheduler;
 
 import :poll_info_impl;
-
 
 namespace silicon::scheduler {
 
@@ -65,11 +63,6 @@ auto to_string(poll_status status) -> const std::string & {
     }
 }
 
-
-
-
-
-
 struct poll_stop_token::impl {
   public:
     fd_t m_receiver{-1};
@@ -95,11 +88,6 @@ auto poll_stop_token::operator=(const poll_stop_token &other) -> poll_stop_token
 auto poll_stop_token::native_handle() const -> fd_t {
     return m_p->m_receiver;
 }
-
-
-
-
-
 
 struct poll_stop_source::impl {
   public:

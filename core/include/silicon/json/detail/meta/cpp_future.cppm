@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -22,7 +9,6 @@ module;
 
 export module silicon.json:detail.meta.cpp_future;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
 
@@ -31,7 +17,6 @@ using uncvref_t = typename std::remove_cv<typename std::remove_reference<T>::typ
 
 #ifdef JSON_HAS_CPP_14
 
-
 export using std::enable_if_t;
 export using std::index_sequence;
 export using std::index_sequence_for;
@@ -39,33 +24,8 @@ export using std::make_index_sequence;
 
 #else
 
-
 export template<bool B, typename T = void>
 using enable_if_t = typename std::enable_if<B, T>::type;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export template<typename T, T... Ints>
 struct integer_sequence {
@@ -75,11 +35,6 @@ struct integer_sequence {
     }
 };
 
-
-
-
-
-
 export template<size_t... Ints>
 using index_sequence = integer_sequence<size_t, Ints...>;
 
@@ -87,7 +42,6 @@ namespace utility_internal {
 
 export template<typename Seq, size_t SeqSize, size_t Rem>
 struct Extend;
-
 
 export template<typename T, T... Ints, size_t SeqSize>
 struct Extend<integer_sequence<T, Ints...>, SeqSize, 0> {
@@ -98,8 +52,6 @@ export template<typename T, T... Ints, size_t SeqSize>
 struct Extend<integer_sequence<T, Ints...>, SeqSize, 1> {
     using type = integer_sequence<T, Ints..., (Ints + SeqSize)..., 2 * SeqSize>;
 };
-
-
 
 export template<typename T, size_t N>
 struct Gen {
@@ -114,42 +66,21 @@ struct Gen<T, 0> {
 
 }
 
-
-
-
-
-
-
-
 export template<typename T, T N>
 using make_integer_sequence = typename utility_internal::Gen<T, N>::type;
-
-
-
-
-
 
 export template<size_t N>
 using make_index_sequence = make_integer_sequence<size_t, N>;
 
-
-
-
-
-
 export template<typename... Ts>
 using index_sequence_for = make_index_sequence<sizeof...(Ts)>;
 
-
-
 #endif
-
 
 export template<unsigned N>
 struct priority_tag: priority_tag<N - 1> {};
 export template<>
 struct priority_tag<0> {};
-
 
 export template<typename T>
 struct static_const {

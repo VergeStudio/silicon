@@ -17,14 +17,10 @@ import :poll_info_impl;
 
 namespace silicon::scheduler {
 
-
-
-
 static auto make_spawned_joinable_wait_task(std::unique_ptr<task_group<run_loop>> group_ptr) -> task<void> {
     co_await *group_ptr;
     co_return;
 }
-
 
 struct run_loop::impl {
     std::mutex m_mutex{};
@@ -37,7 +33,6 @@ struct run_loop::impl {
 run_loop::run_loop(): m_impl(std::make_unique<impl>()) {}
 
 run_loop::~run_loop() {
-
 
     finish();
 }
@@ -90,8 +85,6 @@ bool run_loop::resume(std::coroutine_handle<> handle) noexcept {
 
 bool run_loop::spawn_detached(task<void> &&task) noexcept {
     auto &impl = *m_impl;
-
-
 
     impl.m_size.fetch_add(1, std::memory_order::release);
     auto wrapper = make_task_self_deleting(std::move(task));

@@ -1,9 +1,3 @@
-
-
-
-
-
-
 module;
 
 #include <cstdint>

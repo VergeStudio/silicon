@@ -1,6 +1,5 @@
 module;
 
-
 #include <optional>
 #include <memory>
 #include <utility>
@@ -16,23 +15,20 @@ import silicon.scheduler.task;
 export namespace silicon::coroutine {
 
 enum class queue_produce_result {
-    
+
     kProduced,
-    
+
     kStopped
 };
 
 enum class queue_consume_result {
-    
+
     kStopped,
 
-    
     kTryLockFailure,
 
-    
     kEmpty,
 };
-
 
 template<typename element_type>
 class queue {
@@ -66,36 +62,26 @@ class queue {
     queue & operator=(const queue &) = delete;
     queue & operator=(queue &&other) = delete;
 
-    
     bool empty() const ;
 
-    
     std::size_t size() const ;
 
-    
     silicon::scheduler::task<queue_produce_result> push(const element_type &) ;
 
-    
     silicon::scheduler::task<queue_produce_result> push(element_type &&element) ;
 
-    
     template<typename... args_type>
     silicon::scheduler::task<queue_produce_result> emplace(args_type &&...) ;
 
-    
     [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element_type, queue_consume_result>> pop() ;
 
-    
     [[nodiscard]] silicon::scheduler::expected<element_type, queue_consume_result> try_pop() ;
 
-    
     silicon::scheduler::task<void> shutdown() ;
 
-    
     template<silicon::scheduler::concepts::executor executor_type>
     silicon::scheduler::task<void> shutdown_drain(std::unique_ptr<executor_type> &) ;
 
-    
     [[nodiscard]] bool is_shutdown() const ;
 
   private:

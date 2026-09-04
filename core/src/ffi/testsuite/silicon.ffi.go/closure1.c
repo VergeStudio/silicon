@@ -1,5 +1,3 @@
-
-
 #include "ffitest.h"
 
 void doit(sffi_cif *cif, void *rvalue, void **avalue, void *closure)

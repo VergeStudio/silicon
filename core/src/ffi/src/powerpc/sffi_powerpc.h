@@ -1,8 +1,3 @@
-
-
-
-
-
 #define PPC_LD_NONE 0
 #define PPC_LD_R3 1
 #define PPC_LD_R3R4 2
@@ -21,9 +16,7 @@
 #    define PPC_LD_PTR PPC_LD_R3
 #    define PPC_LD_I64 PPC_LD_R3R4
 
-
 #    define PPC32_LD_R3R6 10
-
 
 #    ifdef __LITTLE_ENDIAN__
 #        define PPC32_SYSV_LD_STRUCT_3 PPC32_LD_R3
@@ -43,7 +36,6 @@
 #    define PPC_LD_S32 11
 #    define PPC_LD_PTR PPC_LD_R3
 #    define PPC_LD_I64 PPC_LD_R3
-
 
 #    define PPC64_LD_VECTOR 12
 #    define PPC64_LD_VECTOR_HOMOG 13
@@ -66,20 +58,17 @@
 #ifndef SILICON_FFI_ASM
 
 enum {
-    
-    
+
     FLAG_RETURNS_SMST = 1 << (31 - 31), 
     FLAG_RETURNS_NOTHING = 1 << (31 - 30),
     FLAG_RETURNS_FP = 1 << (31 - 29),
     FLAG_RETURNS_VEC = 1 << (31 - 28),
 
-    
     FLAG_RETURNS_64BITS = 1 << (31 - 27),
     FLAG_RETURNS_128BITS = 1 << (31 - 26),
 
     FLAG_COMPAT = 1 << (31 - 8), 
 
-    
     FLAG_ARG_NEEDS_COPY = 1 << (31 - 7),        
     FLAG_ARG_NEEDS_PSAVE = FLAG_ARG_NEEDS_COPY, 
     FLAG_FP_ARGUMENTS = 1 << (31 - 6),          

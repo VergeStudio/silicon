@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 static unsigned long return_ul(unsigned long ul1, unsigned long ul2)
 {
@@ -30,7 +27,7 @@ int main (void)
 
   sffi_call(&cif, SFFI_FN(return_ul), &res, values);
   printf("res: %lu, %lu\n", (unsigned long)res, ul1 + ul2);
-  
+
   CHECK(res == 2147483647L);
   CHECK(ul1 + ul2 == 2147483647L);
 

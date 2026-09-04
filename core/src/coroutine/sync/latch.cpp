@@ -12,9 +12,7 @@ struct latch::impl {
   public:
     explicit impl(std::int64_t count) noexcept: m_count(count), m_event(count <= 0) {}
 
-
     std::atomic<std::int64_t> m_count;
-
 
     event m_event;
 };

@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct struct_72byte {
@@ -100,19 +97,17 @@ int main (void)
 	args_dbl[4] = NULL;
 
 	sffi_call(&cif, SFFI_FN(cls_struct_72byte_fn), &res_dbl, args_dbl);
-	
+
 	printf("res: %g %g %g %g %g %g %g %g %g\n", res_dbl.a, res_dbl.b, res_dbl.c,
 		res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h, res_dbl.i);
-	
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_72byte_gn, NULL, code) == SFFI_OK);
 
 	res_dbl = ((struct_72byte(*)(struct_72byte, struct_72byte,
 		struct_72byte, struct_72byte))(code))(e_dbl, f_dbl, g_dbl, h_dbl);
-	
+
 	printf("res: %g %g %g %g %g %g %g %g %g\n", res_dbl.a, res_dbl.b, res_dbl.c,
 		res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h, res_dbl.i);
-	
 
 	exit(0);
 }

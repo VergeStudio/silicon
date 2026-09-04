@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_64byte {
@@ -105,10 +102,10 @@ int main (void)
   args_dbl[4] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_64byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %g %g %g %g %g %g %g %g\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h);
-  
+
   CHECK(res_dbl.a == 22);
   CHECK(res_dbl.b == 15);
   CHECK(res_dbl.c == 17);
@@ -125,10 +122,10 @@ int main (void)
 				   cls_struct_64byte,
 				   cls_struct_64byte))
 	     (code))(e_dbl, f_dbl, g_dbl, h_dbl);
-  
+
   printf("res: %g %g %g %g %g %g %g %g\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e, res_dbl.f, res_dbl.g, res_dbl.h);
-  
+
   CHECK(res_dbl.a == 22);
   CHECK(res_dbl.b == 15);
   CHECK(res_dbl.c == 17);

@@ -24,8 +24,6 @@ import silicon.core;
 
 namespace silicon::ai::llm {
 
-
-
 struct http_provider::http_result::impl {
   public:
     int status_ = 0;
@@ -45,8 +43,6 @@ int &http_provider::http_result::status() { return impl_->status_; }
 const int &http_provider::http_result::status() const { return impl_->status_; }
 std::string &http_provider::http_result::body() { return impl_->body_; }
 const std::string &http_provider::http_result::body() const { return impl_->body_; }
-
-
 
 struct tool_registry::impl {
   public:
@@ -265,6 +261,5 @@ result<chat_response> http_provider::chat(const conversation &conv, const model_
     }
     return impl_->adapter_.decode_response(r.body());
 }
-
 
 }

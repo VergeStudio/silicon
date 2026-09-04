@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -23,11 +10,9 @@ module;
 
 export module silicon.json:detail.meta.std_fs;
 
-
 #if JSON_HAS_EXPERIMENTAL_FILESYSTEM
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 export namespace std_fs = std::experimental::filesystem;
 }

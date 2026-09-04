@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_16byte1 {
@@ -60,7 +57,6 @@ cls_struct_combined_gn(sffi_cif* cif __UNUSED__, void* resp, void** args,
   b2 = *(struct cls_struct_combined*)(args[2]);
   b3 = *(struct cls_struct_16byte1*)(args[3]);
 
-
   *(cls_struct_combined*)resp = cls_struct_combined_fn(b0, b1, b2, b3);
 }
 
@@ -112,7 +108,6 @@ int main (void)
   cls_struct_fields2[1] = &cls_struct_type1;
   cls_struct_fields2[2] = NULL;
 
-
   dbl_arg_types[0] = &cls_struct_type;
   dbl_arg_types[1] = &cls_struct_type1;
   dbl_arg_types[2] = &cls_struct_type2;
@@ -129,7 +124,7 @@ int main (void)
   args_dbl[4] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_combined_fn), &res_dbl, args_dbl);
-  
+
   CHECK( res_dbl.d.a == (e_dbl.a + f_dbl.dd + g_dbl.d.a));
   CHECK( res_dbl.d.b == (e_dbl.b + f_dbl.ff + g_dbl.d.b));
   CHECK( res_dbl.d.c == (e_dbl.c + f_dbl.ii + g_dbl.d.c));
@@ -144,13 +139,13 @@ int main (void)
 				     cls_struct_combined,
 				     cls_struct_16byte1))
 	     (code))(e_dbl, f_dbl, g_dbl, h_dbl);
-  
+
   CHECK( res_dbl.d.a == (e_dbl.a + f_dbl.dd + g_dbl.d.a));
   CHECK( res_dbl.d.b == (e_dbl.b + f_dbl.ff + g_dbl.d.b));
   CHECK( res_dbl.d.c == (e_dbl.c + f_dbl.ii + g_dbl.d.c));
   CHECK( res_dbl.e.ii == (e_dbl.c + f_dbl.ii + g_dbl.e.ii));
   CHECK( res_dbl.e.dd == (e_dbl.a + f_dbl.dd + g_dbl.e.dd));
   CHECK( res_dbl.e.ff == (e_dbl.b + f_dbl.ff + g_dbl.e.ff));
-  
+
   exit(0);
 }

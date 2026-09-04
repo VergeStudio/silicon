@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #ifdef SILICON_FEATURE_TLS
@@ -130,10 +119,9 @@ auto to_string(send_status) -> const std::string &;
 
 class CORE_API context {
   public:
-    
+
     static auto create(verify_peer_t = verify_peer_t::kYes) -> network::result<context>;
 
-    
     static auto create(
             std::filesystem::path,
             tls_file_type,
@@ -141,7 +129,6 @@ class CORE_API context {
             tls_file_type,
             verify_peer_t = verify_peer_t::kYes
     ) -> network::result<context>;
-
 
     context(const context &) = delete;
     context & operator=(const context &) = delete;
@@ -161,16 +148,11 @@ class CORE_API context {
 
     SSL_CTX *m_ssl_ctx{nullptr};
 
-
     friend client;
 
     SSL_CTX * native_handle() { return m_ssl_ctx; }
     const SSL_CTX * native_handle() const { return m_ssl_ctx; }
 };
-
-
-
-
 
 PRO_DEF_MEM_DISPATCH(MemTlsClientConnect, connect);
 
@@ -194,14 +176,11 @@ template<class T>
     return silicon::proxy::make_proxy_view<tls_client_facade>(target);
 }
 
-
-
-
 class server;
 
 class client final {
   public:
-    
+
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
             std::shared_ptr<context>,
@@ -214,15 +193,11 @@ class client final {
     client & operator=(client &&other) noexcept ;
     ~client();
 
-    
     [[nodiscard]] auto socket() -> network::socket & { return m_socket; }
     [[nodiscard]] auto socket() const -> const network::socket & { return m_socket; }
-    
 
-    
     auto connect(std::chrono::milliseconds = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status>;
 
-    
     template<
             silicon::scheduler::concepts::mutable_buffer buffer_type,
             typename element_type = typename silicon::scheduler::concepts::mutable_buffer_traits<buffer_type>::element_type>
@@ -293,7 +268,6 @@ class client final {
         }
     }
 
-    
     template<
             silicon::scheduler::concepts::const_buffer buffer_type,
             typename element_type = typename silicon::scheduler::concepts::const_buffer_traits<buffer_type>::element_type>
@@ -368,7 +342,6 @@ class client final {
         }
     }
 
-    
     silicon::scheduler::task<void> shutdown() {
         co_await shutdown(std::chrono::seconds{30});
     }
@@ -380,17 +353,15 @@ class client final {
             co_return;
         }
 
-
         if(m_tls_info.m_tls_ptr != nullptr && !m_tls_info.m_tls_error) {
             co_await tls_shutdown_and_free(std::chrono::duration_cast<std::chrono::milliseconds>(timeout));
         }
     }
 
   private:
-    
+
     auto handshake(std::chrono::milliseconds = std::chrono::milliseconds{0}) -> silicon::scheduler::task<connection_status>;
 
-    
     auto poll(silicon::scheduler::poll_op op, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<poll_status> {
         return m_scheduler->poll(m_socket.native_handle(), op, timeout);
@@ -432,7 +403,6 @@ class client final {
             return *this;
         }
 
-
         tls_connection_type m_tls_connection_type{tls_connection_type::connect};
 
         tls_unique_ptr m_tls_ptr{nullptr};
@@ -442,14 +412,10 @@ class client final {
         std::optional<connection_status> m_tls_connection_status{std::nullopt};
     };
 
-
     friend server;
     client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context>, network::socket, const network::socket_address &endpoint);
 
-
-
     client(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context>, const network::socket_address &endpoint, network::socket);
-
 
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
 
@@ -467,12 +433,6 @@ class client final {
 
     auto tls_shutdown_and_free(std::chrono::milliseconds = std::chrono::milliseconds{0}) -> silicon::scheduler::task<void>;
 };
-
-
-
-
-
-
 
 PRO_DEF_MEM_DISPATCH(MemTlsServerPoll, poll);
 PRO_DEF_MEM_DISPATCH(MemTlsServerAccept, accept);
@@ -507,7 +467,6 @@ class server final {
         int32_t backlog{128};
     };
 
-    
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
             std::shared_ptr<context>,
@@ -523,18 +482,14 @@ class server final {
     server & operator=(server &&other) ;
     ~server() = default;
 
-    
     auto poll(std::chrono::milliseconds timeout = std::chrono::milliseconds{0}) -> silicon::scheduler::task<silicon::scheduler::poll_status> {
         return m_scheduler->poll(m_accept_socket.native_handle(), silicon::scheduler::poll_op::read, timeout, m_cancel_trigger.get_token());
     }
 
-    
     auto accept(std::chrono::milliseconds = std::chrono::seconds{30}) -> silicon::scheduler::task<silicon::network::tls::client>;
 
-    
     [[nodiscard]] auto accept_socket() -> network::socket & { return m_accept_socket; }
     [[nodiscard]] auto accept_socket() const -> const network::socket & { return m_accept_socket; }
-    
 
     auto shutdown() {
         m_cancel_trigger.signal_stop();
@@ -544,7 +499,6 @@ class server final {
   private:
 
     server(silicon::scheduler::io_scheduler *scheduler, std::shared_ptr<context>, options, network::socket);
-
 
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
 

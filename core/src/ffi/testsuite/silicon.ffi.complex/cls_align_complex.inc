@@ -1,4 +1,3 @@
-
 #include "ffitest.h"
 #include <complex.h>
 
@@ -74,18 +73,16 @@ int main (void)
   args_c[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_align_fn), &res_c, args_c);
-  
+
   printf("res: %d %f,%fi %d\n",
 	 res_c.a, T_CONV  creal (res_c.b), T_CONV  cimag (res_c.b), res_c.c);
-  
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_align_gn, NULL, code) == SFFI_OK);
 
   res_c = ((cls_struct_align(*)(cls_struct_align, cls_struct_align))(code))(g_c, f_c);
-  
+
   printf("res: %d %f,%fi %d\n",
 	 res_c.a, T_CONV  creal (res_c.b), T_CONV  cimag (res_c.b), res_c.c);
-  
 
   exit(0);
 }

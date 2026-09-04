@@ -1,5 +1,3 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
@@ -12,8 +10,6 @@
 #        define S390X
 #    endif
 #endif
-
-
 
 #ifndef SILICON_FFI_ASM
 typedef unsigned long sffi_arg;
@@ -30,8 +26,6 @@ typedef enum sffi_abi {
 #define SFFI_TARGET_SPECIFIC_STACK_SPACE_ALLOCATION
 #define SFFI_TARGET_HAS_COMPLEX_TYPE
 #define SFFI_TARGET_HAS_INT128
-
-
 
 #define SFFI_CLOSURES 1
 #define SFFI_GO_CLOSURES 1

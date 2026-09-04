@@ -14,24 +14,14 @@ module;
 #include <silicon/proxy/proxy_macros.h>
 #include <silicon/common.h>
 
-
-
 #include <silicon/http/http_types.h>
 export module silicon.http;
 
 export import silicon.http.error;
 
-
 import silicon.proxy;
 
 export namespace silicon::http {
-
-
-
-
-
-
-
 
 PRO_DEF_MEM_DISPATCH(MemHttpClientRequest, request);
 struct http_client_facade : silicon::proxy::facade_builder
@@ -47,19 +37,16 @@ template <class T, class... Args>
         std::forward<Args>(args)...);
 }
 
-
 inline http_response get(const http_client_view &client, const std::string &url) {
     http_request req;
     req.url() = url;
     return client->request(req);
 }
 
-
 class CORE_API curl_http_client {
   public:
     http_response request(const http_request &) const;
 };
-
 
 class CORE_API fake_http_client {
 

@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static float return_fl(float fl)
@@ -17,7 +14,6 @@ int main (void)
   args[0] = &sffi_type_float;
   values[0] = &fl;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_float, args) == SFFI_OK);
 

@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -28,12 +15,8 @@ module;
 
 export module silicon.json:detail.output.output_adapters;
 
-
-
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 export template<typename CharType>
 struct output_adapter_protocol {
@@ -48,10 +31,8 @@ struct output_adapter_protocol {
     output_adapter_protocol &operator=(output_adapter_protocol &&) noexcept = default;
 };
 
-
 export template<typename CharType>
 using output_adapter_t = std::shared_ptr<output_adapter_protocol<CharType>>;
-
 
 export template<typename CharType, typename AllocatorType = std::allocator<CharType>>
 class output_vector_adapter: public output_adapter_protocol<CharType> {
@@ -93,7 +74,6 @@ class output_stream_adapter: public output_adapter_protocol<CharType> {
     std::basic_ostream<CharType> &stream;
 };
 #endif
-
 
 export template<typename CharType, typename StringType = std::basic_string<CharType>>
 class output_string_adapter: public output_adapter_protocol<CharType> {

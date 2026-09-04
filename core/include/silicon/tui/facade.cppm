@@ -13,15 +13,11 @@ module;
 #include <silicon/common.h>
 export module silicon.tui;
 
-
-
 import silicon.proxy;
 
 export import silicon.tui.error;
 
 export namespace silicon::tui {
-
-
 
 PRO_DEF_MEM_DISPATCH(MemTerminalType, terminal_type);
 PRO_DEF_MEM_DISPATCH(MemTerminalWidth, width);
@@ -63,8 +59,6 @@ class CORE_API default_terminal {
 };
 #endif
 
-
-
 PRO_DEF_MEM_DISPATCH(MemPtyCreate, create);
 PRO_DEF_MEM_DISPATCH(MemPtyWrite, write);
 PRO_DEF_MEM_DISPATCH(MemPtyRead, read);
@@ -89,8 +83,6 @@ template <class T>
 [[nodiscard]] pty_view make_pty_view(T &target) noexcept {
     return silicon::proxy::make_proxy_view<pty_facade>(target);
 }
-
-
 
 PRO_DEF_MEM_DISPATCH(MemRendererRender, render);
 PRO_DEF_MEM_DISPATCH(MemRendererClear, clear);

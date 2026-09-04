@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 static int checking(int a, short b, signed char c)
@@ -28,7 +24,6 @@ int main (void)
   args[2] = &sffi_type_schar;
   values[2] = &sc;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3,
 		     &sffi_type_sint, args) == SFFI_OK);
 

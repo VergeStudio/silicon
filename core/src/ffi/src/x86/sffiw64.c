@@ -1,5 +1,3 @@
-
-
 #if defined(__x86_64__) || defined(_M_AMD64)
 #include <sffi.h>
 #include <sffi_common.h>
@@ -46,13 +44,13 @@ EFI64(sffi_prep_cif_machdep)(sffi_cif *cif)
     default:
       break;
     case SFFI_TYPE_LONGDOUBLE:
-      
+
       if (cif->abi == SFFI_GNUW64)
 	flags = SFFI_TYPE_STRUCT;
       break;
     case SFFI_TYPE_COMPLEX:
       flags = SFFI_TYPE_STRUCT;
-      
+
     case SFFI_TYPE_STRUCT:
       switch (cif->rtype->size)
 	{
@@ -73,7 +71,6 @@ EFI64(sffi_prep_cif_machdep)(sffi_cif *cif)
     }
   cif->flags = flags;
 
-  
   n = cif->nargs;
   n += (flags == SFFI_TYPE_STRUCT);
   if (n < 4)
@@ -82,7 +79,6 @@ EFI64(sffi_prep_cif_machdep)(sffi_cif *cif)
 
   return SFFI_OK;
 }
-
 
 #if defined(_MSC_VER)
 #pragma runtime_checks("s", off)
@@ -102,7 +98,6 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 
   SFFI_ASSERT(cif->abi == SFFI_GNUW64 || cif->abi == SFFI_WIN64);
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
@@ -144,7 +139,6 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
   flags = cif->flags;
   rsize = 0;
 
-  
   if (rvalue == NULL)
     {
       if (flags == SFFI_TYPE_STRUCT)
@@ -210,7 +204,6 @@ EFI64(sffi_call_go)(sffi_cif *cif, void (*fn)(void), void *rvalue,
   sffi_call_int (cif, fn, rvalue, avalue, closure);
 }
 
-
 extern void sffi_closure_win64(void) SFFI_HIDDEN;
 #if defined(SFFI_EXEC_STATIC_TRAMP)
 extern void sffi_closure_win64_alt(void) SFFI_HIDDEN;
@@ -228,13 +221,13 @@ EFI64(sffi_prep_closure_loc)(sffi_closure* closure,
 		      void *codeloc MAYBE_UNUSED)
 {
   static const unsigned char trampoline[SFFI_TRAMPOLINE_SIZE - 8] = {
-    
+
     0xf3, 0x0f, 0x1e, 0xfa,
-    
+
     0x4c, 0x8d, 0x15, 0xf5, 0xff, 0xff, 0xff,
-    
+
     0xff, 0x25, 0x07, 0x00, 0x00, 0x00,
-    
+
     0x0f, 0x1f, 0x80, 0x00, 0x00, 0x00, 0x00
   };
   char *tramp = closure->tramp;
@@ -251,13 +244,12 @@ EFI64(sffi_prep_closure_loc)(sffi_closure* closure,
 #if defined(SFFI_EXEC_STATIC_TRAMP)
   if (sffi_tramp_is_present(closure))
     {
-      
+
       sffi_tramp_set_parms (closure->ftramp, sffi_closure_win64_alt, closure);
       goto out;
     }
 #endif
 
-  
   memcpy (tramp, trampoline, sizeof(trampoline));
   *(UINT64 *)(tramp + sizeof (trampoline)) = (uintptr_t)sffi_closure_win64;
 
@@ -301,7 +293,6 @@ struct win64_closure_frame
   UINT64 args[];
 };
 
-
 int SFFI_HIDDEN __attribute__((ms_abi))
 sffi_closure_win64_inner(sffi_cif *cif,
 			void (*fun)(sffi_cif*, void*, void**, void*),
@@ -316,7 +307,6 @@ sffi_closure_win64_inner(sffi_cif *cif,
   rvalue = frame->rvalue;
   nreg = 0;
 
-  
   flags = cif->flags;
   if (flags == SFFI_TYPE_STRUCT)
     {
@@ -346,7 +336,6 @@ sffi_closure_win64_inner(sffi_cif *cif,
       avalue[i] = a;
     }
 
-  
   fun (cif, rvalue, avalue, user_data);
   return flags;
 }

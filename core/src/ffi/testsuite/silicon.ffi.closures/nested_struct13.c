@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct A {
@@ -81,7 +78,6 @@ int main (void)
   cls_struct_fields1[1] = &cls_struct_type;
   cls_struct_fields1[2] = NULL;
 
-
   dbl_arg_types[0] = &sffi_type_float;
   dbl_arg_types[1] = &cls_struct_type1;
   dbl_arg_types[2] = NULL;
@@ -94,7 +90,7 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(B_fn), &res_dbl, args_dbl);
-  
+
   CHECK_FLOAT_EQ( res_dbl.x, (e_dbl + f_dbl.x));
   CHECK_FLOAT_EQ( res_dbl.y.a, (e_dbl + f_dbl.y.a));
   CHECK_FLOAT_EQ( res_dbl.y.b, (e_dbl + f_dbl.y.b));
@@ -102,7 +98,7 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, B_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((B(*)(float, B))(code))(e_dbl, f_dbl);
-  
+
   CHECK_FLOAT_EQ( res_dbl.x, (e_dbl + f_dbl.x));
   CHECK_FLOAT_EQ( res_dbl.y.a, (e_dbl + f_dbl.y.a));
   CHECK_FLOAT_EQ( res_dbl.y.b, (e_dbl + f_dbl.y.b));

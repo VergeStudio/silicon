@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct A {
@@ -84,7 +81,6 @@ int main (void)
   cls_struct_fields1[1] = &sffi_type_uchar;
   cls_struct_fields1[2] = NULL;
 
-
   dbl_arg_types[0] = &cls_struct_type;
   dbl_arg_types[1] = &cls_struct_type1;
   dbl_arg_types[2] = NULL;
@@ -97,16 +93,15 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(B_fn), &res_dbl, args_dbl);
-  
+
   CHECK( res_dbl.x.a == (e_dbl.a + f_dbl.x.a));
   CHECK( res_dbl.x.b == (e_dbl.b + f_dbl.x.b + f_dbl.y));
   CHECK( res_dbl.y == (e_dbl.b + f_dbl.x.b));
 
-
   CHECK(sffi_prep_closure_loc(pcl, &cif, B_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((B(*)(A, B))(code))(e_dbl, f_dbl);
-  
+
   CHECK( res_dbl.x.a == (e_dbl.a + f_dbl.x.a));
   CHECK( res_dbl.x.b == (e_dbl.b + f_dbl.x.b + f_dbl.y));
   CHECK( res_dbl.y == (e_dbl.b + f_dbl.x.b));

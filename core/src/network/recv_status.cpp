@@ -1,5 +1,3 @@
-
-
 module;
 
 #include <string>
@@ -33,8 +31,6 @@ auto to_string(recv_status status) -> const std::string & {
             return recv_status_closed;
         case recv_status::kUdpNotBound:
             return recv_status_udp_not_bound;
-
-
 
 #if defined(EWOULDBLOCK) && defined(EAGAIN) && (EWOULDBLOCK != EAGAIN)
         case recv_status::kWouldBlock:

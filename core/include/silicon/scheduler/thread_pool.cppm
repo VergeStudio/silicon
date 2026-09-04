@@ -20,11 +20,6 @@ import :facade;
 
 export namespace silicon::scheduler {
 
-
-
-
-
-
 class CORE_API thread_pool final {
     struct private_constructor {
         explicit private_constructor() = default;
@@ -67,7 +62,6 @@ class CORE_API thread_pool final {
 
     ~thread_pool();
 
-
     [[nodiscard]] std::size_t thread_count() const noexcept ;
 
     [[nodiscard]] schedule_operation schedule() ;
@@ -100,7 +94,6 @@ class CORE_API thread_pool final {
     [[nodiscard]] bool is_shutdown() const ;
     std::size_t size() const noexcept ;
     bool empty() const noexcept { return size() == 0; }
-
 
     std::size_t queue_size() const noexcept ;
 

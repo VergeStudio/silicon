@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 #include "sffi.h"
 #include <complex.h>
@@ -13,7 +9,6 @@ _Complex int f_complex(_Complex int c, int x, int *py)
   *py += x;
   return c;
 }
-
 
 #define SFFI_COMPLEX_TYPEDEF(name, type, ffitype)	     \
   static sffi_type *sffi_elements_complex_##name [2] = {	     \
@@ -29,8 +24,6 @@ _Complex int f_complex(_Complex int c, int x, int *py)
     SFFI_TYPE_COMPLEX,					     \
     (sffi_type **)sffi_elements_complex_##name		     \
   }
-
-
 
 SFFI_COMPLEX_TYPEDEF(sint, int, sffi_type_sint);
 
@@ -55,7 +48,6 @@ int main (void)
   values[1] = &tc_int_arg_x;
   values[2] = &tc_ptr_arg_y;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 3, &sffi_type_complex_sint, args)
 	== SFFI_OK);
 
@@ -66,7 +58,7 @@ int main (void)
 
   printf ("%d,%di %d,%di, x %d 1234, y %d 11110\n",
 	  (int)tc_result, (int)(tc_result * -I), 2, 8, tc_int_arg_x, tc_y);
-  
+
   CHECK (creal (tc_result) == -2);
   CHECK (cimag (tc_result) == 8);
   CHECK (tc_int_arg_x == 1234);

@@ -1,8 +1,3 @@
-
-
-
-
-
 module;
 
 #include <cerrno>
@@ -38,17 +33,7 @@ struct peer::impl {
 
     bool m_bound{false};
 
-    
-
-
-
-
-
     bool m_is_read_ready{false};
-
-
-
-
 
     bool m_is_write_ready{true};
 };
@@ -135,7 +120,6 @@ silicon::scheduler::task<io_status> peer::write_to_impl(
         co_return io_status{io_status::kind::kOk};
     }
 
-
     if(impl_->m_is_write_ready) {
         auto status = sendto(address, buffer);
         if(status.try_again()) {
@@ -165,7 +149,6 @@ silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::by
     if(buffer.empty()) {
         co_return {io_status{io_status::kind::kOk}, network::socket_address::make_uninitialised(), {}};
     }
-
 
     if(impl_->m_is_read_ready) {
         auto [status, addr, read] = recvfrom(buffer);

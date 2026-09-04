@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include "ffitest.h"
 #include <stdarg.h>
 
@@ -49,7 +43,6 @@ int main (void)
 	arg_types[1] = &sffi_type_longdouble;
 	arg_types[2] = NULL;
 
-	
 	CHECK(sffi_prep_cif_var(&cif, SFFI_DEFAULT_ABI, 1, 2, &sffi_type_sint,
 			       arg_types) == SFFI_OK);
 
@@ -58,18 +51,18 @@ int main (void)
 	args[2] = NULL;
 
 	sffi_call(&cif, SFFI_FN(wrap_printf), &res, args);
-	
+
 	printf("res: %d\n", (int) res);
-	
+
 	CHECK(res == 4);
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, cls_longdouble_va_fn, NULL,
 				   code) == SFFI_OK);
 
 	res = ((int(*)(char*, ...))(code))(format, ldArg);
-	
+
 	printf("res: %d\n", (int) res);
-	
+
 	CHECK(res == 4);
 
 	exit(0);

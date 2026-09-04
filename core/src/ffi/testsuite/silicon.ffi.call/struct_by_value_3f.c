@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct
@@ -27,7 +24,6 @@ int main (void)
 
   test_structure_1 ts1_arg;
 
-  
   test_structure_1 *ts1_result =
     (test_structure_1 *) malloc (sizeof(test_structure_1));
 
@@ -43,7 +39,6 @@ int main (void)
   args[0] = &ts1_type;
   values[0] = &ts1_arg;
 
-  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 1,
 		     &ts1_type, args) == SFFI_OK);
 
@@ -53,7 +48,6 @@ int main (void)
 
   CHECK(fabs(ts1_result->f03 - 556.5) < FLT_EPSILON);
 
-  
   CHECK(fabs(ts1_arg.f03 - 555.5) < FLT_EPSILON);
 
   free (ts1_result);

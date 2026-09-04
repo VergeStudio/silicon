@@ -10,7 +10,6 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-
 struct when_all_latch::impl {
   public:
 

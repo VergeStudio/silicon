@@ -1,7 +1,3 @@
-
-
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -12,8 +8,6 @@
 #define CIF_FLAGS_SHORT		2	
 #define CIF_FLAGS_INT		4
 #define CIF_FLAGS_DINT		8
-
-
 
 void sffi_call_elfbsd (extended_cif *, unsigned, unsigned, void *,
 		       void (*) ());
@@ -78,7 +72,6 @@ sffi_prep_args (extended_cif *ecif, void *stack)
 	{
 	  memcpy (argp, *p_argv, z);
 
-	  
 	  if ((sizeof(int) - 1) & z)
 	    z = SFFI_ALIGN(z, sizeof(int));
 	}
@@ -93,7 +86,7 @@ sffi_prep_args (extended_cif *ecif, void *stack)
 sffi_status
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
-  
+
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -139,8 +132,6 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
   ecif.cif = cif;
   ecif.avalue = avalue;
 
-  
-
   if (rvalue == NULL
       && cif->rtype->type == SFFI_TYPE_STRUCT
       && cif->flags == 0)
@@ -159,8 +150,6 @@ sffi_call (sffi_cif *cif, void (*fn) (), void *rvalue, void **avalue)
       break;
     }
 }
-
-
 
 void sffi_closure_elfbsd (void);
 void sffi_closure_struct_elfbsd (void);
@@ -182,7 +171,6 @@ sffi_prep_closure_elfbsd (sffi_cif *cif, void **avalue, char *stackp)
       z = (*p_arg)->size;
       *p_argv = stackp;
 
-      
       if ((sizeof (int) - 1) & z)
 	z = SFFI_ALIGN(z, sizeof (int));
 
@@ -217,9 +205,8 @@ sffi_prep_closure_loc (sffi_closure *closure, sffi_cif *cif,
 
   SFFI_ASSERT (cif->abi == SFFI_ELFBSD);
 
-  
   *(unsigned short *)(tramp + 0) = 0x0000;
-  
+
   tramp[2] = 0xd0;
   tramp[3] = 0x8f;
   *(unsigned int *)(tramp + 4) = (unsigned int) closure;
@@ -231,7 +218,6 @@ sffi_prep_closure_loc (sffi_closure *closure, sffi_cif *cif,
   else
     fn = &sffi_closure_elfbsd;
 
-  
   tramp[9] = 0x17;
   tramp[10] = 0xef;
   *(unsigned int *)(tramp + 11) = (unsigned int)fn + 2 -

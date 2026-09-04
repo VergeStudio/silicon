@@ -1,8 +1,4 @@
-
-
-
 #include "ffitest.h"
-
 
 static long long gp10(long long a1, long long a2, long long a3, long long a4,
 		      long long a5, long long a6, long long a7, long long a8,
@@ -12,7 +8,6 @@ static long long gp10(long long a1, long long a2, long long a3, long long a4,
        + a6 * 6 + a7 * 7 + a8 * 8 + a9 * 9 + a10 * 10;
 }
 
-
 static double sse12(double a1, double a2, double a3, double a4,
 		    double a5, double a6, double a7, double a8,
 		    double a9, double a10, double a11, double a12)
@@ -20,7 +15,6 @@ static double sse12(double a1, double a2, double a3, double a4,
   return a1 + a2 * 2 + a3 * 3 + a4 * 4 + a5 * 5 + a6 * 6
        + a7 * 7 + a8 * 8 + a9 * 9 + a10 * 10 + a11 * 11 + a12 * 12;
 }
-
 
 static double mix16(long i1, long i2, long i3, long i4,
 		    long i5, long i6, long i7, long i8,
@@ -35,7 +29,7 @@ static double mix16(long i1, long i2, long i3, long i4,
 
 int main (void)
 {
-  
+
   {
     sffi_cif cif;
     sffi_type *args[10];
@@ -64,7 +58,6 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  
   {
     sffi_cif cif;
     sffi_type *args[12];
@@ -93,7 +86,6 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  
   {
     sffi_cif cif;
     sffi_type *args[16];

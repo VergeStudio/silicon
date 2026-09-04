@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct A {
@@ -108,7 +105,6 @@ int main (void)
   cls_struct_fields2[1] = &sffi_type_uchar;
   cls_struct_fields2[2] = NULL;
 
-
   dbl_arg_types[0] = &cls_struct_type;
   dbl_arg_types[1] = &cls_struct_type1;
   dbl_arg_types[2] = &cls_struct_type2;
@@ -123,7 +119,7 @@ int main (void)
   args_dbl[3] = NULL;
 
   sffi_call(&cif, SFFI_FN(B_fn), &res_dbl, args_dbl);
-  
+
   CHECK( res_dbl.x.a == (e_dbl.a + f_dbl.x.a + f_dbl.z + g_dbl.d));
   CHECK( res_dbl.x.b == (e_dbl.b + f_dbl.x.b + f_dbl.y + g_dbl.e));
   CHECK( res_dbl.y == (e_dbl.b + f_dbl.x.b + g_dbl.e));
@@ -131,7 +127,7 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, B_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((B(*)(A, B, C))(code))(e_dbl, f_dbl, g_dbl);
-  
+
   CHECK( res_dbl.x.a == (e_dbl.a + f_dbl.x.a + f_dbl.z + g_dbl.d));
   CHECK( res_dbl.x.b == (e_dbl.b + f_dbl.x.b + f_dbl.y + g_dbl.e));
   CHECK( res_dbl.y == (e_dbl.b + f_dbl.x.b + g_dbl.e));

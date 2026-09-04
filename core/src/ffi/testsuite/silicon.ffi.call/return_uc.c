@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static unsigned char return_uc(unsigned char uc)
@@ -20,7 +17,6 @@ int main (void)
   args[0] = &sffi_type_uchar;
   values[0] = &uc;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_uchar, args) == SFFI_OK);
 

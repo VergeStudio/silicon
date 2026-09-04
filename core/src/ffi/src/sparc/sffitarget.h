@@ -1,13 +1,9 @@
-
-
 #ifndef SILICON_FFI_TARGET_H
 #define SILICON_FFI_TARGET_H
 
 #ifndef SILICON_FFI_H
 #    error "Please do not include sffitarget.h directly into your source.  Use sffi.h instead."
 #endif
-
-
 
 #if defined(__arch64__) || defined(__sparcv9)
 #    ifndef SPARC64
@@ -39,8 +35,6 @@ typedef enum sffi_abi {
 #    define SFFI_TARGET_SPECIFIC_VARIADIC 1
 #    define SFFI_EXTRA_CIF_FIELDS unsigned int nfixedargs
 #endif
-
-
 
 #define SFFI_CLOSURES 1
 #define SFFI_GO_CLOSURES 1

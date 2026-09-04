@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 static long long return_ll(long long ll)
 {
@@ -18,7 +15,6 @@ int main (void)
   args[0] = &sffi_type_sint64;
   values[0] = &ll;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_sint64, args) == SFFI_OK);
 

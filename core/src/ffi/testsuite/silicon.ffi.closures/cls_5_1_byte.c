@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_5byte {
@@ -99,10 +96,10 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_5byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %d %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e);
-  
+
   CHECK(res_dbl.a == 139);
   CHECK(res_dbl.b == 248);
   CHECK(res_dbl.c == 10);
@@ -118,10 +115,10 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_5byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_5byte(*)(cls_struct_5byte, cls_struct_5byte))(code))(g_dbl, f_dbl);
-  
+
   printf("res: %d %d %d %d %d\n", res_dbl.a, res_dbl.b, res_dbl.c,
 	 res_dbl.d, res_dbl.e);
-  
+
   CHECK(res_dbl.a == 139);
   CHECK(res_dbl.b == 248);
   CHECK(res_dbl.c == 10);

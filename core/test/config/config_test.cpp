@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include <string>
 #include <system_error>
 #include <variant>
@@ -13,7 +7,6 @@
 import silicon.config;
 
 using namespace silicon::config;
-
 
 TEST_CASE("config_value 缺省构造为 null") {
     config_value v;
@@ -73,7 +66,6 @@ TEST_CASE("config_value 移动构造转移值") {
 TEST_CASE("config_value as_* 类型不匹配抛 std::bad_variant_access") {
     config_value s{std::string{"not_a_bool"}};
 
-
     CHECK_THROWS_AS(static_cast<void>(s.as_bool()), std::bad_variant_access);
     CHECK_THROWS_AS(static_cast<void>(s.as_int()), std::bad_variant_access);
     CHECK_THROWS_AS(static_cast<void>(s.as_double()), std::bad_variant_access);
@@ -81,7 +73,6 @@ TEST_CASE("config_value as_* 类型不匹配抛 std::bad_variant_access") {
     config_value i{static_cast<int64_t>(1)};
     CHECK_THROWS_AS(static_cast<void>(i.as_string()), std::bad_variant_access);
 }
-
 
 TEST_CASE("config error category 自注册：非注入消费方也能构造 error_code（不再 terminate）") {
     auto ec = make_error_code(config_error::kLoadFailed);

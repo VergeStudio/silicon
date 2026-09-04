@@ -8,8 +8,6 @@ module;
 #include <expected>
 #include <system_error>
 
-
-
 #include "silicon/common.h"
 
 export module silicon.logger:default_logger;
@@ -17,8 +15,6 @@ export module silicon.logger:default_logger;
 import :ilogger;
 
 export namespace silicon::logger {
-
-
 
 class CORE_API default_logger {
   public:

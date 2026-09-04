@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static signed short test_func_fn(signed short a1, signed short a2)
@@ -53,22 +50,21 @@ int main (void)
   cl_arg_types[1] = &sffi_type_sshort;
   cl_arg_types[2] = NULL;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 2,
 		     &sffi_type_sshort, cl_arg_types) == SFFI_OK);
 
   sffi_call(&cif, SFFI_FN(test_func_fn), &res_call, args_dbl);
-  
+
   printf("res: %d\n", (unsigned short)res_call);
-  
+
   CHECK((unsigned short)res_call == 32767);
 
   CHECK(sffi_prep_closure_loc(pcl, &cif, test_func_gn, NULL, code)  == SFFI_OK);
 
   res_closure = (*((test_type)code))(2, 32765);
-  
+
   printf("res: %d\n", res_closure);
-  
+
   CHECK(res_closure == 32767);
 
   exit(0);

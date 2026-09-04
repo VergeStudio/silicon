@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static long double return_ldl(long double ldl)
@@ -17,7 +14,6 @@ int main (void)
   args[0] = &sffi_type_longdouble;
   values[0] = &ldl;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 		     &sffi_type_longdouble, args) == SFFI_OK);
 

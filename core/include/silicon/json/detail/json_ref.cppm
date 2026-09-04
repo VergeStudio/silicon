@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -21,7 +8,6 @@ module;
 export module silicon.json:detail.json_ref;
 
 import :detail.meta.type_traits;
-
 
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
@@ -45,7 +31,6 @@ class json_ref {
             enable_if_t<std::is_constructible<value_type, Args...>::value, int> = 0>
     json_ref(Args &&...args)
         : owned_value(std::forward<Args>(args)...) {}
-
 
     json_ref(json_ref &&) noexcept = default;
     json_ref(const json_ref &) = delete;

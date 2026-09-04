@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 module;
 
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -35,12 +27,6 @@ import silicon.proxy;
 
 export namespace silicon::network::udp {
 
-
-
-
-
-
-
 PRO_DEF_MEM_DISPATCH(MemUdpPeerSocket, socket);
 
 struct udp_peer_facade
@@ -66,13 +52,12 @@ template<class T>
 
 class CORE_API peer final {
   public:
-    
+
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
             network::domain_t = network::domain_t::kIpv4
     ) -> network::result<peer>;
 
-    
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
             const network::socket_address &
@@ -84,13 +69,10 @@ class CORE_API peer final {
     peer & operator=(peer &&) noexcept ;
     ~peer();
 
-    
     auto socket() noexcept -> network::socket &;
 
-    
     auto socket() const noexcept -> const network::socket &;
 
-    
     template<silicon::scheduler::concepts::const_buffer buffer_type>
     auto write_to(
             const socket_address &address,
@@ -100,7 +82,6 @@ class CORE_API peer final {
         co_return co_await write_to_impl(address, std::as_bytes(std::span{buffer}), timeout);
     }
 
-    
     template<silicon::scheduler::concepts::mutable_buffer buffer_type>
     auto read_from(buffer_type &buffer, std::chrono::milliseconds timeout = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<std::tuple<io_status, socket_address, std::span<std::byte>>> {
@@ -120,11 +101,9 @@ class CORE_API peer final {
     auto poll(silicon::scheduler::poll_op, std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<silicon::scheduler::poll_status>;
 
-    
     template<silicon::scheduler::concepts::const_buffer buffer_type>
     auto sendto(const network::socket_address &, const buffer_type &) -> io_status;
 
-    
     template<
             silicon::scheduler::concepts::mutable_buffer buffer_type,
             typename element_type = typename silicon::scheduler::concepts::mutable_buffer_traits<buffer_type>::element_type>
@@ -133,7 +112,6 @@ class CORE_API peer final {
   private:
 
     peer(silicon::scheduler::io_scheduler *scheduler, network::socket, bool);
-
 
     struct impl;
     std::unique_ptr<impl> impl_;

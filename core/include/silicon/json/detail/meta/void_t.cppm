@@ -1,23 +1,9 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
 
 export module silicon.json:detail.meta.void_t;
-
 
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {

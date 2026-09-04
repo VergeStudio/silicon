@@ -12,10 +12,7 @@ import silicon.error;
 
 export namespace silicon::di {
 
-
-
 CORE_API std::atomic<const std::error_category *> di_error_category_instance{nullptr};
-
 
 enum class di_error {
     kDuplicateBinding = 1,
@@ -33,8 +30,6 @@ enum class di_error {
     kIndexOutOfRange,
     kUnknown,
 };
-
-
 
 class CORE_API di_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.di"; }
@@ -59,11 +54,9 @@ class CORE_API di_category_impl final : public std::error_category {
     }
 };
 
-
 inline void inject_di_error_category(const std::error_category &cat) noexcept {
     di_error_category_instance.store(&cat, std::memory_order_release);
 }
-
 
 [[nodiscard]] inline const std::error_category &di_category() noexcept {
     const std::error_category *cat = di_error_category_instance.load(std::memory_order_acquire);
@@ -73,17 +66,11 @@ inline void inject_di_error_category(const std::error_category &cat) noexcept {
     return *cat;
 }
 
-
 [[nodiscard]] inline std::error_code make_error_code(di_error e) noexcept {
     return {static_cast<int>(e), di_category()};
 }
 
 }
-
-
-
-
-
 
 namespace {
     const silicon::di::di_category_impl s_default_di_category{};

@@ -1,13 +1,11 @@
 module;
 
-
 #include <atomic>
 #include <coroutine>
 #include <memory>
 #include <string>
 
 #include "silicon/common.h"
-
 
 export module silicon.coroutine:semaphore;
 
@@ -27,13 +25,10 @@ extern CORE_API std::string semaphore_acquire_result_acquired;
 extern CORE_API std::string semaphore_acquire_result_shutdown;
 extern CORE_API std::string semaphore_acquire_result_unknown;
 
-
 CORE_API auto to_string(semaphore_acquire_result) -> const std::string &;
 
 template<std::ptrdiff_t max_value>
 class semaphore;
-
-
 
 template<std::ptrdiff_t max_value>
 class acquire_operation {
@@ -74,8 +69,6 @@ class acquire_operation {
     std::coroutine_handle<> m_awaiting_coroutine;
 };
 
-
-
 template<std::ptrdiff_t max_value>
 class semaphore {
   public:
@@ -90,13 +83,11 @@ class semaphore {
     semaphore & operator=(const semaphore &) noexcept = delete;
     semaphore & operator=(semaphore &&) noexcept = delete;
 
-    
     [[nodiscard]] silicon::scheduler::task<semaphore_acquire_result> acquire() {
         co_await m_p->m_mutex.lock();
         co_return co_await acquire_operation<max_value>{*this};
     }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> release() {
         co_await m_p->m_mutex.lock();
 
@@ -104,7 +95,6 @@ class semaphore {
             static_cast<void>(m_p->m_mutex.unlock());
             co_return;
         }
-
 
         auto *waiter = silicon::scheduler::awaiter_list_pop(m_p->m_acquire_waiters);
         if(waiter != nullptr) {
@@ -117,7 +107,6 @@ class semaphore {
         }
     }
 
-    
     bool try_acquire() {
         auto expected = m_p->m_counter.load(std::memory_order::acquire);
         do {
@@ -129,13 +118,10 @@ class semaphore {
         return true;
     }
 
-    
     [[nodiscard]] static constexpr std::ptrdiff_t max() noexcept { return max_value; }
 
-    
     [[nodiscard]] std::ptrdiff_t value() const noexcept { return m_p->m_counter.load(std::memory_order::acquire); }
 
-    
     [[nodiscard]] silicon::scheduler::task<void> shutdown() noexcept {
         if(is_shutdown()) {
             co_return;
@@ -154,18 +140,14 @@ class semaphore {
         }
     }
 
-    
     [[nodiscard]] bool is_shutdown() const { return m_p->m_shutdown.load(std::memory_order::acquire); }
 
   private:
     friend class acquire_operation<max_value>;
 
-
-
     struct impl {
       public:
         explicit impl(const std::ptrdiff_t starting_value): m_counter(starting_value) {}
-
 
         std::atomic<std::ptrdiff_t> m_counter;
 
@@ -175,7 +157,6 @@ class semaphore {
 
         std::atomic<bool> m_shutdown{false};
     };
-
 
     std::unique_ptr<impl> m_p;
 };

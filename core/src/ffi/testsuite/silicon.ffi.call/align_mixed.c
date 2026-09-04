@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 static float ABI_ATTR align_arguments(int i1,
@@ -26,7 +22,6 @@ int main(void)
   void *values[4] = {&ia[0], &fa[0], &ia[1], &fa[1]};
   float f, ff;
 
-  
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 4,
 		     &sffi_type_float, args) == SFFI_OK);
 

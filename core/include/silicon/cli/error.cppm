@@ -5,16 +5,11 @@ module;
 #include <string>
 #include <system_error>
 
-
-
 #include <silicon/common.h>
 
 export module silicon.cli.error;
 
 import silicon.error;
-
-
-
 
 export namespace silicon::cli {
 
@@ -24,7 +19,6 @@ CORE_API std::atomic<const std::error_category *> cli_error_category_instance{nu
 
 export namespace silicon::cli {
 
-
 enum class cli_error {
     kParseFailed = 1,
     kUnknownOption,
@@ -33,9 +27,6 @@ enum class cli_error {
     kUnknownSubcommand,
     kUnknown,
 };
-
-
-
 
 class CORE_API cli_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.cli"; }
@@ -52,13 +43,9 @@ class CORE_API cli_category_impl final : public std::error_category {
     }
 };
 
-
-
 inline void inject_cli_error_category(const std::error_category &cat) noexcept {
     cli_error_category_instance.store(&cat, std::memory_order_release);
 }
-
-
 
 [[nodiscard]] inline const std::error_category &cli_category() noexcept {
     const std::error_category *cat = cli_error_category_instance.load(std::memory_order_acquire);
@@ -67,7 +54,6 @@ inline void inject_cli_error_category(const std::error_category &cat) noexcept {
     }
     return *cat;
 }
-
 
 [[nodiscard]] inline std::error_code make_error_code(cli_error e) noexcept {
     return {static_cast<int>(e), cli_category()};

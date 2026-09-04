@@ -9,15 +9,11 @@ module silicon.coroutine;
 
 namespace silicon::coroutine {
 
-
 class mutex::impl {
   public:
 
-
-
     std::atomic<void *> m_state;
 };
-
 
 bool lock_operation_base::await_ready() const noexcept {
     return m_mutex.try_lock();
@@ -29,8 +25,6 @@ bool lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_corouti
     void *current = state.load(std::memory_order::acquire);
     const void *unlocked_value = m_mutex.unlocked_value();
     do {
-
-
 
         if(current == unlocked_value) {
 
@@ -51,9 +45,6 @@ bool lock_operation_base::await_suspend(std::coroutine_handle<> awaiting_corouti
     } while(true);
 }
 
-
-
-
 struct scoped_lock::impl {
   public:
     class silicon::coroutine::mutex *m_mutex{nullptr};
@@ -61,7 +52,6 @@ struct scoped_lock::impl {
 
 scoped_lock::scoped_lock(class silicon::coroutine::mutex &m, lock_strategy strategy)
     : m_p(std::make_unique<impl>()) {
-
 
     (void)strategy;
     m_p->m_mutex = &m;
@@ -87,8 +77,6 @@ scoped_lock::~scoped_lock() {
 void scoped_lock::unlock() {
     if(m_p != nullptr && m_p->m_mutex != nullptr) {
         std::atomic_thread_fence(std::memory_order::acq_rel);
-
-
 
         static_cast<void>(m_p->m_mutex->unlock());
         m_p->m_mutex = nullptr;
@@ -118,7 +106,6 @@ auto mutex::unlock() -> result<void> {
             return std::unexpected(make_error_code(coroutine_error::kAlreadyUnlocked));
         }
 
-
         if(current == nullptr) {
             if(m_p->m_state.compare_exchange_weak(
                        current,
@@ -131,7 +118,6 @@ auto mutex::unlock() -> result<void> {
                 return {};
             } else {
 
-
                 continue;
             }
         } else {
@@ -139,7 +125,6 @@ auto mutex::unlock() -> result<void> {
             std::atomic<lock_operation_base *> *casted =
                     reinterpret_cast<std::atomic<lock_operation_base *> *>(&m_p->m_state);
             auto *waiter = silicon::scheduler::awaiter_list_pop<lock_operation_base>(*casted);
-
 
             std::atomic_thread_fence(std::memory_order::acq_rel);
             waiter->m_awaiting_coroutine.resume();

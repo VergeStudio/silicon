@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static double mixed(int a, double b, long c, float d,
@@ -26,7 +23,7 @@ static unsigned char ret_uc(unsigned char x)
 
 int main (void)
 {
-  
+
   {
     sffi_cif cif;
     sffi_type *args[6];
@@ -59,7 +56,6 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  
   {
     sffi_cif cif;
     sffi_type *args[2];
@@ -83,7 +79,6 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  
   {
     sffi_cif cif;
     sffi_type *args[1];
@@ -111,7 +106,6 @@ int main (void)
     sffi_call_plan_free(plan);
   }
 
-  
   {
     sffi_cif cif;
     sffi_type *args[1];

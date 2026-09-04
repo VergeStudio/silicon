@@ -1,7 +1,3 @@
-
-
-
-
 #include <stdio.h>
 
 FILE* out = NULL;
@@ -46,7 +42,6 @@ typedef struct {
 } Size16;
 typedef struct { char c[3]; } T;
 typedef struct { char c[33],c1; } X;
-
 
 char c1='a', c2=127, c3=(char)1;
 
@@ -105,13 +100,11 @@ X X1={"abcdefghijklmnopqrstuvwxyzABCDEF",'G'}, X2={"123",'9'}, X3={"return-retur
 #define ABI_ATTR
 #endif
 
-
 void ABI_ATTR v_v (void)
 {
   fprintf(out,"void f(void):\n");
   fflush(out);
 }
-
 
 int ABI_ATTR i_v (void)
 {
@@ -157,7 +150,6 @@ int ABI_ATTR i_i16 (int a, int b, int c, int d, int e, int f, int g, int h,
   fflush(out);
   return r;
 }
-
 
 float ABI_ATTR f_f (float a)
 {
@@ -206,7 +198,6 @@ float ABI_ATTR f_f24 (float a, float b, float c, float d, float e, float f, floa
   return r;
 }
 
-
 double ABI_ATTR d_d (double a)
 {
   double r=a+1.0;
@@ -246,7 +237,6 @@ double ABI_ATTR d_d16 (double a, double b, double c, double d, double e, double 
   return r;
 }
 
-
 void* ABI_ATTR vp_vpdpcpsp (void* a, double* b, char* c, Int* d)
 {
   void* ret = (char*)b + 1;
@@ -254,7 +244,6 @@ void* ABI_ATTR vp_vpdpcpsp (void* a, double* b, char* c, Int* d)
   fflush(out);
   return ret;
 }
-
 
 uchar ABI_ATTR uc_ucsil (uchar a, ushort b, uint c, ulong d)
 {
@@ -438,7 +427,6 @@ double ABI_ATTR d_d13i (double a, double b, double c, double d, double e, double
   return r;
 }
 
-
 Size1 ABI_ATTR S1_v (void)
 {
   fprintf(out,"Size1 f(void):");
@@ -493,7 +481,6 @@ Size16 ABI_ATTR S16_v (void)
   fflush(out);
   return Size16_1;
 }
-
 
 Int ABI_ATTR I_III (Int a, Int b, Int c)
 {
@@ -562,8 +549,6 @@ X ABI_ATTR X_BcdB (B a, char b, double c, B d)
   fflush(out);
   return r;
 }
-
-
 
 long ABI_ATTR l_l0K (K b, long c)
 {

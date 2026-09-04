@@ -1,7 +1,5 @@
 module;
 
-
-
 #include <atomic>
 #include <coroutine>
 #include <memory>
@@ -13,10 +11,6 @@ module;
 module silicon.coroutine;
 
 namespace silicon::coroutine {
-
-
-
-
 
 template<typename element_type>
 queue<element_type>::awaiter::awaiter(queue<element_type> &q) noexcept
@@ -30,7 +24,6 @@ bool queue<element_type>::awaiter::await_ready() noexcept {
         return true;
     }
 
-
     if(!m_queue.empty()) {
         if constexpr(std::is_move_constructible_v<element_type>) {
             m_element = std::move(m_queue.m_p->m_elements.front());
@@ -42,7 +35,6 @@ bool queue<element_type>::awaiter::await_ready() noexcept {
         static_cast<void>(m_queue.m_p->m_mutex.unlock());
         return true;
     }
-
 
     return false;
 }
@@ -71,10 +63,6 @@ auto queue<element_type>::awaiter::await_resume() noexcept -> silicon::scheduler
     }
 }
 
-
-
-
-
 template<typename element_type>
 queue<element_type>::queue()
     : m_p(std::make_unique<impl>()) {}
@@ -82,13 +70,9 @@ queue<element_type>::queue()
 template<typename element_type>
 queue<element_type>::~queue() {
 
-
-
-
     if(m_p->m_running_state.exchange(running_state_t::kStopped, std::memory_order::acq_rel) == running_state_t::kStopped) {
         return;
     }
-
 
     auto *waiters = m_p->m_waiters;
     m_p->m_waiters = nullptr;
@@ -111,18 +95,15 @@ std::size_t queue<element_type>::size() const {
 template<typename element_type>
 silicon::scheduler::task<queue_produce_result> queue<element_type>::push(const element_type &element) {
 
-
     auto lock = co_await m_p->m_mutex.scoped_lock();
 
     if(m_p->m_running_state.load(std::memory_order::acquire) != running_state_t::kRunning) {
         co_return queue_produce_result::kStopped;
     }
 
-
     if(m_p->m_waiters != nullptr) {
         auto *waiter = std::exchange(m_p->m_waiters, m_p->m_waiters->m_next);
         lock.unlock();
-
 
         waiter->m_element = element;
         waiter->m_awaiting_coroutine.resume();
@@ -144,7 +125,6 @@ silicon::scheduler::task<queue_produce_result> queue<element_type>::push(element
     if(m_p->m_waiters != nullptr) {
         auto *waiter = std::exchange(m_p->m_waiters, m_p->m_waiters->m_next);
         lock.unlock();
-
 
         waiter->m_element = std::move(element);
         waiter->m_awaiting_coroutine.resume();
@@ -189,11 +169,9 @@ auto queue<element_type>::try_pop() -> silicon::scheduler::expected<element_type
 
         silicon::coroutine::scoped_lock lk{m_p->m_mutex};
 
-
         if(m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
             return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kStopped);
         }
-
 
         if(empty()) {
             return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kEmpty);
@@ -219,7 +197,6 @@ silicon::scheduler::task<void> queue<element_type>::shutdown() {
     if(expected == running_state_t::kStopped) {
         co_return;
     }
-
 
     auto lk = co_await m_p->m_mutex.scoped_lock();
     if(!m_p->m_running_state.compare_exchange_strong(

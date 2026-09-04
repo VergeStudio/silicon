@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 module;
 
 #include <chrono>
@@ -36,7 +29,6 @@ io_ring::io_ring(io_ring_config cfg): m_p(std::make_unique<impl>()) {
     struct io_uring_params params{};
     if(cfg.sq_poll) { params.flags |= IORING_SETUP_SQPOLL; }
 
-
     m_p->valid = (io_uring_queue_init_params(depth, &m_p->ring, &params) == 0);
 }
 
@@ -52,8 +44,6 @@ bool io_ring::is_valid() const noexcept { return m_p && m_p->valid; }
 auto io_ring::active_backend() const noexcept -> backend {
     return is_valid() ? backend::io_uring : backend::none;
 }
-
-
 
 bool io_ring::supports(op) const noexcept { return is_valid(); }
 

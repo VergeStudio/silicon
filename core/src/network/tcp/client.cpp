@@ -1,5 +1,3 @@
-
-
 module;
 
 #if defined(SILICON_PLATFORM_WINDOWS)
@@ -31,7 +29,6 @@ namespace silicon::network::tcp {
 
 using namespace std::chrono_literals;
 
-
 struct client::impl {
     silicon::scheduler::io_scheduler *m_scheduler{nullptr};
     socket_address m_endpoint;
@@ -58,7 +55,6 @@ client::impl::impl(silicon::scheduler::io_scheduler *scheduler, network::socket 
       m_socket(std::move(socket)),
       m_connect_status(connect_status::kConnected) {
 
-
     m_socket.blocking(silicon::network::socket::blocking_t::no);
 }
 
@@ -73,7 +69,6 @@ client::impl::impl(const impl &other)
       m_endpoint(other.m_endpoint),
       m_socket(other.m_socket),
       m_connect_status(other.m_connect_status) {
-
 
 }
 
@@ -106,7 +101,6 @@ auto client::impl::operator=(impl &&other) noexcept -> impl & {
 
 client::impl::~impl() = default;
 
-
 template<
         silicon::scheduler::concepts::mutable_buffer buffer_type,
         typename element_type>
@@ -125,7 +119,6 @@ std::pair<io_status, std::span<element_type>> client::recv(buffer_type &&buffer)
         return {io_status{io_status::kind::kClosed}, std::span<element_type>{}};
     }
 
-
     return {make_io_status_from_native(errno), std::span<element_type>{}};
 }
 
@@ -142,10 +135,8 @@ std::pair<io_status, std::span<element_type>> client::send(const buffer_type &bu
         };
     }
 
-
     return {make_io_status_from_native(errno), std::span<element_type>{buffer.data(), buffer.size()}};
 }
-
 
 silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::read_some_impl(std::span<std::byte> buffer, const std::chrono::milliseconds timeout) {
 
@@ -215,7 +206,6 @@ silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> clien
         }
     }
 
-
     auto pstatus = co_await poll(silicon::scheduler::poll_op::write, timeout);
     if(pstatus != silicon::scheduler::poll_status::write) {
         co_return std::pair{make_io_status_from_poll_status(pstatus), buffer};
@@ -256,7 +246,6 @@ silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> clien
 silicon::scheduler::task<silicon::scheduler::poll_status> client::poll(const silicon::scheduler::poll_op op, const std::chrono::milliseconds timeout) {
     return impl_->m_scheduler->poll(impl_->m_socket.native_handle(), op, timeout);
 }
-
 
 auto client::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
         -> network::result<client> {
@@ -321,11 +310,9 @@ auto client::socket() const -> const network::socket & {
 
 silicon::scheduler::task<connect_status> client::connect(std::chrono::milliseconds timeout) {
 
-
     if(impl_->m_connect_status.has_value()) {
         co_return impl_->m_connect_status.value();
     }
-
 
     auto return_value = [this](connect_status s) -> connect_status {
         impl_->m_connect_status = s;
@@ -336,7 +323,6 @@ silicon::scheduler::task<connect_status> client::connect(std::chrono::millisecon
     if(cret == 0) {
         co_return return_value(connect_status::kConnected);
     } else {
-
 
         if(impl_->m_socket.in_progress()) {
             auto pstatus = co_await impl_->m_scheduler->poll(impl_->m_socket.native_handle(), silicon::scheduler::poll_op::write, timeout);

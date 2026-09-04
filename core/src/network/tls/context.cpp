@@ -1,5 +1,3 @@
-
-
 module;
 
 #ifdef SILICON_FEATURE_TLS
@@ -43,9 +41,7 @@ auto context::create(verify_peer_t verify_peer) -> network::result<context> {
         return std::unexpected(make_error_code(network_error::kTlsContextInitFailed));
     }
 
-
     context ctx{ssl_ctx};
-
 
     SSL_CTX_set_options(ssl_ctx, SSL_OP_ALL | SSL_OP_NO_SSLv3);
 

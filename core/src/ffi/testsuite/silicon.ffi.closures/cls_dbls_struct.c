@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 typedef struct Dbls {
@@ -48,17 +44,14 @@ int main(void)
 
 	cl_arg_types[0] = &ts1_type;
 
-	
 	CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 1,
 				 &sffi_type_void, cl_arg_types) == SFFI_OK);
 
 	CHECK(sffi_prep_closure_loc(pcl, &cif, closure_test_gn, NULL, code) == SFFI_OK);
 
 	((void (*)(Dbls))(code))(arg);
-	
 
 	closure_test_fn(arg);
-	
 
 	return 0;
 }

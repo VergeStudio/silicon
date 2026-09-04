@@ -1,5 +1,3 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
@@ -27,17 +25,11 @@ static inline int sffi_struct_type(sffi_type *t)
 {
   size_t sz = t->size;
 
-  
-
   if (sz <= 8)
     return -sz;
   else
     return SFFI_TYPE_STRUCT; 
 }
-
-
-
-
 
 void sffi_prep_args_pa32(UINT32 *stack, extended_cif *ecif, unsigned bytes)
 {
@@ -86,18 +78,18 @@ void sffi_prep_args_pa32(UINT32 *stack, extended_cif *ecif, unsigned bytes)
 
 	case SFFI_TYPE_UINT64:
 	case SFFI_TYPE_SINT64:
-	  
+
 	  slot += (slot & 1) ? 1 : 2;
 	  *(UINT64 *)(stack - slot) = *(UINT64 *)(*p_argv);
 	  break;
 
 	case SFFI_TYPE_FLOAT:
-	  
+
 	  debug(3, "Storing UINT32(float) in slot %u\n", slot);
 	  *(UINT32 *)(stack - slot) = *(UINT32 *)(*p_argv);
 	  switch (slot - FIRST_ARG_SLOT)
 	    {
-	    
+
 	    case 0: fldw(stack - slot, fr4); break;
 	    case 1: fldw(stack - slot, fr5); break;
 	    case 2: fldw(stack - slot, fr6); break;
@@ -106,13 +98,13 @@ void sffi_prep_args_pa32(UINT32 *stack, extended_cif *ecif, unsigned bytes)
 	  break;
 
 	case SFFI_TYPE_DOUBLE:
-	  
+
 	  slot += (slot & 1) ? 1 : 2;
 	  debug(3, "Storing UINT64(double) at slot %u\n", slot);
 	  *(UINT64 *)(stack - slot) = *(UINT64 *)(*p_argv);
 	  switch (slot - FIRST_ARG_SLOT)
 	    {
-	      
+
 	      case 1: fldd(stack - slot, fr5); break;
 	      case 3: fldd(stack - slot, fr7); break;
 	    }
@@ -120,14 +112,12 @@ void sffi_prep_args_pa32(UINT32 *stack, extended_cif *ecif, unsigned bytes)
 
 #ifdef PA_HPUX
 	case SFFI_TYPE_LONGDOUBLE:
-	  
+
 	  *(UINT32 *)(stack - slot) = (UINT32)(*p_argv);
 	  break;
 #endif
 
 	case SFFI_TYPE_STRUCT:
-
-	  
 
 	  len = (*p_arg)->size;
 	  if (len <= 4)
@@ -154,7 +144,6 @@ void sffi_prep_args_pa32(UINT32 *stack, extended_cif *ecif, unsigned bytes)
       p_argv++;
     }
 
-  
   {
     unsigned int n;
 
@@ -197,7 +186,7 @@ static void sffi_size_stack_pa32(sffi_cif *cif)
 #endif
 
 	case SFFI_TYPE_STRUCT:
-	  
+
 	  {
 	    size_t len = (*ptr)->size;
 	    if (len <= 4 || len > 8)
@@ -212,7 +201,6 @@ static void sffi_size_stack_pa32(sffi_cif *cif)
 	}
     }
 
-  
   if (z <= 6)
     cif->bytes = MIN_STACK_SIZE; 
   else
@@ -221,10 +209,9 @@ static void sffi_size_stack_pa32(sffi_cif *cif)
   debug(3, "Calculated stack size is %u bytes\n", cif->bytes);
 }
 
-
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
-  
+
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:
@@ -235,13 +222,13 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 
 #ifdef PA_HPUX
     case SFFI_TYPE_LONGDOUBLE:
-      
+
       cif->flags = SFFI_TYPE_STRUCT;
       break;
 #endif
 
     case SFFI_TYPE_STRUCT:
-      
+
       cif->flags = sffi_struct_type(cif->rtype);
       break;
 
@@ -255,7 +242,6 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
       break;
     }
 
-  
   switch (cif->abi)
     {
     case SFFI_PA32:
@@ -283,7 +269,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   ecif.cif = cif;
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
@@ -303,8 +288,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
     }
   ecif.avalue = avalue;
 
-  
-
   if (rvalue == NULL
 #ifdef PA_HPUX
       && (cif->rtype->type == SFFI_TYPE_STRUCT
@@ -317,7 +300,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
     }
   else
     ecif.rvalue = rvalue;
-
 
   switch (cif->abi)
     {
@@ -340,7 +322,7 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
   sffi_cif *cif;
   void **avalue;
   void *rvalue;
-  
+
   union { double rd; UINT32 ret[2]; } u;
   sffi_type **p_arg;
   char *tmp;
@@ -350,7 +332,6 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
 
   cif = closure->cif;
 
-  
   if (cif->flags == SFFI_TYPE_STRUCT)
     rvalue = (void *)r28;
   else
@@ -384,7 +365,7 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
 
 	case SFFI_TYPE_FLOAT:
 #ifdef PA_LINUX
-	  
+
 	  switch (slot - FIRST_ARG_SLOT)
 	    {
 	    case 0: fstw(fr4, (void *)(stack - slot)); break;
@@ -399,7 +380,7 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
 	case SFFI_TYPE_DOUBLE:
 	  slot += (slot & 1) ? 1 : 2;
 #ifdef PA_LINUX
-	  
+
 	  switch (slot - FIRST_ARG_SLOT)
 	    {
 	    case 1: fstd(fr5, (void *)(stack - slot)); break;
@@ -411,13 +392,13 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
 
 #ifdef PA_HPUX
 	case SFFI_TYPE_LONGDOUBLE:
-	  
+
 	  avalue[i] = (void *) *(stack - slot);
 	  break;
 #endif
 
 	case SFFI_TYPE_STRUCT:
-	  
+
 	  if((*p_arg)->size <= 4)
 	    {
 	      avalue[i] = (void *)(stack - slot) + sizeof(UINT32) -
@@ -441,13 +422,11 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
       p_arg++;
     }
 
-  
   (closure->fun) (cif, rvalue, avalue, closure->user_data);
 
   debug(3, "after calling function, ret[0] = %08x, ret[1] = %08x\n", u.ret[0],
 	u.ret[1]);
 
-  
   switch (cif->flags)
     {
     case SFFI_TYPE_UINT8:
@@ -482,7 +461,7 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
       break;
 
     case SFFI_TYPE_STRUCT:
-      
+
       break;
 
     case SFFI_TYPE_SMALL_STRUCT1:
@@ -502,7 +481,6 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
 	unsigned int ret2[2];
 	int off;
 
-	
 	switch (cif->flags)
 	  {
 	    case SFFI_TYPE_SMALL_STRUCT5: off = 3; break;
@@ -531,8 +509,6 @@ sffi_status sffi_closure_inner_pa32(sffi_closure *closure, UINT32 *stack)
   return SFFI_OK;
 }
 
-
-
 extern void sffi_closure_pa32(void);
 
 sffi_status
@@ -542,7 +518,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 		      void *user_data,
 		      void *codeloc)
 {
-  
+
   struct pa32_fd
   {
     UINT32 code_pointer;
@@ -562,10 +538,8 @@ sffi_prep_closure_loc (sffi_closure* closure,
   if (cif->abi != SFFI_PA32)
     return SFFI_BAD_ABI;
 
-  
   fd = (struct pa32_fd *)((UINT32)sffi_closure_pa32 & ~3);
 
-  
   tramp = (struct sffi_pa32_trampoline_struct *)closure->tramp;
   tramp->code_pointer = fd->code_pointer;
   tramp->fake_gp = (UINT32)codeloc & ~3;

@@ -1,16 +1,5 @@
 #pragma once
 
-
-
-
-
-
-
-
-
-
-
-
 #if !defined(JSON_HEDLEY_VERSION) || (JSON_HEDLEY_VERSION < 15)
 #    if defined(JSON_HEDLEY_VERSION)
 #        undef JSON_HEDLEY_VERSION
@@ -770,7 +759,6 @@
 #        define JSON_HEDLEY_DIAGNOSTIC_PUSH
 #        define JSON_HEDLEY_DIAGNOSTIC_POP
 #    endif
-
 
 #    if defined(JSON_HEDLEY_DIAGNOSTIC_DISABLE_CPP98_COMPAT_WRAP_)
 #        undef JSON_HEDLEY_DIAGNOSTIC_DISABLE_CPP98_COMPAT_WRAP_
@@ -1913,8 +1901,6 @@ JSON_HEDLEY_DIAGNOSTIC_POP
 #    else
 #        define JSON_HEDLEY_EMPTY_BASES
 #    endif
-
-
 
 #    if defined(JSON_HEDLEY_GCC_NOT_CLANG_VERSION_CHECK)
 #        undef JSON_HEDLEY_GCC_NOT_CLANG_VERSION_CHECK

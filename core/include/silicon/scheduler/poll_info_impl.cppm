@@ -1,13 +1,11 @@
 module;
 
-
 #include <atomic>
 #include <coroutine>
 #include <map>
 #include <memory>
 #include <optional>
 #include <utility>
-
 
 export module silicon.scheduler:poll_info_impl;
 
@@ -16,29 +14,7 @@ import :poll;
 import :time;
 import :poll_info;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 export namespace silicon::scheduler {
-
-
-
 
 struct poll_info_impl {
 

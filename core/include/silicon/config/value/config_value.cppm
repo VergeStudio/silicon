@@ -16,7 +16,6 @@ export module silicon.config.config_value;
 
 export namespace silicon::config {
 
-
 class config_value;
 
 using config_value_data = std::variant<
@@ -43,7 +42,6 @@ class CORE_API config_value {
     config_value(int64_t);
     config_value(double);
     config_value(std::string);
-
 
     config_value(const config_value &o): impl_(std::make_shared<impl>(*o.impl_)) {}
     config_value & operator=(const config_value &o) {

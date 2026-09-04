@@ -1,6 +1,5 @@
 module;
 
-
 #include <atomic>
 #include <coroutine>
 #include <cstdint>
@@ -12,23 +11,7 @@ export module silicon.scheduler:io_op;
 
 import :fd;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 namespace silicon::scheduler {
-
-
 
 struct io_op {
 
@@ -52,13 +35,11 @@ struct io_op {
 
     io_op *m_next{nullptr};
 
-
     void complete(std::int64_t) noexcept ;
 
     void complete_error(std::error_code) noexcept ;
 
     [[nodiscard]] std::expected<std::int64_t, std::error_code> result() const noexcept ;
-
 
     struct io_awaiter {
         explicit io_awaiter(io_op &op) noexcept: m_op(op) {}

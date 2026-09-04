@@ -1,17 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #include <atomic>
 #include <chrono>
 #include <coroutine>
@@ -34,7 +20,6 @@ namespace sched = silicon::scheduler;
 namespace coro = silicon::scheduler;
 
 namespace {
-
 
 struct temp_regular_file {
     std::FILE *m_file{nullptr};
@@ -64,8 +49,6 @@ struct temp_regular_file {
         if(m_file != nullptr) { std::fclose(m_file); }
     }
 };
-
-
 
 auto read_at_result(
         sched::io_scheduler &ios, int fd, void *buffer, std::uint32_t length, std::uint64_t offset
@@ -102,7 +85,6 @@ TEST_CASE("completion I/O：无后端时常规文件 read_at/write_at 按契约�
     char read_buffer[1]{};
     const char write_buffer[1]{'B'};
 
-
     auto read_probe = coro::sync_wait(read_at_result(ios, file.m_fd, read_buffer, 1, 0));
     auto write_probe = coro::sync_wait(write_at_result(ios, file.m_fd, write_buffer, 1, 0));
 
@@ -113,7 +95,6 @@ TEST_CASE("completion I/O：无后端时常规文件 read_at/write_at 按契约�
         REQUIRE_FALSE(write_probe.has_value());
         CHECK(write_probe.error() == sched::make_error_code(sched::scheduler_error::kNoCompletionBackend));
     }
-
 
     ios.shutdown();
 }
@@ -176,14 +157,12 @@ TEST_CASE("completion I/O：后端可用时对常规文件完成一次读往返"
     REQUIRE(file.valid());
     REQUIRE(file.write_byte('A'));
 
-
     char probe_buffer[1]{};
     auto probe = coro::sync_wait(read_at_result(ios, file.m_fd, probe_buffer, 1, 0));
     if(ios.completion_backend() == sched::io_ring::backend::none) {
         ios.shutdown();
         return;
     }
-
 
     REQUIRE(probe.has_value());
     CHECK(probe.value() == 1);

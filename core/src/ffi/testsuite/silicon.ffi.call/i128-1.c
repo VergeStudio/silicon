@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 #if defined(SFFI_TARGET_HAS_INT128) && defined(__SIZEOF_INT128__)

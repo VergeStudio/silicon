@@ -1,12 +1,5 @@
-
-
-
-
-
 #include "ffitest.h"
 #include <stdarg.h>
-
-
 
 static int
 test_fn (char a1, float a2, int n, ...)
@@ -137,9 +130,9 @@ main (void)
   args[13] = NULL;
 
   sffi_call(&cif, SFFI_FN(test_fn), &res, args);
-  
+
   printf("res: %d\n", (int) res);
-  
+
   CHECK(res == 42);
 
   return 0;

@@ -1,11 +1,8 @@
 module;
 
-
 #include <memory>
 
-
 #include <coroutine>
-
 
 #include <atomic>
 #include <chrono>
@@ -17,12 +14,9 @@ module;
 #include <tuple>
 #include <silicon/proxy/proxy_macros.h>
 
-
 #ifdef LIBCORO_FEATURE_NETWORKING
 #    include <stop_token>
 #endif
-
-
 
 #if defined(__GNUC__) && !defined(__clang__)
 #    pragma GCC diagnostic push
@@ -55,9 +49,6 @@ class CORE_API condition_variable {
         kAwaiterDead,
     };
 
-
-
-
     PRO_DEF_MEM_DISPATCH(MemNotify, on_notify);
 
     struct notify_facade
@@ -78,7 +69,6 @@ class CORE_API condition_variable {
         return silicon::proxy::make_proxy_view<notify_facade>(target);
     }
 
-
     template<class Awaiter>
     struct notify_strategy {
         Awaiter* self;
@@ -94,7 +84,6 @@ class CORE_API condition_variable {
         awaiter_base & operator=(const awaiter_base &) = delete;
         awaiter_base & operator=(awaiter_base &&) = delete;
 
-
         awaiter_base *m_next{nullptr};
 
         std::coroutine_handle<> m_awaiting_coroutine{nullptr};
@@ -102,7 +91,6 @@ class CORE_API condition_variable {
         silicon::coroutine::condition_variable &m_condition_variable;
 
         silicon::coroutine::scoped_lock &m_lock;
-
 
         notify_proxy strategy_{};
         silicon::scheduler::task<notify_status_t> on_notify() {
@@ -141,7 +129,6 @@ class CORE_API condition_variable {
 
         silicon::scheduler::task<notify_status_t> do_on_notify() ;
 
-
         predicate_type m_predicate;
     };
 
@@ -164,7 +151,6 @@ class CORE_API condition_variable {
 
         silicon::scheduler::task<notify_status_t> do_on_notify() ;
 
-
         predicate_type m_predicate;
 
         std::stop_token m_stop_token;
@@ -175,7 +161,6 @@ class CORE_API condition_variable {
 #endif
 
 #ifdef LIBCORO_FEATURE_NETWORKING
-
 
     struct controller_data {
         controller_data(
@@ -191,13 +176,11 @@ class CORE_API condition_variable {
         controller_data & operator=(const controller_data &) = delete;
         controller_data & operator=(controller_data &&) = delete;
 
-
         silicon::coroutine::mutex m_event_mutex{};
 
         silicon::coroutine::event m_notify_callback{};
 
         std::atomic<bool> m_awaiter_completed{false};
-
 
         std::optional<std::cv_status> &m_status;
 
@@ -208,7 +191,6 @@ class CORE_API condition_variable {
         std::optional<const std::stop_token> m_stop_token{std::nullopt};
     };
 
-    
     struct awaiter_with_wait_hook: public awaiter_base {
         awaiter_with_wait_hook(silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &, controller_data &) noexcept;
         ~awaiter_with_wait_hook() = default;
@@ -242,22 +224,17 @@ class CORE_API condition_variable {
         awaiter_with_wait & operator=(const awaiter_with_wait &) = delete;
         awaiter_with_wait & operator=(awaiter_with_wait &&) = delete;
 
-        
         silicon::scheduler::task<void> make_on_notify_callback_task(controller_data &data) {
             co_await data.m_notify_callback;
 
-
             if(m_status.value() == std::cv_status::no_timeout) {
-
 
                 m_awaiting_coroutine.resume();
             }
 
-
             co_return;
         }
 
-        
         silicon::scheduler::task<void> make_timeout_task(controller_data &data) {
             co_await m_executor->schedule_after(m_wait_for);
             auto lock = co_await data.m_event_mutex.scoped_lock();
@@ -268,22 +245,17 @@ class CORE_API condition_variable {
                 m_status = {std::cv_status::timeout};
                 lock.unlock();
 
-
-
                 co_await m_lock.owned_mutex()->lock();
                 m_predicate_result = data.m_predicate.has_value() ? data.m_predicate.value()() : true;
                 m_awaiting_coroutine.resume();
                 co_return;
             }
 
-
             co_return;
         }
 
-        
         silicon::scheduler::task_self_deleting make_controller_task() {
             controller_data data{m_status, m_predicate_result, std::move(m_predicate), std::move(m_stop_token)};
-
 
             awaiter_with_wait_hook hook_task{m_condition_variable, m_lock, data};
             m_condition_variable.push_waiter(static_cast<awaiter_base *>(&hook_task));
@@ -310,7 +282,6 @@ class CORE_API condition_variable {
         bool await_suspend(std::coroutine_handle<> awaiting_coroutine) noexcept {
             m_awaiting_coroutine = awaiting_coroutine;
 
-
             auto controller = make_controller_task();
             controller.resume();
             return true;
@@ -326,7 +297,6 @@ class CORE_API condition_variable {
 
         silicon::scheduler::task<notify_status_t> do_on_notify() { std::unreachable(); }
 
-
         std::unique_ptr<io_executor_type> &m_executor;
 
         const std::chrono::nanoseconds m_wait_for;
@@ -334,7 +304,6 @@ class CORE_API condition_variable {
         std::optional<std::cv_status> m_status{std::nullopt};
 
         bool m_predicate_result{false};
-
 
         std::optional<predicate_type> m_predicate{std::nullopt};
 
@@ -352,19 +321,15 @@ class CORE_API condition_variable {
     condition_variable & operator=(const condition_variable &) = delete;
     condition_variable & operator=(condition_variable &&) = delete;
 
-    
     silicon::scheduler::task<void> notify_one() ;
 
-    
     template<silicon::scheduler::concepts::executor executor_type>
     void notify_one(std::unique_ptr<executor_type> &executor) {
         executor->spawn_detached(notify_one());
     }
 
-    
     silicon::scheduler::task<void> notify_all() ;
 
-    
     template<silicon::scheduler::concepts::executor executor_type>
     void notify_all(std::unique_ptr<executor_type> &executor) {
         auto *waiter = pop_all_waiters();
@@ -373,7 +338,6 @@ class CORE_API condition_variable {
 
             awaiter_base *next = waiter->m_next;
 
-
             executor->spawn_detached(make_notify_all_executor_individual_task(waiter));
             waiter = next;
         }
@@ -381,14 +345,12 @@ class CORE_API condition_variable {
         return;
     }
 
-    
     [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &) -> awaiter;
 
-    
     [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &, predicate_type) -> awaiter_with_predicate;
 
 #ifndef EMSCRIPTEN
-    
+
     [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &, std::stop_token, predicate_type)
             -> awaiter_with_predicate_stop_token;
 #endif
@@ -499,15 +461,12 @@ class CORE_API condition_variable {
     struct impl;
     std::unique_ptr<impl> m_p;
 
-    
-
     awaiter_base * pop_all_waiters() noexcept ;
 
     void push_waiter(awaiter_base *) noexcept ;
 
     silicon::scheduler::task<void> make_notify_all_executor_individual_task(awaiter_base *) ;
 };
-
 
 #if defined(__GNUC__) && !defined(__clang__)
 #    pragma GCC diagnostic pop

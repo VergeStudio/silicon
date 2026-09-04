@@ -1,7 +1,5 @@
 #include <silicon/test/test.h>
 
-
-
 #include <chrono>
 #include <coroutine>
 #include <thread>
@@ -22,15 +20,9 @@ using silicon::scheduler::thread_pool;
 
 namespace {
 
-
-
 std::shared_ptr<thread_pool> make_executor() {
     return std::shared_ptr<thread_pool>{thread_pool::create().value()};
 }
-
-
-
-
 
 auto make_counter_task(std::atomic<int> *counter) -> task<void> {
     counter->fetch_add(1, std::memory_order::relaxed);
@@ -95,7 +87,6 @@ TEST_CASE("coroutine_pool: 并发上限 = pool_size") {
     };
     sync_wait(driver());
 
-
     CHECK(peak.load() <= kPoolSize);
     CHECK(pool.empty());
 }
@@ -136,14 +127,11 @@ TEST_CASE("coroutine_pool: 析构时排空在途任务（不丢任务、不悬�
                 pool.dispatch(make_counter_task(&counter));
             }
 
-
-
             co_return;
         };
         sync_wait(driver());
 
     }
-
 
     CHECK(counter.load() == 30);
 }

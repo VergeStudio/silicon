@@ -18,26 +18,14 @@ import silicon.proxy;
 
 export namespace silicon::cli {
 
-
-
-
-
-
-
-
-
 class CORE_API parser {
   public:
     parser();
     ~parser();
 
-
-
     void add_subcommand(std::string);
 
-
     void add_flag(std::string, bool = false);
-
 
     std::expected<parse_result, std::error_code> parse(int, const char *const *) const;
 
@@ -46,26 +34,16 @@ class CORE_API parser {
     std::unique_ptr<impl> impl_;
 };
 
-
-
-
-
-
 PRO_DEF_MEM_DISPATCH(MemParserParse, parse);
-
-
 
 struct parser_facade
     : silicon::proxy::facade_builder
       ::add_convention<MemParserParse, std::expected<parse_result, std::error_code>(int, const char *const *) const>
       ::build {};
 
-
 using parser_proxy = silicon::proxy::proxy<parser_facade>;
 
-
 using parser_view = silicon::proxy::proxy_view<parser_facade>;
-
 
 template<class T, class... Args>
 [[nodiscard]] parser_proxy make_parser(Args &&...args) {

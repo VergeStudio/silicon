@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <chrono>
@@ -27,7 +16,6 @@ module;
 
 module silicon.scheduler;
 
-
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
@@ -37,8 +25,6 @@ import silicon.scheduler;
 namespace silicon::scheduler {
 
 namespace {
-
-
 
 using create_io_ring_fn = HRESULT(WINAPI *)(IORING_VERSION, IORING_CREATE_FLAGS, UINT32, UINT32, HIORING *);
 using submit_io_ring_fn = HRESULT(WINAPI *)(HIORING, UINT32, UINT32, UINT32 *);
@@ -55,7 +41,6 @@ struct io_ring_api {
         return create != nullptr && submit != nullptr && pop != nullptr && close != nullptr;
     }
 };
-
 
 io_ring_api load_io_ring_api() {
     io_ring_api table{};
@@ -93,7 +78,6 @@ io_ring::io_ring(io_ring_config cfg): m_p(std::make_unique<impl>()) {
     std::uint32_t depth = 1u;
     while(depth < cfg.queue_depth && depth < 4096u) { depth <<= 1; }
 
-
     HRESULT hr = m_p->fn.create(IORING_VERSION_1, IORING_CREATE_REQUIRED_FLAGS_NONE, depth, depth * 2u, &m_p->ring);
     m_p->valid = SUCCEEDED(hr) && m_p->ring != nullptr;
     if(!m_p->valid) { m_p->ring = nullptr; }
@@ -114,7 +98,6 @@ auto io_ring::active_backend() const noexcept -> backend {
 }
 
 bool io_ring::supports(op which) const noexcept {
-
 
     return is_valid() && (which == op::read || which == op::write);
 }
@@ -159,7 +142,6 @@ bool io_ring::submit_write(
 
 bool io_ring::submit_cancel(std::uint64_t, std::uint64_t) {
 
-
     return false;
 }
 
@@ -174,7 +156,6 @@ std::uint32_t io_ring::submit() {
 
 auto io_ring::wait_completion(std::chrono::milliseconds timeout) -> std::optional<completion> {
     if(!is_valid()) { return std::nullopt; }
-
 
     UINT32 submitted = 0;
     HRESULT hr = m_p->fn.submit(

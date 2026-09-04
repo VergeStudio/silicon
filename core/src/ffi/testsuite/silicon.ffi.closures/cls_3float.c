@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_3float {
@@ -85,9 +81,9 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_3float_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %g %g %g\n", res_dbl.f, res_dbl.g, res_dbl.h);
-  
+
   CHECK_FLOAT_EQ(res_dbl.f, 2);
   CHECK_FLOAT_EQ(res_dbl.g, 4);
   CHECK_FLOAT_EQ(res_dbl.h, 6);
@@ -97,9 +93,9 @@ int main (void)
 
   res_dbl = ((cls_struct_3float(*)(cls_struct_3float,
 				   cls_struct_3float))(code))(g_dbl, f_dbl);
-  
+
   printf("res: %g %g %g\n", res_dbl.f, res_dbl.g, res_dbl.h);
-  
+
   CHECK_FLOAT_EQ(res_dbl.f, 2);
   CHECK_FLOAT_EQ(res_dbl.g, 4);
   CHECK_FLOAT_EQ(res_dbl.h, 6);

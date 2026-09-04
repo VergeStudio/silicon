@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 static void closure_test_fn3(sffi_cif* cif __UNUSED__, void* resp, void** args,
@@ -78,7 +75,6 @@ int main (void)
   cl_arg_types[15] = &sffi_type_sint;
   cl_arg_types[16] = NULL;
 
-  
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 16,
 		     &sffi_type_sint, cl_arg_types) == SFFI_OK);
 
@@ -88,9 +84,9 @@ int main (void)
   res = (*((closure_test_type3)code))
     (1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9, 10, 11.11, 12.0, 13,
      19.19, 21.21, 1);
-  
+
   printf("res: %d\n",res);
-  
+
   CHECK(res == 135);
   exit(0);
 }

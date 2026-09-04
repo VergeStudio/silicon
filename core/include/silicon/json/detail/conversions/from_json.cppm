@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -43,7 +30,6 @@ import :detail.meta.type_traits;
 import :detail.string_concat;
 import :detail.value_t;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
 
@@ -54,7 +40,6 @@ inline void from_json(const BasicJsonType &j, typename std::nullptr_t &n) {
     }
     n = nullptr;
 }
-
 
 export template<typename BasicJsonType, typename ArithmeticType, enable_if_t<std::is_arithmetic<ArithmeticType>::value && !std::is_same<ArithmeticType, typename BasicJsonType::boolean_t>::value, int> = 0>
 void get_arithmetic_value(const BasicJsonType &j, ArithmeticType &val) {
@@ -138,7 +123,6 @@ inline void from_json(const BasicJsonType &j, EnumType &e) {
 }
 #endif
 
-
 export template<typename BasicJsonType, typename T, typename Allocator, enable_if_t<is_getable<BasicJsonType, T>::value, int> = 0>
 inline void from_json(const BasicJsonType &j, std::forward_list<T, Allocator> &l) {
     if(JSON_HEDLEY_UNLIKELY(!j.is_array())) {
@@ -149,7 +133,6 @@ inline void from_json(const BasicJsonType &j, std::forward_list<T, Allocator> &l
         return i.template get<T>();
     });
 }
-
 
 export template<typename BasicJsonType, typename T, enable_if_t<is_getable<BasicJsonType, T>::value, int> = 0>
 inline void from_json(const BasicJsonType &j, std::valarray<T> &l) {
@@ -192,7 +175,6 @@ auto from_json_array_impl(const BasicJsonType &j, ConstructibleArrayType &arr, p
     ret.reserve(j.size());
     std::transform(j.begin(), j.end(), std::inserter(ret, end(ret)), [](const BasicJsonType &i) {
 
-
         return i.template get<typename ConstructibleArrayType::value_type>();
     });
     arr = std::move(ret);
@@ -206,7 +188,6 @@ inline void from_json_array_impl(const BasicJsonType &j, ConstructibleArrayType 
     std::transform(
             j.begin(), j.end(), std::inserter(ret, end(ret)),
             [](const BasicJsonType &i) {
-
 
                 return i.template get<typename ConstructibleArrayType::value_type>();
             }
@@ -266,10 +247,6 @@ inline void from_json(const BasicJsonType &j, ConstructibleObjectType &obj) {
     );
     obj = std::move(ret);
 }
-
-
-
-
 
 export template<typename BasicJsonType, typename ArithmeticType, enable_if_t<std::is_arithmetic<ArithmeticType>::value && !std::is_same<ArithmeticType, typename BasicJsonType::number_unsigned_t>::value && !std::is_same<ArithmeticType, typename BasicJsonType::number_integer_t>::value && !std::is_same<ArithmeticType, typename BasicJsonType::number_float_t>::value && !std::is_same<ArithmeticType, typename BasicJsonType::boolean_t>::value, int> = 0>
 inline void from_json(const BasicJsonType &j, ArithmeticType &val) {
@@ -387,8 +364,6 @@ export struct from_json_fn {
 }
 
 #ifndef JSON_HAS_CPP_17
-
-
 
 namespace
 export {

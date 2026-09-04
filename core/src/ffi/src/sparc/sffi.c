@@ -1,12 +1,9 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 #include <stdlib.h>
 #include "internal.h"
 
 #ifndef SPARC64
-
 
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 # if SFFI_TYPE_LONGDOUBLE != 4
@@ -17,7 +14,6 @@
 # define SFFI_TYPE_LONGDOUBLE 4
 #endif
 
-
 sffi_status SFFI_HIDDEN
 sffi_prep_cif_machdep(sffi_cif *cif)
 {
@@ -26,7 +22,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
   size_t bytes;
   int i, n, flags;
 
-  
   switch (rtt)
     {
     case SFFI_TYPE_VOID:
@@ -116,7 +111,7 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 	case SFFI_TYPE_STRUCT:
 	case SFFI_TYPE_LONGDOUBLE:
 	by_reference:
-	  
+
 	  z = 4;
 	  break;
 
@@ -124,7 +119,6 @@ sffi_prep_cif_machdep(sffi_cif *cif)
 	  tt = ty->elements[0]->type;
 	  if (tt == SFFI_TYPE_FLOAT || z > 8)
 	    goto by_reference;
-	  
 
 	default:
 	  z = SFFI_ALIGN(z, 4);
@@ -132,17 +126,13 @@ sffi_prep_cif_machdep(sffi_cif *cif)
       bytes += z;
     }
 
-  
   if (bytes < 6 * 4)
     bytes = 6 * 4;
 
-  
   bytes += 4;
 
-  
   bytes = SFFI_ALIGN(bytes, 2 * 4);
 
-  
   bytes += 4*16 + 4*8;
   cif->bytes = bytes;
 
@@ -163,21 +153,20 @@ sffi_prep_args_v8(sffi_cif *cif, unsigned long *argp, void *rvalue, void **avalu
     {
       if ((flags & SPARC_FLAG_RET_MASK) == SPARC_RET_STRUCT)
 	{
-	  
+
 	  rvalue = (char *)argp + cif->bytes;
 	}
       else
 	{
-	  
+
 	  flags = SPARC_RET_VOID;
 	}
     }
 
-  
   *argp++ = (unsigned long)rvalue;
 
 #ifdef USING_PURIFY
-  
+
   memset(argp, 0, 6*4);
 #endif
 
@@ -261,12 +250,10 @@ sffi_call_int (sffi_cif *cif, void (*fn)(void), void *rvalue,
 
   SFFI_ASSERT (cif->abi == SFFI_V8);
 
-  
   if (rvalue == NULL
       && (cif->flags & SPARC_FLAG_RET_MASK) == SPARC_RET_STRUCT)
     bytes += SFFI_ALIGN (cif->rtype->size, 8);
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *at = arg_types[i];
@@ -305,7 +292,7 @@ sffi_call_go (sffi_cif *cif, void (*fn)(void), void *rvalue,
 static inline void
 sffi_flush_icache (void *p)
 {
-  
+
   __asm__ volatile ("iflush	%0; iflush %0+8; nop; nop; nop; nop; nop"
 		: : "r" (p) : "memory");
 }
@@ -373,7 +360,6 @@ sffi_closure_sparc_inner_v8(sffi_cif *cif,
   flags = cif->flags;
   avalue = alloca(nargs * sizeof(void *));
 
-  
   if ((flags & SPARC_FLAG_RET_MASK) == SPARC_RET_STRUCT)
     {
       void *new_rvalue = (void *)*argp;
@@ -381,10 +367,8 @@ sffi_closure_sparc_inner_v8(sffi_cif *cif,
       rvalue = new_rvalue;
     }
 
-  
   argp++;
 
-  
   for (i = 0; i < nargs; i++)
     {
       sffi_type *ty = arg_types[i];
@@ -397,7 +381,7 @@ sffi_closure_sparc_inner_v8(sffi_cif *cif,
 	case SFFI_TYPE_STRUCT:
 	case SFFI_TYPE_LONGDOUBLE:
 	by_reference:
-	  
+
 	  a = (void *)*argp;
 	  break;
 
@@ -406,7 +390,7 @@ sffi_closure_sparc_inner_v8(sffi_cif *cif,
 	case SFFI_TYPE_UINT64:
 	  if ((unsigned long)a & 7)
 	    {
-	      
+
 	      UINT64 *tmp = alloca(8);
 	      *tmp = ((UINT64)argp[0] << 32) | argp[1];
 	      a = tmp;
@@ -447,10 +431,8 @@ sffi_closure_sparc_inner_v8(sffi_cif *cif,
       avalue[i] = a;
     }
 
-  
   fun (cif, rvalue, avalue, user_data);
 
-  
   return flags;
 }
 #endif 

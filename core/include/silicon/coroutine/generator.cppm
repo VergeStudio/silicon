@@ -1,9 +1,5 @@
 module;
 
-
-
-
-
 #include <version>
 
 #if __has_include(<generator>) && defined(__cpp_lib_generator)
@@ -32,7 +28,6 @@ using generator = std::generator<T>;
 export namespace silicon::coroutine {
 template <typename T>
 class generator;
-
 
 template <typename T>
 class generator_promise {
@@ -115,8 +110,6 @@ class generator_iterator {
     coroutine_handle m_coroutine{nullptr};
 };
 
-
-
 template <typename T>
 class generator : public std::ranges::view_base {
   public:
@@ -164,12 +157,10 @@ class generator : public std::ranges::view_base {
     std::coroutine_handle<promise_type> m_coroutine;
 };
 
-
 template <typename T>
 auto generator_promise<T>::get_return_object() noexcept -> generator<T> {
     return generator<T>{std::coroutine_handle<generator_promise<T>>::from_promise(*this)};
 }
-
 
 }
 

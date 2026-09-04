@@ -14,18 +14,10 @@ module;
 
 export module silicon.scheduler.task;
 
-
-
-
 export namespace silicon::scheduler {
-
-
-
 
 template<typename return_type = void>
 class task;
-
-
 
 struct CORE_API promise_base {
     friend struct final_awaitable;
@@ -48,13 +40,8 @@ struct CORE_API promise_base {
     promise_base() noexcept = default;
     ~promise_base() = default;
 
-
-
-
     auto initial_suspend() noexcept { return std::suspend_always{}; }
     auto final_suspend() noexcept { return final_awaitable{}; }
-
-
 
     void continuation(std::coroutine_handle<> continuation) noexcept { m_continuation = continuation; }
 
@@ -196,8 +183,6 @@ struct CORE_API promise<void>: public promise_base {
     std::exception_ptr m_exception_ptr{nullptr};
 };
 
-
-
 template<typename return_type>
 class [[nodiscard]] task {
   public:
@@ -278,8 +263,6 @@ class [[nodiscard]] task {
     coroutine_handle m_coroutine{nullptr};
 };
 
-
-
 template<typename return_type>
 inline auto promise<return_type>::get_return_object() noexcept -> task<return_type> {
     return task<return_type>{coroutine_handle::from_promise(*this)};
@@ -288,19 +271,6 @@ inline auto promise<return_type>::get_return_object() noexcept -> task<return_ty
 inline auto promise<void>::get_return_object() noexcept -> task<> {
     return task<>{coroutine_handle::from_promise(*this)};
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class task_self_deleting;
 
@@ -348,15 +318,8 @@ class CORE_API task_self_deleting {
 
 CORE_API auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_self_deleting;
 
-
-
-
-
-
-
 class CORE_API task_event {
   public:
-
 
     struct CORE_API awaiter {
         awaiter(const task_event &) noexcept;
@@ -385,10 +348,6 @@ class CORE_API task_event {
     friend struct awaiter;
     mutable std::atomic<void *> m_state{nullptr};
 };
-
-
-
-
 
 template<typename executor_type>
 class task_group {
@@ -427,9 +386,6 @@ class task_group {
     task_group & operator=(task_group &&) = delete;
 
     ~task_group() {
-
-
-
 
         while(!empty()) {
             std::this_thread::yield();

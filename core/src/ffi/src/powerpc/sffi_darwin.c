@@ -1,17 +1,13 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
 #include <stdlib.h>
-
 
 struct sffi_aix_trampoline_struct {
     void * code_pointer;	
     void * toc;			
     void * static_chain;	
 };
-
 
 #define PPC_LD_NONE		0
 #define PPC_LD_R3		1
@@ -43,7 +39,7 @@ extern void sffi_go_closure_ASM (void);
 #endif
 
 enum {
-  
+
   FLAG_RETURNS_128BITS	= 1 << (31-31), 
   FLAG_RETURNS_NOTHING	= 1 << (31-30),
   FLAG_RETURNS_FP	= 1 << (31-29),
@@ -57,7 +53,6 @@ enum {
   FLAG_RETVAL_REFERENCE = 1 << (31- 4)
 };
 
-
 enum {
   NUM_GPR_ARG_REGISTERS = 8,
   NUM_FPR_ARG_REGISTERS = 13,
@@ -66,15 +61,11 @@ enum {
 
 enum { ASM_NEEDS_REGISTERS = 4 }; 
 
-
-
 #if defined(POWERPC_DARWIN64)
 static void
 darwin64_pass_struct_by_value 
   (sffi_type *, char *, unsigned, unsigned *, double **, unsigned long **);
 #endif
-
-
 
 void
 sffi_prep_args (extended_cif *ecif, unsigned long *const stack)
@@ -86,14 +77,11 @@ sffi_prep_args (extended_cif *ecif, unsigned long *const stack)
   const sffi_abi abi = ecif->cif->abi;
 #endif
 
-  
   unsigned long *const stacktop = stack + (bytes / sizeof(unsigned long));
 
-  
   double *fpr_base = (double *) (stacktop - ASM_NEEDS_REGISTERS) - NUM_FPR_ARG_REGISTERS;
   int gp_count = 0, fparg_count = 0;
 
-  
   unsigned long *next_arg = stack + LINKAGE_AREA_GPRS; 
 
   int i;
@@ -106,22 +94,18 @@ sffi_prep_args (extended_cif *ecif, unsigned long *const stack)
 #endif
   unsigned size_al = 0;
 
-  
   SFFI_ASSERT(((unsigned) (char *) stack & 0xF) == 0);
   SFFI_ASSERT(((unsigned) (char *) stacktop & 0xF) == 0);
   SFFI_ASSERT((bytes & 0xF) == 0);
 
-  
-
   if (flags & FLAG_RETVAL_REFERENCE)
     *next_arg++ = (unsigned long) (char *) ecif->rvalue;
 
-  
   for (i = nargs; i > 0; i--, ptr++, p_argv++)
     {
       switch ((*ptr)->type)
 	{
-	
+
 	case SFFI_TYPE_FLOAT:
 	  double_tmp = *(float *) *p_argv;
 	  if (fparg_count < NUM_FPR_ARG_REGISTERS)
@@ -157,7 +141,7 @@ sffi_prep_args (extended_cif *ecif, unsigned long *const stack)
 
 	case SFFI_TYPE_LONGDOUBLE:
 #  if defined(POWERPC64) && !defined(POWERPC_DARWIN64)
-	  
+
 	  if (fparg_count < NUM_FPR_ARG_REGISTERS)
 	    *(long double *) fpr_base++ = *(long double *) *p_argv;
 	  else
@@ -231,7 +215,6 @@ sffi_prep_args (extended_cif *ecif, unsigned long *const stack)
 #else
 	  dest_cpy = (char *) next_arg;
 
-	  
 	  if ((*ptr)->elements[0]->type == SFFI_TYPE_DOUBLE)
 	    size_al = SFFI_ALIGN((*ptr)->size, 8);
 
@@ -240,7 +223,7 @@ sffi_prep_args (extended_cif *ecif, unsigned long *const stack)
 	  memcpy ((char *) dest_cpy, (char *) *p_argv, size_al);
 	  next_arg += (size_al + 7) / 8;
 #  else
-	  
+
 	  if (size_al < 3 && abi == SFFI_DARWIN)
 	    dest_cpy += 4 - size_al;
 
@@ -266,12 +249,9 @@ sffi_prep_args (extended_cif *ecif, unsigned long *const stack)
 	}
     }
 
-  
-  
 }
 
 #if defined(POWERPC_DARWIN64)
-
 
 static void
 darwin64_scan_struct_for_floats (sffi_type *s, unsigned *nfpr)
@@ -310,7 +290,7 @@ darwin64_struct_size_exceeds_gprs_p (sffi_type *s, char *src, unsigned *nfpr)
     {
       char *item_base;
       sffi_type *p = s->elements[i];
-      
+
       if (i > 0)
         struct_offset = SFFI_ALIGN(struct_offset, p->alignment);
 
@@ -327,7 +307,7 @@ darwin64_struct_size_exceeds_gprs_p (sffi_type *s, char *src, unsigned *nfpr)
 	      return 1;
 	    (*nfpr) += 1;
 	    item_base += 8;
-	  
+
 	  case SFFI_TYPE_DOUBLE:
 	    if (*nfpr >= NUM_FPR_ARG_REGISTERS)
 	      return 1;
@@ -339,17 +319,16 @@ darwin64_struct_size_exceeds_gprs_p (sffi_type *s, char *src, unsigned *nfpr)
 	    (*nfpr) += 1;
 	    break;
 	  default:
-	    
+
 	    if ((unsigned long)item_base >= 8*8) 
 	      return 1;
 	    break;    
 	}
-      
+
       struct_offset += p->size;
     }
   return 0;
 }
-
 
 int 
 darwin64_struct_ret_by_value_p (sffi_type *s)
@@ -357,25 +336,21 @@ darwin64_struct_ret_by_value_p (sffi_type *s)
   unsigned nfp = 0;
 
   SFFI_ASSERT (s && s->type == SFFI_TYPE_STRUCT);
-  
-  
+
   if (s->size > 168)
     return 0;
-  
-  
+
   darwin64_scan_struct_for_floats (s, &nfp);
   if (nfp > 13)
     return 0;
-  
-  
+
   if (s->size <= 64)
     return 1;
-  
-  
+
   nfp = 0;
   if (darwin64_struct_size_exceeds_gprs_p (s, NULL, &nfp))
     return 0;
-  
+
   return 1;
 }
 
@@ -387,12 +362,11 @@ darwin64_pass_struct_floats (sffi_type *s, char *src,
   double *fpr_base = *fprs;
   unsigned struct_offset = 0;
 
-  
   for (i = 0; s->elements[i] != NULL; i++)
     {
       char *item_base;
       sffi_type *p = s->elements[i];
-      
+
       if (i > 0)
         struct_offset = SFFI_ALIGN(struct_offset, p->alignment);
       item_base = src + struct_offset;
@@ -408,7 +382,7 @@ darwin64_pass_struct_floats (sffi_type *s, char *src,
 	      *fpr_base++ = *(double *)item_base;
 	    (*nfpr) += 1;
 	    item_base += 8;
-	  
+
 	  case SFFI_TYPE_DOUBLE:
 	    if (*nfpr < NUM_FPR_ARG_REGISTERS)
 	      *fpr_base++ = *(double *)item_base;
@@ -422,13 +396,12 @@ darwin64_pass_struct_floats (sffi_type *s, char *src,
 	  default:
 	    break;    
 	}
-      
+
       struct_offset += p->size;
     }
-  
+
   *fprs = fpr_base;
 }
-
 
 static void
 darwin64_pass_struct_by_value (sffi_type *s, char *src, unsigned size,
@@ -442,13 +415,12 @@ darwin64_pass_struct_by_value (sffi_type *s, char *src, unsigned size,
   if (!size)
     return;
 
-  
   if (size < 3
       || (size == 4 
 	  && s->elements[0] 
 	  && s->elements[0]->type != SFFI_TYPE_FLOAT))
     {
-      
+
       *next_arg = 0UL; 
       dest_cpy += 8 - size;
       memcpy ((char *) dest_cpy, src, size);
@@ -461,12 +433,12 @@ darwin64_pass_struct_by_value (sffi_type *s, char *src, unsigned size,
     }
   else
     {
-      
+
       memcpy ((char *) dest_cpy, src, size);
       darwin64_pass_struct_floats (s, src, nfpr, fprs);
       next_arg += (size+7)/8;
     }
-    
+
   *arg = next_arg;
 }
 
@@ -476,12 +448,11 @@ darwin64_struct_floats_to_mem (sffi_type *s, char *dest, double *fprs, unsigned 
   int i;
   unsigned struct_offset = 0;
 
-  
   for (i = 0; s->elements[i] != NULL; i++)
     {
       char *item_base;
       sffi_type *p = s->elements[i];
-      
+
       if (i > 0)
         struct_offset = SFFI_ALIGN(struct_offset, p->alignment);
       item_base = dest + struct_offset;
@@ -498,7 +469,7 @@ darwin64_struct_floats_to_mem (sffi_type *s, char *dest, double *fprs, unsigned 
 		(*nf) += 1;
 	      }
 	    item_base += 8;
-	  
+
 	  case SFFI_TYPE_DOUBLE:
 	    if (*nf < NUM_FPR_ARG_REGISTERS)
 	      {
@@ -516,15 +487,13 @@ darwin64_struct_floats_to_mem (sffi_type *s, char *dest, double *fprs, unsigned 
 	  default:
 	    break;    
 	}
-      
+
       struct_offset += p->size;
     }
   return fprs;
 }
 
 #endif
-
-
 
 static void
 darwin_adjust_aggregate_sizes (sffi_type *s)
@@ -539,40 +508,37 @@ darwin_adjust_aggregate_sizes (sffi_type *s)
     {
       sffi_type *p;
       int align;
-      
+
       p = s->elements[i];
       if (p->type == SFFI_TYPE_STRUCT)
 	darwin_adjust_aggregate_sizes (p);
 #if defined(POWERPC_DARWIN64)
-      
+
       align = p->alignment;
 #else
-      
+
       if (i == 0)
 	align = p->alignment;
       else if (p->alignment == 16 || p->alignment < 4)
-	
+
 	align = p->alignment;
       else
-	
+
 	align = 4;
 #endif
-      
+
       s->size = SFFI_ALIGN(s->size, align) + p->size;
     }
-  
+
   s->size = SFFI_ALIGN(s->size, s->alignment);
-  
-  
+
   if (s->elements[0]->type == SFFI_TYPE_UINT64
       || s->elements[0]->type == SFFI_TYPE_SINT64
       || s->elements[0]->type == SFFI_TYPE_DOUBLE
       || s->elements[0]->alignment == 8)
     s->alignment = s->alignment > 8 ? s->alignment : 8;
-  
+
 }
-
-
 
 static int
 aix_adjust_aggregate_sizes (sffi_type *s, int outer_most_type_or_first_member)
@@ -588,7 +554,6 @@ aix_adjust_aggregate_sizes (sffi_type *s, int outer_most_type_or_first_member)
       sffi_type p;
       int align;
 
-      
       p = *(s->elements[i]);
       if (i == 0)
         nested_first_member = aix_adjust_aggregate_sizes(&p, outer_most_type_or_first_member);
@@ -607,7 +572,7 @@ aix_adjust_aggregate_sizes (sffi_type *s, int outer_most_type_or_first_member)
           || s->elements[0]->alignment == 8 || nested_first_member)) {
       final_align = s->alignment > 8 ? s->alignment : 8;
       rc=1;
-      
+
       if (outer_most_type_or_first_member)
         s->alignment=final_align;
   }
@@ -616,19 +581,16 @@ aix_adjust_aggregate_sizes (sffi_type *s, int outer_most_type_or_first_member)
   return rc;
 }
 
-
 sffi_status
 sffi_prep_cif_machdep (sffi_cif *cif)
 {
-  
+
   unsigned i;
   sffi_type **ptr;
   unsigned bytes;
   unsigned fparg_count = 0, intarg_count = 0;
   unsigned flags = 0;
   unsigned size_al = 0;
-
-  
 
   if (cif->abi == SFFI_DARWIN)
     {
@@ -644,11 +606,8 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 	aix_adjust_aggregate_sizes (cif->arg_types[i], 1);
     }
 
-  
-
   bytes = (LINKAGE_AREA_GPRS + ASM_NEEDS_REGISTERS) * sizeof(unsigned long);
 
-  
   switch (cif->rtype->type)
     {
 
@@ -661,7 +620,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 
     case SFFI_TYPE_DOUBLE:
       flags |= FLAG_RETURNS_64BITS;
-      
+
     case SFFI_TYPE_FLOAT:
       flags |= FLAG_RETURNS_FP;
       break;
@@ -677,7 +636,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
     case SFFI_TYPE_STRUCT:
 #if defined(POWERPC_DARWIN64)
       {
-	
+
 	if (darwin64_struct_ret_by_value_p (cif->rtype))
 	  {
 	    unsigned nfpr = 0;
@@ -686,7 +645,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 	      darwin64_scan_struct_for_floats (cif->rtype, &nfpr) ;
 	    else
 	      flags |= FLAG_RETURNS_128BITS;
-	    
+
 	    if (nfpr)
 	      flags |= FLAG_RETURNS_FP;
 	  }
@@ -717,11 +676,10 @@ sffi_prep_cif_machdep (sffi_cif *cif)
       break;
 
     default:
-      
+
       break;
     }
 
-  
   for (ptr = cif->arg_types, i = cif->nargs; i > 0; i--, ptr++)
     {
       unsigned align_words;
@@ -731,7 +689,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 	case SFFI_TYPE_DOUBLE:
 	  fparg_count++;
 #if !defined(POWERPC_DARWIN64)
-	  
+
 	  if (fparg_count > NUM_FPR_ARG_REGISTERS
 	      && (intarg_count & 0x01) != 0)
 	    intarg_count++;
@@ -741,7 +699,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 #if SFFI_TYPE_LONGDOUBLE != SFFI_TYPE_DOUBLE
 	case SFFI_TYPE_LONGDOUBLE:
 	  fparg_count += 2;
-	  
+
 	  if (fparg_count >= NUM_FPR_ARG_REGISTERS)
 #if defined (POWERPC64)
 	    intarg_count = SFFI_ALIGN(intarg_count, 2);
@@ -756,7 +714,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 #if defined(POWERPC64)
 	  intarg_count++;
 #else
-	  
+
 	  if (intarg_count == NUM_GPR_ARG_REGISTERS-1
 	      || (intarg_count >= NUM_GPR_ARG_REGISTERS 
 	          && (intarg_count & 0x01) != 0))
@@ -771,17 +729,17 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 	  align_words = (*ptr)->alignment >> 3;
 	  if (align_words)
 	    intarg_count = SFFI_ALIGN(intarg_count, align_words);
-	  
+
 	  intarg_count += (size_al + 7) / 8;
-	  
+
 	  if (size_al != 16)
-	    
+
 	    darwin64_scan_struct_for_floats (*ptr, &fparg_count) ;
 #else
 	  align_words = (*ptr)->alignment >> 2;
 	  if (align_words)
 	    intarg_count = SFFI_ALIGN(intarg_count, align_words);
-	  
+
 #  ifdef POWERPC64
 	  intarg_count += (size_al + 7) / 8;
 #  else
@@ -791,7 +749,7 @@ sffi_prep_cif_machdep (sffi_cif *cif)
 	  break;
 
 	default:
-	  
+
 	  intarg_count++;
 	  break;
 	}
@@ -801,18 +759,17 @@ sffi_prep_cif_machdep (sffi_cif *cif)
     flags |= FLAG_FP_ARGUMENTS;
 
 #if defined(POWERPC_DARWIN64)
-  
+
   if (fparg_count != 0 
       || ((flags & FLAG_RETURNS_STRUCT)
 	   && (flags & FLAG_RETURNS_FP)))
     bytes += NUM_FPR_ARG_REGISTERS * sizeof(double);
 #else
-  
+
   if (fparg_count != 0)
     bytes += NUM_FPR_ARG_REGISTERS * sizeof(double);
 #endif
 
-  
 #ifdef POWERPC64
   if ((intarg_count + fparg_count) > NUM_GPR_ARG_REGISTERS)
     bytes += (intarg_count + fparg_count) * sizeof(long);
@@ -823,7 +780,6 @@ sffi_prep_cif_machdep (sffi_cif *cif)
   else
     bytes += NUM_GPR_ARG_REGISTERS * sizeof(long);
 
-  
   bytes = SFFI_ALIGN(bytes, 16) ;
 
   cif->flags = flags;
@@ -850,8 +806,6 @@ sffi_call (sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
   ecif.cif = cif;
   ecif.avalue = avalue;
-
-  
 
   if ((rvalue == NULL) &&
       (cif->rtype->type == SFFI_TYPE_STRUCT))
@@ -887,8 +841,6 @@ sffi_call_go (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
   ecif.cif = cif;
   ecif.avalue = avalue;
 
-  
-
   if ((rvalue == NULL) &&
       (cif->rtype->type == SFFI_TYPE_STRUCT))
     {
@@ -913,14 +865,10 @@ sffi_call_go (sffi_cif *cif, void (*fn) (void), void *rvalue, void **avalue,
 static void flush_icache(char *);
 static void flush_range(char *, int);
 
-
-
 typedef struct aix_fd_struct {
   void *code_pointer;
   void *toc;
 } aix_fd;
-
-
 
 sffi_status
 sffi_prep_closure_loc (sffi_closure* closure,
@@ -943,7 +891,7 @@ sffi_prep_closure_loc (sffi_closure* closure,
 #if defined(POWERPC_DARWIN64)
 	tramp[0] = 0x7c0802a6;  
 	tramp[1] = 0x429f0015;  
-	
+
 	tramp[6] = 0x7d6802a6;  
 	tramp[7] = 0xe98b0000;  
 	tramp[8] = 0x7c0803a6;  
@@ -969,7 +917,6 @@ sffi_prep_closure_loc (sffi_closure* closure,
 	closure->fun = fun;
 	closure->user_data = user_data;
 
-	
 	flush_range(codeloc, SFFI_TRAMPOLINE_SIZE);
 
 	break;
@@ -1012,7 +959,6 @@ sffi_prep_go_closure (sffi_go_closure* closure,
         closure->cif = cif;
         closure->fun = fun;
         return SFFI_OK;
-      
 
       default:
         return SFFI_BAD_ABI;
@@ -1062,15 +1008,12 @@ sffi_go_closure_helper_DARWIN (sffi_go_closure*, void *,
 			      unsigned long *, sffi_dblfl *);
 #endif
 
-
-
 static int
 sffi_closure_helper_common (sffi_cif* cif,
 			   void (*fun)(sffi_cif*, void*, void**, void*),
 			   void *user_data, void *rvalue,
 			   unsigned long *pgr, sffi_dblfl *pfr)
 {
-  
 
   typedef double ldbits[2];
 
@@ -1096,7 +1039,7 @@ sffi_closure_helper_common (sffi_cif* cif,
 #if defined(POWERPC_DARWIN64)
       if (!darwin64_struct_ret_by_value_p (cif->rtype))
 	{
-    	  
+
 	  rvalue = (void *) *pgr;
 	  pgr++;
 	}
@@ -1116,7 +1059,6 @@ sffi_closure_helper_common (sffi_cif* cif,
   avn = cif->nargs;
   arg_types = cif->arg_types;
 
-  
   while (i < avn)
     {
       switch (arg_types[i]->type)
@@ -1177,7 +1119,7 @@ sffi_closure_helper_common (sffi_cif* cif,
 	    }
 	  pgr += (size_al + 7) / 8;
 #else
-	  
+
 	  if (arg_types[i]->elements[0]->type == SFFI_TYPE_DOUBLE)
 	    size_al = SFFI_ALIGN(arg_types[i]->size, 8);
 #  if defined(POWERPC64)
@@ -1185,7 +1127,7 @@ sffi_closure_helper_common (sffi_cif* cif,
 	  avalue[i] = pgr;
 	  pgr += (size_al + 7) / 8;
 #  else
-	  
+
 	  if (size_al < 3 && cif->abi == SFFI_DARWIN)
 	    avalue[i] = (char*) pgr + 4 - size_al;
 	  else
@@ -1203,14 +1145,14 @@ sffi_closure_helper_common (sffi_cif* cif,
 	  pgr++;
 	  break;
 #else
-	  
+
 	  avalue[i] = pgr;
 	  pgr += 2;
 	  break;
 #endif
 
 	case SFFI_TYPE_FLOAT:
-	  
+
 	  if (pfr < end_pfr)
 	    {
 	      double temp = pfr->d;
@@ -1226,7 +1168,7 @@ sffi_closure_helper_common (sffi_cif* cif,
 	  break;
 
 	case SFFI_TYPE_DOUBLE:
-	  
+
 	  if (pfr < end_pfr)
 	    {
 	      avalue[i] = pfr;
@@ -1263,13 +1205,13 @@ sffi_closure_helper_common (sffi_cif* cif,
 	    }
 	  pgr += 2;
 #else  
-	  
+
 	  if (pfr + 1 < end_pfr)
 	    {
 	      avalue[i] = pfr;
 	      pfr += 2;
 	    }
-	  
+
 	  else if (pfr + 1 == end_pfr)
 	    {
 	      union ldu temp_ld;
@@ -1294,7 +1236,6 @@ sffi_closure_helper_common (sffi_cif* cif,
 
   (fun) (cif, rvalue, avalue, user_data);
 
-  
   switch (cif->rtype->type)
     {
     case SFFI_TYPE_VOID:

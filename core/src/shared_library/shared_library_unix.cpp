@@ -18,9 +18,6 @@ import silicon.platform;
 
 #if defined(SILICON_PLATFORM_UNIX)
 
-
-
-
 namespace silicon::library {
 
 std::expected<void, std::error_code> shared_library::load(const std::string &path, int32_t) {

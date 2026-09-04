@@ -6,15 +6,6 @@
 
 namespace silicon::http {
 
-
-
-
-
-
-
-
-
-
 struct http_response {
 
     struct impl {

@@ -13,19 +13,6 @@ import :thread_pool;
 
 export namespace silicon::scheduler {
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class CORE_API parallel_scheduler final {
     struct impl;
     std::unique_ptr<impl> m_impl;
@@ -39,9 +26,7 @@ class CORE_API parallel_scheduler final {
     parallel_scheduler & operator=(const parallel_scheduler &) = delete;
     parallel_scheduler & operator=(parallel_scheduler &&) = delete;
 
-
     [[nodiscard]] std::size_t thread_count() const noexcept ;
-
 
     bool spawn_detached(task<void> &&task) noexcept ;
     task<void> spawn_joinable(task<void> &&t) noexcept ;
@@ -50,10 +35,6 @@ class CORE_API parallel_scheduler final {
     bool is_shutdown() const ;
     std::size_t size() const noexcept ;
     bool empty() const noexcept { return size() == 0; }
-
-
-
-
 
     static parallel_scheduler & get_parallel_scheduler() ;
 };

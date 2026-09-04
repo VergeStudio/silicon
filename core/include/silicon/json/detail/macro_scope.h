@@ -1,27 +1,9 @@
-
-
-
-
-
-
-
-
 #pragma once
-
-
-
-
-
-
 
 #include <silicon/json/thirdparty/hedley/hedley.h>
 #include <utility>
 
-
-
-
 #include <silicon/json/detail/abi_macros.h>
-
 
 #if !defined(JSON_SKIP_UNSUPPORTED_COMPILER_CHECK)
 #    if defined(__clang__)
@@ -34,8 +16,6 @@
 #        endif
 #    endif
 #endif
-
-
 
 #if !defined(JSON_HAS_CPP_20) && !defined(JSON_HAS_CPP_17) && !defined(JSON_HAS_CPP_14) && !defined(JSON_HAS_CPP_11)
 #    if (defined(__cplusplus) && __cplusplus >= 202002L) || (defined(_MSVC_LANG) && _MSVC_LANG >= 202002L)
@@ -72,36 +52,30 @@
 #            define JSON_HAS_EXPERIMENTAL_FILESYSTEM 1
 #        endif
 
-
 #        if defined(__MINGW32__) && defined(__GNUC__) && __GNUC__ == 8
 #            undef JSON_HAS_FILESYSTEM
 #            undef JSON_HAS_EXPERIMENTAL_FILESYSTEM
 #        endif
-
 
 #        if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 8
 #            undef JSON_HAS_FILESYSTEM
 #            undef JSON_HAS_EXPERIMENTAL_FILESYSTEM
 #        endif
 
-
 #        if defined(__clang_major__) && __clang_major__ < 7
 #            undef JSON_HAS_FILESYSTEM
 #            undef JSON_HAS_EXPERIMENTAL_FILESYSTEM
 #        endif
-
 
 #        if defined(_MSC_VER) && _MSC_VER < 1914
 #            undef JSON_HAS_FILESYSTEM
 #            undef JSON_HAS_EXPERIMENTAL_FILESYSTEM
 #        endif
 
-
 #        if defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED < 130000
 #            undef JSON_HAS_FILESYSTEM
 #            undef JSON_HAS_EXPERIMENTAL_FILESYSTEM
 #        endif
-
 
 #        if defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED < 101500
 #            undef JSON_HAS_FILESYSTEM
@@ -157,13 +131,11 @@
 #    define JSON_NO_UNIQUE_ADDRESS
 #endif
 
-
 #if defined(__clang__)
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wdocumentation"
 #    pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
 #endif
-
 
 #if (defined(__cpp_exceptions) || defined(__EXCEPTIONS) || defined(_CPPUNWIND)) && !defined(JSON_NOEXCEPTION)
 #    define JSON_THROW(exception) throw exception
@@ -177,7 +149,6 @@
 #    define JSON_CATCH(exception) if(false)
 #    define JSON_INTERNAL_CATCH(exception) if(false)
 #endif
-
 
 #if defined(JSON_THROW_USER)
 #    undef JSON_THROW
@@ -198,19 +169,16 @@
 #    define JSON_INTERNAL_CATCH JSON_INTERNAL_CATCH_USER
 #endif
 
-
 #if !defined(JSON_ASSERT)
 #    include <cassert>
 #    define JSON_ASSERT(x) assert(x)
 #endif
-
 
 #if defined(JSON_TESTS_PRIVATE)
 #    define JSON_PRIVATE_UNLESS_TESTED public
 #else
 #    define JSON_PRIVATE_UNLESS_TESTED private
 #endif
-
 
 #define SILICON_JSON_SERIALIZE_ENUM(ENUM_TYPE, ...)                                                                           \
     template<typename BasicJsonType>                                                                                          \
@@ -232,16 +200,11 @@
         e = ((it != std::end(m)) ? it : std::begin(m))->first;                                                                \
     }
 
-
-
-
 #define silicon_BASIC_JSON_TPL_DECLARATION \
     template<template<typename, typename, typename...> class ObjectType, template<typename, typename...> class ArrayType, class StringType, class BooleanType, class NumberIntegerType, class NumberUnsignedType, class NumberFloatType, template<typename> class AllocatorType, template<typename, typename = void> class JSONSerializer, class BinaryType, class CustomBaseClass>
 
 #define silicon_BASIC_JSON_TPL \
     basic_json<ObjectType, ArrayType, StringType, BooleanType, NumberIntegerType, NumberUnsignedType, NumberFloatType, AllocatorType, JSONSerializer, BinaryType, CustomBaseClass>
-
-
 
 #define SILICON_JSON_EXPAND(x) x
 #define SILICON_JSON_GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39, _40, _41, _42, _43, _44, _45, _46, _47, _48, _49, _50, _51, _52, _53, _54, _55, _56, _57, _58, _59, _60, _61, _62, _63, _64, NAME, ...) NAME
@@ -314,7 +277,6 @@
 #define SILICON_JSON_FROM(v1) silicon_json_j.at(#v1).get_to(silicon_json_t.v1);
 #define SILICON_JSON_FROM_WITH_DEFAULT(v1) silicon_json_t.v1 = silicon_json_j.value(#v1, silicon_json_default_obj.v1);
 
-
 #define silicon_DEFINE_TYPE_INTRUSIVE(Type, ...)                                                                                                                        \
     friend void to_json(silicon::json::impl::json &silicon_json_j, const Type &silicon_json_t) { SILICON_JSON_EXPAND(SILICON_JSON_PASTE(SILICON_JSON_TO, __VA_ARGS__)) } \
     friend void from_json(const silicon::json::impl::json &silicon_json_j, Type &silicon_json_t) { SILICON_JSON_EXPAND(SILICON_JSON_PASTE(SILICON_JSON_FROM, __VA_ARGS__)) }
@@ -329,7 +291,6 @@
 #define silicon_DEFINE_TYPE_INTRUSIVE_ONLY_SERIALIZE(Type, ...) \
     friend void to_json(silicon::json::impl::json &silicon_json_j, const Type &silicon_json_t) { SILICON_JSON_EXPAND(SILICON_JSON_PASTE(SILICON_JSON_TO, __VA_ARGS__)) }
 
-
 #define silicon_DEFINE_TYPE_NON_INTRUSIVE(Type, ...)                                                                                                                    \
     inline void to_json(silicon::json::impl::json &silicon_json_j, const Type &silicon_json_t) { SILICON_JSON_EXPAND(SILICON_JSON_PASTE(SILICON_JSON_TO, __VA_ARGS__)) } \
     inline void from_json(const silicon::json::impl::json &silicon_json_j, Type &silicon_json_t) { SILICON_JSON_EXPAND(SILICON_JSON_PASTE(SILICON_JSON_FROM, __VA_ARGS__)) }
@@ -343,12 +304,6 @@
         const Type silicon_json_default_obj{};                                                                                                                          \
         SILICON_JSON_EXPAND(SILICON_JSON_PASTE(SILICON_JSON_FROM_WITH_DEFAULT, __VA_ARGS__))                                                                            \
     }
-
-
-
-
-
-
 
 #define silicon_CAN_CALL_STD_FUNC_IMPL(std_name)                                      \
     namespace detail {                                                                \

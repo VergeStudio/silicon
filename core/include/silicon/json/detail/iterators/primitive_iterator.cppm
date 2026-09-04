@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <silicon/json/detail/abi_macros.h>
@@ -21,10 +8,8 @@ module;
 
 export module silicon.json:detail.iterators.primitive_iterator;
 
-
 SILICON_JSON_NAMESPACE_BEGIN
 namespace detail {
-
 
 export class primitive_iterator_t {
   private:
@@ -41,21 +26,17 @@ export class primitive_iterator_t {
         return m_it;
     }
 
-
     CORE_API void set_begin() noexcept {
         m_it = begin_value;
     }
-
 
     CORE_API void set_end() noexcept {
         m_it = end_value;
     }
 
-
     constexpr bool is_begin() const noexcept {
         return m_it == begin_value;
     }
-
 
     constexpr bool is_end() const noexcept {
         return m_it == end_value;

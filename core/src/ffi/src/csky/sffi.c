@@ -1,10 +1,7 @@
-
-
 #include <sffi.h>
 #include <sffi_common.h>
 
 #include <stdlib.h>
-
 
 void sffi_prep_args(char *stack, extended_cif *ecif)
 {
@@ -29,10 +26,9 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
   size_t z;
   size_t alignment;
 
-  
   alignment = (*p_arg)->alignment;
 #ifdef __CSKYABIV1__
-  
+
   if (((*p_arg)->type == SFFI_TYPE_STRUCT) && ((*p_arg)->size > 8) && (alignment == 8)) {
    alignment = 4;
   }
@@ -94,13 +90,11 @@ void sffi_prep_args(char *stack, extended_cif *ecif)
  return;
 }
 
-
 sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 {
-  
+
   cif->bytes = (cif->bytes + 7) & ~7;
 
-  
   switch (cif->rtype->type)
     {
 
@@ -112,13 +106,13 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
 
     case SFFI_TYPE_STRUCT:
       if (cif->rtype->size <= 4)
- 
+
  cif->flags = (unsigned)SFFI_TYPE_INT;
       else if (cif->rtype->size <= 8)
- 
+
  cif->flags = (unsigned)SFFI_TYPE_SINT64;
       else
- 
+
  cif->flags = (unsigned)SFFI_TYPE_STRUCT;
       break;
 
@@ -130,14 +124,12 @@ sffi_status sffi_prep_cif_machdep(sffi_cif *cif)
   return SFFI_OK;
 }
 
-
 sffi_status sffi_prep_cif_machdep_var(sffi_cif *cif,
         unsigned int nfixedargs,
         unsigned int ntotalargs)
 {
   return sffi_prep_cif_machdep(cif);
 }
-
 
 extern void sffi_call_SYSV (void (*fn)(void), extended_cif *, unsigned, unsigned, unsigned *);
 
@@ -152,9 +144,6 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
   ecif.avalue = avalue;
 
   unsigned int temp;
-
-  
-  
 
   if ((rvalue == NULL) &&
       (cif->flags == SFFI_TYPE_STRUCT))
@@ -184,14 +173,10 @@ void sffi_call(sffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 #endif
 }
 
-
-
 static void sffi_prep_incoming_args_SYSV (char *stack, void **ret,
       void** args, sffi_cif* cif);
 
 void sffi_closure_SYSV (sffi_closure *);
-
-
 
 unsigned int
 sffi_closure_SYSV_inner (closure, respp, args)
@@ -205,8 +190,6 @@ sffi_closure_SYSV_inner (closure, respp, args)
 
   cif         = closure->cif;
   arg_area    = (void**) alloca (cif->nargs * sizeof (void*));
-
-  
 
   sffi_prep_incoming_args_SYSV(args, respp, arg_area, cif);
 
@@ -222,7 +205,6 @@ sffi_closure_SYSV_inner (closure, respp, args)
 
   return cif->flags;
 }
-
 
 static void
 sffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
@@ -252,13 +234,12 @@ sffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
  alignment = 4;
 
 #ifdef __CSKYABIV1__
-      
+
       if (((*p_arg)->type == SFFI_TYPE_STRUCT) && ((*p_arg)->size > 8) && (alignment == 8)) {
         alignment = 4;
       }
 #endif
 
-      
       if ((alignment - 1) & (unsigned) argp) {
  argp = (char *) SFFI_ALIGN(argp, alignment);
       }
@@ -272,7 +253,7 @@ sffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
         memcpy(argp, ((unsigned char *)&tmp + (4 - (*p_arg)->size)), (*p_arg)->size);
       }
 #else
-      
+
 #endif
       *p_argv = (void*) argp;
 
@@ -283,10 +264,7 @@ sffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
   return;
 }
 
-
-
 extern unsigned char sffi_csky_trampoline[TRAMPOLINE_SIZE];
-
 
 #define CACHEFLUSH_IN_FFI 1
 #if CACHEFLUSH_IN_FFI
@@ -319,8 +297,6 @@ extern void sffi_csky_cacheflush(unsigned char *__tramp, unsigned int k,
  })
 #endif
 
-
-
 sffi_status
 sffi_prep_closure_loc (sffi_closure* closure,
         sffi_cif* cif,
@@ -345,5 +321,3 @@ sffi_prep_closure_loc (sffi_closure* closure,
 
   return SFFI_OK;
 }
-
-

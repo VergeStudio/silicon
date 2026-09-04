@@ -13,7 +13,6 @@ import silicon.library.error;
 
 namespace silicon::library {
 
-
 shared_library::shared_library() : impl_(std::make_unique<impl>()) {
 }
 
@@ -42,6 +41,5 @@ bool shared_library::has_symbol(const std::string &symbol_name) {
 std::string shared_library::get_os_name(const std::string &name) {
     return prefix() + name + suffix();
 }
-
 
 }

@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct
@@ -37,20 +34,19 @@ int main (void)
 
   args[0] = &ts3_type;
   values[0] = &ts3_arg;
-  
-  
+
   CHECK(sffi_prep_cif(&cif, ABI_NUM, 1,
 		     &ts3_type, args) == SFFI_OK);
-  
+
   ts3_arg.si = -123;
   compare_value = ts3_arg.si;
-  
+
   sffi_call(&cif, SFFI_FN(struct3), ts3_result, values);
-  
+
   printf ("%d %d\n", ts3_result->si, -(compare_value*2));
-  
+
   CHECK(ts3_result->si == -(compare_value*2));
- 
+
   free (ts3_result);
   exit(0);
 }

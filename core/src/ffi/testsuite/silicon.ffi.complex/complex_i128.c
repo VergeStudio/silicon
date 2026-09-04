@@ -1,8 +1,4 @@
-
-
-
 #include "ffitest.h"
-
 
 #if defined(SFFI_TARGET_HAS_INT128) && \
     defined(SFFI_TARGET_HAS_COMPLEX_TYPE) && \

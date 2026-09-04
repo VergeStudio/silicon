@@ -1,21 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 module;
 
 #include <chrono>
@@ -24,7 +6,6 @@ module;
 #include <optional>
 
 module silicon.scheduler;
-
 
 #if defined(_MSC_VER)
 import silicon.scheduler;

@@ -1,6 +1,5 @@
 module;
 
-
 #include <concepts>
 #include <cstdint>
 #include <type_traits>
@@ -16,10 +15,8 @@ concept const_buffer = requires(const type t)
     typename std::remove_pointer_t<decltype(t.data())>;
     requires std::is_trivial_v<std::remove_pointer_t<decltype(t.data())>>;
 
-
     { t.empty() } -> std::same_as<bool>;
     { t.size() } -> std::same_as<std::size_t>;
-
 
     { t.data() } -> std::convertible_to<const typename std::remove_pointer_t<decltype(t.data())>*>;
 };
@@ -37,10 +34,8 @@ concept mutable_buffer = requires(type t)
     typename std::remove_pointer_t<decltype(t.data())>;
     requires std::is_trivial_v<std::remove_pointer_t<decltype(t.data())>>;
 
-
     { t.empty() } -> std::same_as<bool>;
     { t.size() } -> std::same_as<std::size_t>;
-
 
     { t.data() } -> std::same_as<typename std::remove_pointer_t<decltype(t.data())>*>;
 };
@@ -50,7 +45,5 @@ struct mutable_buffer_traits
 {
     using element_type = std::remove_pointer_t<decltype(std::declval<buffer_type>().data())>;
 };
-
-
 
 }

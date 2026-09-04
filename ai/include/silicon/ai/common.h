@@ -1,11 +1,6 @@
 #ifndef SILICON_AI_COMMON_H
 #define SILICON_AI_COMMON_H
 
-
-
-
-
-
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    if defined(AI_SHARED_LIB)
 #        if defined(AI_EXPORT)

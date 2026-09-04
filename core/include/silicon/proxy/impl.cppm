@@ -1,6 +1,5 @@
 module;
 
-
 #include <atomic>
 #include <bit>
 #include <cassert>
@@ -22,10 +21,6 @@ module;
 #include <version>
 
 #include "silicon/proxy/proxy_macros.h"
-
-
-
-
 
 #if !defined(PROD_UNREACHABLE)
 #    if defined(_MSC_VER)
@@ -52,9 +47,6 @@ module;
 export module silicon.proxy:impl;
 
 namespace silicon::proxy {
-
-
-
 
 namespace details {
 
@@ -1039,7 +1031,6 @@ class proxy: public details::facade_traits<F>::direct_accessor,
             std::swap(meta_, rhs.meta_);
 #ifdef __INTEL_LLVM_COMPILER
 
-
             std::byte temp[F::max_size];
             std::ranges::uninitialized_copy(ptr_, temp);
             std::ranges::uninitialized_copy(rhs.ptr_, ptr_);
@@ -1263,10 +1254,6 @@ proxy_reflect(const proxy<F> &p) noexcept {
     return reflect<R>(p);
 }
 
-
-
-
-
 export struct substitution_dispatch;
 
 export template<facade F>
@@ -1465,8 +1452,6 @@ struct PRO4D_ENFORCE_EBO substitution_dispatch
         return std::forward<T>(self);
     }
 
-
-
     template<class T>
     PRO4D_STATIC_CALL(auto, T &&) noexcept
         requires(std::is_same_v<T, std::remove_cvref_t<T>> && is_bitwise_trivially_relocatable_v<T>)
@@ -1500,10 +1485,6 @@ struct weak_facade
               F::copyability,
               F::relocatability,
               F::destructibility> {};
-
-
-
-
 
 namespace details {
 
@@ -1930,10 +1911,6 @@ constexpr proxy<F> make_proxy_shared(T &&value)
 }
 #endif
 
-
-
-
-
 namespace details {
 
 inline constexpr std::size_t invalid_size =
@@ -2128,10 +2105,6 @@ struct basic_facade_builder {
 export using facade_builder =
         basic_facade_builder<std::tuple<>, std::tuple<>, details::invalid_size, details::invalid_size, details::invalid_cl, details::invalid_cl, details::invalid_cl>;
 
-
-
-
-
 namespace details {
 
 template<std::size_t N>
@@ -2149,10 +2122,6 @@ struct sign {
 };
 template<std::size_t N>
 sign(const char (&str)[N]) -> sign<N - 1u>;
-
-
-
-
 
 template<class T, class U>
 concept explicitly_convertible =
@@ -2407,18 +2376,11 @@ struct weak_dispatch: D {
     }
 };
 
-
-
-
-
 #if __cpp_rtti >= 199711L
 export class CORE_API bad_proxy_cast: public std::bad_cast {
   public:
     char const *what() const noexcept override;
 };
-
-
-
 
 char const *bad_proxy_cast::what() const noexcept {
     return "silicon::proxy::bad_proxy_cast";
@@ -2676,7 +2638,6 @@ using as_weak = typename FB::template add_direct_convention<
 
 }
 
-
 }
 
 #ifdef PRO4D_HAS_FORMAT
@@ -2722,7 +2683,6 @@ using fmt_wformat = typename FB::template add_convention<
         details::fmt_format_traits::overload<wchar_t>>;
 
 }
-
 
 }
 #endif

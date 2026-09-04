@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 struct s {
@@ -36,9 +33,6 @@ int main() {
   r.s32 = 0xbad;
   r.f32 = 999.999;
   r.s8  = 0x51;
-
-
-
 
   CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 0, &rtype, NULL) == SFFI_OK);
   sffi_call(&cif, SFFI_FN(make_s), &r, NULL);

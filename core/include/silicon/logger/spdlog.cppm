@@ -1,8 +1,5 @@
 module;
 
-
-
-
 #pragma warning(disable : 5301 5302 5303 5304 5305)
 
 #include <ctime>
@@ -46,6 +43,3 @@ namespace level {
 export using spdlog::level::level_enum;
 }
 }
-
-
-

@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct cls_struct_18byte {
@@ -19,7 +16,6 @@ cls_struct_18byte cls_struct_18byte_fn(struct cls_struct_18byte a1,
   result.b = a1.b + a2.b;
   result.c = a1.c + a2.c;
   result.d = a1.d + a2.d;
-
 
   printf("%g %d %d %g %g %d %d %g: %g %d %d %g\n", a1.a, a1.b, a1.c, a1.d,
 	 a2.a, a2.b, a2.c, a2.d,
@@ -92,9 +88,9 @@ int main (void)
   args_dbl[2] = NULL;
 
   sffi_call(&cif, SFFI_FN(cls_struct_18byte_fn), &res_dbl, args_dbl);
-  
+
   printf("res: %g %d %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  
+
   CHECK(res_dbl.a == 5);
   CHECK(res_dbl.b == 252);
   CHECK(res_dbl.c == 250);
@@ -103,9 +99,9 @@ int main (void)
   CHECK(sffi_prep_closure_loc(pcl, &cif, cls_struct_18byte_gn, NULL, code) == SFFI_OK);
 
   res_dbl = ((cls_struct_18byte(*)(cls_struct_18byte, cls_struct_18byte))(code))(g_dbl, f_dbl);
-  
+
   printf("res: %g %d %d %g\n", res_dbl.a, res_dbl.b, res_dbl.c, res_dbl.d);
-  
+
   CHECK(res_dbl.a == 5);
   CHECK(res_dbl.b == 252);
   CHECK(res_dbl.c == 250);

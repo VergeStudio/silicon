@@ -1,9 +1,6 @@
 module;
 
-
 #include <memory>
-
-
 
 #include <atomic>
 #include <coroutine>
@@ -14,7 +11,6 @@ module;
 
 #include "silicon/common.h"
 
-
 export module silicon.coroutine:mutex;
 export import silicon.coroutine.error;
 import silicon.scheduler.task;
@@ -22,17 +18,12 @@ import silicon.error;
 
 export namespace silicon::coroutine {
 
-
-
 template<typename T>
 using result = silicon::error::result<T>;
 
 class mutex;
 class scoped_lock;
 class condition_variable;
-
-
-
 
 struct CORE_API lock_operation_base {
     explicit lock_operation_base(silicon::coroutine::mutex &m): m_mutex(m) {}
@@ -74,9 +65,6 @@ struct lock_operation: public lock_operation_base {
     }
 };
 
-
-
-
 class CORE_API scoped_lock {
     friend class silicon::coroutine::mutex;
     friend class silicon::coroutine::condition_variable;
@@ -89,7 +77,6 @@ class CORE_API scoped_lock {
 
     explicit scoped_lock(class silicon::coroutine::mutex &, lock_strategy = lock_strategy::kAdopt);
 
-    
     ~scoped_lock();
 
     scoped_lock(const scoped_lock &) = delete;
@@ -97,7 +84,6 @@ class CORE_API scoped_lock {
     scoped_lock & operator=(const scoped_lock &) = delete;
     scoped_lock & operator=(scoped_lock &&other) noexcept ;
 
-    
     void unlock() ;
 
   private:
@@ -105,7 +91,6 @@ class CORE_API scoped_lock {
     struct impl;
     std::unique_ptr<impl> m_p;
 
-    
     [[nodiscard]] auto owned_mutex() const noexcept -> class silicon::coroutine::mutex *;
 };
 
@@ -119,30 +104,19 @@ class CORE_API mutex {
     mutex & operator=(const mutex &) = delete;
     mutex & operator=(mutex &&) = delete;
 
-    
     [[nodiscard]] lock_operation<scoped_lock> scoped_lock() { return lock_operation<silicon::coroutine::scoped_lock>{*this}; }
 
-    
     [[nodiscard]] lock_operation<void> lock() { return lock_operation<void>{*this}; }
 
-    
     [[nodiscard]] bool try_lock() ;
 
-    
     result<void> unlock() ;
 
   private:
     friend struct lock_operation_base;
 
-
-
-
-
     struct impl;
     std::unique_ptr<impl> m_p;
-
-
-
 
     const void * unlocked_value() const noexcept ;
 };

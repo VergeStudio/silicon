@@ -1,7 +1,3 @@
-
-
-
-
 #include "ffitest.h"
 
 void ABI_ATTR
@@ -60,7 +56,7 @@ extern "C"
         }
 
         printf("part one OK\n");
-        
+
     }
 
     {
@@ -83,18 +79,17 @@ extern "C"
         cl_arg_types[15] = &sffi_type_uint;
         cl_arg_types[16] = NULL;
 
-        
         CHECK(sffi_prep_cif(&cif, SFFI_DEFAULT_ABI, 16, &sffi_type_sint, cl_arg_types) == SFFI_OK);
 
         CHECK(sffi_prep_closure_loc(pcl, &cif, closure_test_fn1, (void *)3 , code) == SFFI_OK);
         try {
             (*((closure_test_type1)code))(1.1, 2.2, 3.3, 4.4, 127, 5.5, 6.6, 8, 9, 10, 11, 12.0, 13, 19, 21, 1);
-            
+
         } catch(int exception_code) {
             CHECK(exception_code == 255);
         }
         printf("part two OK\n");
-        
+
     }
     exit(0);
 }

@@ -1,6 +1,3 @@
-
-
-
 #include "ffitest.h"
 
 typedef struct { int v[8]; } big_struct;

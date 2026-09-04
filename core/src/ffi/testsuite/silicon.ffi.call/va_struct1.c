@@ -1,8 +1,3 @@
-
-
-
-
-
 #include "ffitest.h"
 #include <stdarg.h>
 
@@ -121,9 +116,9 @@ main (void)
   args[4] = NULL;
 
   sffi_call(&cif, SFFI_FN(test_fn), &res, args);
-  
+
   printf("res: %d\n", (int) res);
-  
+
   CHECK(res == 42);
 
   return 0;

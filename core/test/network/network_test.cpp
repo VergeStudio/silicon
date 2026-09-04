@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 #include <array>
 #include <span>
 #include <string>
