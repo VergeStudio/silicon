@@ -42,7 +42,7 @@
 | 日期 | 提交 / 链接 | 概述 |
 |------|------------|------|
 | 2026-09-07 | `292a2b9` + `73cdee2` | 协作规则沉淀：约定「每轮只修改既有记忆/进度文件、默认不新建」+「先更新既有、确有必要才追加」，记入 `collab.md`（维护原则）并写入 README「同步要求」，同时沉淀 conventions 网盘 `.md` 同名覆盖失效的踩坑与规避法 |
-| ⏳ 待办 | 资产进度同步 | 资产 `progress/PROGRESS.md`（`DqmuDzQsUuOA`）是该目录**唯一、规范命名、无残留**文件，但内容落后于仓库（网盘无法对字面 `.md` 显示名文件做 API 覆盖，见 conventions）。请有权限成员在网盘网页端把其内容更新为仓库 `leo/dev` 当前 `progress/PROGRESS.md`，或删除该文件后由成员用 API 重传。 |
+| ✅ 已解决 | 资产进度同步 | 资产 `progress/PROGRESS.md`（旧 `DqmuDzQsUuOA` 内容落后）已由有权限成员删除，本会话按待办方案用 API 重传最新内容（新 file_id `DCaCZTIbfJMK`，与仓库 `leo/dev` HEAD 内容 MD5 一致，`progress/` 目录唯一无残留）。镜像已恢复一致。 |
 | 2026-09-07 | `ccdd4d5` | 核对并确认：仓库 `leo/dev`（HEAD `e29072f`）与项目资产已**完全互为镜像一致**（根 README + memory/ 7 主题 + progress/PROGRESS.md，MD5 逐一匹配）；此前遗留的重复文件（资产 `DKSZEoCbXHVq`/`DLURswbCXMMb`）已由有权限成员清理，无残留。顺带修正 PROGRESS 头部过期的"维护入口"旧路径。 |
 | 2026-09-07 | `12f9351` | 对齐 README 更新：资产侧记忆改 memory/ 主题拆分、进度改 progress/；仓库 MEMORY/PROGRESS 更新引用与协作闭环（"轮前读→轮中更新→轮后同步"） |
 | 2026-09-07 | `559d59d` | docs: 新增 PROGRESS/MEMORY 工作文档；并同步至项目网盘资产、在接入说明登记"每轮同步进度记忆"协作要求 |
