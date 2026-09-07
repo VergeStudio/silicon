@@ -10,7 +10,20 @@
 - 乐享承载为**页级在线文档**：`memory/`（MEMORY.md 索引页 + adr/build/collab/conventions/repo/verify 主题页）、`progress/PROGRESS.md` 页，结构对齐仓库对应目录。
 - 镜像/更新乐享页面用乐享 MCP：建条目 `entry_create_entry`、读页 `block_fetch_page`、写页 `block_update_page`、md 导入建页 `entry_import_content`（无长度限制、勿擅自拆分长文）。
 - 乐享**页级在线读改写**规避了下方网盘全部权限坑（无 `can_delete` 约束、无同名 `.md` 覆盖不命中、支持版本化草稿 `draft_save/publish` 与文件历史 `file_list_revisions`/`file_revert_file`）。
-- 乐享 MCP 无"创建团队 Space"接口（`knowledge.space` 仅只读）；团队知识库需在乐享前端 `VergeStudio` 团队下新建。silicon 团队 Space 建立进展登记在 `progress/PROGRESS.md`。
+- 乐享 MCP 无"创建团队 Space"接口（`knowledge.space` 仅只读）；团队知识库须在乐享前端 `VergeStudio` 团队下新建。**silicon 团队 Space 已于 2026-09-07 建成**（见下方「乐享 silicon 镜像 · 结构与条目 id」索引），此后再建镜像直接按 id 操作即可，无需在前端重复创建。
+- 页面状态 `status`：导入新页后可能出现 `processing`（后台索引解析中）；**内容实际已可读、可写回**，不影响 `block_fetch_page`/`block_update_page`，索引延迟不必等待（build.md 2026-09-07 即处此状态仍可完整读回）。
+
+**乐享 silicon 镜像 · 结构与条目 id（2026-09-07 建成，镜像更新直接用下列 entry_id 操作）**：
+- Space：`silicon`（team `VergeStudio`；space_id `54991653567a4032af214d24ce7972bf`，root_entry_id `2a264c75f3394caea5f79616610a78ae`；前端入口 `https://mcp.lexiang-app.com/spaces/54991653567a4032af214d24ce7972bf`）。访问/读改页统一用下方各 **entry_id**（`block_fetch_page`/`block_update_page`/`entry_describe_entry`）。
+- `memory/`（folder entry `f7d01d7fb3414c30baf449405b99e485`）下 7 页：
+  - repo.md → `3df951f12e6f4d66990419ab466d94eb`
+  - build.md → `7170db40dd094a47b20de4979a952620`
+  - verify.md → `5bb3f9dcda9a431fb923a4c9bc979aa7`
+  - adr.md → `d2c7284f7da740bca19bc6e8ae8f4b03`
+  - conventions.md → `efbb2f1f6afb410ca0bbd523a5b40f83`
+  - collab.md → `0f64474307194d8eaf2bcff401444eaa`
+  - MEMORY.md → `7ab222c3bf1a449298ee40fbaf5d8b3c`
+- `progress/`（folder entry `e9f94e2f69ea430b9afbb2deae2cecb9`）下 1 页：PROGRESS.md → `26125ea6f96e4e0aa963cdc0caaef482`
 
 > 以下为**历史**网盘踩坑（已退役承载，保留备查/若曾需操作旧网盘条目仍适用）：
 
