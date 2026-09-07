@@ -4,9 +4,9 @@
 > 规则：**每轮修改完，由当轮成员把本轮进展同步到这里**（并在项目资产根 README.md 约定的协作流下推送到仓库与项目资产）。
 > 与《MEMORY.md》分工：MEMORY = 长期稳定的工程知识 / 约定 / 踩坑经验；本文件 = 正在推进的进展快照。
 
-- 维护入口：`/workspace/silicon/PROGRESS.md`
-- 更新约定：见仓库根 `PROGRESS.md` 头部 + 项目资产根 `README.md`（"每轮进行前"+"团队协作要求"两节）。
-- 资产侧视图：进度快照镜像到项目资产 `progress/PROGRESS.md`。
+- 维护入口：仓库 `leo/dev` 下 `progress/PROGRESS.md`（项目资产镜像至网盘 `progress/PROGRESS.md`）。
+- 更新约定：见仓库根 `README.md`（"每轮进行前"+"团队协作要求"两节，目录结构 `progress/`）。
+- 资产侧视图：与仓库互为镜像（无单文件权威副本），见网盘根 `README.md`。
 
 ---
 
@@ -41,6 +41,7 @@
 
 | 日期 | 提交 / 链接 | 概述 |
 |------|------------|------|
+| 2026-09-07 | （本轮，push 后回填） | 核对并确认：仓库 `leo/dev`（HEAD `e29072f`）与项目资产已**完全互为镜像一致**（根 README + memory/ 7 主题 + progress/PROGRESS.md，MD5 逐一匹配）；此前遗留的重复文件（资产 `DKSZEoCbXHVq`/`DLURswbCXMMb`）已由有权限成员清理，无残留。顺带修正 PROGRESS 头部过期的"维护入口"旧路径。 |
 | 2026-09-07 | `12f9351` | 对齐 README 更新：资产侧记忆改 memory/ 主题拆分、进度改 progress/；仓库 MEMORY/PROGRESS 更新引用与协作闭环（"轮前读→轮中更新→轮后同步"） |
 | 2026-09-07 | `559d59d` | docs: 新增 PROGRESS/MEMORY 工作文档；并同步至项目网盘资产、在接入说明登记"每轮同步进度记忆"协作要求 |
 | 2026-09-04 | `7d883a8` | style: 折叠去注释遗留的多余空行（连续空行归一，字面量内空行保留） |
