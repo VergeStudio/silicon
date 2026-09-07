@@ -37,6 +37,7 @@ export import silicon.network;
 export import silicon.network.error;
 export import silicon.http;
 export import silicon.http.error;
+export import silicon.http.types;
 
 export import silicon.plugin;
 export import silicon.plugin.error;

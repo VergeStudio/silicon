@@ -14,10 +14,10 @@ module;
 #include <silicon/proxy/proxy_macros.h>
 #include <silicon/common.h>
 
-#include <silicon/http/http_types.h>
 export module silicon.http;
 
 export import silicon.http.error;
+export import silicon.http.types;
 
 import silicon.proxy;
 

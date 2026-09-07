@@ -7,9 +7,8 @@ module;
 #include <string>
 #include <string_view>
 
-#include <silicon/http/http_types.h>
-
 module silicon.http;
+import silicon.http.types;
 
 namespace silicon::http {
 

@@ -2,7 +2,7 @@
 #include <string>
 
 #include <silicon/test/test.h>
-#include <silicon/http/http_types.h>
+import silicon.http;
 
 using namespace silicon::http;
 
