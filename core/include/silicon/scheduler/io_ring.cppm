@@ -21,6 +21,7 @@ struct io_ring_config {
 };
 
 class SILICON_CORE_API io_ring {
+  private:
     struct impl;
     std::unique_ptr<impl> m_p;
 

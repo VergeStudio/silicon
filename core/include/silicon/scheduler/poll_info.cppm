@@ -48,6 +48,7 @@ struct SILICON_CORE_API poll_info {
 
     poll_awaiter operator co_await() noexcept { return poll_awaiter{*this}; }
 
+  private:
     std::unique_ptr<impl> m_p;
 };
 

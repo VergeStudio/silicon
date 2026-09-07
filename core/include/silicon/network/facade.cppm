@@ -64,6 +64,7 @@ enum class connect_status {
 SILICON_CORE_API auto to_string(const connect_status &) -> result<std::string_view>;
 
 class SILICON_CORE_API hostname {
+  private:
     struct impl {
       public:
         std::string m_hostname;
@@ -303,6 +304,7 @@ template<class T>
 }
 
 class SILICON_CORE_API socket_address {
+  private:
     struct impl {
       public:
         sockaddr_storage m_storage{};

@@ -14,6 +14,7 @@ import :io_notifier;
 export namespace silicon::scheduler {
 
 class SILICON_CORE_API timer_handle {
+  private:
     struct impl;
     std::unique_ptr<impl> m_p;
 
