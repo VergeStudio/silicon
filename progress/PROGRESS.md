@@ -32,7 +32,7 @@
 ### 待办 / 下一步（若本轮有新增会在此登记）
 
 - 【本会话·"显式 private"任务】：批1(eef4bd5 核心 pimpl)+批2(eaa6ef4 scheduler/network 补漏)已完成并推送 `leo/dev`。批3/4(vendored) 深入勘察后裁定"无可安全改动对象"→ 保持原样(见变更日志)。剩余:在可访问 github 平台跑 `scripts/verify.sh`(本沙箱无法 xmake 全量;libstdc++13 `<expected>` C++23 缺陷)。
-- 【遗留·资产清理(需有删除权限者)】：资产 `progress/` 目录现有多余 PROGRESS 条目——旧 `DCaCZTIbfJMK`(5060B,内容过时)删除被拒(本账号无 `can_delete`,roleID:22),新条目 `DePfxIvuzQAI`(10701B,含批1/2 记录,与仓库 e323f47 版 MD5 一致)。请有权限者删除 `DCaCZTIbfJMK` 使 `progress/` 单一条目,并把仓库最新 PROGRESS(含本 vendored 终裁记录)同步至保留条目。
+- 【资产 progress/ 状态】：原有两个 PROGRESS 条目(旧 `DCaCZTIbfJMK` + 本会话新增 `DePfxIvuzQAI`)均已被有权限者删除,目录已清空;本会话已将仓库最新 PROGRESS(含 vendored 终裁与收尾记录)重新上传恢复镜像(MD5 复核一致)。后续若再上传,注意 `file_upload` 同名+`overwrite` 不一定命中带 `.md` 扩展的既有条目、可能新建同名条目(见变更日志·资产同步遇坑记录)。
 
 ---
 
@@ -42,6 +42,7 @@
 
 | 日期 | 提交 / 链接 | 概述 |
 |------|------------|------|
+| 2026-09-07 | `-`(资产镜像恢复记录) | 资产 `progress/` 清理完成：有权限者已删除多余的两个 PROGRESS 条目(旧 `DCaCZTIbfJMK` 与新增的 `DePfxIvuzQAI`),目录清空。本会话据此将仓库最新 PROGRESS.md(含 vendored 终裁 + 本记录)重新上传至 `progress/` 恢复镜像一致,下载 MD5 复核通过。 |
 | 2026-09-07 | `-`(无代码改动,结论登记) | "显式 private"任务·vendored(proxy/json)终裁：**无可安全改动对象,保持原样**。深入勘察(证据见下)后与成员确认:① **proxy/impl.cppm**(微软 proxy4)185 个 struct **全部是需 public 供模板推导的元编程 trait**(copyability_traits/reduction_traits/type_identity helper 等),无数据成员、加 private 即破坏 proxy facade 机制;② **json/(nlohmann)** 封装类型数据成员**均已由上游 `private:` / `JSON_PRIVATE_UNLESS_TESTED:` 宏隔离**(basic_json 的 `m_data`/`m_parent` 在宏内;iter_impl/lexer/parser/serializer/各 adapter/json_pointer 等约 26 类均已 private),剩余 public 数据都在 `internal_iterator`/`position_t`/`diyfp` 等**有意设计的公开数据容器/POD/union**(basic_json 内嵌 `data`/`json_value` 已被宏包住),加 private 会破坏库内 friend 互访/序列化宏/算法内聚。两库访问控制均为上游既定设计,非"省略 private",强改零收益且破坏面大。本任务"显式 private"仅落在**本仓库手写代码**(批1/2)。 |
 | 2026-09-07 | `-`(资产同步过程记录) | 资产同步遇坑登记：`file_upload` 以 `file_name="PROGRESS"`+`overwrite` 上传时**未命中既有条目 `DCaCZTIbfJMK`(display 名带 `.md` 扩展、由网页端建),反在 progress/ 新建同名无扩展条目 `DePfxIvuzQAI`**,导致目录暂时两个 PROGRESS。新条目内容正确(与仓库 MD5 993b6ee5 一致)。删除旧条目被拒:本账号无 `can_delete` 属性(roleID:22),删除需有权限成员。详见待办节遗留。 |
 | 2026-09-07 | `eaa6ef4` | refactor(access): scheduler/network 剩余 pimpl class 补显式 private——补齐 core 遗漏的含 pimpl 实现细节但首段未显式 private 的类型。scheduler: inline_scheduler/io_notifier/io_ring/parallel_scheduler/run_loop/timer_handle(class 默认私有首段,纯显式化)与 poll_info(`struct` 默认 public 泄漏 `m_p`,真修复,已核实所有访问均在成员/嵌套类内);network: hostname/socket_address(class 首段 pimpl,纯显式化;ip_address 本就合规)。逐文件核实其余含 `struct impl;` 前向声明的 core 类型(parser/parse_result/coroutine* 全部/logger/event/event/tcp/udp/pipe/poll/sync_wait/thread_pool/shared_library 等)均已显式位于 private 区段,无需改动。 |
