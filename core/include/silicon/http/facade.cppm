@@ -50,6 +50,7 @@ class SILICON_CORE_API curl_http_client {
 
 class SILICON_CORE_API fake_http_client {
 
+  private:
     struct impl {
       public:
         http_response response_;

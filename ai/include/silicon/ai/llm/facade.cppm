@@ -95,6 +95,7 @@ template<class T, class... Args>
 
 class AI_API tool_registry {
 
+  private:
     struct impl;
     std::unique_ptr<impl> impl_;
 
@@ -108,6 +109,7 @@ class AI_API tool_registry {
 
 class AI_API provider_registry {
 
+  private:
     struct impl;
     std::unique_ptr<impl> impl_;
 
@@ -131,6 +133,7 @@ class AI_API json_protocol_adapter {
 
 class AI_API scripted_provider {
 
+  private:
     struct impl;
     std::unique_ptr<impl> impl_;
 
@@ -145,6 +148,7 @@ class AI_API scripted_provider {
 
 class AI_API http_provider {
 
+  private:
     struct impl;
     std::unique_ptr<impl> impl_;
 
@@ -152,6 +156,7 @@ class AI_API http_provider {
 
     struct http_result {
 
+      private:
         struct impl;
         std::shared_ptr<impl> impl_;
 

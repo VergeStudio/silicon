@@ -10,6 +10,7 @@ export module silicon.http.types;
 export namespace silicon::http {
 
 struct SILICON_CORE_API http_response {
+  private:
     struct impl {
       public:
         int status_code_ = 0;
@@ -40,6 +41,7 @@ struct SILICON_CORE_API http_response {
 };
 
 struct SILICON_CORE_API http_request {
+  private:
     struct impl {
       public:
         std::string url_;

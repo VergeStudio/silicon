@@ -57,6 +57,7 @@ template<class T>
 
 class SILICON_CORE_API plugin_registry {
 
+  private:
     struct impl {
       public:
       std::map<std::string, plugin_proxy, std::less<>> plugins_;
@@ -82,6 +83,7 @@ class SILICON_CORE_API plugin_registry {
 
 class SILICON_CORE_API proxy_plugin_registry {
 
+  private:
     struct impl {
       public:
         std::map<std::string, plugin_proxy, std::less<>> plugins_;

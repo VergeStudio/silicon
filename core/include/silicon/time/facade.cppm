@@ -55,6 +55,7 @@ template <class T, class... Args>
 }
 
 class SILICON_CORE_API date_source {
+  private:
     struct impl {
       public:
         clock_proxy clock_;

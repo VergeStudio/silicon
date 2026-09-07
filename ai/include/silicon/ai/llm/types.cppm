@@ -21,6 +21,7 @@ using result = silicon::error::result<T>;
 
 struct AI_API message {
 
+  private:
     struct impl;
     std::shared_ptr<impl> impl_;
 
@@ -46,6 +47,7 @@ using conversation = std::vector<message>;
 
 struct AI_API model_request_options {
 
+  private:
     struct impl;
     std::shared_ptr<impl> impl_;
 
@@ -69,6 +71,7 @@ struct AI_API model_request_options {
 
 struct AI_API chat_response {
 
+  private:
     struct impl;
     std::shared_ptr<impl> impl_;
 
@@ -92,6 +95,7 @@ struct AI_API chat_response {
 
 struct AI_API tool_call {
 
+  private:
     struct impl;
     std::shared_ptr<impl> impl_;
 
@@ -115,6 +119,7 @@ struct AI_API tool_call {
 
 struct AI_API tool_output {
 
+  private:
     struct impl;
     std::shared_ptr<impl> impl_;
 
