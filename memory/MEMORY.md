@@ -11,6 +11,7 @@
 
 | 文件 | 主题 |
 |------|------|
+| [MEMORY.md](./MEMORY.md) | 0. 记忆入口(本索引) |
 | [repo.md](./repo.md) | 1. 仓库与协作基线 |
 | [build.md](./build.md) | 2. 技术栈与构建 |
 | [verify.md](./verify.md) | 3. 验证闭环（scripts/verify.sh）|

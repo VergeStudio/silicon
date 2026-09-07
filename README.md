@@ -1,59 +1,32 @@
-# silicon 代码仓库接入说明
+# silicon 协作与获取入口
 
-> 本说明供本团队所有成员在 WorkBuddy 云端获取 silicon 代码使用。
-> 本文件**仅含地址与命令,不含代码副本**。
+> 本说明供团队各成员/各轮 WorkBuddy 会话快速接入 silicon 工程：**代码从仓库拉取、记忆与进度通过乐享团队知识库获取**。
+> 本文件**不重复维护代码仓库接入细节**（地址/分支/认证/命令），相关说明统一收敛在 `memory/repo.md`；也不含代码副本。
 
-## 仓库地址
-```
-https://git.code.tencent.com/VergeStudio/silicon.git
-```
+## 代码:从仓库拉取(细节见 memory/repo.md)
 
-## ⚠️ 最重要:必须拉取 `leo/dev` 分支
-仓库有两个分支:
-- `master`(默认):**空壳**,只有空的 README,无代码
-- `leo/dev`:**真正的工程**(约 13.8 万行 C/C++)
+silicon 的 C/C++ 工程代码通过 git 从仓库的 **`leo/dev`** 分支拉取。
+仓库地址、工蜂认证、克隆命令等接入细节**均以 [`memory/repo.md`](./memory/repo.md) 为准**,不再在本文件重复维护。
 
-直接 clone 而不指定分支会拉到空的 `master`。请务必克隆 `leo/dev`:
+> 每轮开始前请确认本工作区已 checkout 到 `leo/dev`,不要在 `master`(空壳)开发。
 
-```bash
-git clone --branch leo/dev \
-  https://<你的工蜂账号>:<你的访问令牌>@git.code.tencent.com/VergeStudio/silicon.git
-```
+## 记忆与进度:通过乐享团队知识库获取
 
-若已误拉 `master`,补救:
-```bash
-git fetch origin leo/dev
-git checkout leo/dev
-```
+每轮开始前,**先通过乐享连接器读取「记忆」与「进度」**,同步最新上下文后再动手。乐享团队知识库「silicon」是与仓库 `leo/dev` **互为镜像**的页级在线层,成员可在不 clone 仓库时按主题读取:
 
-## 认证
-- 使用**你自己的工蜂账号**及其访问令牌(Private Token)。
-- 需确保你自己的工蜂账号对 `VergeStudio/silicon` 仓库有访问权限;若无权限,请联系仓库管理员将你的账号添加为成员(至少 `Reporter`)。
-- 令牌获取:工蜂 → 账号 **设置 → 访问令牌**,勾选 `read_repository`。
-- 令牌等同于账号密码,**不要提交进代码、不要写进文档或聊天记录**。
+- **记忆(`memory/`)**:入口索引为 `memory/MEMORY.md`(总览 + 主题索引表),内容按主题拆分为
+  `repo.md`(仓库与协作基线)、`build.md`(技术栈与构建)、`verify.md`(验证闭环)、
+  `adr.md`(关键架构决策)、`conventions.md`(踩坑与约定)、`collab.md`(团队协作要求)。
+  先读 `memory/MEMORY.md`,再按本轮任务**按需读取**相关主题页;
+- **进度(`progress/PROGRESS.md`)**:掌握当前进度快照、进行中主线与验证基线,保证上下文续接。
 
-## 说明
-- 每位成员的 WorkBuddy 云端沙箱相互独立,首次使用需 clone 一次;clone 后代码在本人的工作区中,一般无需重复。
-- 仓库概况:silicon 是通用基础库;技术栈 C17 + C++23 Modules + xmake;构建用 `xmake`,本地验证 `scripts/verify.sh`。
-- 不要在 `master` 上开发,所有工作基于 `leo/dev`。
+乐享侧读取/镜像操作与各页 entry_id,见 [`memory/conventions.md`](./memory/conventions.md)「乐享 silicon 镜像 · 结构与条目 id」小节。
 
-## 每轮进行前:先读取并同步「记忆」与「进度」
-每位成员在开启一个新的工作轮次**之前**,**必须先读取**「记忆」与「进度」文件,
-同步当前进度和记忆后再动手。这些文件在仓库 `leo/dev` 与乐享团队知识库(项目资产镜像)两处各有一份,
-**内容一致**(见下方目录结构):
+> 记忆与进度在 **仓库 `leo/dev`(权威源) ⇄ 乐享团队知识库「silicon」(项目资产镜像)** 两处各有一份、**内容一致**;
+> 轮前从乐享/仓库任一侧读取均可,轮后两侧同步更新,形成「**轮前读取 → 轮中更新 → 轮后同步**」闭环。
 
-- **记忆(`memory/` 目录,与 WorkBuddy 本地记忆同构)**:入口索引为 `memory/MEMORY.md`
-  (总览 + 主题索引表),内容按主题拆分为 `repo.md`(仓库与协作基线)、`build.md`(技术栈与构建)、
-  `verify.md`(验证闭环)、`adr.md`(关键架构决策)、`conventions.md`(踩坑与约定)、
-  `collab.md`(团队协作要求)。先读 `memory/MEMORY.md`,再按本轮任务**按需读取**相关主题文件;
-- **进度(`progress/PROGRESS.md`)**:掌握当前进度快照、进行中主线与验证基线,保证上下文续接;
-- 在动手修改前,先将本轮的目标与进展预期**同步写入**上述文件(进度置顶追加本轮计划、
-  记忆补充本轮涉及的新约定),轮后**自动镜像**到乐享团队知识库对应页面、并随代码 commit+push 到仓库,
-  使团队其他成员的沙箱在后续轮次也能读到。
+## 团队协作要求:每轮同步「记忆」与「进度」
 
-> 配合下方「每轮修改后」的同步要求,形成「**轮前读取 → 轮中更新 → 轮后同步**」的闭环。
-
-## 团队协作要求:每轮修改后同步「进度」与「记忆」
 每位成员在每个**工作轮次**内对仓库代码/文档作出修改并提交推送后,**必须同步维护记忆与进度文件**,
 以保证团队各成员的 WorkBuddy 云端沙箱(相互独立)能续接上下文、不重复踩坑:
 
@@ -63,13 +36,13 @@ git checkout leo/dev
    入口索引 `memory/MEMORY.md` + 主题文件
    `repo.md` / `build.md` / `verify.md` / `adr.md` / `conventions.md` / `collab.md`。
 
-**目录结构(仓库 `leo/dev` 与乐享团队知识库完全一致,互为镜像、无单文件权威副本)**:
+**目录结构(仓库 `leo/dev` 与乐享团队知识库「silicon」完全一致,互为镜像、无单文件权威副本)**:
 ```
 leo/dev(仓库根)  ⇄  乐享团队知识库「silicon」/
-├── README.md            ← 本说明
+├── README.md            ← 本说明(协作与获取入口)
 ├── memory/              ← 记忆(与 WorkBuddy 本地记忆同构,按主题拆分)
 │   ├── MEMORY.md        ← 入口索引:总览 + 主题索引表
-│   ├── repo.md          ← 1. 仓库与协作基线
+│   ├── repo.md          ← 1. 仓库与协作基线(含代码仓库接入细节)
 │   ├── build.md         ← 2. 技术栈与构建
 │   ├── verify.md        ← 3. 验证闭环(scripts/verify.sh)
 │   ├── adr.md           ← 4. 关键架构决策(ADR-0001~0003)
@@ -99,4 +72,4 @@ leo/dev(仓库根)  ⇄  乐享团队知识库「silicon」/
 - 乐享承载目录结构见上方目录结构示意:根下 `memory/`(MEMORY.md + 主题页)、`progress/`(PROGRESS.md 页),
   由任一成员通过乐享 MCP 将仓库对应 `.md` 内容**页级镜像**上去(创建/更新用 `entry_create_entry` +
   `block_fetch_page`/`block_update_page` 或 `entry_import_content`,本说明配套 memory/conventions.md)。
-- 迁移/镜像进展与待办(如 silicon 团队 Space 的建立)登记在 `progress/PROGRESS.md`。
+- 迁移/镜像进展与待办登记在 `progress/PROGRESS.md`。
