@@ -41,6 +41,7 @@
 
 | 日期 | 提交 / 链接 | 概述 |
 |------|------------|------|
+| 2026-09-07 | `9a8e4e3` | refactor(http): `core/include/silicon/http/http_types.h` 迁移为 C++20 模块——新建接口 `core/include/silicon/http/types.cppm`(`module silicon.http.types`) + 实现 `core/src/http/types.cpp`,形态对齐仓库 `config/config_value.cppm`(impl 嵌套 + 拷贝内联、访问器入 .cpp、类标 `CORE_API`);原 `.h` 已删,消费方(facade/http.cpp/http_test/core.cppm)改用 `import`/`export import`;用 clang18 独立模块图验证(接口 precompile+实现单元+消费 TU 编译链接运行,http_response/http_request 行为断言全通过)。注:沙箱无法访问 github 拉 spdlog/c-ares,未跑 xmake 全量构建 |
 | 2026-09-07 | `122a980` | 记忆沉淀：conventions 澄清网盘覆盖规律——「能否被 API overwrite 取决于条目显示名是否字面含 `.md`（由创建途径决定：API 建的不含可覆盖；网页端建的字面含不可覆盖）」；记录"有权限者删除→API 重传到空目录→此后可覆盖"的恢复路径 |
 | 2026-09-07 | `292a2b9` + `73cdee2` | 协作规则沉淀：约定「每轮只修改既有记忆/进度文件、默认不新建」+「先更新既有、确有必要才追加」，记入 `collab.md`（维护原则）并写入 README「同步要求」，同时沉淀 conventions 网盘 `.md` 同名覆盖失效的踩坑与规避法 |
 | ✅ 已解决 | 资产进度同步 | 资产 `progress/PROGRESS.md`（旧 `DqmuDzQsUuOA` 内容落后）已由有权限成员删除，本会话按待办方案用 API 重传最新内容（新 file_id `DCaCZTIbfJMK`，与仓库 `leo/dev` HEAD 内容 MD5 一致，`progress/` 目录唯一无残留）。镜像已恢复一致。 |
