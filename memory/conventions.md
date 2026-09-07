@@ -6,6 +6,9 @@
 - 提交信息走仓库既有语义化风格（见上方 git log）。
 
 **项目网盘(资产)同步踩坑**：
-- 网盘对**显示名以 `.md` 结尾**的文件，同名覆盖(overwrite)上传会失效：平台会把 `file_name="X.md"` 拆成 ext=`md`、显示名=`X`，匹配不上既有条目(其显示名为字面 `X.md`)，于是**新增**一条而非覆盖。因此每次覆盖 `PROGRESS.md`/`MEMORY.md` 这类文件都会制造重复条目，违反"默认不新建"。
-- 规避：asset 侧这些入口/索引文件的**显示名不带 `.md`**（如 `repo`/`collab`/`conventions`，ext 单独为 md），对它们上传 `file_name="X.md"` 可正常覆盖，不会新增。
-- 对**显示名确实含 `.md`** 的文件（如 `progress/PROGRESS.md`、`memory/MEMORY.md`），更新资产时应**优先改仓库并 push**，不要用 overwrite 直传同名去"覆盖"——若要直传，先用 `rename` 把同名旧条目改名腾出规范名，再上传新内容并改名回 `PROGRESS.md`/`MEMORY.md`，残留旧备份只能由有删除权限的成员清理（普通成员 roleID 无 `can_delete`）。
+- 核心规律:**该资产条目能否被 API 同名覆盖(overwrite),取决于它的「显示名」是否字面以 `.md` 结尾**,而显示名形态由**创建途径**决定:
+  - **API 上传创建**的文件,显示名**不带 `.md`**(ext 单独存 md,如 `collab`/`conventions`/`repo`;亦见本次 `progress/PROGRESS`=file `DCaCZTIbfJMK`),对它们 upload `file_name="X.md"` 能**正常覆盖、不新增重复**。
+  - **网页端/其他途径创建**、显示名字面为 `PROGRESS.md`/`MEMORY.md` 的文件,upload `file_name="X.md"` 会被平台拆成 ext=`md`+名=`X`,匹配不上字面 `X.md`,于是**新增**一条而非覆盖 → 制造重复,违反"默认不新建"。
+- 判定技巧:用 API `file_upload` 后看 upload_complete 返回的 file_id 是否等于**既有条目 id**——相等=覆盖成功;不等=新增了重复。
+- **恢复/更新资产 `progress/PROGRESS.md`、`memory/MEMORY.md` 这类入口文件的最可靠路径**:请有删除权限成员**先删除**该字面 `.md` 条目,再由任一成员用 API 上传到(空)目录 → 得到的文件显示名即为不带 `.md` 的规范形态,此后即可用 overwrite 正常覆盖跟进更新,不再卡壳。
+- 在资产侧有删除权限成员介入前,更新这类文件应**以改仓库并 push 为准**,勿反复用 overwrite 直传,以免堆积无法自行删除的重复条目(普通成员 roleID 无 `can_delete`)。
