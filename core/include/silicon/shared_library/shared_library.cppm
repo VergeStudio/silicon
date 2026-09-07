@@ -2,6 +2,7 @@ module;
 #include <memory>
 
 #include <expected>
+#include <mutex>
 #include <string>
 #include <system_error>
 
@@ -53,7 +54,11 @@ export class SILICON_CORE_API shared_library final {
     void *find_symbol(const std::string &);
 
   private:
-    struct impl;
+    struct impl {
+        std::string path_;
+        void *handle_{nullptr};
+        std::mutex mutex_;
+    };
     std::unique_ptr<impl> impl_;
 
 };

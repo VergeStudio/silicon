@@ -9,8 +9,6 @@ module;
 module silicon.library;
 import silicon.library.error;
 
-#include "shared_library_impl.h"
-
 namespace silicon::library {
 
 shared_library::shared_library() : impl_(std::make_unique<impl>()) {

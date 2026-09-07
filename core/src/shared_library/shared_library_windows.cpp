@@ -14,8 +14,6 @@ module silicon.library;
 
 import silicon.platform;
 
-#include "shared_library_impl.h"
-
 #if defined(SILICON_PLATFORM_WINDOWS)
 
 #include "libloaderapi.h"
