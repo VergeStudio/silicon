@@ -41,6 +41,8 @@
 
 | 日期 | 提交 / 链接 | 概述 |
 |------|------------|------|
+| 2026-09-07 | 292a2b9 | 记忆规则沉淀：约定「每轮只修改既有记忆/进度文件、默认不新建」，并记入 conventions 网盘 `.md` 同名覆盖失效的踩坑与规避法（支撑"不新建"原则） |
+| ⏳ 待办 | 资产残留 | 资产 `progress/` 下 `PROGRESS_bak.md`（file_id `GrcdKNoZhMJu`，旧 3857B）为覆盖上传产生的残留，规范名 `PROGRESS.md`（`DqmuDzQsUuOA`，4321B，与仓库一致）已就位；**请有删除权限的成员删除该残留**，使 `progress/` 仅余一个 `PROGRESS.md`。 |
 | 2026-09-07 | `ccdd4d5` | 核对并确认：仓库 `leo/dev`（HEAD `e29072f`）与项目资产已**完全互为镜像一致**（根 README + memory/ 7 主题 + progress/PROGRESS.md，MD5 逐一匹配）；此前遗留的重复文件（资产 `DKSZEoCbXHVq`/`DLURswbCXMMb`）已由有权限成员清理，无残留。顺带修正 PROGRESS 头部过期的"维护入口"旧路径。 |
 | 2026-09-07 | `12f9351` | 对齐 README 更新：资产侧记忆改 memory/ 主题拆分、进度改 progress/；仓库 MEMORY/PROGRESS 更新引用与协作闭环（"轮前读→轮中更新→轮后同步"） |
 | 2026-09-07 | `559d59d` | docs: 新增 PROGRESS/MEMORY 工作文档；并同步至项目网盘资产、在接入说明登记"每轮同步进度记忆"协作要求 |
