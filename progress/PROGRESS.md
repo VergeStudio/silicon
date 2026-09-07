@@ -31,7 +31,8 @@
 
 ### 待办 / 下一步（若本轮有新增会在此登记）
 
-- （按需补充：本会话/成员在推进的具体事项、阻塞点、下一步计划）
+- 【本会话·"显式 private"任务】：批1(eef4bd5 核心 pimpl)+批2(eaa6ef4 scheduler/network 补漏)已完成并推送 `leo/dev`。批3/4(vendored) 深入勘察后裁定"无可安全改动对象"→ 保持原样(见变更日志)。剩余:在可访问 github 平台跑 `scripts/verify.sh`(本沙箱无法 xmake 全量;libstdc++13 `<expected>` C++23 缺陷)。
+- 【遗留·资产清理(需有删除权限者)】：资产 `progress/` 目录现有多余 PROGRESS 条目——旧 `DCaCZTIbfJMK`(5060B,内容过时)删除被拒(本账号无 `can_delete`,roleID:22),新条目 `DePfxIvuzQAI`(10701B,含批1/2 记录,与仓库 e323f47 版 MD5 一致)。请有权限者删除 `DCaCZTIbfJMK` 使 `progress/` 单一条目,并把仓库最新 PROGRESS(含本 vendored 终裁记录)同步至保留条目。
 
 ---
 
@@ -41,6 +42,8 @@
 
 | 日期 | 提交 / 链接 | 概述 |
 |------|------------|------|
+| 2026-09-07 | `-`(无代码改动,结论登记) | "显式 private"任务·vendored(proxy/json)终裁：**无可安全改动对象,保持原样**。深入勘察(证据见下)后与成员确认:① **proxy/impl.cppm**(微软 proxy4)185 个 struct **全部是需 public 供模板推导的元编程 trait**(copyability_traits/reduction_traits/type_identity helper 等),无数据成员、加 private 即破坏 proxy facade 机制;② **json/(nlohmann)** 封装类型数据成员**均已由上游 `private:` / `JSON_PRIVATE_UNLESS_TESTED:` 宏隔离**(basic_json 的 `m_data`/`m_parent` 在宏内;iter_impl/lexer/parser/serializer/各 adapter/json_pointer 等约 26 类均已 private),剩余 public 数据都在 `internal_iterator`/`position_t`/`diyfp` 等**有意设计的公开数据容器/POD/union**(basic_json 内嵌 `data`/`json_value` 已被宏包住),加 private 会破坏库内 friend 互访/序列化宏/算法内聚。两库访问控制均为上游既定设计,非"省略 private",强改零收益且破坏面大。本任务"显式 private"仅落在**本仓库手写代码**(批1/2)。 |
+| 2026-09-07 | `-`(资产同步过程记录) | 资产同步遇坑登记：`file_upload` 以 `file_name="PROGRESS"`+`overwrite` 上传时**未命中既有条目 `DCaCZTIbfJMK`(display 名带 `.md` 扩展、由网页端建),反在 progress/ 新建同名无扩展条目 `DePfxIvuzQAI`**,导致目录暂时两个 PROGRESS。新条目内容正确(与仓库 MD5 993b6ee5 一致)。删除旧条目被拒:本账号无 `can_delete` 属性(roleID:22),删除需有权限成员。详见待办节遗留。 |
 | 2026-09-07 | `eaa6ef4` | refactor(access): scheduler/network 剩余 pimpl class 补显式 private——补齐 core 遗漏的含 pimpl 实现细节但首段未显式 private 的类型。scheduler: inline_scheduler/io_notifier/io_ring/parallel_scheduler/run_loop/timer_handle(class 默认私有首段,纯显式化)与 poll_info(`struct` 默认 public 泄漏 `m_p`,真修复,已核实所有访问均在成员/嵌套类内);network: hostname/socket_address(class 首段 pimpl,纯显式化;ip_address 本就合规)。逐文件核实其余含 `struct impl;` 前向声明的 core 类型(parser/parse_result/coroutine* 全部/logger/event/event/tcp/udp/pipe/poll/sync_wait/thread_pool/shared_library 等)均已显式位于 private 区段,无需改动。 |
 | 2026-09-07 | `eef4bd5` | refactor(access): 全量"显式 private"任务——核心 pimpl struct/class 在实现细节(`struct impl`/`impl_` 指针)前显式加 `private:`(前置空行),构造+访问器留 public。覆盖 core(http/facade、http/types、config/value、plugin/facade、time/facade)+ ai(llm/types 5 个 pimpl struct、llm/facade tool_registry/provider_registry/scripted_provider/http_provider+内嵌 http_result)。其中 ai/types 的 5 struct + http_result 因 **struct 默认 public 致 `struct impl;`+`impl_` 意外泄漏(真缺陷修复)**;core/http/types 的 http_response/http_request、time/facade 的 date_source 同属 struct 泄漏修复。class 各例(class 默认 private)为纯显式化。clang18 最小模块复刻验证:模块实现单元可定义接口单元中 **private 嵌套前向类型** `X::impl`(编译+链接+运行 exit=0),证明该类 pimpl 私有化编译安全。 |
 | 2026-09-07 | `600928d` | refactor(logger): 删除未接入的 `global_logger`(`:global_logger` 分区),保留 `default_logger`。global_logger 为孤立死代码:facade.cppm(module `silicon.logger`)只 `export import :ilogger`/`:default_logger`、从不聚合 `:global_logger`;模块级 `init/stop/...` 全局函数在 logger.cpp 委托匿名 default_logger。删 接口 `global_logger.cppm` + 实现 `global_logger.cpp`(共 177 行),全仓无任何引用、内容与 default_logger 重复。其余文件零改动。 |
