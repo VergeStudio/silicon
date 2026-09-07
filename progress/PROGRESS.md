@@ -1,12 +1,12 @@
 # PROGRESS — silicon 开发进度
 
 > 本文件记录 silicon 工程（分支 `leo/dev`）的**开发进度**，供团队各成员/各轮会话延续上下文使用。
-> 规则：**每轮修改完，由当轮成员把本轮进展同步到这里**（并在项目资产根 README.md 约定的协作流下推送到仓库与项目资产）。
+> 规则：**每轮修改完，由当轮成员把本轮进展同步到这里**（并在项目根 README.md 约定的协作流下推送到仓库与乐享团队知识库）。
 > 与《MEMORY.md》分工：MEMORY = 长期稳定的工程知识 / 约定 / 踩坑经验；本文件 = 正在推进的进展快照。
 
-- 维护入口：仓库 `leo/dev` 下 `progress/PROGRESS.md`（项目资产镜像至网盘 `progress/PROGRESS.md`）。
+- 维护入口：仓库 `leo/dev` 下 `progress/PROGRESS.md`（镜像至乐享团队知识库「silicon」`progress/` 页）。
 - 更新约定：见仓库根 `README.md`（"每轮进行前"+"团队协作要求"两节，目录结构 `progress/`）。
-- 资产侧视图：与仓库互为镜像（无单文件权威副本），见网盘根 `README.md`。
+- 乐享侧视图：与仓库互为镜像（无单文件权威副本），见仓库根 `README.md`。
 
 ---
 
@@ -32,7 +32,8 @@
 ### 待办 / 下一步（若本轮有新增会在此登记）
 
 - 【本会话·"显式 private"任务】：批1(eef4bd5 核心 pimpl)+批2(eaa6ef4 scheduler/network 补漏)已完成并推送 `leo/dev`。批3/4(vendored) 深入勘察后裁定"无可安全改动对象"→ 保持原样(见变更日志)。剩余:在可访问 github 平台跑 `scripts/verify.sh`(本沙箱无法 xmake 全量;libstdc++13 `<expected>` C++23 缺陷)。
-- 【资产 progress/ 状态】：原有两个 PROGRESS 条目(旧 `DCaCZTIbfJMK` + 本会话新增 `DePfxIvuzQAI`)均已被有权限者删除,目录已清空;本会话已将仓库最新 PROGRESS(含 vendored 终裁与收尾记录)重新上传恢复镜像(MD5 复核一致)。后续若再上传,注意 `file_upload` 同名+`overwrite` 不一定命中带 `.md` 扩展的既有条目、可能新建同名条目(见变更日志·资产同步遇坑记录)。
+- 【乐享知识库迁移·首要待办】：协作镜像已定为 仓库 ⇄ 乐享「silicon」两处(网盘退役)。**乐享 MCP 无"创建团队 Space"接口**(`knowledge.space` 仅只读),需在乐享前端 `VergeStudio` 团队下新建名为 **silicon** 的团队知识库;建好后由任一成员用乐享 MCP 将仓库 `memory/`(MEMORY.md+6 主题)与 `progress/PROGRESS.md` **页级镜像**进乐享(结构对齐目录树,更新走 `block_fetch_page`/`block_update_page`/`entry_import_content`)。
+- 【历史·网盘 progress/ 状态(承载已退役)】：原网盘两个 PROGRESS 条目均已清空、已恢复过镜像;因承载已切乐享,该网盘镜像不再作同步目标(踩坑见 conventions 历史节,仅旧网盘条目操作时适用)。
 
 ---
 
@@ -42,6 +43,7 @@
 
 | 日期 | 提交 / 链接 | 概述 |
 |------|------------|------|
+| 2026-09-07 | `572ee76` | 协作镜像承载切换决策：**只保留 仓库 `leo/dev`(权威源) ⇄ 乐享团队知识库「silicon」(项目资产镜像) 两处**，原项目网盘(Drive)上的 memory/progress 镜像**退役**、不再作同步目标。仓库侧同步更新：根 `README.md`（目录结构/同步要求 + 新增「资产镜像承载:乐享」小节）、`memory/collab.md`（自动覆盖授权→乐享页级镜像授权）、`memory/conventions.md`（登记录用乐享规避网盘权限坑 + 网盘踩坑保留为历史）、`progress/PROGRESS.md`（本记录）。乐享 MCP 已接入(VergeStudio 团队 + 页级 block 在线读写)。**待办**：乐享 MCP 无"创建团队 Space"接口,需在乐享前端 VergeStudio 下建 silicon 团队知识库后,将仓库 memory/ + progress/ 内容页级镜像进乐享(结构对齐目录树)。 |
 | 2026-09-07 | `-`(资产镜像恢复记录) | 资产 `progress/` 清理完成：有权限者已删除多余的两个 PROGRESS 条目(旧 `DCaCZTIbfJMK` 与新增的 `DePfxIvuzQAI`),目录清空。本会话据此将仓库最新 PROGRESS.md(含 vendored 终裁 + 本记录)重新上传至 `progress/` 恢复镜像一致,下载 MD5 复核通过。 |
 | 2026-09-07 | `-`(无代码改动,结论登记) | "显式 private"任务·vendored(proxy/json)终裁：**无可安全改动对象,保持原样**。深入勘察(证据见下)后与成员确认:① **proxy/impl.cppm**(微软 proxy4)185 个 struct **全部是需 public 供模板推导的元编程 trait**(copyability_traits/reduction_traits/type_identity helper 等),无数据成员、加 private 即破坏 proxy facade 机制;② **json/(nlohmann)** 封装类型数据成员**均已由上游 `private:` / `JSON_PRIVATE_UNLESS_TESTED:` 宏隔离**(basic_json 的 `m_data`/`m_parent` 在宏内;iter_impl/lexer/parser/serializer/各 adapter/json_pointer 等约 26 类均已 private),剩余 public 数据都在 `internal_iterator`/`position_t`/`diyfp` 等**有意设计的公开数据容器/POD/union**(basic_json 内嵌 `data`/`json_value` 已被宏包住),加 private 会破坏库内 friend 互访/序列化宏/算法内聚。两库访问控制均为上游既定设计,非"省略 private",强改零收益且破坏面大。本任务"显式 private"仅落在**本仓库手写代码**(批1/2)。 |
 | 2026-09-07 | `-`(资产同步过程记录) | 资产同步遇坑登记：`file_upload` 以 `file_name="PROGRESS"`+`overwrite` 上传时**未命中既有条目 `DCaCZTIbfJMK`(display 名带 `.md` 扩展、由网页端建),反在 progress/ 新建同名无扩展条目 `DePfxIvuzQAI`**,导致目录暂时两个 PROGRESS。新条目内容正确(与仓库 MD5 993b6ee5 一致)。删除旧条目被拒:本账号无 `can_delete` 属性(roleID:22),删除需有权限成员。详见待办节遗留。 |

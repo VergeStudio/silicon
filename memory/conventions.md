@@ -5,7 +5,16 @@
 - proxy v4 / 类型擦除是跨模块统一接口范式，新增模块门面优先考虑 `proxy<Facade>`，而非虚基类接口。
 - 提交信息走仓库既有语义化风格（见上方 git log）。
 
-**项目网盘(资产)同步踩坑**：
+**项目资产镜像已切换承载：网盘 → 乐享团队知识库（2026-09-07 起）**：
+- **协作镜像只保留两处：仓库 `leo/dev`（权威源）⇄ 乐享团队知识库「silicon」（项目资产镜像）**；原项目网盘(Drive)上的 memory/progress 镜像已**退役**，不再作为同步目标。
+- 乐享承载为**页级在线文档**：`memory/`（MEMORY.md 索引页 + adr/build/collab/conventions/repo/verify 主题页）、`progress/PROGRESS.md` 页，结构对齐仓库对应目录。
+- 镜像/更新乐享页面用乐享 MCP：建条目 `entry_create_entry`、读页 `block_fetch_page`、写页 `block_update_page`、md 导入建页 `entry_import_content`（无长度限制、勿擅自拆分长文）。
+- 乐享**页级在线读改写**规避了下方网盘全部权限坑（无 `can_delete` 约束、无同名 `.md` 覆盖不命中、支持版本化草稿 `draft_save/publish` 与文件历史 `file_list_revisions`/`file_revert_file`）。
+- 乐享 MCP 无"创建团队 Space"接口（`knowledge.space` 仅只读）；团队知识库需在乐享前端 `VergeStudio` 团队下新建。silicon 团队 Space 建立进展登记在 `progress/PROGRESS.md`。
+
+> 以下为**历史**网盘踩坑（已退役承载，保留备查/若曾需操作旧网盘条目仍适用）：
+
+**项目网盘(资产)同步踩坑（历史）**：
 - 核心规律:**该资产条目能否被 API 同名覆盖(overwrite),取决于它的「显示名」是否字面以 `.md` 结尾**,而显示名形态由**创建途径**决定:
   - **API 上传创建**的文件,显示名**不带 `.md`**(ext 单独存 md,如 `collab`/`conventions`/`repo`;亦见本次 `progress/PROGRESS`=file `DCaCZTIbfJMK`),对它们 upload `file_name="X.md"` 能**正常覆盖、不新增重复**。
   - **网页端/其他途径创建**、显示名字面为 `PROGRESS.md`/`MEMORY.md` 的文件,upload `file_name="X.md"` 会被平台拆成 ext=`md`+名=`X`,匹配不上字面 `X.md`,于是**新增**一条而非覆盖 → 制造重复,违反"默认不新建"。
