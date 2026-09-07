@@ -32,20 +32,20 @@ std::vector<std::string> split_paths(const char *env, const std::string &def) {
     return out;
 }
 
-CORE_API std::string home_dir() { return home(); }
+SILICON_CORE_API std::string home_dir() { return home(); }
 
-CORE_API std::string config_home() { return env_or("XDG_CONFIG_HOME", config_home_default()); }
+SILICON_CORE_API std::string config_home() { return env_or("XDG_CONFIG_HOME", config_home_default()); }
 
-CORE_API std::string data_home() { return env_or("XDG_DATA_HOME", data_home_default()); }
+SILICON_CORE_API std::string data_home() { return env_or("XDG_DATA_HOME", data_home_default()); }
 
-CORE_API std::string cache_home() { return env_or("XDG_CACHE_HOME", cache_home_default()); }
+SILICON_CORE_API std::string cache_home() { return env_or("XDG_CACHE_HOME", cache_home_default()); }
 
-CORE_API std::string state_home() { return env_or("XDG_STATE_HOME", state_home_default()); }
+SILICON_CORE_API std::string state_home() { return env_or("XDG_STATE_HOME", state_home_default()); }
 
-CORE_API std::string runtime_dir() { return env_or("XDG_RUNTIME_DIR", ""); }
+SILICON_CORE_API std::string runtime_dir() { return env_or("XDG_RUNTIME_DIR", ""); }
 
-CORE_API std::vector<std::string> config_dirs() { return split_paths("XDG_CONFIG_DIRS", config_dirs_default()); }
+SILICON_CORE_API std::vector<std::string> config_dirs() { return split_paths("XDG_CONFIG_DIRS", config_dirs_default()); }
 
-CORE_API std::vector<std::string> data_dirs() { return split_paths("XDG_DATA_DIRS", data_dirs_default()); }
+SILICON_CORE_API std::vector<std::string> data_dirs() { return split_paths("XDG_DATA_DIRS", data_dirs_default()); }
 
 }

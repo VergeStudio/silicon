@@ -12,7 +12,7 @@ import silicon.error;
 
 export namespace silicon::di {
 
-CORE_API std::atomic<const std::error_category *> di_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> di_error_category_instance{nullptr};
 
 enum class di_error {
     kDuplicateBinding = 1,
@@ -31,7 +31,7 @@ enum class di_error {
     kUnknown,
 };
 
-class CORE_API di_category_impl final : public std::error_category {
+class SILICON_CORE_API di_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.di"; }
     std::string message(int ev) const override {
         switch(static_cast<di_error>(ev)) {

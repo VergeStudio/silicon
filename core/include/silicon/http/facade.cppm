@@ -43,12 +43,12 @@ inline http_response get(const http_client_view &client, const std::string &url)
     return client->request(req);
 }
 
-class CORE_API curl_http_client {
+class SILICON_CORE_API curl_http_client {
   public:
     http_response request(const http_request &) const;
 };
 
-class CORE_API fake_http_client {
+class SILICON_CORE_API fake_http_client {
 
     struct impl {
       public:

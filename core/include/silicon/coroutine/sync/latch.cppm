@@ -12,7 +12,7 @@ import silicon.scheduler;
 
 export namespace silicon::coroutine {
 
-class CORE_API latch {
+class SILICON_CORE_API latch {
   public:
 
     latch(std::int64_t) noexcept;

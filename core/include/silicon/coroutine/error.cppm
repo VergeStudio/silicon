@@ -13,8 +13,8 @@ import silicon.error;
 
 namespace silicon::coroutine {
 
-CORE_API std::atomic<const std::error_category *> coroutine_error_category_instance{nullptr};
-CORE_API std::atomic<const std::error_category *> channel_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> coroutine_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> channel_error_category_instance{nullptr};
 
 }
 
@@ -33,7 +33,7 @@ enum class channel_error {
     kCancelled,
 };
 
-class CORE_API coroutine_category_impl final : public std::error_category {
+class SILICON_CORE_API coroutine_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.coroutine"; }
     std::string message(int ev) const override {
         switch(static_cast<coroutine_error>(ev)) {
@@ -46,7 +46,7 @@ class CORE_API coroutine_category_impl final : public std::error_category {
     }
 };
 
-class CORE_API channel_category_impl final : public std::error_category {
+class SILICON_CORE_API channel_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.channel"; }
     std::string message(int ev) const override {
         switch(static_cast<channel_error>(ev)) {

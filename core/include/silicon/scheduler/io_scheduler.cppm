@@ -63,7 +63,7 @@ enum class timeout_status {
     kTimeout,
 };
 
-class CORE_API io_scheduler {
+class SILICON_CORE_API io_scheduler {
     using timed_events = silicon::scheduler::poll_info::timed_events;
 
     struct private_constructor {

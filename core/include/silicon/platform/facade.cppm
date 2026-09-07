@@ -114,6 +114,6 @@ template<class T>
     return silicon::proxy::make_proxy_view<platform_facade>(target);
 }
 
-[[nodiscard]] CORE_API platform_proxy create_platform();
+[[nodiscard]] SILICON_CORE_API platform_proxy create_platform();
 
 }

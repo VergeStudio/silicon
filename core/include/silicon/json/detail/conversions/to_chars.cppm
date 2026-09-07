@@ -35,14 +35,14 @@ export struct diyfp
 
     constexpr diyfp(std::uint64_t f_, int e_) noexcept: f(f_), e(e_) {}
 
-    CORE_API static diyfp sub(const diyfp &x, const diyfp &y) noexcept {
+    SILICON_CORE_API static diyfp sub(const diyfp &x, const diyfp &y) noexcept {
         JSON_ASSERT(x.e == y.e);
         JSON_ASSERT(x.f >= y.f);
 
         return {x.f - y.f, x.e};
     }
 
-    CORE_API static diyfp mul(const diyfp &x, const diyfp &y) noexcept {
+    SILICON_CORE_API static diyfp mul(const diyfp &x, const diyfp &y) noexcept {
         static_assert(kPrecision == 64, "internal error");
 
         const std::uint64_t u_lo = x.f & 0xFFFFFFFFu;
@@ -70,7 +70,7 @@ export struct diyfp
         return {h, x.e + y.e + 64};
     }
 
-    CORE_API static diyfp normalize(diyfp x) noexcept {
+    SILICON_CORE_API static diyfp normalize(diyfp x) noexcept {
         JSON_ASSERT(x.f != 0);
 
         while((x.f >> 63u) == 0) {
@@ -81,7 +81,7 @@ export struct diyfp
         return x;
     }
 
-    CORE_API static diyfp normalize_to(const diyfp &x, const int target_exponent) noexcept {
+    SILICON_CORE_API static diyfp normalize_to(const diyfp &x, const int target_exponent) noexcept {
         const int delta = x.e - target_exponent;
 
         JSON_ASSERT(delta >= 0);

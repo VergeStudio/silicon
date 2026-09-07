@@ -35,7 +35,7 @@ import silicon.proxy;
 
 export namespace silicon::coroutine {
 
-class CORE_API condition_variable {
+class SILICON_CORE_API condition_variable {
   public:
     using predicate_type = std::function<bool()>;
 

@@ -61,9 +61,9 @@ enum class connect_status {
     kError
 };
 
-CORE_API auto to_string(const connect_status &) -> result<std::string_view>;
+SILICON_CORE_API auto to_string(const connect_status &) -> result<std::string_view>;
 
-class CORE_API hostname {
+class SILICON_CORE_API hostname {
     struct impl {
       public:
         std::string m_hostname;
@@ -185,7 +185,7 @@ enum class domain_t : int {
 
 auto to_string(domain_t) -> result<std::string_view>;
 
-class CORE_API ip_address {
+class SILICON_CORE_API ip_address {
   public:
     static const constexpr size_t ipv4_len{4};
     static const constexpr size_t ipv6_len{16};
@@ -302,7 +302,7 @@ template<class T>
     return silicon::proxy::make_proxy_view<socket_facade>(target);
 }
 
-class CORE_API socket_address {
+class SILICON_CORE_API socket_address {
     struct impl {
       public:
         sockaddr_storage m_storage{};
@@ -439,7 +439,7 @@ int socket_duplicate_handle(int) ;
 
 bool socket_enable_address_reuse(int) ;
 
-class CORE_API socket final {
+class SILICON_CORE_API socket final {
   public:
     enum class type_t {
 

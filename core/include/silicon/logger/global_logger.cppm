@@ -16,7 +16,7 @@ import :ilogger;
 
 export namespace silicon::logger {
 
-class CORE_API global_logger {
+class SILICON_CORE_API global_logger {
  public:
     global_logger();
     ~global_logger() noexcept;

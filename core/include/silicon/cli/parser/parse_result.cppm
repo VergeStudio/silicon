@@ -11,7 +11,7 @@ export module silicon.cli.parser.parse_result;
 
 export namespace silicon::cli {
 
-class CORE_API parse_result {
+class SILICON_CORE_API parse_result {
   public:
     parse_result();
     ~parse_result();

@@ -25,7 +25,7 @@ class mutex;
 class scoped_lock;
 class condition_variable;
 
-struct CORE_API lock_operation_base {
+struct SILICON_CORE_API lock_operation_base {
     explicit lock_operation_base(silicon::coroutine::mutex &m): m_mutex(m) {}
     virtual ~lock_operation_base() = default;
 
@@ -65,7 +65,7 @@ struct lock_operation: public lock_operation_base {
     }
 };
 
-class CORE_API scoped_lock {
+class SILICON_CORE_API scoped_lock {
     friend class silicon::coroutine::mutex;
     friend class silicon::coroutine::condition_variable;
 
@@ -94,7 +94,7 @@ class CORE_API scoped_lock {
     [[nodiscard]] auto owned_mutex() const noexcept -> class silicon::coroutine::mutex *;
 };
 
-class CORE_API mutex {
+class SILICON_CORE_API mutex {
   public:
     explicit mutex() noexcept;
     ~mutex();

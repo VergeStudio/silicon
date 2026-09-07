@@ -10,7 +10,7 @@ export module silicon.library;
 export import silicon.library.error;
 
 namespace silicon::library {
-export class CORE_API shared_library final {
+export class SILICON_CORE_API shared_library final {
 
   public:
     enum class flags {

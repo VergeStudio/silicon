@@ -12,7 +12,7 @@ import silicon.error;
 
 namespace silicon::plugin {
 
-CORE_API std::atomic<const std::error_category *> plugin_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> plugin_error_category_instance{nullptr};
 
 }
 
@@ -26,7 +26,7 @@ enum class plugin_error {
     kNullPlugin,
 };
 
-class CORE_API plugin_category_impl final : public std::error_category {
+class SILICON_CORE_API plugin_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.plugin"; }
     std::string message(int ev) const override {
         switch(static_cast<plugin_error>(ev)) {

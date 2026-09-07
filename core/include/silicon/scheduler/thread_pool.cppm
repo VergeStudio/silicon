@@ -20,13 +20,13 @@ import :facade;
 
 export namespace silicon::scheduler {
 
-class CORE_API thread_pool final {
+class SILICON_CORE_API thread_pool final {
     struct private_constructor {
         explicit private_constructor() = default;
     };
 
   public:
-    class CORE_API schedule_operation {
+    class SILICON_CORE_API schedule_operation {
         friend class thread_pool;
         explicit schedule_operation(thread_pool &) noexcept;
 

@@ -12,13 +12,13 @@ import silicon.error;
 
 export namespace silicon::event {
 
-CORE_API std::atomic<const std::error_category *> event_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> event_error_category_instance{nullptr};
 
 enum class event_error {
     kInvalidStatus = 1,
 };
 
-class CORE_API event_category_impl final : public std::error_category {
+class SILICON_CORE_API event_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.event"; }
     std::string message(int ev) const override {
         switch(static_cast<event_error>(ev)) {

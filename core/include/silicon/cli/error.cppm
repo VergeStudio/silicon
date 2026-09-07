@@ -13,7 +13,7 @@ import silicon.error;
 
 export namespace silicon::cli {
 
-CORE_API std::atomic<const std::error_category *> cli_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> cli_error_category_instance{nullptr};
 
 }
 
@@ -28,7 +28,7 @@ enum class cli_error {
     kUnknown,
 };
 
-class CORE_API cli_category_impl final : public std::error_category {
+class SILICON_CORE_API cli_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.cli"; }
     std::string message(int ev) const override {
         switch (static_cast<cli_error>(ev)) {

@@ -12,14 +12,14 @@ import silicon.error;
 
 export namespace silicon::logger {
 
-CORE_API std::atomic<const std::error_category *> logger_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> logger_error_category_instance{nullptr};
 
 enum class logger_error {
     kInitFailed = 1,
     kInvalidLevel,
 };
 
-class CORE_API logger_category_impl final : public std::error_category {
+class SILICON_CORE_API logger_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.logger"; }
     std::string message(int ev) const override {
         switch(static_cast<logger_error>(ev)) {

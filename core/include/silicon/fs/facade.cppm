@@ -51,6 +51,6 @@ template<class T, class... Args>
     return silicon::proxy::make_proxy<file_system_facade, T>(std::forward<Args>(args)...);
 }
 
-CORE_API file_system_proxy create_file_system();
+SILICON_CORE_API file_system_proxy create_file_system();
 
 }

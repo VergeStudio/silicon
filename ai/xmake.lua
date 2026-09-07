@@ -5,9 +5,9 @@ target("ai", function()
     -- 接口（silicon.http 等）与实现符号由 silicon_core 统一提供。
     add_deps("core")
 
-    -- 单 DLL 伞宏闸门：本模块实体经 CORE_API（CORE_EXPORT）dllexport，
+    -- 单 DLL 伞宏闸门：本模块实体经 SILICON_CORE_API（SILICON_CORE_EXPORT）dllexport，
     -- 由消费方（测试/应用）静态链接 silicon_core 与 ai.impl.lib。
-    add_defines("CORE_EXPORT")
+    add_defines("SILICON_CORE_EXPORT")
 
     add_includedirs("include", {public = true})
 
@@ -24,7 +24,7 @@ target("ai.impl", function()
 
     add_deps("silicon::ai")
 
-    add_defines("CORE_EXPORT")
+    add_defines("SILICON_CORE_EXPORT")
 
     add_files("src/**.cpp")
 end)

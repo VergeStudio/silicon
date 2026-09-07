@@ -18,7 +18,7 @@ import silicon.proxy;
 
 export namespace silicon::cli {
 
-class CORE_API parser {
+class SILICON_CORE_API parser {
   public:
     parser();
     ~parser();

@@ -100,7 +100,7 @@ class unix_platform {
     std::string line_ending() const { return "\n"; }
 };
 
-CORE_API platform_proxy create_platform() {
+SILICON_CORE_API platform_proxy create_platform() {
     if constexpr(os == os_id::kWindowsNt) {
         return make_platform<windows_platform>();
     } else if constexpr(os == os_id::kLinuxOs) {

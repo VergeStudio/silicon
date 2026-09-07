@@ -13,7 +13,7 @@ import silicon.error;
 
 export namespace silicon::library {
 
-CORE_API std::atomic<const std::error_category *> library_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> library_error_category_instance{nullptr};
 
 }
 
@@ -27,7 +27,7 @@ enum class library_error {
     kInvalidHandle,
 };
 
-class CORE_API library_category_impl final : public std::error_category {
+class SILICON_CORE_API library_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.library"; }
     std::string message(int ev) const override {
         switch(static_cast<library_error>(ev)) {

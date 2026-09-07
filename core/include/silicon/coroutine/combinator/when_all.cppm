@@ -19,7 +19,7 @@ import :void_value;
 
 export namespace silicon::coroutine {
 
-class CORE_API when_all_latch {
+class SILICON_CORE_API when_all_latch {
   public:
     when_all_latch(std::size_t) noexcept;
 
@@ -278,7 +278,7 @@ class when_all_task_promise {
 
 template<>
 
-class CORE_API when_all_task_promise<void> {
+class SILICON_CORE_API when_all_task_promise<void> {
   public:
     using coroutine_handle_type = std::coroutine_handle<when_all_task_promise<void>>;
 
@@ -288,7 +288,7 @@ class CORE_API when_all_task_promise<void> {
 
     std::suspend_always initial_suspend() noexcept { return {}; }
 
-    struct CORE_API completion_notifier {
+    struct SILICON_CORE_API completion_notifier {
         bool await_ready() const noexcept { return false; }
         void await_suspend(coroutine_handle_type coroutine) const noexcept {
             coroutine.promise().m_p->m_latch->notify_awaitable_completed();
@@ -373,7 +373,7 @@ class when_all_task {
 
 template<>
 
-class CORE_API when_all_task<void> {
+class SILICON_CORE_API when_all_task<void> {
   public:
 
     template<typename task_container_type>

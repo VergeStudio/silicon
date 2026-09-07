@@ -117,7 +117,7 @@ enum class send_status : int64_t {
 
 auto to_string(send_status) -> const std::string &;
 
-class CORE_API context {
+class SILICON_CORE_API context {
   public:
 
     static auto create(verify_peer_t = verify_peer_t::kYes) -> network::result<context>;

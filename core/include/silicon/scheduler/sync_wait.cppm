@@ -20,7 +20,7 @@ import :concepts.awaitable;
 
 export namespace silicon::scheduler {
 
-struct CORE_API unset_return_value {
+struct SILICON_CORE_API unset_return_value {
     unset_return_value() {}
     unset_return_value(unset_return_value &&) = delete;
     unset_return_value(const unset_return_value &) = delete;
@@ -28,7 +28,7 @@ struct CORE_API unset_return_value {
     auto operator=(const unset_return_value &) = delete;
 };
 
-class CORE_API sync_wait_event {
+class SILICON_CORE_API sync_wait_event {
   public:
     sync_wait_event(bool = false);
     sync_wait_event(const sync_wait_event &) = delete;
@@ -46,7 +46,7 @@ class CORE_API sync_wait_event {
     std::unique_ptr<impl> m_p;
 };
 
-class CORE_API sync_wait_task_promise_base {
+class SILICON_CORE_API sync_wait_task_promise_base {
   public:
     sync_wait_task_promise_base() noexcept = default;
 
@@ -57,7 +57,7 @@ class CORE_API sync_wait_task_promise_base {
 };
 
 template<typename return_type>
-class CORE_API sync_wait_task_promise: public sync_wait_task_promise_base {
+class SILICON_CORE_API sync_wait_task_promise: public sync_wait_task_promise_base {
   public:
     using coroutine_type = std::coroutine_handle<sync_wait_task_promise<return_type>>;
 
@@ -173,7 +173,7 @@ class CORE_API sync_wait_task_promise: public sync_wait_task_promise_base {
 };
 
 template<>
-class CORE_API sync_wait_task_promise<void>: public sync_wait_task_promise_base {
+class SILICON_CORE_API sync_wait_task_promise<void>: public sync_wait_task_promise_base {
     using coroutine_type = std::coroutine_handle<sync_wait_task_promise<void>>;
 
   public:
@@ -187,7 +187,7 @@ class CORE_API sync_wait_task_promise<void>: public sync_wait_task_promise_base 
 
     auto get_return_object() noexcept { return coroutine_type::from_promise(*this); }
 
-    struct CORE_API completion_notifier {
+    struct SILICON_CORE_API completion_notifier {
         auto await_ready() const noexcept { return false; }
         auto await_suspend(coroutine_type coroutine) const noexcept { coroutine.promise().m_p->m_event->set(); }
         auto await_resume() noexcept {};

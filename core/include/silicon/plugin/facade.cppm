@@ -55,7 +55,7 @@ template<class T>
     return silicon::proxy::make_proxy_view<plugin_facade>(target);
 }
 
-class CORE_API plugin_registry {
+class SILICON_CORE_API plugin_registry {
 
     struct impl {
       public:
@@ -80,7 +80,7 @@ class CORE_API plugin_registry {
 
 };
 
-class CORE_API proxy_plugin_registry {
+class SILICON_CORE_API proxy_plugin_registry {
 
     struct impl {
       public:

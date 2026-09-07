@@ -12,7 +12,7 @@ import silicon.error;
 
 namespace silicon::network {
 
-CORE_API std::atomic<const std::error_category *> network_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> network_error_category_instance{nullptr};
 
 }
 
@@ -47,7 +47,7 @@ enum class network_error {
     kUnknown,
 };
 
-class CORE_API network_category_impl final : public std::error_category {
+class SILICON_CORE_API network_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.network"; }
     std::string message(int ev) const override {
         switch(static_cast<network_error>(ev)) {

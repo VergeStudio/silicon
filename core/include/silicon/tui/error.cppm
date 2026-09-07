@@ -12,7 +12,7 @@ import silicon.error;
 
 namespace silicon::tui {
 
-CORE_API std::atomic<const std::error_category *> tui_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> tui_error_category_instance{nullptr};
 
 }
 
@@ -23,7 +23,7 @@ enum class tui_error {
     kInvalidTerminal,
 };
 
-class CORE_API tui_category_impl final : public std::error_category {
+class SILICON_CORE_API tui_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.tui"; }
     std::string message(int ev) const override {
         switch(static_cast<tui_error>(ev)) {

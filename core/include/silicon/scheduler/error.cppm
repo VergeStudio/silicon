@@ -12,7 +12,7 @@ import silicon.error;
 
 namespace silicon::scheduler {
 
-CORE_API std::atomic<const std::error_category *> scheduler_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> scheduler_error_category_instance{nullptr};
 
 }
 
@@ -32,7 +32,7 @@ enum class scheduler_error {
     kCompletionSubmitFailed,
 };
 
-class CORE_API scheduler_category_impl final : public std::error_category {
+class SILICON_CORE_API scheduler_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.scheduler"; }
     std::string message(int ev) const override {
         switch(static_cast<scheduler_error>(ev)) {

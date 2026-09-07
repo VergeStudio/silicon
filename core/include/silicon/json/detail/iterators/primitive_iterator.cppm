@@ -26,11 +26,11 @@ export class primitive_iterator_t {
         return m_it;
     }
 
-    CORE_API void set_begin() noexcept {
+    SILICON_CORE_API void set_begin() noexcept {
         m_it = begin_value;
     }
 
-    CORE_API void set_end() noexcept {
+    SILICON_CORE_API void set_end() noexcept {
         m_it = end_value;
     }
 
@@ -60,7 +60,7 @@ export class primitive_iterator_t {
         return lhs.m_it - rhs.m_it;
     }
 
-    CORE_API primitive_iterator_t &operator++() noexcept {
+    SILICON_CORE_API primitive_iterator_t &operator++() noexcept {
         ++m_it;
         return *this;
     }

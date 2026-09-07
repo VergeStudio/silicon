@@ -12,7 +12,7 @@ import :facade;
 
 export namespace silicon::scheduler {
 
-class CORE_API inline_scheduler final {
+class SILICON_CORE_API inline_scheduler final {
     struct impl;
     std::unique_ptr<impl> m_impl;
 

@@ -31,9 +31,9 @@ target("core", function()
         end
     end
 
-    -- 单 DLL 伞宏：core 编译进 silicon_core，CORE_EXPORT 由本 target 定义，
-    -- 所有以 CORE_API 标注的导出实体据此 dllexport（消费方不定义则 dllimport）。
-    add_defines("CORE_EXPORT")
+    -- 单 DLL 伞宏：core 编译进 silicon_core，SILICON_CORE_EXPORT 由本 target 定义，
+    -- 所有以 SILICON_CORE_API 标注的导出实体据此 dllexport（消费方不定义则 dllimport）。
+    add_defines("SILICON_CORE_EXPORT")
 
     -- 基础层（core）不依赖任何其他 silicon 模块；其他模块统一
     -- add_deps("core")，经本 target 的 public 模块 IFC 拿到

@@ -27,7 +27,7 @@ namespace detail {
 export class exception: public std::exception {
   public:
 
-    CORE_API const char *what() const noexcept override {
+    SILICON_CORE_API const char *what() const noexcept override {
         return m.what();
     }
 
@@ -37,11 +37,11 @@ export class exception: public std::exception {
     JSON_HEDLEY_NON_NULL(3)
     exception(int id_, const char *what_arg): id(id_), m(what_arg) {}
 
-    CORE_API static std::string name(const std::string &ename, int id_) {
+    SILICON_CORE_API static std::string name(const std::string &ename, int id_) {
         return concat("[json.exception.", ename, '.', std::to_string(id_), "] ");
     }
 
-    CORE_API static std::string diagnostics(std::nullptr_t ) {
+    SILICON_CORE_API static std::string diagnostics(std::nullptr_t ) {
         return "";
     }
 
@@ -121,10 +121,10 @@ export class parse_error: public exception {
     const std::size_t byte;
 
   private:
-    CORE_API parse_error(int id_, std::size_t byte_, const char *what_arg)
+    SILICON_CORE_API parse_error(int id_, std::size_t byte_, const char *what_arg)
         : exception(id_, what_arg), byte(byte_) {}
 
-    CORE_API static std::string position_string(const position_t &pos) {
+    SILICON_CORE_API static std::string position_string(const position_t &pos) {
         return concat(" at line ", std::to_string(pos.lines_read + 1), ", column ", std::to_string(pos.chars_read_current_line));
     }
 };
@@ -139,7 +139,7 @@ export class invalid_iterator: public exception {
 
   private:
     JSON_HEDLEY_NON_NULL(3)
-    CORE_API invalid_iterator(int id_, const char *what_arg)
+    SILICON_CORE_API invalid_iterator(int id_, const char *what_arg)
         : exception(id_, what_arg) {}
 };
 
@@ -153,7 +153,7 @@ export class type_error: public exception {
 
   private:
     JSON_HEDLEY_NON_NULL(3)
-    CORE_API type_error(int id_, const char *what_arg): exception(id_, what_arg) {}
+    SILICON_CORE_API type_error(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
 export class out_of_range: public exception {
@@ -166,7 +166,7 @@ export class out_of_range: public exception {
 
   private:
     JSON_HEDLEY_NON_NULL(3)
-    CORE_API out_of_range(int id_, const char *what_arg): exception(id_, what_arg) {}
+    SILICON_CORE_API out_of_range(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
 export class other_error: public exception {
@@ -179,7 +179,7 @@ export class other_error: public exception {
 
   private:
     JSON_HEDLEY_NON_NULL(3)
-    CORE_API other_error(int id_, const char *what_arg): exception(id_, what_arg) {}
+    SILICON_CORE_API other_error(int id_, const char *what_arg): exception(id_, what_arg) {}
 };
 
 }

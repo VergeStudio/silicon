@@ -12,7 +12,7 @@ import silicon.error;
 
 namespace silicon::http {
 
-CORE_API std::atomic<const std::error_category *> http_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> http_error_category_instance{nullptr};
 
 }
 
@@ -25,7 +25,7 @@ enum class http_error {
     kUnknown,
 };
 
-class CORE_API http_category_impl final : public std::error_category {
+class SILICON_CORE_API http_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.http"; }
     std::string message(int ev) const override {
         switch(static_cast<http_error>(ev)) {

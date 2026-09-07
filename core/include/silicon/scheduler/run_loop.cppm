@@ -12,7 +12,7 @@ import :facade;
 
 export namespace silicon::scheduler {
 
-class CORE_API run_loop final {
+class SILICON_CORE_API run_loop final {
     struct impl;
     std::unique_ptr<impl> m_impl;
 

@@ -14,8 +14,8 @@ export module silicon.util;
 
 export namespace silicon::util {
 
-CORE_API bool has_suffix(const char *, const char *);
-CORE_API std::uint64_t generate_unique_id();
+SILICON_CORE_API bool has_suffix(const char *, const char *);
+SILICON_CORE_API std::uint64_t generate_unique_id();
 
 namespace strings_internal {
 

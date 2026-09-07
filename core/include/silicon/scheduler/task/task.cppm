@@ -19,9 +19,9 @@ export namespace silicon::scheduler {
 template<typename return_type = void>
 class task;
 
-struct CORE_API promise_base {
+struct SILICON_CORE_API promise_base {
     friend struct final_awaitable;
-    struct CORE_API final_awaitable {
+    struct SILICON_CORE_API final_awaitable {
         bool await_ready() const noexcept ;
 
         template<typename promise_type>
@@ -50,7 +50,7 @@ struct CORE_API promise_base {
 };
 
 template<typename return_type>
-struct CORE_API promise final: public promise_base {
+struct SILICON_CORE_API promise final: public promise_base {
   private:
     struct unset_return_value {
         unset_return_value() {}
@@ -156,7 +156,7 @@ struct CORE_API promise final: public promise_base {
 };
 
 template<>
-struct CORE_API promise<void>: public promise_base {
+struct SILICON_CORE_API promise<void>: public promise_base {
     using task_t = task<void>;
     using coroutine_handle = std::coroutine_handle<promise<void>>;
 
@@ -274,7 +274,7 @@ inline auto promise<void>::get_return_object() noexcept -> task<> {
 
 class task_self_deleting;
 
-class CORE_API promise_self_deleting {
+class SILICON_CORE_API promise_self_deleting {
   public:
     promise_self_deleting() = default;
     ~promise_self_deleting() = default;
@@ -295,7 +295,7 @@ class CORE_API promise_self_deleting {
     std::function<void()> m_user_final_suspend{nullptr};
 };
 
-class CORE_API task_self_deleting {
+class SILICON_CORE_API task_self_deleting {
   public:
     using promise_type = promise_self_deleting;
     explicit task_self_deleting(promise_self_deleting &);
@@ -316,12 +316,12 @@ class CORE_API task_self_deleting {
     promise_self_deleting *m_promise{nullptr};
 };
 
-CORE_API auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_self_deleting;
+SILICON_CORE_API auto make_task_self_deleting(silicon::scheduler::task<void>) -> task_self_deleting;
 
-class CORE_API task_event {
+class SILICON_CORE_API task_event {
   public:
 
-    struct CORE_API awaiter {
+    struct SILICON_CORE_API awaiter {
         awaiter(const task_event &) noexcept;
         bool await_ready() const noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;

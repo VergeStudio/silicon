@@ -14,7 +14,7 @@ export namespace silicon::event {
 
 enum class event_status { kSuccess, kFailure, kTimeout };
 
-class CORE_API event {
+class SILICON_CORE_API event {
   public:
     event() = default;
     explicit event(std::string) noexcept;

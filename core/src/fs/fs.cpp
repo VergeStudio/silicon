@@ -117,7 +117,7 @@ class posix_file_system: public file_system_base<posix_file_system> {
 
 #endif
 
-CORE_API file_system_proxy create_file_system() {
+SILICON_CORE_API file_system_proxy create_file_system() {
 #if defined(SILICON_PLATFORM_WINDOWS)
     return make_file_system<win32_file_system>();
 #else

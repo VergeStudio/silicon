@@ -8,16 +8,16 @@
 #endif
 
 #if defined(SILICON_PLATFORM_WINDOWS)
-#    if defined(CORE_EXPORT)
-#        define CORE_API __declspec(dllexport)
+#    if defined(SILICON_CORE_EXPORT)
+#        define SILICON_CORE_API __declspec(dllexport)
 #    else
-#        define CORE_API
+#        define SILICON_CORE_API
 #    endif
 #else
-#    if defined(CORE_EXPORT)
-#        define CORE_API __attribute__((visibility("default")))
+#    if defined(SILICON_CORE_EXPORT)
+#        define SILICON_CORE_API __attribute__((visibility("default")))
 #    else
-#        define CORE_API
+#        define SILICON_CORE_API
 #    endif
 #endif
 

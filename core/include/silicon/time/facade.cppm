@@ -55,7 +55,7 @@ template <class T, class... Args>
         std::forward<Args>(args)...);
 }
 
-class CORE_API date_source {
+class SILICON_CORE_API date_source {
     struct impl {
       public:
         clock_proxy clock_;

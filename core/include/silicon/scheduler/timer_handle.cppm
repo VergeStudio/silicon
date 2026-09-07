@@ -13,7 +13,7 @@ import :io_notifier;
 
 export namespace silicon::scheduler {
 
-class CORE_API timer_handle {
+class SILICON_CORE_API timer_handle {
     struct impl;
     std::unique_ptr<impl> m_p;
 

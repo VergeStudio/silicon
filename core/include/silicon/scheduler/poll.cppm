@@ -83,7 +83,7 @@ enum class poll_status {
 
 auto to_string(poll_status) -> const std::string &;
 
-class CORE_API poll_stop_token {
+class SILICON_CORE_API poll_stop_token {
   public:
     explicit poll_stop_token(fd_t);
 
@@ -101,7 +101,7 @@ class CORE_API poll_stop_token {
     std::unique_ptr<impl> m_p;
 };
 
-class CORE_API poll_stop_source {
+class SILICON_CORE_API poll_stop_source {
   public:
     poll_stop_source();
 

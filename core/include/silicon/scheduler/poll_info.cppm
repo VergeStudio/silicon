@@ -20,7 +20,7 @@ struct poll_info_impl;
 
 export namespace silicon::scheduler {
 
-struct CORE_API poll_info {
+struct SILICON_CORE_API poll_info {
     using timed_events = std::multimap<silicon::scheduler::time_point, poll_info *>;
 
     using impl = poll_info_impl;

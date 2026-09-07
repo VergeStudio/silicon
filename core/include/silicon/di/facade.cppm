@@ -4492,19 +4492,19 @@ struct closure_strategy {
 struct context_closure_base {
     context_closure_proxy strategy_{};
     void reset() { strategy_->reset(); }
-    CORE_API arena<>& arena_storage() { return strategy_->arena_storage(); }
-    CORE_API void add_destructor(void* instance, void (*dtor)(void*)) { strategy_->add_destructor(instance, dtor); }
+    SILICON_CORE_API arena<>& arena_storage() { return strategy_->arena_storage(); }
+    SILICON_CORE_API void add_destructor(void* instance, void (*dtor)(void*)) { strategy_->add_destructor(instance, dtor); }
 };
 
 struct context_closure : context_closure_base {
-    CORE_API context_closure()
+    SILICON_CORE_API context_closure()
         : arena_(arena_buffer_)
         , destructibles_(arena_) {
 
         strategy_ = make_context_closure<closure_strategy<context_closure>>(this);
     }
 
-    CORE_API ~context_closure() { reset(); }
+    SILICON_CORE_API ~context_closure() { reset(); }
 
     context_closure(const context_closure&) = delete;
     context_closure& operator=(const context_closure&) = delete;
@@ -4675,13 +4675,13 @@ class context_path_state {
 
 class context_state : public context_path_state {
   public:
-    CORE_API context_state()
+    SILICON_CORE_API context_state()
         : arena_(arena_buffer_)
         , closures_(arena_) {
         closures_.emplace_back(&closure_);
     }
 
-    CORE_API ~context_state() {
+    SILICON_CORE_API ~context_state() {
         for (auto it = closures_.rbegin(); it != closures_.rend(); ++it) {
             (*it)->reset();
         }
@@ -4707,13 +4707,13 @@ class context_state : public context_path_state {
         return allocator_traits::allocate(allocator, 1);
     }
 
-    CORE_API void push(context_closure_base* c) {
+    SILICON_CORE_API void push(context_closure_base* c) {
 
         assert(!contains(c));
         closures_.emplace_back(c);
     }
 
-    CORE_API void pop() { closures_.pop_back(); }
+    SILICON_CORE_API void pop() { closures_.pop_back(); }
 
     bool contains(const context_closure_base* candidate) const {
         for (auto* active : closures_) {
@@ -4934,7 +4934,7 @@ struct instance_cache_sink {
 #pragma warning(push)
 #pragma warning(disable : 4702)
 #endif
-    CORE_API void operator()(void* ptr) const {
+    SILICON_CORE_API void operator()(void* ptr) const {
         if (store) {
             store(context, ptr);
         }
@@ -7759,12 +7759,12 @@ template<> class rtti<typeid_provider> {
     class type_index {
         friend struct std::hash<type_index>;
       public:
-        CORE_API type_index(std::type_index value) : value_(value) {}
+        SILICON_CORE_API type_index(std::type_index value) : value_(value) {}
 
-        CORE_API bool operator<(const type_index& other) const {
+        SILICON_CORE_API bool operator<(const type_index& other) const {
             return value_ < other.value_;
         }
-        CORE_API bool operator==(const type_index& other) const {
+        SILICON_CORE_API bool operator==(const type_index& other) const {
             return value_ == other.value_;
         }
 

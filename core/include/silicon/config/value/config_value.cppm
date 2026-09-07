@@ -27,7 +27,7 @@ using config_value_data = std::variant<
     std::shared_ptr<std::vector<config_value>>,
     std::shared_ptr<std::map<std::string, config_value>>>;
 
-class CORE_API config_value {
+class SILICON_CORE_API config_value {
     struct impl {
         config_value_data data_{nullptr};
     };

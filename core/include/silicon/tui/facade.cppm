@@ -44,14 +44,14 @@ template <class T>
 
 #if defined(SILICON_PLATFORM_UNIX)
 
-class CORE_API unix_terminal {
+class SILICON_CORE_API unix_terminal {
   public:
     std::string_view terminal_type() const;
     int32_t width() const;
     int32_t height() const;
 };
 #else
-class CORE_API default_terminal {
+class SILICON_CORE_API default_terminal {
   public:
     std::string_view terminal_type() const;
     int32_t width() const;

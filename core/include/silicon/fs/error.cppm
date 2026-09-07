@@ -13,7 +13,7 @@ import silicon.error;
 
 export namespace silicon::fs {
 
-CORE_API std::atomic<const std::error_category *> fs_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> fs_error_category_instance{nullptr};
 
 }
 
@@ -30,7 +30,7 @@ enum class fs_error {
     kUnknown,
 };
 
-class CORE_API fs_category_impl final : public std::error_category {
+class SILICON_CORE_API fs_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.fs"; }
     std::string message(int ev) const override {
         switch(static_cast<fs_error>(ev)) {

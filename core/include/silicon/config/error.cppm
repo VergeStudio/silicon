@@ -13,7 +13,7 @@ import silicon.error;
 
 export namespace silicon::config {
 
-CORE_API std::atomic<const std::error_category *> config_error_category_instance{nullptr};
+SILICON_CORE_API std::atomic<const std::error_category *> config_error_category_instance{nullptr};
 
 template<typename T>
 using result = silicon::error::result<T>;
@@ -25,7 +25,7 @@ enum class config_error {
     kUnknown,
 };
 
-class CORE_API config_category_impl final : public std::error_category {
+class SILICON_CORE_API config_category_impl final : public std::error_category {
     const char *name() const noexcept override { return "silicon.config"; }
     std::string message(int ev) const override {
         switch(static_cast<config_error>(ev)) {

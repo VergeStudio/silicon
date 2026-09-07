@@ -2377,7 +2377,7 @@ struct weak_dispatch: D {
 };
 
 #if __cpp_rtti >= 199711L
-export class CORE_API bad_proxy_cast: public std::bad_cast {
+export class SILICON_CORE_API bad_proxy_cast: public std::bad_cast {
   public:
     char const *what() const noexcept override;
 };

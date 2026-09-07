@@ -63,7 +63,7 @@ class client;
 
 class server;
 
-class CORE_API client final {
+class SILICON_CORE_API client final {
   public:
 
     static auto create(std::unique_ptr<silicon::scheduler::io_scheduler> &, network::socket_address)
@@ -204,7 +204,7 @@ template<class T>
     return silicon::proxy::make_proxy_view<tcp_server_facade>(target);
 }
 
-class CORE_API server final {
+class SILICON_CORE_API server final {
   public:
     struct options {
 

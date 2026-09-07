@@ -19,10 +19,10 @@ enum class resume_order_policy {
     kFifo
 };
 
-class CORE_API event {
+class SILICON_CORE_API event {
   public:
 
-    struct CORE_API awaiter {
+    struct SILICON_CORE_API awaiter {
 
         awaiter(const event &e) noexcept: m_event(e) {}
 

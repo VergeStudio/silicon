@@ -50,7 +50,7 @@ template<class T>
     return silicon::proxy::make_proxy_view<udp_peer_facade>(target);
 }
 
-class CORE_API peer final {
+class SILICON_CORE_API peer final {
   public:
 
     static auto create(

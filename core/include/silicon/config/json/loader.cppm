@@ -19,7 +19,7 @@ export import silicon.config.config_value;
 
 export namespace silicon::config {
 
-class CORE_API json_file_config {
+class SILICON_CORE_API json_file_config {
   public:
     json_file_config();
     ~json_file_config();

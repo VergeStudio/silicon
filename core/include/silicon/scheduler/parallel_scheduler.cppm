@@ -13,7 +13,7 @@ import :thread_pool;
 
 export namespace silicon::scheduler {
 
-class CORE_API parallel_scheduler final {
+class SILICON_CORE_API parallel_scheduler final {
     struct impl;
     std::unique_ptr<impl> m_impl;
 

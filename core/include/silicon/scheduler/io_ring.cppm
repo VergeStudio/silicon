@@ -20,7 +20,7 @@ struct io_ring_config {
     bool sq_poll{false};
 };
 
-class CORE_API io_ring {
+class SILICON_CORE_API io_ring {
     struct impl;
     std::unique_ptr<impl> m_p;
 

@@ -21,11 +21,11 @@ enum class semaphore_acquire_result {
     kShutdown
 };
 
-extern CORE_API std::string semaphore_acquire_result_acquired;
-extern CORE_API std::string semaphore_acquire_result_shutdown;
-extern CORE_API std::string semaphore_acquire_result_unknown;
+extern SILICON_CORE_API std::string semaphore_acquire_result_acquired;
+extern SILICON_CORE_API std::string semaphore_acquire_result_shutdown;
+extern SILICON_CORE_API std::string semaphore_acquire_result_unknown;
 
-CORE_API auto to_string(semaphore_acquire_result) -> const std::string &;
+SILICON_CORE_API auto to_string(semaphore_acquire_result) -> const std::string &;
 
 template<std::ptrdiff_t max_value>
 class semaphore;

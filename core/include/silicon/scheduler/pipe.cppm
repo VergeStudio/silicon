@@ -12,7 +12,7 @@ import :fd;
 
 export namespace silicon::scheduler {
 
-class CORE_API pipe_t {
+class SILICON_CORE_API pipe_t {
   public:
     explicit pipe_t();
     ~pipe_t();
