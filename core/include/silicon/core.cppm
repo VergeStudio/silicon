@@ -24,6 +24,7 @@ export import silicon.logger.error;
 export import silicon.fs;
 export import silicon.fs.error;
 export import silicon.time;
+export import silicon.time.system_clock;
 export import silicon.xdg;
 export import silicon.json;
 

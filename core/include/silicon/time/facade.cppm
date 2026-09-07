@@ -11,8 +11,9 @@ module;
 
 #include <silicon/common.h>
 
-#include <silicon/time/system_clock.h>
 export module silicon.time;
+
+export import silicon.time.system_clock;
 
 import silicon.proxy;
 
@@ -39,8 +40,6 @@ template <class T>
 [[nodiscard]] clock_view make_clock_view(T &target) noexcept {
     return silicon::proxy::make_proxy_view<clock_facade>(target);
 }
-
-using silicon::time::system_clock;
 
 PRO_DEF_MEM_DISPATCH(MemDateSourceCurrentDate, current_date);
 struct date_source_facade : silicon::proxy::facade_builder
