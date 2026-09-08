@@ -11,7 +11,7 @@ export module silicon.scheduler:poll_info_impl;
 
 import :fd;
 import :poll;
-import :time;
+import silicon.time;
 import :poll_info;
 
 export namespace silicon::scheduler {

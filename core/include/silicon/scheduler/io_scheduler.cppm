@@ -40,7 +40,7 @@ import :expected;
 import :fd;
 import :poll;
 import :sync_wait;
-import :time;
+import silicon.time;
 import silicon.scheduler.task;
 
 import :facade;

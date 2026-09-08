@@ -124,7 +124,7 @@ silicon::scheduler::task<void> io_scheduler::schedule_at(time_point time) {
 }
 
 silicon::scheduler::task<void> io_scheduler::yield_until(time_point time) {
-    auto now = clock::now();
+    auto now = silicon::time::steady_clock::now();
 
     if(time <= now) {
         co_await schedule();
@@ -154,7 +154,7 @@ silicon::scheduler::task<poll_status> io_scheduler::poll(
     auto pi = silicon::scheduler::poll_info{fd, op, cancel_trigger};
 
     if(timeout_requested) {
-        pi.m_p->m_timer_pos = add_timer_token(clock::now() + timeout, pi);
+        pi.m_p->m_timer_pos = add_timer_token(silicon::time::steady_clock::now() + timeout, pi);
     }
 
     if(!m_p->m_io_notifier.watch(pi)) {
@@ -213,7 +213,7 @@ silicon::scheduler::task<void> io_scheduler::yield_for_internal(std::chrono::nan
         m_p->m_size.fetch_add(1, std::memory_order::release);
 
         silicon::scheduler::poll_info pi{};
-        add_timer_token(clock::now() + amount, pi);
+        add_timer_token(silicon::time::steady_clock::now() + amount, pi);
         co_await pi;
     }
     co_return;
@@ -356,7 +356,7 @@ void io_scheduler::process_event_execute(silicon::scheduler::poll_info *pi, poll
 
 void io_scheduler::process_timeout_execute() {
     std::vector<silicon::scheduler::poll_info *> poll_infos{};
-    auto now = clock::now();
+    auto now = silicon::time::steady_clock::now();
 
     {
         std::scoped_lock lk{m_p->m_timed_events_mutex};
@@ -391,7 +391,7 @@ void io_scheduler::process_timeout_execute() {
         }
     }
 
-    update_timeout(clock::now());
+    update_timeout(silicon::time::steady_clock::now());
 }
 
 auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::poll_info &pi) -> timed_events::iterator {
@@ -399,7 +399,7 @@ auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::poll_info 
     auto pos = m_p->m_timed_events.emplace(tp, &pi);
 
     if(pos == m_p->m_timed_events.begin()) {
-        update_timeout(clock::now());
+        update_timeout(silicon::time::steady_clock::now());
     }
 
     return pos;
@@ -413,7 +413,7 @@ void io_scheduler::remove_timer_token(timed_events::iterator pos) {
         m_p->m_timed_events.erase(pos);
 
         if(is_first) {
-            update_timeout(clock::now());
+            update_timeout(silicon::time::steady_clock::now());
         }
     }
 }

@@ -21,7 +21,7 @@ export import :expected;
 export import :fd;
 export import :poll;
 export import :sync_wait;
-export import :time;
+export import silicon.time;
 
 export import :poll_info;
 

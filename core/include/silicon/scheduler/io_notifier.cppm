@@ -26,7 +26,7 @@ export module silicon.scheduler:io_notifier;
 
 import :fd;
 import :poll;
-import :time;
+import silicon.time;
 
 import :poll_info;
 

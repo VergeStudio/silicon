@@ -163,10 +163,9 @@ void io_notifier::next_events(
         std::chrono::milliseconds timeout
 ) {
 
-    using steady_clock = silicon::time::steady_clock;
-    const auto deadline = steady_clock::now() + timeout;
+    const auto deadline = silicon::time::steady_clock::now() + timeout;
     auto remaining_ms = [&deadline]() -> DWORD {
-        auto left = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - steady_clock::now());
+        auto left = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - silicon::time::steady_clock::now());
         return left.count() > 0 ? static_cast<DWORD>(left.count()) : 0;
     };
 

@@ -12,7 +12,7 @@ export module silicon.scheduler:poll_info;
 
 import :fd;
 import :poll;
-import :time;
+import silicon.time;
 
 namespace silicon::scheduler {
 struct poll_info_impl;
@@ -21,7 +21,7 @@ struct poll_info_impl;
 export namespace silicon::scheduler {
 
 struct SILICON_CORE_API poll_info {
-    using timed_events = std::multimap<silicon::scheduler::time_point, poll_info *>;
+    using timed_events = std::multimap<silicon::time::steady_clock::time_point, poll_info *>;
 
     using impl = poll_info_impl;
 

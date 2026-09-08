@@ -7,7 +7,7 @@ export module silicon.scheduler:timer_handle;
 
 import :fd;
 import :poll;
-import :time;
+import silicon.time;
 
 import :io_notifier;
 
