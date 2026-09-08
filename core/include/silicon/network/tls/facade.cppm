@@ -28,6 +28,7 @@ export import silicon.scheduler;
 export import silicon.scheduler.task;
 import :facade;
 import silicon.proxy;
+import silicon.time;
 
 #ifdef SILICON_FEATURE_TLS
 
@@ -211,8 +212,8 @@ class client final {
         auto op = poll_op::read;
 
         auto first = true;
-        std::chrono::steady_clock::time_point start;
-        std::chrono::steady_clock::time_point stop;
+        silicon::time::steady_clock::time_point start;
+        silicon::time::steady_clock::time_point stop;
 
         while(true) {
             if(timeout.has_value()) {
@@ -226,7 +227,7 @@ class client final {
                 }
 
                 first = false;
-                start = std::chrono::steady_clock::now();
+                start = silicon::time::steady_clock::now();
             }
 
             auto pstatus = co_await poll(op, timeout.value_or(std::chrono::milliseconds{0}));
@@ -249,7 +250,7 @@ class client final {
             ERR_clear_error();
             int r = SSL_read_ex(tls, buffer.data(), buffer.size(), &bytes_recv);
             if(timeout.has_value()) {
-                stop = std::chrono::steady_clock::now();
+                stop = silicon::time::steady_clock::now();
             }
             if(r <= 0) {
                 int err = SSL_get_error(tls, r);
@@ -282,8 +283,8 @@ class client final {
         auto op = poll_op::write;
 
         auto first = true;
-        std::chrono::steady_clock::time_point start;
-        std::chrono::steady_clock::time_point stop;
+        silicon::time::steady_clock::time_point start;
+        silicon::time::steady_clock::time_point stop;
 
         while(true) {
             if(timeout.has_value()) {
@@ -297,7 +298,7 @@ class client final {
                 }
 
                 first = false;
-                start = std::chrono::steady_clock::now();
+                start = silicon::time::steady_clock::now();
             }
 
             auto pstatus = co_await poll(op, timeout.value_or(std::chrono::milliseconds{0}));
@@ -320,7 +321,7 @@ class client final {
             ERR_clear_error();
             int r = SSL_write_ex(tls, buffer.data(), buffer.size(), &bytes_sent);
             if(timeout.has_value()) {
-                stop = std::chrono::steady_clock::now();
+                stop = silicon::time::steady_clock::now();
             }
             if(r <= 0) {
                 int err = SSL_get_error(tls, r);

@@ -6,7 +6,6 @@ module;
 #include <iostream>
 #include <memory>
 #include <system_error>
-#include <thread>
 #include <utility>
 #include <coroutine>
 #include <map>
@@ -15,6 +14,7 @@ module;
 module silicon.scheduler;
 
 import :poll_info_impl;
+import silicon.time;
 
 static const auto s_initialization_check_interval = std::chrono::milliseconds(1);
 
@@ -48,7 +48,7 @@ std::unique_ptr<silicon::scheduler::thread_pool> &silicon::scheduler::default_ex
     }
 
     while(s_default_executor_ptr.load(std::memory_order::acquire) == nullptr) {
-        std::this_thread::sleep_for(s_initialization_check_interval);
+        silicon::time::sleep_for(s_initialization_check_interval);
     }
 
     return s_default_executor;
@@ -73,7 +73,7 @@ std::unique_ptr<silicon::scheduler::io_scheduler> &silicon::scheduler::default_e
     }
 
     while(s_default_io_executor_ptr.load(std::memory_order::acquire) == nullptr) {
-        std::this_thread::sleep_for(s_initialization_check_interval);
+        silicon::time::sleep_for(s_initialization_check_interval);
     }
 
     return s_default_io_executor;

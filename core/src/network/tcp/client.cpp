@@ -24,6 +24,7 @@ module silicon.network;
 import silicon.coroutine;
 import silicon.scheduler;
 import silicon.scheduler.task;
+import silicon.time;
 
 namespace silicon::network::tcp {
 
@@ -162,14 +163,14 @@ silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::rea
 }
 
 silicon::scheduler::task<std::pair<io_status, std::span<std::byte>>> client::read_exact_impl(std::span<std::byte> buffer, const std::chrono::milliseconds timeout) {
-    const auto start_time = std::chrono::steady_clock::now();
+    const auto start_time = silicon::time::steady_clock::now();
     std::span<std::byte> remaining = buffer;
 
     while(!remaining.empty()) {
         std::chrono::milliseconds remaining_timeout{0};
         if(timeout.count() > 0) {
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::steady_clock::now() - start_time
+                    silicon::time::steady_clock::now() - start_time
             );
 
             if(elapsed >= timeout) {
@@ -216,14 +217,14 @@ silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> clien
 }
 
 silicon::scheduler::task<std::pair<io_status, std::span<const std::byte>>> client::write_all_impl(std::span<const std::byte> buffer, const std::chrono::milliseconds timeout) {
-    const auto start_time = std::chrono::steady_clock::now();
+    const auto start_time = silicon::time::steady_clock::now();
     std::span<const std::byte> remaining = buffer;
 
     while(!remaining.empty()) {
         std::chrono::milliseconds remaining_timeout{0};
         if(timeout.count() > 0) {
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::steady_clock::now() - start_time
+                    silicon::time::steady_clock::now() - start_time
             );
 
             if(elapsed >= timeout) {

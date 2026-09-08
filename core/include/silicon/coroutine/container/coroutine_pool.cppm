@@ -7,7 +7,6 @@ module;
 #include <exception>
 #include <functional>
 #include <memory>
-#include <thread>
 #include <utility>
 #include <expected>
 #include <system_error>
@@ -17,6 +16,7 @@ export module silicon.coroutine:coroutine_pool;
 import silicon.scheduler;
 import silicon.scheduler.task;
 import silicon.coroutine.error;
+import silicon.time;
 import :channel;
 import :event;
 import :mutex;
@@ -60,7 +60,7 @@ class coroutine_pool {
 
         while(!empty() || m_p->m_workers_active.load(std::memory_order::acquire) > 0
               || !m_p->m_close_done.load(std::memory_order::acquire)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds{10});
+            silicon::time::sleep_for(std::chrono::milliseconds{10});
         }
     }
 

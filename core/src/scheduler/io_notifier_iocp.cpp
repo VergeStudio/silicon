@@ -26,6 +26,7 @@ import silicon.scheduler;
 
 import :poll_info;
 import :poll_info_impl;
+import silicon.time;
 
 #if defined(SILICON_PLATFORM_WINDOWS)
 using namespace std::chrono_literals;
@@ -162,7 +163,7 @@ void io_notifier::next_events(
         std::chrono::milliseconds timeout
 ) {
 
-    using steady_clock = std::chrono::steady_clock;
+    using steady_clock = silicon::time::steady_clock;
     const auto deadline = steady_clock::now() + timeout;
     auto remaining_ms = [&deadline]() -> DWORD {
         auto left = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - steady_clock::now());

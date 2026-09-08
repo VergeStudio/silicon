@@ -3,7 +3,6 @@ module;
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <ctime>
 #include <expected>
 #include <filesystem>
 #include <fstream>
@@ -195,7 +194,7 @@ std::string http_provider::env_or(const char *name, std::string def) {
 http_provider::http_result http_provider::post_json(const std::string &url, const std::string &body) const {
     namespace fs = std::filesystem;
     fs::path tmp = fs::temp_directory_path() /
-                   ("sb_req_" + std::to_string(static_cast<long long>(std::time(nullptr))) + ".json");
+                   ("sb_req_" + std::to_string(silicon::time::system_clock{}.now_ms()) + ".json");
     {
         std::ofstream f(tmp, std::ios::binary);
         if(!f) return {};

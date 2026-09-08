@@ -13,7 +13,6 @@ module;
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <thread>
 #include <vector>
 
 export module silicon.coroutine:task_container;
@@ -21,6 +20,7 @@ export module silicon.coroutine:task_container;
 import silicon.scheduler;
 import silicon.scheduler.task;
 import silicon.coroutine.error;
+import silicon.time;
 import :mutex;
 export namespace silicon::coroutine {
 
@@ -55,7 +55,7 @@ public:
         while (!empty())
         {
 
-            std::this_thread::sleep_for(std::chrono::milliseconds{10});
+            silicon::time::sleep_for(std::chrono::milliseconds{10});
         }
     }
 

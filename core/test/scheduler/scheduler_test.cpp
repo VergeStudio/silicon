@@ -14,6 +14,7 @@
 
 import silicon.proxy;
 import silicon.scheduler;
+import silicon.time;
 
 namespace sched = silicon::scheduler;
 namespace coro = silicon::scheduler;
@@ -331,10 +332,10 @@ TEST_CASE("io_scheduler：schedule_after 在到期后恢复协程") {
     REQUIRE(created.has_value());
     auto &ios = *created.value();
 
-    const auto before = std::chrono::steady_clock::now();
+    const auto before = silicon::time::steady_clock::now();
     bool resumed = false;
     coro::sync_wait(await_delay(ios, std::chrono::milliseconds{50}, resumed));
-    const auto elapsed = std::chrono::steady_clock::now() - before;
+    const auto elapsed = silicon::time::steady_clock::now() - before;
 
     CHECK(resumed);
 

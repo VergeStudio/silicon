@@ -14,6 +14,8 @@ module;
 export module silicon.time;
 
 export import silicon.time.system_clock;
+export import silicon.time.steady_clock;
+export import silicon.time.sleep;
 export import silicon.time.timing_wheel;
 
 import silicon.proxy;
