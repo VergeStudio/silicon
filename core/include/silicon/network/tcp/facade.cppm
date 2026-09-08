@@ -1,5 +1,7 @@
 module;
 
+#include <expected>
+
 #if defined(SILICON_PLATFORM_WINDOWS)
 #    include <winsock2.h>
 #    include <ws2tcpip.h>
@@ -186,7 +188,7 @@ PRO_DEF_MEM_DISPATCH(MemTcpServerAccept, accept);
 struct tcp_server_facade
     : silicon::proxy::facade_builder
       ::add_convention<MemTcpServerAccept,
-                       silicon::scheduler::task<silicon::scheduler::expected<client, io_status>>(
+                       silicon::scheduler::task<std::expected<client, io_status>>(
                                std::chrono::milliseconds)>
       ::build {};
 
@@ -226,7 +228,7 @@ class SILICON_CORE_API server final {
     ~server();
 
     auto accept(std::chrono::milliseconds = std::chrono::milliseconds{0})
-            -> silicon::scheduler::task<silicon::scheduler::expected<network::tcp::client, io_status>>;
+            -> silicon::scheduler::task<std::expected<network::tcp::client, io_status>>;
 
     [[nodiscard]] auto accept_socket() -> network::socket &;
     [[nodiscard]] auto accept_socket() const -> const network::socket &;
@@ -238,7 +240,7 @@ class SILICON_CORE_API server final {
     auto poll(std::chrono::milliseconds = std::chrono::milliseconds{0})
             -> silicon::scheduler::task<silicon::scheduler::poll_status>;
 
-    silicon::scheduler::expected<silicon::network::tcp::client, io_status> accept_now() ;
+    std::expected<silicon::network::tcp::client, io_status> accept_now() ;
 
     friend client;
 

@@ -1,5 +1,7 @@
 module;
 
+#include <expected>
+
 #ifdef SILICON_FEATURE_TLS
 #    if defined(SILICON_PLATFORM_WINDOWS)
 #        include <winsock2.h>

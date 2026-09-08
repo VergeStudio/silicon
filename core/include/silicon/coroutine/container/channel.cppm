@@ -1,5 +1,7 @@
 module;
 
+#include <expected>
+
 #include <atomic>
 #include <coroutine>
 #include <memory>
@@ -61,7 +63,7 @@ class channel {
 
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
-        auto await_resume() noexcept -> silicon::scheduler::expected<element_type, channel_result::recv>;
+        auto await_resume() noexcept -> std::expected<element_type, channel_result::recv>;
 
         std::coroutine_handle<> m_awaiting_coroutine{nullptr};
         channel_result::recv m_result{channel_result::recv::kClosed};
@@ -91,9 +93,9 @@ class channel {
 
     auto try_send(element_type &&element) -> channel_result::send;
 
-    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element_type, channel_result::recv>> recv() ;
+    [[nodiscard]] silicon::scheduler::task<std::expected<element_type, channel_result::recv>> recv() ;
 
-    [[nodiscard]] auto try_recv() -> silicon::scheduler::expected<element_type, channel_result::recv>;
+    [[nodiscard]] auto try_recv() -> std::expected<element_type, channel_result::recv>;
 
     silicon::scheduler::task<void> close() ;
 
@@ -223,11 +225,11 @@ bool channel<element_type>::recv_operation::await_suspend(std::coroutine_handle<
 }
 
 template<typename element_type>
-auto channel<element_type>::recv_operation::await_resume() noexcept -> silicon::scheduler::expected<element_type, channel_result::recv> {
+auto channel<element_type>::recv_operation::await_resume() noexcept -> std::expected<element_type, channel_result::recv> {
     if(m_e.has_value()) {
-        return silicon::scheduler::expected<element_type, channel_result::recv>(std::move(m_e).value());
+        return std::expected<element_type, channel_result::recv>(std::move(m_e).value());
     }
-    return silicon::scheduler::unexpected<channel_result::recv>(m_result);
+    return std::unexpected<channel_result::recv>(m_result);
 }
 
 template<typename element_type>
@@ -294,7 +296,7 @@ auto channel<element_type>::try_send(element_type &&element) -> channel_result::
 }
 
 template<typename element_type>
-silicon::scheduler::task<silicon::scheduler::expected<element_type, channel_result::recv>> channel<element_type>::recv() {
+silicon::scheduler::task<std::expected<element_type, channel_result::recv>> channel<element_type>::recv() {
     co_await m_p->m_mutex.lock();
     auto result = co_await recv_operation{*this};
     co_await try_resume_senders();
@@ -302,29 +304,29 @@ silicon::scheduler::task<silicon::scheduler::expected<element_type, channel_resu
 }
 
 template<typename element_type>
-auto channel<element_type>::try_recv() -> silicon::scheduler::expected<element_type, channel_result::recv> {
+auto channel<element_type>::try_recv() -> std::expected<element_type, channel_result::recv> {
     if(!m_p->m_mutex.try_lock()) {
-        return silicon::scheduler::unexpected<channel_result::recv>(channel_result::recv::kEmpty);
+        return std::unexpected<channel_result::recv>(channel_result::recv::kEmpty);
     }
 
     if(m_p->m_count.load(std::memory_order::acquire) > 0) {
         auto element = m_p->take();
         static_cast<void>(m_p->m_mutex.unlock());
-        return silicon::scheduler::expected<element_type, channel_result::recv>(std::move(element).value());
+        return std::expected<element_type, channel_result::recv>(std::move(element).value());
     }
 
     if(auto *waiter = m_p->pop_send_waiter()) {
         auto element = std::move(waiter->m_e);
         static_cast<void>(m_p->m_mutex.unlock());
         waiter->m_awaiting_coroutine.resume();
-        return silicon::scheduler::expected<element_type, channel_result::recv>(std::move(element).value());
+        return std::expected<element_type, channel_result::recv>(std::move(element).value());
     }
 
     auto result = m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped
                           ? channel_result::recv::kClosed
                           : channel_result::recv::kEmpty;
     static_cast<void>(m_p->m_mutex.unlock());
-    return silicon::scheduler::unexpected<channel_result::recv>(result);
+    return std::unexpected<channel_result::recv>(result);
 }
 
 template<typename element_type>

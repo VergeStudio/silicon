@@ -14,7 +14,7 @@ namespace silicon::scheduler {
 
 struct io_op {
 
-    silicon::scheduler::fd_t m_fd{-1};
+    int m_fd{-1};
 
     void *m_buffer{nullptr};
 

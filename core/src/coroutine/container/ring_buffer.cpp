@@ -1,5 +1,7 @@
 module;
 
+#include <expected>
+
 #include <array>
 #include <atomic>
 #include <coroutine>
@@ -86,12 +88,12 @@ bool ring_buffer<element, num_elements>::consume_operation::await_suspend(std::c
 }
 
 template<typename element, size_t num_elements>
-auto ring_buffer<element, num_elements>::consume_operation::await_resume() -> silicon::scheduler::expected<element, ring_buffer_result::consume> {
+auto ring_buffer<element, num_elements>::consume_operation::await_resume() -> std::expected<element, ring_buffer_result::consume> {
     if(m_e.has_value()) {
-        return silicon::scheduler::expected<element, ring_buffer_result::consume>(std::move(m_e).value());
+        return std::expected<element, ring_buffer_result::consume>(std::move(m_e).value());
     } else
     {
-        return silicon::scheduler::unexpected<ring_buffer_result::consume>(m_result);
+        return std::unexpected<ring_buffer_result::consume>(m_result);
     }
 }
 
@@ -116,7 +118,7 @@ silicon::scheduler::task<ring_buffer_result::produce> ring_buffer<element, num_e
 }
 
 template<typename element, size_t num_elements>
-silicon::scheduler::task<silicon::scheduler::expected<element, ring_buffer_result::consume>> ring_buffer<element, num_elements>::consume() {
+silicon::scheduler::task<std::expected<element, ring_buffer_result::consume>> ring_buffer<element, num_elements>::consume() {
     co_await m_p->m_mutex.lock();
     auto result = co_await consume_operation{*this};
     co_await try_resume_producers();

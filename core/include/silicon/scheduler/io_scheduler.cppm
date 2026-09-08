@@ -208,56 +208,56 @@ class SILICON_CORE_API io_scheduler {
     }
 
     template<typename return_type, typename rep, typename period>
-    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<return_type, timeout_status>> schedule(silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
+    [[nodiscard]] silicon::scheduler::task<std::expected<return_type, timeout_status>> schedule(silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
         using namespace std::chrono_literals;
 
         auto timeout_ms = std::max(std::chrono::duration_cast<std::chrono::milliseconds>(timeout), 0ms);
         if(timeout_ms == 0ms) {
             if constexpr(std::is_void_v<return_type>) {
                 co_await schedule(std::move(task));
-                co_return silicon::scheduler::expected<return_type, timeout_status>();
+                co_return std::expected<return_type, timeout_status>();
             } else {
-                co_return silicon::scheduler::expected<return_type, timeout_status>(co_await schedule(std::move(task)));
+                co_return std::expected<return_type, timeout_status>(co_await schedule(std::move(task)));
             }
         }
 
         auto result = co_await when_any(std::move(task), make_timeout_task(timeout_ms));
         if(!std::holds_alternative<timeout_status>(result)) {
             if constexpr(std::is_void_v<return_type>) {
-                co_return silicon::scheduler::expected<return_type, timeout_status>();
+                co_return std::expected<return_type, timeout_status>();
             } else {
-                co_return silicon::scheduler::expected<return_type, timeout_status>(std::move(std::get<0>(result)));
+                co_return std::expected<return_type, timeout_status>(std::move(std::get<0>(result)));
             }
         } else {
-            co_return silicon::scheduler::unexpected<timeout_status>(std::move(std::get<1>(result)));
+            co_return std::unexpected<timeout_status>(std::move(std::get<1>(result)));
         }
     }
 
 #ifndef EMSCRIPTEN
 
     template<typename return_type, typename rep, typename period>
-    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<return_type, timeout_status>> schedule(std::stop_source stop_source, silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
+    [[nodiscard]] silicon::scheduler::task<std::expected<return_type, timeout_status>> schedule(std::stop_source stop_source, silicon::scheduler::task<return_type> task, std::chrono::duration<rep, period> timeout) {
         using namespace std::chrono_literals;
 
         auto timeout_ms = std::max(std::chrono::duration_cast<std::chrono::milliseconds>(timeout), 0ms);
         if(timeout_ms == 0ms) {
             if constexpr(std::is_void_v<return_type>) {
                 co_await schedule(std::move(task));
-                co_return silicon::scheduler::expected<return_type, timeout_status>();
+                co_return std::expected<return_type, timeout_status>();
             } else {
-                co_return silicon::scheduler::expected<return_type, timeout_status>(co_await schedule(std::move(task)));
+                co_return std::expected<return_type, timeout_status>(co_await schedule(std::move(task)));
             }
         }
 
         auto result = co_await when_any(std::move(stop_source), std::move(task), make_timeout_task(timeout_ms));
         if(!std::holds_alternative<timeout_status>(result)) {
             if constexpr(std::is_void_v<return_type>) {
-                co_return silicon::scheduler::expected<return_type, timeout_status>();
+                co_return std::expected<return_type, timeout_status>();
             } else {
-                co_return silicon::scheduler::expected<return_type, timeout_status>(std::move(std::get<0>(result)));
+                co_return std::expected<return_type, timeout_status>(std::move(std::get<0>(result)));
             }
         } else {
-            co_return silicon::scheduler::unexpected<timeout_status>(std::move(std::get<1>(result)));
+            co_return std::unexpected<timeout_status>(std::move(std::get<1>(result)));
         }
     }
 #endif

@@ -1,5 +1,7 @@
 module;
 
+#include <expected>
+
 #include <atomic>
 #include <coroutine>
 #include <memory>
@@ -50,7 +52,7 @@ bool queue<element_type>::awaiter::await_suspend(std::coroutine_handle<> awaitin
 }
 
 template<typename element_type>
-auto queue<element_type>::awaiter::await_resume() noexcept -> silicon::scheduler::expected<element_type, queue_consume_result> {
+auto queue<element_type>::awaiter::await_resume() noexcept -> std::expected<element_type, queue_consume_result> {
     if(m_element.has_value()) {
         if constexpr(std::is_move_constructible_v<element_type>) {
             return std::move(m_element.value());
@@ -59,7 +61,7 @@ auto queue<element_type>::awaiter::await_resume() noexcept -> silicon::scheduler
         }
     } else {
 
-        return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kStopped);
+        return std::unexpected<queue_consume_result>(queue_consume_result::kStopped);
     }
 }
 
@@ -158,26 +160,26 @@ silicon::scheduler::task<queue_produce_result> queue<element_type>::emplace(args
 }
 
 template<typename element_type>
-silicon::scheduler::task<silicon::scheduler::expected<element_type, queue_consume_result>> queue<element_type>::pop() {
+silicon::scheduler::task<std::expected<element_type, queue_consume_result>> queue<element_type>::pop() {
     co_await m_p->m_mutex.lock();
     co_return co_await awaiter{*this};
 }
 
 template<typename element_type>
-auto queue<element_type>::try_pop() -> silicon::scheduler::expected<element_type, queue_consume_result> {
+auto queue<element_type>::try_pop() -> std::expected<element_type, queue_consume_result> {
     if(m_p->m_mutex.try_lock()) {
 
         silicon::coroutine::scoped_lock lk{m_p->m_mutex};
 
         if(m_p->m_running_state.load(std::memory_order::acquire) == running_state_t::kStopped) {
-            return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kStopped);
+            return std::unexpected<queue_consume_result>(queue_consume_result::kStopped);
         }
 
         if(empty()) {
-            return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kEmpty);
+            return std::unexpected<queue_consume_result>(queue_consume_result::kEmpty);
         }
 
-        silicon::scheduler::expected<element_type, queue_consume_result> value;
+        std::expected<element_type, queue_consume_result> value;
         if constexpr(std::is_move_constructible_v<element_type>) {
             value = std::move(m_p->m_elements.front());
         } else {
@@ -188,7 +190,7 @@ auto queue<element_type>::try_pop() -> silicon::scheduler::expected<element_type
         return value;
     }
 
-    return silicon::scheduler::unexpected<queue_consume_result>(queue_consume_result::kTryLockFailure);
+    return std::unexpected<queue_consume_result>(queue_consume_result::kTryLockFailure);
 }
 
 template<typename element_type>

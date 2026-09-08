@@ -1,5 +1,7 @@
 module;
 
+#include <expected>
+
 #ifdef SILICON_FEATURE_TLS
 #    include <chrono>
 #    include <expected>

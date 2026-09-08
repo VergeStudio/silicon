@@ -22,7 +22,7 @@ class SILICON_CORE_API timer_handle {
 
     ~timer_handle();
 
-    silicon::scheduler::fd_t get_fd() const;
+    int get_fd() const;
 
     const void *get_inner() const;
 };

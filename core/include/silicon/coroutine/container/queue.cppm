@@ -1,5 +1,7 @@
 module;
 
+#include <expected>
+
 #include <optional>
 #include <memory>
 #include <utility>
@@ -45,7 +47,7 @@ class queue {
 
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
-        [[nodiscard]] silicon::scheduler::expected<element_type, queue_consume_result> await_resume() noexcept ;
+        [[nodiscard]] std::expected<element_type, queue_consume_result> await_resume() noexcept ;
 
         std::optional<element_type> m_element{std::nullopt};
         queue &m_queue;
@@ -73,9 +75,9 @@ class queue {
     template<typename... args_type>
     silicon::scheduler::task<queue_produce_result> emplace(args_type &&...) ;
 
-    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element_type, queue_consume_result>> pop() ;
+    [[nodiscard]] silicon::scheduler::task<std::expected<element_type, queue_consume_result>> pop() ;
 
-    [[nodiscard]] silicon::scheduler::expected<element_type, queue_consume_result> try_pop() ;
+    [[nodiscard]] std::expected<element_type, queue_consume_result> try_pop() ;
 
     silicon::scheduler::task<void> shutdown() ;
 

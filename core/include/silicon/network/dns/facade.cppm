@@ -155,9 +155,9 @@ class resolver {
 
     ares_channel m_ares_channel{nullptr};
 
-    std::unordered_map<silicon::scheduler::fd_t, silicon::scheduler::poll_op> m_active_sockets{};
+    std::unordered_map<int, silicon::scheduler::poll_op> m_active_sockets{};
 
-    silicon::scheduler::task<void> make_poll_task(silicon::scheduler::fd_t fd) {
+    silicon::scheduler::task<void> make_poll_task(int fd) {
 
         while(m_active_sockets.contains(fd)) {
             auto ops = m_active_sockets[fd];
@@ -201,7 +201,7 @@ class resolver {
             ops |= static_cast<uint64_t>(silicon::scheduler::poll_op::write);
         }
 
-        auto fd = static_cast<silicon::scheduler::fd_t>(socket_fd);
+        auto fd = static_cast<int>(socket_fd);
         auto poll_ops = static_cast<silicon::scheduler::poll_op>(ops);
         if(ops != 0) {
             auto [it, inserted] = self->m_active_sockets.insert_or_assign(fd, poll_ops);

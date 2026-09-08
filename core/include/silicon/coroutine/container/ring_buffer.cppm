@@ -1,5 +1,7 @@
 module;
 
+#include <expected>
+
 #include <array>
 #include <atomic>
 #include <coroutine>
@@ -79,7 +81,7 @@ class ring_buffer {
         bool await_ready() noexcept ;
         bool await_suspend(std::coroutine_handle<>) noexcept ;
 
-        auto await_resume() -> silicon::scheduler::expected<element, ring_buffer_result::consume>;
+        auto await_resume() -> std::expected<element, ring_buffer_result::consume>;
 
         std::coroutine_handle<> m_awaiting_coroutine;
 
@@ -98,7 +100,7 @@ class ring_buffer {
 
     [[nodiscard]] silicon::scheduler::task<ring_buffer_result::produce> produce(element) ;
 
-    [[nodiscard]] silicon::scheduler::task<silicon::scheduler::expected<element, ring_buffer_result::consume>> consume() ;
+    [[nodiscard]] silicon::scheduler::task<std::expected<element, ring_buffer_result::consume>> consume() ;
 
     constexpr size_t max_size() const noexcept { return num_elements; }
 
