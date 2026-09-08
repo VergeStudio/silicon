@@ -17,6 +17,13 @@ import silicon.proxy;
 
 export import silicon.tui.error;
 
+// 终端实现按平台分区提供：UNIX 为 unix_terminal，Windows 为 default_terminal。
+#if defined(SILICON_PLATFORM_UNIX)
+export import :unix_terminal;
+#else
+export import :default_terminal;
+#endif
+
 export namespace silicon::tui {
 
 PRO_DEF_MEM_DISPATCH(MemTerminalType, terminal_type);
@@ -41,23 +48,6 @@ template <class T>
 [[nodiscard]] terminal_view make_terminal_view(T &target) noexcept {
     return silicon::proxy::make_proxy_view<terminal_facade>(target);
 }
-
-#if defined(SILICON_PLATFORM_UNIX)
-
-class SILICON_CORE_API unix_terminal {
-  public:
-    std::string_view terminal_type() const;
-    int32_t width() const;
-    int32_t height() const;
-};
-#else
-class SILICON_CORE_API default_terminal {
-  public:
-    std::string_view terminal_type() const;
-    int32_t width() const;
-    int32_t height() const;
-};
-#endif
 
 PRO_DEF_MEM_DISPATCH(MemPtyCreate, create);
 PRO_DEF_MEM_DISPATCH(MemPtyWrite, write);

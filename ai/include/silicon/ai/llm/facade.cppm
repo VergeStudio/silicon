@@ -1,6 +1,7 @@
 module;
 
 #include <cstdint>
+#include <cstdio>
 #include <expected>
 #include <functional>
 #include <map>
@@ -180,5 +181,14 @@ class AI_API http_provider {
     std::string_view model_name() const;
     silicon::error::result<chat_response> chat(const conversation &, const model_request_options &);
 };
+
+}
+
+// 非导出：平台接缝——读管道执行外部命令的封装。
+// 实现位于 llm_unix.cpp（popen/pclose）与 llm_win.cpp（_popen/_pclose）。
+namespace silicon::ai::llm {
+
+std::FILE *llm_popen_read(const std::string &command);
+void llm_pclose(std::FILE *pipe);
 
 }

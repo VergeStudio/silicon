@@ -1,59 +1,24 @@
 module;
 
-#include <utility>
 #include <memory>
-
-#include <array>
-#include <iostream>
 #include <string>
-
-#if defined(SILICON_PLATFORM_LINUX)
-#    include <sys/epoll.h>
-#elif defined(SILICON_PLATFORM_BSD) || defined(SILICON_PLATFORM_APPLE)
-#    include <sys/event.h>
-#elif defined(SILICON_PLATFORM_WINDOWS)
-#    include <winsock2.h>
-#    include <windows.h>
-#    include <io.h>
-#endif
-#if !defined(SILICON_PLATFORM_WINDOWS)
-#    include <unistd.h>
-#endif
 
 #include <silicon/common.h>
 export module silicon.scheduler:poll;
 
 import :pipe;
 
-export namespace silicon::scheduler {
+// poll_op 的取值随平台不同（epoll/kqueue/Windows 常量），定义在平台分区中，
+// 此处按当前平台再导出，消费方无感知。
 #if defined(SILICON_PLATFORM_LINUX)
-enum class poll_op : uint64_t {
-
-    read = EPOLLIN,
-
-    write = EPOLLOUT,
-
-    read_write = EPOLLIN | EPOLLOUT
-};
+export import :poll_linux;
 #elif defined(SILICON_PLATFORM_BSD) || defined(SILICON_PLATFORM_APPLE)
-enum class poll_op : int64_t {
-
-    read = EVFILT_READ,
-
-    write = EVFILT_WRITE,
-
-    read_write = -5,
-};
+export import :poll_kqueue;
 #elif defined(SILICON_PLATFORM_WINDOWS)
-enum class poll_op : uint64_t {
-
-    read = 0x01,
-
-    write = 0x02,
-
-    read_write = 0x03,
-};
+export import :poll_win;
 #endif
+
+export namespace silicon::scheduler {
 
 inline bool poll_op_readable(poll_op op) {
     return (static_cast<uint64_t>(op) & static_cast<uint64_t>(poll_op::read));
@@ -120,6 +85,22 @@ class SILICON_CORE_API poll_stop_source {
 
     struct impl;
     std::unique_ptr<impl> m_p;
+};
+
+}
+
+// 非导出：poll_stop_token / poll_stop_source 的 pimpl 结构（平台无关），
+// 供 poll.cpp 与 poll_win.cpp / poll_unix.cpp 共享。
+namespace silicon::scheduler {
+
+struct poll_stop_token::impl {
+  public:
+    int m_receiver{-1};
+};
+
+struct poll_stop_source::impl {
+  public:
+    pipe_t m_pipe{};
 };
 
 }

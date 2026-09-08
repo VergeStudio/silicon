@@ -1,21 +1,27 @@
 module;
 
-#include <memory>
-#include <string>
-#include <string_view>
-
 #if defined(SILICON_PLATFORM_UNIX)
 #    include <sys/ioctl.h>
 #    include <unistd.h>
 #endif
 
+#include <memory>
+#include <string>
+#include <string_view>
+
 module silicon.tui;
+
+#if defined(_MSC_VER)
+import silicon.tui;
+#endif
 
 import silicon.util;
 
+#if defined(SILICON_PLATFORM_UNIX)
+
 namespace silicon::tui {
 
-#if defined(SILICON_PLATFORM_UNIX)
+// unix_terminal 的实现（接口见 :unix_terminal 分区）；Windows 端为 tui_win.cpp。
 
 std::string_view unix_terminal::terminal_type() const {
     static std::string t = [] {
@@ -37,12 +43,6 @@ int32_t unix_terminal::height() const {
     return 24;
 }
 
-#else
-
-std::string_view default_terminal::terminal_type() const { return "unknown"; }
-int32_t default_terminal::width() const { return 80; }
-int32_t default_terminal::height() const { return 24; }
+}
 
 #endif
-
-}

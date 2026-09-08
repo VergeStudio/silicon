@@ -2,24 +2,21 @@ module;
 
 #include <iostream>
 #include <memory>
-#include <string>
 #include <utility>
-#include <exception>
-#include <coroutine>
-#include <map>
-#include <optional>
-
-#if defined(SILICON_PLATFORM_WINDOWS)
-#    include <io.h>
-#else
-#    include <unistd.h>
-#endif
 
 module silicon.scheduler;
 
-import :poll_info_impl;
+#if defined(_MSC_VER)
+import silicon.scheduler;
+#endif
+
+import :poll;
+import :pipe;
 
 namespace silicon::scheduler {
+
+// 平台无关部分：poll_op / poll_status 字符串化与 stop_token / stop_source 的
+// 生命周期管理。平台差异（signal_stop 的写接口）位于 poll_win.cpp 与 poll_unix.cpp。
 
 static const std::string poll_unknown{"unknown"};
 
@@ -63,11 +60,6 @@ auto to_string(poll_status status) -> const std::string & {
     }
 }
 
-struct poll_stop_token::impl {
-  public:
-    int m_receiver{-1};
-};
-
 poll_stop_token::poll_stop_token(int receiver): m_p(std::make_unique<impl>()) {
     m_p->m_receiver = receiver;
 }
@@ -88,11 +80,6 @@ auto poll_stop_token::operator=(const poll_stop_token &other) -> poll_stop_token
 auto poll_stop_token::native_handle() const -> int {
     return m_p->m_receiver;
 }
-
-struct poll_stop_source::impl {
-  public:
-    pipe_t m_pipe{};
-};
 
 poll_stop_source::poll_stop_source(): m_p(std::make_unique<impl>()) {
 
@@ -116,18 +103,6 @@ auto poll_stop_source::operator=(poll_stop_source &&other) -> poll_stop_source &
 
 auto poll_stop_source::get_token() const -> poll_stop_token {
     return poll_stop_token(m_p->m_pipe.read_fd());
-}
-
-void poll_stop_source::signal_stop() {
-    const int value{1};
-#if defined(SILICON_PLATFORM_WINDOWS)
-    int written = ::_write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));
-#else
-    ssize_t written = ::write(m_p->m_pipe.write_fd(), reinterpret_cast<const void *>(&value), sizeof(value));
-#endif
-    if(written != sizeof(value)) {
-        std::cerr << "poll::signal_stop() write failed, only wrote " << written << " bytes\n";
-    }
 }
 
 }

@@ -5,22 +5,6 @@ module;
 #include <memory>
 #include <vector>
 
-#if defined(SILICON_PLATFORM_WINDOWS)
-#include <winsock2.h>
-#include <windows.h>
-#include <mswsock.h>
-#elif defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
-#include <sys/event.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-#elif defined(SILICON_PLATFORM_LINUX)
-#include <sys/epoll.h>
-#include <sys/timerfd.h>
-#include <sys/types.h>
-#include <unistd.h>
-#endif
-
 #include <silicon/common.h>
 export module silicon.scheduler:io_notifier;
 
@@ -28,6 +12,16 @@ import :poll;
 import silicon.time;
 
 import :poll_info;
+
+// 平台差异点（native_handle 返回类型、事件容量）定义在平台分区中，
+// 此处按当前平台再导出，消费方无感知。
+#if defined(SILICON_PLATFORM_LINUX)
+export import :io_notifier_linux;
+#elif defined(SILICON_PLATFORM_BSD) || defined(SILICON_PLATFORM_APPLE)
+export import :io_notifier_kqueue;
+#elif defined(SILICON_PLATFORM_WINDOWS)
+export import :io_notifier_win;
+#endif
 
 namespace silicon::scheduler {
 export class timer_handle;
@@ -42,12 +36,7 @@ class SILICON_CORE_API io_notifier {
 
     friend class timer_handle;
 
-    static constexpr std::size_t m_max_events =
-#if defined(SILICON_PLATFORM_WINDOWS)
-        64;
-#else
-        16;
-#endif
+    static constexpr std::size_t m_max_events = io_notifier_max_events;
 
     void remove_fd(int) ;
 
@@ -80,11 +69,7 @@ class SILICON_CORE_API io_notifier {
 
     bool post(void *) ;
 
-#if defined(SILICON_PLATFORM_WINDOWS)
-        HANDLE native_handle() const ;
-#else
-        int native_handle() const ;
-#endif
+    io_notifier_native_t native_handle() const ;
 };
 
 }

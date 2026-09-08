@@ -209,21 +209,13 @@ http_provider::http_result http_provider::post_json(const std::string &url, cons
     cmd += " -w \"\\n%{http_code}\"";
     cmd += " \"" + url + "\"";
 
-#if defined(SILICON_PLATFORM_WINDOWS)
-    FILE *pipe = _popen(cmd.c_str(), "r");
-#else
-    FILE *pipe = popen(cmd.c_str(), "r");
-#endif
+    FILE *pipe = llm_popen_read(cmd);
     http_result r;
     if(pipe) {
         std::string all;
         char buf[4096];
         while(std::fgets(buf, sizeof(buf), pipe)) all += buf;
-#if defined(SILICON_PLATFORM_WINDOWS)
-        _pclose(pipe);
-#else
-        pclose(pipe);
-#endif
+        llm_pclose(pipe);
         auto nl = all.rfind('\n');
         if(nl != std::string::npos && nl + 1 < all.size()) {
             r.body() = all.substr(0, nl);

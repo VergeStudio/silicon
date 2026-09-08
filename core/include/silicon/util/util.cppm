@@ -1,13 +1,10 @@
 module;
 
 #include <atomic>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mutex>
-#include <queue>
+#include <cstdint>
 #include <string>
 #include <string_view>
+
 #include <silicon/common.h>
 
 export module silicon.util;
@@ -54,28 +51,8 @@ inline void str_append(std::string *destination, const Args &...args) {
 
 export namespace silicon::os {
 
-inline std::string get_env(const char *name) {
-#if defined(SILICON_PLATFORM_WINDOWS)
-    char *buf = nullptr;
-    size_t len = 0;
-    if(_dupenv_s(&buf, &len, name) == 0 && buf != nullptr) {
-        std::string value(buf);
-        std::free(buf);
-        return value;
-    }
-    return {};
-#else
-    const char *v = std::getenv(name);
-    return (v && *v) ? std::string(v) : std::string{};
-#endif
-}
-
-inline void set_env(const char *name, const char *value) {
-#if defined(SILICON_PLATFORM_WINDOWS)
-    _putenv_s(name, value);
-#else
-    setenv(name, value, 1);
-#endif
-}
+// 平台接缝：环境变量读写。实现位于 util_unix.cpp 与 util_win.cpp。
+SILICON_CORE_API std::string get_env(const char *name);
+SILICON_CORE_API void set_env(const char *name, const char *value);
 
 }

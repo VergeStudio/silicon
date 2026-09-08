@@ -40,3 +40,12 @@ class SILICON_CORE_API pipe_t {
 };
 
 }
+
+// 非导出：pipe_t 的 pimpl 结构（平台无关），供 pipe.cpp 与各平台实现单元共享。
+namespace silicon::scheduler {
+
+struct pipe_t::impl {
+    std::array<int, 2> m_fds{-1};
+};
+
+}

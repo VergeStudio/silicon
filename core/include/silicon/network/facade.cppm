@@ -37,6 +37,16 @@ export import silicon.coroutine;
 import silicon.proxy;
 import silicon.error;
 
+// 非导出：平台接缝——BSD socket 地址的 sin_len/sin6_len 填充。
+// BSD/Apple 为真实填充，Linux/Windows 为空实现。
+// 实现位于 socket_address_bsd.cpp / socket_address_linux.cpp / socket_address_win.cpp。
+namespace silicon::network {
+
+void network_set_sockaddr_len(sockaddr_in *sin);
+void network_set_sockaddr_len6(sockaddr_in6 *sin6);
+
+}
+
 export namespace silicon::network {
 
 template<typename T>
@@ -328,9 +338,7 @@ class SILICON_CORE_API socket_address {
             sin->sin_family = AF_INET;
             sin->sin_port = htons(port);
 
-#    if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
-            sin->sin_len = sizeof(sockaddr_in);
-#    endif
+            network_set_sockaddr_len(sin);
 
             std::memcpy(&sin->sin_addr, ip.data().data(), sizeof(in_addr));
             len = sizeof(sockaddr_in);
@@ -339,9 +347,7 @@ class SILICON_CORE_API socket_address {
             sin6->sin6_family = AF_INET6;
             sin6->sin6_port = htons(port);
 
-#    if defined(SILICON_PLATFORM_APPLE) || defined(SILICON_PLATFORM_BSD)
-            sin6->sin6_len = sizeof(sockaddr_in6);
-#    endif
+            network_set_sockaddr_len6(sin6);
 
             std::memcpy(&sin6->sin6_addr, ip.data().data(), sizeof(in6_addr));
             len = sizeof(sockaddr_in6);

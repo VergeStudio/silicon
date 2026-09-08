@@ -2,14 +2,6 @@ module;
 
 #include <expected>
 
-#if defined(SILICON_PLATFORM_WINDOWS)
-#    include <winsock2.h>
-#    include <ws2tcpip.h>
-#else
-#    include <fcntl.h>
-#    include <sys/socket.h>
-#endif
-
 #include <chrono>
 #include <coroutine>
 #include <memory>

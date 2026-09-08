@@ -262,7 +262,7 @@ bool io_notifier::post(void *data) {
            ) != 0;
 }
 
-auto io_notifier::native_handle() const -> HANDLE {
+auto io_notifier::native_handle() const -> io_notifier_native_t {
     return m_p->m_iocp;
 }
 

@@ -183,7 +183,7 @@ bool io_notifier::post(void *) {
     return false;
 }
 
-auto io_notifier::native_handle() const -> int {
+auto io_notifier::native_handle() const -> io_notifier_native_t {
     return m_p->m_fd;
 }
 

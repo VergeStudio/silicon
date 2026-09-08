@@ -35,11 +35,7 @@ http_response curl_http_client::request(const http_request &req) const {
     }
     cmd += " '" + req.url() + "' 2>/dev/null";
 
-#if defined(SILICON_PLATFORM_WINDOWS)
-    FILE *pipe = _popen(cmd.c_str(), "r");
-#else
-    FILE *pipe = popen(cmd.c_str(), "r");
-#endif
+    FILE *pipe = http_popen_read(cmd);
     http_response resp;
     if(!pipe) {
         resp.status_code() = 0;
@@ -49,11 +45,7 @@ http_response curl_http_client::request(const http_request &req) const {
     std::string all;
     char buf[4096];
     while(fgets(buf, sizeof(buf), pipe)) all += buf;
-#if defined(SILICON_PLATFORM_WINDOWS)
-    _pclose(pipe);
-#else
-    pclose(pipe);
-#endif
+    http_pclose(pipe);
 
     auto nl_pos = all.rfind('\n');
     if(nl_pos != std::string::npos && nl_pos > 0) {

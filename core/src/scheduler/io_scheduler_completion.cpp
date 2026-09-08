@@ -14,43 +14,22 @@ module;
 
 #include <silicon/common.h>
 
-#if defined(SILICON_PLATFORM_WINDOWS)
-#    ifndef WIN32_LEAN_AND_MEAN
-#        define WIN32_LEAN_AND_MEAN
-#    endif
-#    include <windows.h>
-#    include <io.h>
-#else
-#    include <cerrno>
-#    include <sys/stat.h>
-#    include <unistd.h>
-#endif
-
 module silicon.scheduler;
 
 #if defined(_MSC_VER)
 import silicon.scheduler;
 #endif
 
+import :io_scheduler;
 import :io_op;
 
 using namespace silicon::scheduler;
 
 namespace silicon::scheduler {
 
-static bool completion_file_is_regular(int fd) {
-#if defined(SILICON_PLATFORM_WINDOWS)
-    if(fd < 0) { return false; }
-    intptr_t os_handle = ::_get_osfhandle(fd);
-    if(os_handle == -1) { return false; }
-    return ::GetFileType(reinterpret_cast<HANDLE>(os_handle)) == FILE_TYPE_DISK;
-#else
-    if(fd < 0) { return false; }
-    struct ::stat file_stat {};
-    if(::fstat(fd, &file_stat) != 0) { return false; }
-    return S_ISREG(file_stat.st_mode);
-#endif
-}
+// 平台无关骨架：completion 引擎与 read_at / write_at 等公开接口。
+// 平台差异经接缝下沉到 io_scheduler_completion_unix.cpp / _linux.cpp / _win.cpp
+// （接缝声明见 io_scheduler.cppm 非导出区）。
 
 #if defined(SILICON_FEATURE_IO_RING) &&                                                                  \
         (defined(SILICON_PLATFORM_LINUX) || defined(SILICON_PLATFORM_WINDOWS))
@@ -101,11 +80,7 @@ class completion_engine {
     std::atomic<bool> m_stop{false};
     std::thread m_worker;
     std::chrono::milliseconds m_idle_tick{kCompletionWorkerIdleTick};
-#if defined(SILICON_PLATFORM_LINUX)
-
-    silicon::scheduler::pipe_t m_wake_pipe{};
-    bool m_wake_registered{false};
-#endif
+    completion_wake m_wake{};
 };
 
 completion_engine::completion_engine(const io_scheduler::options &opts, io_notifier &notifier, void *sentinel)
@@ -117,21 +92,10 @@ completion_engine::completion_engine(const io_scheduler::options &opts, io_notif
     if(!m_ring->is_valid()) { m_ring.reset(); return; }
     if(!m_ring->supports(io_ring::op::read) || !m_ring->supports(io_ring::op::write)) { m_ring.reset(); return; }
 
-#if defined(SILICON_PLATFORM_LINUX)
-    auto created = pipe_t::create();
-    if(!created) {
+    if(!m_wake.setup(m_notifier, m_sentinel)) {
         m_ring.reset();
         return;
     }
-    m_wake_pipe = std::move(*created);
-
-    if(!m_notifier.watch(m_wake_pipe.read_fd(), poll_op::read, m_sentinel, true, false)) {
-        m_wake_pipe.close();
-        m_ring.reset();
-        return;
-    }
-    m_wake_registered = true;
-#endif
 
     m_backend = m_ring->active_backend();
 }
@@ -155,13 +119,7 @@ void completion_engine::stop_and_join() noexcept {
     if(m_worker.joinable()) {
         m_worker.join();
     }
-#if defined(SILICON_PLATFORM_LINUX)
-    if(m_wake_registered) {
-        m_notifier.unwatch(m_wake_pipe.read_fd(), poll_op::read);
-        m_wake_registered = false;
-    }
-    m_wake_pipe.close();
-#endif
+    m_wake.teardown(m_notifier);
     m_ring.reset();
 }
 
@@ -176,17 +134,7 @@ io_op * completion_engine::take_all_completed() noexcept {
 }
 
 void completion_engine::drain_wake_pipe() noexcept {
-#if defined(SILICON_PLATFORM_LINUX)
-    if(!m_wake_pipe.is_valid()) { return; }
-    char buffer[64]{};
-    while(true) {
-        const long n = m_wake_pipe.read(buffer, sizeof(buffer));
-        if(n > 0) { continue; }
-
-        if(n < 0 && errno == EAGAIN) { break; }
-        break;
-    }
-#endif
+    m_wake.drain();
 }
 
 bool completion_engine::submit_op(io_op *op) noexcept {
@@ -222,11 +170,7 @@ void completion_engine::handle_completion(const io_ring::completion &completion)
     } else if(completion.result == 0) {
         op->complete(0);
     } else {
-#if defined(SILICON_PLATFORM_LINUX)
-        op->complete_error(std::error_code(-completion.result, std::generic_category()));
-#elif defined(SILICON_PLATFORM_WINDOWS)
-        op->complete_error(std::error_code(static_cast<int>(completion.result), std::system_category()));
-#endif
+        op->complete_error(completion_result_to_error(completion.result));
     }
 
     silicon::scheduler::awaiter_list_push(m_completed, op);
@@ -234,19 +178,7 @@ void completion_engine::handle_completion(const io_ring::completion &completion)
 }
 
 void completion_engine::wake_driver() noexcept {
-#if defined(SILICON_PLATFORM_LINUX)
-    if(!m_wake_pipe.is_valid()) { return; }
-    const char byte = 1;
-    const long written = m_wake_pipe.write(&byte, sizeof(byte));
-    if(written != static_cast<long>(sizeof(byte))) {
-
-    }
-#elif defined(SILICON_PLATFORM_WINDOWS)
-    if(m_sentinel != nullptr) {
-
-        m_notifier.post(m_sentinel);
-    }
-#endif
+    m_wake.notify(m_notifier, m_sentinel);
 }
 
 void completion_engine::worker_main() noexcept {

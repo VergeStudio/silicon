@@ -1,6 +1,7 @@
 module;
 
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <map>
 #include <memory>
@@ -63,5 +64,14 @@ class SILICON_CORE_API fake_http_client {
     http_response request(const http_request &) const;
     std::size_t call_count() const;
 };
+
+}
+
+// 非导出：平台接缝——读管道执行外部命令的封装。
+// 实现位于 http_unix.cpp（popen/pclose）与 http_win.cpp（_popen/_pclose）。
+namespace silicon::http {
+
+std::FILE *http_popen_read(const std::string &command);
+void http_pclose(std::FILE *pipe);
 
 }

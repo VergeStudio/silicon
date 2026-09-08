@@ -1,16 +1,13 @@
 module;
 
 #include <atomic>
+#include <cstdint>
 #include <variant>
 #include <string>
 #include <mutex>
 #include <utility>
 
 #include <coroutine>
-
-#if !defined(SILICON_PLATFORM_WINDOWS)
-#    include <unistd.h>
-#endif
 
 #include <chrono>
 #include <cstdio>
@@ -415,6 +412,45 @@ class SILICON_CORE_API io_scheduler {
         co_return timeout_status::kTimeout;
     }
 
+};
+
+}
+
+// 非导出：completion 引擎的平台接缝，供 io_scheduler_completion*.cpp 实现单元共享。
+// 平台实现位于 io_scheduler_completion_unix.cpp / _linux.cpp / _win.cpp。
+namespace silicon::scheduler {
+
+// fd 是否为普通文件（read_at / write_at 的前置校验），全平台可用。
+bool completion_file_is_regular(int fd);
+
+// 最近一次 OS 层错误码（Windows: GetLastError，POSIX: errno），全平台可用。
+int io_scheduler_last_os_error();
+
+// io_ring 完成结果（负值错误码）到 error_code 的平台映射；
+// 仅在启用 SILICON_FEATURE_IO_RING 的平台（linux/windows）有实现。
+std::error_code completion_result_to_error(std::int64_t result);
+
+// completion 引擎的唤醒通道：Linux 将 pipe 挂入 epoll；Windows 经 IOCP post 唤醒。
+class completion_wake {
+  public:
+    completion_wake();
+    ~completion_wake();
+
+    completion_wake(const completion_wake &) = delete;
+    completion_wake &operator=(const completion_wake &) = delete;
+
+    // 建立唤醒通道并注册到 notifier；失败返回 false。
+    bool setup(io_notifier &notifier, void *sentinel);
+    // 拆除唤醒通道（unwatch + 关闭底层资源）。
+    void teardown(io_notifier &notifier);
+    // 清空唤醒通道中的数据。
+    void drain() noexcept;
+    // 唤醒 io 线程。
+    void notify(io_notifier &notifier, void *sentinel) noexcept;
+
+  private:
+    struct impl;
+    std::unique_ptr<impl> m_p;
 };
 
 }

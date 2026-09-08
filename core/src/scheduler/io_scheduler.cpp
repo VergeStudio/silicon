@@ -1,15 +1,8 @@
 module;
 
-#if defined(SILICON_PLATFORM_WINDOWS)
-#    include <Windows.h>
-#else
-#    include <sys/socket.h>
-#    include <sys/types.h>
-#    include <unistd.h>
-#endif
-
 #include <array>
 #include <atomic>
+#include <cerrno>
 #include <chrono>
 #include <coroutine>
 #include <cstddef>
@@ -425,11 +418,8 @@ void io_scheduler::update_timeout(time_point now) {
         auto amount = tp - now;
 
         if(!m_p->m_io_notifier.watch_timer(m_p->m_timer, amount)) {
-#if defined(SILICON_PLATFORM_WINDOWS)
-            std::cerr << "Failed to set timer, error=[" << GetLastError() << "].";
-#else
-            std::cerr << "Failed to set timerfd errorno=[" << std::system_category().message(errno) << "].";
-#endif
+            std::cerr << "Failed to set timer, error=["
+                      << std::system_category().message(io_scheduler_last_os_error()) << "].";
         }
     } else {
         m_p->m_io_notifier.unwatch_timer(m_p->m_timer);
