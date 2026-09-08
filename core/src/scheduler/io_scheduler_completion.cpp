@@ -38,7 +38,7 @@ using namespace silicon::scheduler;
 
 namespace silicon::scheduler {
 
-static bool completion_file_is_regular(fd_t fd) {
+static bool completion_file_is_regular(int fd) {
 #if defined(SILICON_PLATFORM_WINDOWS)
     if(fd < 0) { return false; }
     intptr_t os_handle = ::_get_osfhandle(fd);
@@ -288,8 +288,8 @@ completion_engine * create_completion_engine(
 
 #endif
 
-silicon::scheduler::task<result<int64_t>> io_scheduler::read_at(
-        fd_t fd, void *buffer, std::uint32_t length, std::uint64_t offset
+silicon::scheduler::task<silicon::error::result<int64_t>> io_scheduler::read_at(
+        int fd, void *buffer, std::uint32_t length, std::uint64_t offset
 ) {
 
     if(!completion_file_is_regular(fd)) {
@@ -337,8 +337,8 @@ silicon::scheduler::task<result<int64_t>> io_scheduler::read_at(
 #endif
 }
 
-silicon::scheduler::task<result<int64_t>> io_scheduler::write_at(
-        fd_t fd, const void *buffer, std::uint32_t length, std::uint64_t offset
+silicon::scheduler::task<silicon::error::result<int64_t>> io_scheduler::write_at(
+        int fd, const void *buffer, std::uint32_t length, std::uint64_t offset
 ) {
     if(!completion_file_is_regular(fd)) {
         co_return std::unexpected(make_error_code(scheduler_error::kNotRegularFile));

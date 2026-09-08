@@ -9,7 +9,6 @@ module;
 
 export module silicon.scheduler:io_op;
 
-import :fd;
 
 namespace silicon::scheduler {
 

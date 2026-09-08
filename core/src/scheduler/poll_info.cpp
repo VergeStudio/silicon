@@ -22,12 +22,12 @@ poll_info::poll_info(): m_p(std::make_unique<impl>()) {}
 
 poll_info::~poll_info() = default;
 
-poll_info::poll_info(fd_t fd, silicon::scheduler::poll_op op): m_p(std::make_unique<impl>()) {
+poll_info::poll_info(int fd, silicon::scheduler::poll_op op): m_p(std::make_unique<impl>()) {
     m_p->m_fd = fd;
     m_p->m_op = op;
 }
 
-poll_info::poll_info(fd_t fd, silicon::scheduler::poll_op op, std::optional<poll_stop_token> cancel_trigger)
+poll_info::poll_info(int fd, silicon::scheduler::poll_op op, std::optional<poll_stop_token> cancel_trigger)
     : m_p(std::make_unique<impl>()) {
     m_p->m_fd             = fd;
     m_p->m_op             = op;

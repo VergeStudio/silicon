@@ -9,7 +9,6 @@ module;
 
 export module silicon.scheduler:poll_info_impl;
 
-import :fd;
 import :poll;
 import silicon.time;
 import :poll_info;
@@ -18,7 +17,7 @@ export namespace silicon::scheduler {
 
 struct poll_info_impl {
 
-    fd_t m_fd{-1};
+    int m_fd{-1};
 
     poll_op m_op{};
 

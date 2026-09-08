@@ -141,7 +141,7 @@ silicon::scheduler::task<void> io_scheduler::yield_until(time_point time) {
 }
 
 silicon::scheduler::task<poll_status> io_scheduler::poll(
-        fd_t fd,
+        int fd,
         silicon::scheduler::poll_op op,
         std::chrono::milliseconds timeout,
         std::optional<poll_stop_token> cancel_trigger
@@ -394,7 +394,7 @@ void io_scheduler::process_timeout_execute() {
     update_timeout(silicon::time::steady_clock::now());
 }
 
-auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::poll_info &pi) -> timed_events::iterator {
+auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::poll_info &pi) -> poll_info::timed_events::iterator {
     std::scoped_lock lk{m_p->m_timed_events_mutex};
     auto pos = m_p->m_timed_events.emplace(tp, &pi);
 
@@ -405,7 +405,7 @@ auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::poll_info 
     return pos;
 }
 
-void io_scheduler::remove_timer_token(timed_events::iterator pos) {
+void io_scheduler::remove_timer_token(poll_info::timed_events::iterator pos) {
     {
         std::scoped_lock lk{m_p->m_timed_events_mutex};
         auto is_first = (m_p->m_timed_events.begin() == pos);

@@ -19,7 +19,6 @@ import silicon.error;
 export namespace silicon::coroutine {
 
 template<typename T>
-using result = silicon::error::result<T>;
 
 class mutex;
 class scoped_lock;
@@ -110,7 +109,7 @@ class SILICON_CORE_API mutex {
 
     [[nodiscard]] bool try_lock() ;
 
-    result<void> unlock() ;
+    silicon::error::result<void> unlock() ;
 
   private:
     friend struct lock_operation_base;

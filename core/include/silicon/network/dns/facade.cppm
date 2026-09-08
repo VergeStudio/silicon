@@ -122,9 +122,9 @@ class resolver {
         }
     }
 
-    silicon::scheduler::task<std::unique_ptr<result<executor_type>>> host_by_name(const network::hostname &hn) {
+    silicon::scheduler::task<std::unique_ptr<silicon::error::result<executor_type>>> host_by_name(const network::hostname &hn) {
         silicon::coroutine::event resume_event{};
-        auto result_ptr = std::make_unique<result<executor_type>>(m_executor, resume_event, 1);
+        auto result_ptr = std::make_unique<silicon::error::result<executor_type>>(m_executor, resume_event, 1);
 
         ares_addrinfo_hints hints{};
         hints.ai_family = AF_UNSPEC;

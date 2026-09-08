@@ -36,8 +36,6 @@ import silicon.error;
 import :concepts.range_of;
 import :awaiter_list;
 import :pipe;
-import :expected;
-import :fd;
 import :poll;
 import :sync_wait;
 import silicon.time;
@@ -56,7 +54,6 @@ using namespace silicon::scheduler;
 export namespace silicon::scheduler {
 
 template<typename T>
-using result = silicon::error::result<T>;
 
 enum class timeout_status {
     kNoTimeout,
@@ -64,7 +61,6 @@ enum class timeout_status {
 };
 
 class SILICON_CORE_API io_scheduler {
-    using timed_events = silicon::scheduler::poll_info::timed_events;
 
     struct private_constructor {
         explicit private_constructor() = default;
@@ -145,7 +141,7 @@ class SILICON_CORE_API io_scheduler {
 #endif
                     .io_ring_cfg = {}
             }
-    ) -> result<std::unique_ptr<io_scheduler>>;
+    ) -> silicon::error::result<std::unique_ptr<io_scheduler>>;
 
     io_scheduler(const io_scheduler &) = delete;
     io_scheduler(io_scheduler &&) = delete;
@@ -283,17 +279,17 @@ class SILICON_CORE_API io_scheduler {
     [[nodiscard]] silicon::scheduler::task<void> yield_until(time_point) ;
 
     [[nodiscard]] auto poll(
-            fd_t,
+            int,
             silicon::scheduler::poll_op,
             std::chrono::milliseconds = std::chrono::milliseconds{0},
             std::optional<poll_stop_token> = std::nullopt
     ) -> silicon::scheduler::task<poll_status>;
 
-    [[nodiscard]] silicon::scheduler::task<result<int64_t>> read_at(
-            fd_t, void *, std::uint32_t, std::uint64_t) ;
+    [[nodiscard]] silicon::scheduler::task<silicon::error::result<int64_t>> read_at(
+            int, void *, std::uint32_t, std::uint64_t) ;
 
-    [[nodiscard]] silicon::scheduler::task<result<int64_t>> write_at(
-            fd_t, const void *, std::uint32_t, std::uint64_t) ;
+    [[nodiscard]] silicon::scheduler::task<silicon::error::result<int64_t>> write_at(
+            int, const void *, std::uint32_t, std::uint64_t) ;
 
     bool resume(std::coroutine_handle<>) ;
 
@@ -379,7 +375,7 @@ class SILICON_CORE_API io_scheduler {
 
         std::mutex m_timed_events_mutex{};
 
-        timed_events m_timed_events{};
+        poll_info::timed_events m_timed_events{};
 
         std::atomic<bool> m_shutdown_requested{false};
 
@@ -410,8 +406,8 @@ class SILICON_CORE_API io_scheduler {
 
     void destroy_completion_engine() ;
 
-    auto add_timer_token(time_point, silicon::scheduler::poll_info &) -> timed_events::iterator;
-    void remove_timer_token(timed_events::iterator) ;
+    auto add_timer_token(time_point, silicon::scheduler::poll_info &) -> poll_info::timed_events::iterator;
+    void remove_timer_token(poll_info::timed_events::iterator) ;
     void update_timeout(time_point) ;
 
     silicon::scheduler::task<timeout_status> make_timeout_task(std::chrono::milliseconds timeout) {

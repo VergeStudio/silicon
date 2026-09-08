@@ -17,8 +17,6 @@ export import :concepts.promise;
 export import :concepts.range_of;
 export import :awaiter_list;
 export import :pipe;
-export import :expected;
-export import :fd;
 export import :poll;
 export import :sync_wait;
 export import silicon.time;

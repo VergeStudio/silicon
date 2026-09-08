@@ -23,7 +23,7 @@ import silicon.network;
 
 namespace silicon::network {
 
-auto socket::type_to_os(type_t type) -> result<int> {
+auto socket::type_to_os(type_t type) -> silicon::error::result<int> {
     switch(type) {
         case type_t::udp:
             return SOCK_DGRAM;
@@ -41,7 +41,7 @@ auto socket::operator=(socket &&other) noexcept -> socket & {
     return *this;
 }
 
-auto make_socket(const socket::options &opts, domain_t domain) -> result<socket> {
+auto make_socket(const socket::options &opts, domain_t domain) -> silicon::error::result<socket> {
     auto os_type = socket::type_to_os(opts.type);
     if(!os_type) { return std::unexpected(os_type.error()); }
 
@@ -60,7 +60,7 @@ auto make_socket(const socket::options &opts, domain_t domain) -> result<socket>
 }
 
 auto make_accept_socket(const socket::options &opts, const network::socket_address &endpoint, int32_t backlog)
-        -> result<socket> {
+        -> silicon::error::result<socket> {
     auto domain = endpoint.domain();
     if(!domain) { return std::unexpected(domain.error()); }
 

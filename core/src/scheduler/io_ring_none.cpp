@@ -34,11 +34,11 @@ auto io_ring::active_backend() const noexcept -> backend { return backend::none;
 
 bool io_ring::supports(op) const noexcept { return false; }
 
-bool io_ring::submit_read(fd_t, void *, std::uint32_t, std::uint64_t, std::uint64_t) {
+bool io_ring::submit_read(int, void *, std::uint32_t, std::uint64_t, std::uint64_t) {
     return false;
 }
 
-bool io_ring::submit_write(fd_t, const void *, std::uint32_t, std::uint64_t, std::uint64_t) {
+bool io_ring::submit_write(int, const void *, std::uint32_t, std::uint64_t, std::uint64_t) {
     return false;
 }
 

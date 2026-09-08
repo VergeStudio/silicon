@@ -57,7 +57,7 @@ struct io_notifier::impl {
         bool keep;
         bool is_cancel_event;
     };
-    std::unordered_map<fd_t, watch_entry> m_watched_fds;
+    std::unordered_map<int, watch_entry> m_watched_fds;
 
     timer_post_ctx m_timer_ctx{};
     PTP_TIMER m_tp_timer{nullptr};
@@ -84,12 +84,12 @@ io_notifier::~io_notifier() {
     }
 }
 
-void io_notifier::remove_fd(fd_t fd) {
+void io_notifier::remove_fd(int fd) {
     std::lock_guard lock(m_p->m_mutex);
     m_p->m_watched_fds.erase(fd);
 }
 
-bool io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
+bool io_notifier::watch(int fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
     std::lock_guard lock(m_p->m_mutex);
     m_p->m_watched_fds[fd] = {op, data, keep, is_cancel_event};
     return true;
@@ -106,7 +106,7 @@ bool io_notifier::watch(poll_info &pi) {
     return true;
 }
 
-bool io_notifier::unwatch(fd_t fd, poll_op) {
+bool io_notifier::unwatch(int fd, poll_op) {
     remove_fd(fd);
     return true;
 }

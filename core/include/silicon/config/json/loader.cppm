@@ -23,7 +23,7 @@ class SILICON_CORE_API json_file_config {
   public:
     json_file_config();
     ~json_file_config();
-    result<void> load(const std::string &, const fs::file_system_view &);
+    silicon::error::result<void> load(const std::string &, const fs::file_system_view &);
 
     std::optional<config_value> get(std::string_view) const;
     std::map<std::string, config_value, std::less<>> all() const;

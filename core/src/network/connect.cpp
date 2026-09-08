@@ -9,7 +9,7 @@ module silicon.network;
 
 namespace silicon::network {
 
-auto to_string(const connect_status &status) -> result<std::string_view> {
+auto to_string(const connect_status &status) -> silicon::error::result<std::string_view> {
     switch(status) {
         case connect_status::kConnected:
             return std::string_view{"connected"};

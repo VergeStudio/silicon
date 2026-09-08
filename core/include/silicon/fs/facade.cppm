@@ -21,7 +21,6 @@ import silicon.error;
 export namespace silicon::fs {
 
 template<typename T>
-using result = silicon::error::result<T>;
 
 PRO_DEF_MEM_DISPATCH(MemFsRead, read);
 PRO_DEF_MEM_DISPATCH(MemFsWrite, write);
@@ -33,12 +32,12 @@ PRO_DEF_MEM_DISPATCH(MemFsCreateDirs, create_directories);
 
 struct file_system_facade
     : silicon::proxy::facade_builder
-      ::add_convention<MemFsRead, result<std::string>(const std::string &) const>
-      ::add_convention<MemFsWrite, result<void>(const std::string &, const std::string &) const>
-      ::add_convention<MemFsReadBinary, result<std::vector<std::byte>>(const std::string &) const>
-      ::add_convention<MemFsWriteBinary, result<void>(const std::string &, const std::vector<std::byte> &) const>
+      ::add_convention<MemFsRead, silicon::error::result<std::string>(const std::string &) const>
+      ::add_convention<MemFsWrite, silicon::error::result<void>(const std::string &, const std::string &) const>
+      ::add_convention<MemFsReadBinary, silicon::error::result<std::vector<std::byte>>(const std::string &) const>
+      ::add_convention<MemFsWriteBinary, silicon::error::result<void>(const std::string &, const std::vector<std::byte> &) const>
       ::add_convention<MemFsExists, bool(const std::string &) const>
-      ::add_convention<MemFsListDir, result<std::vector<std::string>>(const std::string &) const>
+      ::add_convention<MemFsListDir, silicon::error::result<std::vector<std::string>>(const std::string &) const>
       ::add_convention<MemFsCreateDirs, bool(const std::string &) const>
       ::build {};
 

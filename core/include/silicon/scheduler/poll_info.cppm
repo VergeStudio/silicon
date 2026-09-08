@@ -10,7 +10,6 @@ module;
 #include <silicon/common.h>
 export module silicon.scheduler:poll_info;
 
-import :fd;
 import :poll;
 import silicon.time;
 
@@ -28,8 +27,8 @@ struct SILICON_CORE_API poll_info {
     poll_info();
     ~poll_info();
 
-    poll_info(fd_t, silicon::scheduler::poll_op);
-    poll_info(fd_t, silicon::scheduler::poll_op, std::optional<poll_stop_token>);
+    poll_info(int, silicon::scheduler::poll_op);
+    poll_info(int, silicon::scheduler::poll_op, std::optional<poll_stop_token>);
 
     poll_info(const poll_info &) = delete;
     poll_info(poll_info &&) = delete;

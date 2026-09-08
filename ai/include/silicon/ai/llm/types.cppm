@@ -17,7 +17,6 @@ import silicon.error;
 export namespace silicon::ai::llm {
 
 template<typename T>
-using result = silicon::error::result<T>;
 
 struct AI_API message {
 

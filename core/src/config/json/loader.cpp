@@ -21,7 +21,7 @@ struct json_file_config::impl {
 json_file_config::json_file_config(): impl_(std::make_unique<impl>()) {}
 json_file_config::~json_file_config() = default;
 
-auto json_file_config::load(const std::string &path, const fs::file_system_view &filesystem) -> result<void> {
+auto json_file_config::load(const std::string &path, const fs::file_system_view &filesystem) -> silicon::error::result<void> {
     auto content = filesystem->read(path);
     if(!content) return std::unexpected(make_error_code(config_error::kLoadFailed));
 

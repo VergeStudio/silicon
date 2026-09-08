@@ -15,7 +15,7 @@ import silicon.plugin.error;
 
 namespace silicon::plugin {
 
-auto plugin_registry::register_plugin(plugin_proxy plugin) -> result<void> {
+auto plugin_registry::register_plugin(plugin_proxy plugin) -> silicon::error::result<void> {
     if(!plugin) return std::unexpected(make_error_code(plugin_error::kNullPlugin));
     auto name = std::string(plugin->name());
     if(impl_->plugins_.contains(name)) return std::unexpected(make_error_code(plugin_error::kDuplicate));
@@ -28,7 +28,7 @@ plugin_proxy *plugin_registry::get_plugin(std::string_view name) const {
     return (it != impl_->plugins_.end()) ? std::addressof(it->second) : nullptr;
 }
 
-auto plugin_registry::remove_plugin(std::string_view name) -> result<void> {
+auto plugin_registry::remove_plugin(std::string_view name) -> silicon::error::result<void> {
     auto it = impl_->plugins_.find(name);
     if(it == impl_->plugins_.end()) return std::unexpected(make_error_code(plugin_error::kNotFound));
     it->second->on_unload();
@@ -42,7 +42,7 @@ std::vector<std::string> plugin_registry::list_plugins() const {
     return names;
 }
 
-auto proxy_plugin_registry::register_plugin(plugin_proxy plugin) -> result<void> {
+auto proxy_plugin_registry::register_plugin(plugin_proxy plugin) -> silicon::error::result<void> {
     if(!plugin) return std::unexpected(make_error_code(plugin_error::kNullPlugin));
     auto name = std::string(plugin->name());
     if(impl_->plugins_.contains(name)) return std::unexpected(make_error_code(plugin_error::kDuplicate));
@@ -55,7 +55,7 @@ plugin_proxy *proxy_plugin_registry::get(std::string_view name) const {
     return (it != impl_->plugins_.end()) ? std::addressof(it->second) : nullptr;
 }
 
-auto proxy_plugin_registry::remove(std::string_view name) -> result<void> {
+auto proxy_plugin_registry::remove(std::string_view name) -> silicon::error::result<void> {
     auto it = impl_->plugins_.find(name);
     if(it == impl_->plugins_.end()) return std::unexpected(make_error_code(plugin_error::kNotFound));
     it->second->on_unload();

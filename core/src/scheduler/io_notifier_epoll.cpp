@@ -27,7 +27,7 @@ namespace silicon::scheduler {
 using event_t = struct ::epoll_event;
 
 struct io_notifier::impl {
-    fd_t m_fd{-1};
+    int m_fd{-1};
     bool m_valid{false};
 };
 
@@ -87,7 +87,7 @@ bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanosecond
     return ::timerfd_settime(timer.get_fd(), 0, &ts, nullptr) != -1;
 }
 
-bool io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
+bool io_notifier::watch(int fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
     auto event_data = event_t{};
     event_data.events = static_cast<uint32_t>(op) | EPOLLRDHUP;
     event_data.data.u64 = encode_udata(keep, is_cancel_event, data);
@@ -112,7 +112,7 @@ bool io_notifier::watch(poll_info &pi) {
     return true;
 }
 
-bool io_notifier::unwatch(fd_t fd, poll_op) {
+bool io_notifier::unwatch(int fd, poll_op) {
     return ::epoll_ctl(m_p->m_fd, EPOLL_CTL_DEL, fd, nullptr) != -1;
 }
 
@@ -156,7 +156,7 @@ bool io_notifier::post(void *) {
     return false;
 }
 
-auto io_notifier::native_handle() const -> fd_t {
+auto io_notifier::native_handle() const -> int {
     return m_p->m_fd;
 }
 

@@ -98,7 +98,7 @@ bool mutex::try_lock() {
     return m_p->m_state.compare_exchange_strong(expected, nullptr, std::memory_order::acq_rel, std::memory_order::relaxed);
 }
 
-auto mutex::unlock() -> result<void> {
+auto mutex::unlock() -> silicon::error::result<void> {
     void *current = m_p->m_state.load(std::memory_order::acquire);
     do {
 

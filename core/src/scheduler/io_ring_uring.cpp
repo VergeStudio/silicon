@@ -47,7 +47,7 @@ auto io_ring::active_backend() const noexcept -> backend {
 
 bool io_ring::supports(op) const noexcept { return is_valid(); }
 
-bool io_ring::submit_read(fd_t fd, void *buf, std::uint32_t len, std::uint64_t offset, std::uint64_t user_data) {
+bool io_ring::submit_read(int fd, void *buf, std::uint32_t len, std::uint64_t offset, std::uint64_t user_data) {
     if(!is_valid()) { return false; }
 
     auto *sqe = io_uring_get_sqe(&m_p->ring);
@@ -59,7 +59,7 @@ bool io_ring::submit_read(fd_t fd, void *buf, std::uint32_t len, std::uint64_t o
 }
 
 bool io_ring::submit_write(
-        fd_t fd, const void *buf, std::uint32_t len, std::uint64_t offset, std::uint64_t user_data
+        int fd, const void *buf, std::uint32_t len, std::uint64_t offset, std::uint64_t user_data
 ) {
     if(!is_valid()) { return false; }
 

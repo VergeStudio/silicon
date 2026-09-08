@@ -40,7 +40,6 @@ import silicon.error;
 export namespace silicon::network {
 
 template<typename T>
-using result = silicon::error::result<T>;
 
 [[nodiscard]] inline std::error_code system_error(int errno_value) noexcept {
     return {errno_value, std::generic_category()};
@@ -61,7 +60,7 @@ enum class connect_status {
     kError
 };
 
-SILICON_CORE_API auto to_string(const connect_status &) -> result<std::string_view>;
+SILICON_CORE_API auto to_string(const connect_status &) -> silicon::error::result<std::string_view>;
 
 class SILICON_CORE_API hostname {
   private:
@@ -184,7 +183,7 @@ enum class domain_t : int {
     kIpv6 = AF_INET6
 };
 
-auto to_string(domain_t) -> result<std::string_view>;
+auto to_string(domain_t) -> silicon::error::result<std::string_view>;
 
 class SILICON_CORE_API ip_address {
   public:
@@ -194,7 +193,7 @@ class SILICON_CORE_API ip_address {
     ip_address() = default;
 
     static auto from_binary(std::span<const uint8_t> binary_address,
-                            domain_t domain = domain_t::kIpv4) -> result<ip_address> {
+                            domain_t domain = domain_t::kIpv4) -> silicon::error::result<ip_address> {
         if(domain == domain_t::kIpv4 && binary_address.size() > ipv4_len) {
             return std::unexpected(make_error_code(network_error::kInvalidIpAddress));
         }
@@ -226,7 +225,7 @@ class SILICON_CORE_API ip_address {
         }
     }
 
-    static auto from_string(std::string_view address, domain_t domain = domain_t::kIpv4) -> result<ip_address> {
+    static auto from_string(std::string_view address, domain_t domain = domain_t::kIpv4) -> silicon::error::result<ip_address> {
         ip_address addr{};
         addr.m_p->m_domain = domain;
 
@@ -238,7 +237,7 @@ class SILICON_CORE_API ip_address {
         return addr;
     }
 
-    auto to_string() const -> result<std::string> {
+    auto to_string() const -> silicon::error::result<std::string> {
         std::string output;
         if(m_p->m_domain == domain_t::kIpv4) {
             output.resize(INET_ADDRSTRLEN, '\0');
@@ -315,7 +314,7 @@ class SILICON_CORE_API socket_address {
   public:
 
     static auto create(std::string_view ip, std::uint16_t port,
-                       domain_t domain = domain_t::kIpv4) -> result<socket_address> {
+                       domain_t domain = domain_t::kIpv4) -> silicon::error::result<socket_address> {
         auto addr = ip_address::from_string(ip, domain);
         if(!addr) { return std::unexpected(addr.error()); }
         return socket_address{*addr, port};
@@ -369,7 +368,7 @@ class SILICON_CORE_API socket_address {
         return {reinterpret_cast<sockaddr *>(&m_p->m_storage), &m_p->m_len};
     }
 
-    [[nodiscard]] result<ip_address> ip() const {
+    [[nodiscard]] silicon::error::result<ip_address> ip() const {
         if(m_p->m_storage.ss_family == AF_INET) {
             auto *sin = reinterpret_cast<const sockaddr_in *>(&m_p->m_storage);
             return ip_address::from_binary(
@@ -385,7 +384,7 @@ class SILICON_CORE_API socket_address {
         return std::unexpected(make_error_code(network_error::kInvalidDomain));
     }
 
-    [[nodiscard]] result<domain_t> domain() const {
+    [[nodiscard]] silicon::error::result<domain_t> domain() const {
         if(m_p->m_storage.ss_family == AF_INET) {
             return domain_t::kIpv4;
         }
@@ -395,7 +394,7 @@ class SILICON_CORE_API socket_address {
         return std::unexpected(make_error_code(network_error::kInvalidDomain));
     }
 
-    [[nodiscard]] auto port() const -> result<std::uint16_t> {
+    [[nodiscard]] auto port() const -> silicon::error::result<std::uint16_t> {
         if(m_p->m_storage.ss_family == AF_INET) {
             return ntohs(reinterpret_cast<const sockaddr_in *>(&m_p->m_storage)->sin_port);
         }
@@ -417,7 +416,7 @@ class SILICON_CORE_API socket_address {
 
     static socket_address make_uninitialised() { return socket_address{}; }
 
-    auto to_string() const -> result<std::string> {
+    auto to_string() const -> silicon::error::result<std::string> {
         auto addr = ip();
         if(!addr) { return std::unexpected(addr.error()); }
         auto text = addr->to_string();
@@ -464,7 +463,7 @@ class SILICON_CORE_API socket final {
         blocking_t blocking;
     };
 
-    static result<int> type_to_os(type_t) ;
+    static silicon::error::result<int> type_to_os(type_t) ;
 
     socket() = default;
     explicit socket(int fd): m_fd(fd) {}
@@ -502,9 +501,9 @@ class SILICON_CORE_API socket final {
     int m_fd{-1};
 };
 
-auto make_socket(const socket::options &, domain_t) -> result<socket>;
+auto make_socket(const socket::options &, domain_t) -> silicon::error::result<socket>;
 
 auto make_accept_socket(const socket::options &, const network::socket_address &,
-                        int32_t) -> result<socket>;
+                        int32_t) -> silicon::error::result<socket>;
 
 }

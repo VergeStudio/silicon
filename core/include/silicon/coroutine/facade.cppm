@@ -37,7 +37,6 @@ export namespace silicon::coroutine {
 
 class SILICON_CORE_API condition_variable {
   public:
-    using predicate_type = std::function<bool()>;
 
   private:
     enum class notify_status_t {
@@ -56,16 +55,14 @@ class SILICON_CORE_API condition_variable {
           ::add_convention<MemNotify, silicon::scheduler::task<notify_status_t>()>
           ::build {};
 
-    using notify_proxy = silicon::proxy::proxy<notify_facade>;
-    using notify_view = silicon::proxy::proxy_view<notify_facade>;
 
     template<class T, class... Args>
-    [[nodiscard]] static notify_proxy make_notify(Args &&...args) {
+    [[nodiscard]] static silicon::proxy::proxy<notify_facade> make_notify(Args &&...args) {
         return silicon::proxy::make_proxy<notify_facade, T>(std::forward<Args>(args)...);
     }
 
     template<class T>
-    [[nodiscard]] static notify_view make_notify_view(T &target) noexcept {
+    [[nodiscard]] static silicon::proxy::proxy_view<notify_facade> make_notify_view(T &target) noexcept {
         return silicon::proxy::make_proxy_view<notify_facade>(target);
     }
 
@@ -92,7 +89,7 @@ class SILICON_CORE_API condition_variable {
 
         silicon::coroutine::scoped_lock &m_lock;
 
-        notify_proxy strategy_{};
+        silicon::proxy::proxy<notify_facade> strategy_{};
         silicon::scheduler::task<notify_status_t> on_notify() {
             return strategy_->on_notify();
         }
@@ -115,7 +112,7 @@ class SILICON_CORE_API condition_variable {
     };
 
     struct awaiter_with_predicate: public awaiter_base {
-        awaiter_with_predicate(silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &, predicate_type) noexcept;
+        awaiter_with_predicate(silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &, std::function<bool()>) noexcept;
         ~awaiter_with_predicate() = default;
 
         awaiter_with_predicate(const awaiter_with_predicate &) = delete;
@@ -129,14 +126,14 @@ class SILICON_CORE_API condition_variable {
 
         silicon::scheduler::task<notify_status_t> do_on_notify() ;
 
-        predicate_type m_predicate;
+        std::function<bool()> m_predicate;
     };
 
 #ifndef EMSCRIPTEN
 
     struct awaiter_with_predicate_stop_token: public awaiter_base {
         awaiter_with_predicate_stop_token(
-                silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &, predicate_type, std::stop_token
+                silicon::coroutine::condition_variable &, silicon::coroutine::scoped_lock &, std::function<bool()>, std::stop_token
         ) noexcept;
         ~awaiter_with_predicate_stop_token() = default;
 
@@ -151,7 +148,7 @@ class SILICON_CORE_API condition_variable {
 
         silicon::scheduler::task<notify_status_t> do_on_notify() ;
 
-        predicate_type m_predicate;
+        std::function<bool()> m_predicate;
 
         std::stop_token m_stop_token;
 
@@ -166,7 +163,7 @@ class SILICON_CORE_API condition_variable {
         controller_data(
                 std::optional<std::cv_status> &,
                 bool &,
-                std::optional<predicate_type>,
+                std::optional<std::function<bool()>>,
                 std::optional<const std::stop_token>
         ) noexcept;
         ~controller_data() = default;
@@ -186,7 +183,7 @@ class SILICON_CORE_API condition_variable {
 
         bool &m_predicate_result;
 
-        std::optional<predicate_type> m_predicate{std::nullopt};
+        std::optional<std::function<bool()>> m_predicate{std::nullopt};
 
         std::optional<const std::stop_token> m_stop_token{std::nullopt};
     };
@@ -207,7 +204,7 @@ class SILICON_CORE_API condition_variable {
                 silicon::coroutine::condition_variable &cv,
                 silicon::coroutine::scoped_lock &l,
                 const std::chrono::nanoseconds wait_for,
-                std::optional<predicate_type> predicate = std::nullopt,
+                std::optional<std::function<bool()>> predicate = std::nullopt,
                 std::optional<std::stop_token> stop_token = std::nullopt
         ) noexcept
             : awaiter_base(cv, l),
@@ -305,7 +302,7 @@ class SILICON_CORE_API condition_variable {
 
         bool m_predicate_result{false};
 
-        std::optional<predicate_type> m_predicate{std::nullopt};
+        std::optional<std::function<bool()>> m_predicate{std::nullopt};
 
         std::optional<const std::stop_token> m_stop_token{std::nullopt};
     };
@@ -347,11 +344,11 @@ class SILICON_CORE_API condition_variable {
 
     [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &) -> awaiter;
 
-    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &, predicate_type) -> awaiter_with_predicate;
+    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &, std::function<bool()>) -> awaiter_with_predicate;
 
 #ifndef EMSCRIPTEN
 
-    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &, std::stop_token, predicate_type)
+    [[nodiscard]] auto wait(silicon::coroutine::scoped_lock &, std::stop_token, std::function<bool()>)
             -> awaiter_with_predicate_stop_token;
 #endif
 
@@ -374,7 +371,7 @@ class SILICON_CORE_API condition_variable {
             std::unique_ptr<io_executor_type> &executor,
             silicon::coroutine::scoped_lock &lock,
             const std::chrono::duration<rep_type, period_type> wait_for,
-            predicate_type predicate
+            std::function<bool()> predicate
     ) -> awaiter_with_wait<io_executor_type, bool> {
         return awaiter_with_wait<io_executor_type, bool>{
                 executor,
@@ -391,7 +388,7 @@ class SILICON_CORE_API condition_variable {
             silicon::coroutine::scoped_lock &lock,
             std::stop_token stop_token,
             const std::chrono::duration<rep_type, period_type> wait_for,
-            predicate_type predicate
+            std::function<bool()> predicate
     ) -> awaiter_with_wait<io_executor_type, bool> {
         return awaiter_with_wait<io_executor_type, bool>{
                 executor,
@@ -422,7 +419,7 @@ class SILICON_CORE_API condition_variable {
             std::unique_ptr<io_executor_type> &executor,
             silicon::coroutine::scoped_lock &lock,
             const std::chrono::time_point<clock_type, duration_type> wait_until_time,
-            predicate_type predicate
+            std::function<bool()> predicate
     ) -> awaiter_with_wait<io_executor_type, bool> {
         auto now = std::chrono::time_point<clock_type, duration_type>::clock::now();
         auto wait_for = (now < wait_until_time) ? (wait_until_time - now) : std::chrono::nanoseconds{1};
@@ -441,7 +438,7 @@ class SILICON_CORE_API condition_variable {
             silicon::coroutine::scoped_lock &lock,
             std::stop_token stop_token,
             const std::chrono::time_point<clock_type, duration_type> wait_until_time,
-            predicate_type predicate
+            std::function<bool()> predicate
     ) -> awaiter_with_wait<io_executor_type, bool> {
         auto now = std::chrono::time_point<clock_type, duration_type>::clock::now();
         auto wait_for = (now < wait_until_time) ? (wait_until_time - now) : std::chrono::nanoseconds{1};

@@ -31,7 +31,7 @@ namespace silicon::scheduler
 
 class pipe_t::impl {
   public:
-    std::array<fd_t, 2> m_fds{-1};
+    std::array<int, 2> m_fds{-1};
 };
 
 pipe_t::pipe_t(): m_p(std::make_unique<impl>())
@@ -144,12 +144,12 @@ long pipe_t::read(void* buffer, std::size_t n) {
 #endif
 }
 
-auto pipe_t::read_fd() const -> const fd_t&
+auto pipe_t::read_fd() const -> const int&
 {
     return m_p->m_fds[0];
 }
 
-auto pipe_t::write_fd() const -> const fd_t&
+auto pipe_t::write_fd() const -> const int&
 {
     return m_p->m_fds[1];
 }

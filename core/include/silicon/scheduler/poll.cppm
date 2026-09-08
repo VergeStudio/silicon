@@ -24,7 +24,6 @@ module;
 export module silicon.scheduler:poll;
 
 import :pipe;
-import :fd;
 
 export namespace silicon::scheduler {
 #if defined(SILICON_PLATFORM_LINUX)
@@ -85,7 +84,7 @@ auto to_string(poll_status) -> const std::string &;
 
 class SILICON_CORE_API poll_stop_token {
   public:
-    explicit poll_stop_token(fd_t);
+    explicit poll_stop_token(int);
 
     poll_stop_token(const poll_stop_token &other);
 
@@ -93,7 +92,7 @@ class SILICON_CORE_API poll_stop_token {
 
     poll_stop_token & operator=(const poll_stop_token &other) ;
 
-    [[nodiscard]] fd_t native_handle() const ;
+    [[nodiscard]] int native_handle() const ;
 
   private:
 

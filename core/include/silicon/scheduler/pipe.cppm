@@ -8,7 +8,6 @@ module;
 #include <silicon/common.h>
 export module silicon.scheduler:pipe;
 
-import :fd;
 
 export namespace silicon::scheduler {
 
@@ -30,8 +29,8 @@ class SILICON_CORE_API pipe_t {
     [[nodiscard]] long write(const void *, std::size_t) ;
     [[nodiscard]] long read(void *, std::size_t) ;
 
-    [[nodiscard]] const fd_t & read_fd() const ;
-    [[nodiscard]] const fd_t & write_fd() const ;
+    [[nodiscard]] const int & read_fd() const ;
+    [[nodiscard]] const int & write_fd() const ;
 
     void close() ;
 

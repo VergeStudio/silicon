@@ -25,13 +25,13 @@ class const_provider {
 
   public:
     explicit const_provider(std::string t): text_(std::move(t)) {}
-    result<chat_response> chat(const conversation &, const model_request_options &) {
+    silicon::error::result<chat_response> chat(const conversation &, const model_request_options &) {
         chat_response r;
         r.content() = text_;
         r.finish_reason() = "stop";
         r.prompt_tokens() = 3;
         r.completion_tokens() = 7;
-        return result<chat_response>(std::move(r));
+        return silicon::error::result<chat_response>(std::move(r));
     }
 };
 

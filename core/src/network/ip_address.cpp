@@ -9,7 +9,7 @@ module silicon.network;
 
 namespace silicon::network {
 
-auto to_string(domain_t domain) -> result<std::string_view> {
+auto to_string(domain_t domain) -> silicon::error::result<std::string_view> {
     switch(domain) {
         case domain_t::kIpv4:
             return std::string_view{"ipv4"};

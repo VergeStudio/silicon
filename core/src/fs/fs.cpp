@@ -20,7 +20,7 @@ namespace silicon::fs {
 template<class Derived>
 class file_system_base {
   public:
-    result<std::string> read(const std::string &path) const {
+    silicon::error::result<std::string> read(const std::string &path) const {
         std::ifstream f(to_path(path), std::ios::in | std::ios::binary);
         if(!f) return std::unexpected(make_error_code(fs_error::kOpenFailed));
         std::ostringstream ss;
@@ -28,7 +28,7 @@ class file_system_base {
         return ss.str();
     }
 
-    result<std::vector<std::byte>> read_binary(const std::string &path) const {
+    silicon::error::result<std::vector<std::byte>> read_binary(const std::string &path) const {
         std::ifstream f(to_path(path), std::ios::in | std::ios::binary);
         if(!f) return std::unexpected(make_error_code(fs_error::kOpenFailed));
         std::vector<std::byte> out;
@@ -42,7 +42,7 @@ class file_system_base {
         return out;
     }
 
-    result<void> write_binary(const std::string &path, const std::vector<std::byte> &data) const {
+    silicon::error::result<void> write_binary(const std::string &path, const std::vector<std::byte> &data) const {
         std::ofstream f(to_path(path), std::ios::out | std::ios::binary);
         if(!f) return std::unexpected(make_error_code(fs_error::kWriteFailed));
         if(!data.empty())
@@ -50,7 +50,7 @@ class file_system_base {
         return {};
     }
 
-    result<void> write(const std::string &path, const std::string &content) const {
+    silicon::error::result<void> write(const std::string &path, const std::string &content) const {
         const std::string normalized = static_cast<const Derived &>(*this).normalize_text(content);
         std::vector<std::byte> bytes(normalized.size());
         for(std::size_t i = 0; i < normalized.size(); ++i)
@@ -63,7 +63,7 @@ class file_system_base {
         return std::filesystem::exists(to_path(path), ec);
     }
 
-    result<std::vector<std::string>> list_dir(const std::string &path) const {
+    silicon::error::result<std::vector<std::string>> list_dir(const std::string &path) const {
         std::error_code ec;
         auto it = std::filesystem::directory_iterator(to_path(path), ec);
         if(ec) return std::unexpected(make_error_code(fs_error::kOpenFailed));

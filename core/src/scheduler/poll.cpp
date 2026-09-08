@@ -65,10 +65,10 @@ auto to_string(poll_status status) -> const std::string & {
 
 struct poll_stop_token::impl {
   public:
-    fd_t m_receiver{-1};
+    int m_receiver{-1};
 };
 
-poll_stop_token::poll_stop_token(fd_t receiver): m_p(std::make_unique<impl>()) {
+poll_stop_token::poll_stop_token(int receiver): m_p(std::make_unique<impl>()) {
     m_p->m_receiver = receiver;
 }
 
@@ -85,7 +85,7 @@ auto poll_stop_token::operator=(const poll_stop_token &other) -> poll_stop_token
     return *this;
 }
 
-auto poll_stop_token::native_handle() const -> fd_t {
+auto poll_stop_token::native_handle() const -> int {
     return m_p->m_receiver;
 }
 

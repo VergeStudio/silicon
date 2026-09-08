@@ -5,7 +5,6 @@ module;
 #include <silicon/common.h>
 export module silicon.scheduler:timer_handle;
 
-import :fd;
 import :poll;
 import silicon.time;
 

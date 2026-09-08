@@ -9,7 +9,6 @@ module;
 #include <silicon/common.h>
 export module silicon.scheduler:io_ring;
 
-import :fd;
 
 export namespace silicon::scheduler {
 
@@ -62,9 +61,9 @@ class SILICON_CORE_API io_ring {
 
     [[nodiscard]] bool supports(op) const noexcept;
 
-    bool submit_read(fd_t, void *, std::uint32_t, std::uint64_t, std::uint64_t) ;
+    bool submit_read(int, void *, std::uint32_t, std::uint64_t, std::uint64_t) ;
 
-    bool submit_write(fd_t, const void *, std::uint32_t, std::uint64_t, std::uint64_t) ;
+    bool submit_write(int, const void *, std::uint32_t, std::uint64_t, std::uint64_t) ;
 
     bool submit_cancel(std::uint64_t, std::uint64_t) ;
 

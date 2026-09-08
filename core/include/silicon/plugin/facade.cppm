@@ -25,7 +25,6 @@ import silicon.error;
 export namespace silicon::plugin {
 
 template<typename T>
-using result = silicon::error::result<T>;
 
 PRO_DEF_MEM_DISPATCH(MemPluginName, name);
 PRO_DEF_MEM_DISPATCH(MemPluginOnLoad, on_load);
@@ -66,16 +65,16 @@ class SILICON_CORE_API plugin_registry {
 
   public:
 
-    [[nodiscard]] result<void> register_plugin(plugin_proxy) ;
+    [[nodiscard]] silicon::error::result<void> register_plugin(plugin_proxy) ;
 
     template<class T, class... Args>
-    [[nodiscard]] result<void> emplace(Args &&...args) {
+    [[nodiscard]] silicon::error::result<void> emplace(Args &&...args) {
         return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
     }
 
     plugin_proxy *get_plugin(std::string_view) const;
 
-    [[nodiscard]] auto remove_plugin(std::string_view) -> result<void>;
+    [[nodiscard]] auto remove_plugin(std::string_view) -> silicon::error::result<void>;
 
     std::vector<std::string> list_plugins() const;
 
@@ -92,16 +91,16 @@ class SILICON_CORE_API proxy_plugin_registry {
 
   public:
 
-    [[nodiscard]] result<void> register_plugin(plugin_proxy) ;
+    [[nodiscard]] silicon::error::result<void> register_plugin(plugin_proxy) ;
 
     template<class T, class... Args>
-    [[nodiscard]] result<void> emplace(Args &&...args) {
+    [[nodiscard]] silicon::error::result<void> emplace(Args &&...args) {
         return register_plugin(make_plugin<T>(std::forward<Args>(args)...));
     }
 
     plugin_proxy *get(std::string_view) const;
 
-    [[nodiscard]] auto remove(std::string_view) -> result<void>;
+    [[nodiscard]] auto remove(std::string_view) -> silicon::error::result<void>;
 
     std::vector<std::string> list() const;
 

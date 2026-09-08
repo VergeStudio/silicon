@@ -29,7 +29,7 @@ namespace silicon::scheduler {
 using event_t = struct ::kevent;
 
 struct io_notifier::impl {
-    fd_t m_fd{-1};
+    int m_fd{-1};
     bool m_valid{false};
 };
 
@@ -85,7 +85,7 @@ bool io_notifier::watch_timer(const timer_handle &timer, std::chrono::nanosecond
     return ::kevent(m_p->m_fd, &event_data, 1, nullptr, 0, nullptr) != -1;
 }
 
-bool io_notifier::watch(fd_t fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
+bool io_notifier::watch(int fd, poll_op op, void *data, bool keep, bool is_cancel_event) {
     (void)is_cancel_event;
     auto event_data = event_t{};
     auto mode = EV_ADD | EV_CLEAR | EV_ENABLE;
@@ -117,7 +117,7 @@ bool io_notifier::watch(poll_info &pi) {
     return true;
 }
 
-bool io_notifier::unwatch(fd_t fd, poll_op op) {
+bool io_notifier::unwatch(int fd, poll_op op) {
 
     if(op == silicon::scheduler::poll_op::read_write) {
         auto event_data = event_t{};
@@ -183,7 +183,7 @@ bool io_notifier::post(void *) {
     return false;
 }
 
-auto io_notifier::native_handle() const -> fd_t {
+auto io_notifier::native_handle() const -> int {
     return m_p->m_fd;
 }
 

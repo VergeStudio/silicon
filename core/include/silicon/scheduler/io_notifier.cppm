@@ -24,7 +24,6 @@ module;
 #include <silicon/common.h>
 export module silicon.scheduler:io_notifier;
 
-import :fd;
 import :poll;
 import silicon.time;
 
@@ -50,7 +49,7 @@ class SILICON_CORE_API io_notifier {
         16;
 #endif
 
-    void remove_fd(fd_t) ;
+    void remove_fd(int) ;
 
   public:
     io_notifier();
@@ -66,11 +65,11 @@ class SILICON_CORE_API io_notifier {
 
     bool watch_timer(const timer_handle &, std::chrono::nanoseconds) ;
 
-    bool watch(fd_t, poll_op, void *, bool = false, bool = false) ;
+    bool watch(int, poll_op, void *, bool = false, bool = false) ;
 
     bool watch(poll_info &) ;
 
-    bool unwatch(fd_t, poll_op) ;
+    bool unwatch(int, poll_op) ;
 
     bool unwatch(poll_info &) ;
 
@@ -84,7 +83,7 @@ class SILICON_CORE_API io_notifier {
 #if defined(SILICON_PLATFORM_WINDOWS)
         HANDLE native_handle() const ;
 #else
-        fd_t native_handle() const ;
+        int native_handle() const ;
 #endif
 };
 

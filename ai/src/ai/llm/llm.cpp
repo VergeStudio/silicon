@@ -45,12 +45,12 @@ const std::string &http_provider::http_result::body() const { return impl_->body
 
 struct tool_registry::impl {
   public:
-    std::map<std::string, tool_proxy, std::less<>> tools_;
+    std::map<std::string, silicon::proxy::proxy<tool_facade>, std::less<>> tools_;
 };
 
 struct provider_registry::impl {
   public:
-    std::map<std::string, provider_proxy, std::less<>> providers_;
+    std::map<std::string, silicon::proxy::proxy<provider_facade>, std::less<>> providers_;
 };
 
 struct scripted_provider::impl {
@@ -75,27 +75,27 @@ provider_registry::~provider_registry() = default;
 scripted_provider::scripted_provider(): impl_(std::make_unique<impl>()) {}
 scripted_provider::~scripted_provider() = default;
 
-bool tool_registry::register_tool(tool_proxy tool) {
+bool tool_registry::register_tool(silicon::proxy::proxy<tool_facade> tool) {
     auto name = std::string(tool->name());
     return impl_->tools_.emplace(std::move(name), std::move(tool)).second;
 }
 
-tool_proxy tool_registry::get_tool(std::string_view name) const {
+silicon::proxy::proxy<tool_facade> tool_registry::get_tool(std::string_view name) const {
     auto it = impl_->tools_.find(name);
     if(it != impl_->tools_.end()) return it->second;
-    return tool_proxy{};
+    return silicon::proxy::proxy<tool_facade>{};
 }
 
 std::size_t tool_registry::tool_count() const { return impl_->tools_.size(); }
 
-bool provider_registry::register_provider(std::string id, provider_proxy provider) {
+bool provider_registry::register_provider(std::string id, silicon::proxy::proxy<provider_facade> provider) {
     return impl_->providers_.emplace(std::move(id), std::move(provider)).second;
 }
 
-provider_proxy provider_registry::get_provider(std::string_view id) const {
+silicon::proxy::proxy<provider_facade> provider_registry::get_provider(std::string_view id) const {
     auto it = impl_->providers_.find(id);
     if(it != impl_->providers_.end()) return it->second;
-    return provider_proxy{};
+    return silicon::proxy::proxy<provider_facade>{};
 }
 
 std::vector<std::string> provider_registry::list_providers() const {
@@ -136,7 +136,7 @@ std::string json_protocol_adapter::encode_request(
     return req.dump();
 }
 
-result<chat_response> json_protocol_adapter::decode_response(std::string_view raw) const {
+silicon::error::result<chat_response> json_protocol_adapter::decode_response(std::string_view raw) const {
     using namespace silicon::json;
     auto v = parse(raw);
     if(v.is_discarded()) return std::unexpected(make_error_code(llm_error::kInvalidResponse));
@@ -171,19 +171,19 @@ result<chat_response> json_protocol_adapter::decode_response(std::string_view ra
            ct != u->end() && ct->is_number_integer())
             resp.completion_tokens() = static_cast<std::int32_t>((*ct).get<std::int64_t>());
     }
-    return result<chat_response>(std::move(resp));
+    return silicon::error::result<chat_response>(std::move(resp));
 }
 
 void scripted_provider::enqueue(chat_response r) { impl_->queue_.push(std::move(r)); }
 
 std::size_t scripted_provider::remaining() const { return impl_->queue_.size(); }
 
-result<chat_response> scripted_provider::chat(const conversation &, const model_request_options &) {
+silicon::error::result<chat_response> scripted_provider::chat(const conversation &, const model_request_options &) {
     if(impl_->queue_.empty())
         return std::unexpected(make_error_code(llm_error::kProviderUnavailable));
     chat_response r = std::move(impl_->queue_.front());
     impl_->queue_.pop();
-    return result<chat_response>(std::move(r));
+    return silicon::error::result<chat_response>(std::move(r));
 }
 
 std::string http_provider::env_or(const char *name, std::string def) {
@@ -249,7 +249,7 @@ bool http_provider::configured() const { return !impl_->api_key_.empty(); }
 
 std::string_view http_provider::model_name() const { return impl_->model_; }
 
-result<chat_response> http_provider::chat(const conversation &conv, const model_request_options &opts) {
+silicon::error::result<chat_response> http_provider::chat(const conversation &conv, const model_request_options &opts) {
     model_request_options o = opts;
     if(o.model().empty()) o.model() = impl_->model_;
 

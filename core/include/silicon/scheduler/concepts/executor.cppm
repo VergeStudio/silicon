@@ -11,7 +11,6 @@ module;
 export module silicon.scheduler:concepts.executor;
 
 import :concepts.awaitable;
-import :fd;
 import silicon.scheduler.task;
 import :poll;
 
@@ -31,7 +30,7 @@ concept executor = requires(executor_type e, std::coroutine_handle<> c)
 };
 
 template<typename executor_type>
-concept io_executor = executor<executor_type> and requires(executor_type e, std::coroutine_handle<> c, fd_t fd, silicon::scheduler::poll_op op, std::chrono::milliseconds timeout)
+concept io_executor = executor<executor_type> and requires(executor_type e, std::coroutine_handle<> c, int fd, silicon::scheduler::poll_op op, std::chrono::milliseconds timeout)
 {
     { e.poll(fd, op, timeout) } -> std::same_as<silicon::scheduler::task<poll_status>>;
 };

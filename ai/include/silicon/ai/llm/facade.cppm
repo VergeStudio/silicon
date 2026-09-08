@@ -49,47 +49,44 @@ struct tool_facade
 
 struct provider_facade
     : silicon::proxy::facade_builder
-      ::add_convention<MemProviderChat, result<chat_response>(const conversation &, const model_request_options &)>
+      ::add_convention<MemProviderChat, silicon::error::result<chat_response>(const conversation &, const model_request_options &)>
       ::support_copy<silicon::proxy::constraint_level::kNontrivial>
       ::build {};
 
 struct protocol_adapter_facade
     : silicon::proxy::facade_builder
       ::add_convention<MemAdapterEncode, std::string(const conversation &, const model_request_options &, const std::vector<std::string> &) const>
-      ::add_convention<MemAdapterDecode, result<chat_response>(std::string_view) const>
+      ::add_convention<MemAdapterDecode, silicon::error::result<chat_response>(std::string_view) const>
       ::build {};
 
-using tool_proxy = silicon::proxy::proxy<tool_facade>;
-using provider_proxy = silicon::proxy::proxy<provider_facade>;
-using protocol_adapter_proxy = silicon::proxy::proxy<protocol_adapter_facade>;
 
 using tool_view = silicon::proxy::proxy_view<tool_facade>;
 using provider_view = silicon::proxy::proxy_view<provider_facade>;
 
 struct tool_registry_facade
     : silicon::proxy::facade_builder
-      ::add_convention<MemToolRegRegister, bool(tool_proxy)>
-      ::add_convention<MemToolRegGet, tool_proxy(std::string_view) const>
+      ::add_convention<MemToolRegRegister, bool(silicon::proxy::proxy<tool_facade>)>
+      ::add_convention<MemToolRegGet, silicon::proxy::proxy<tool_facade>(std::string_view) const>
       ::add_convention<MemToolRegCount, std::size_t() const>
       ::build {};
 
 struct provider_registry_facade
     : silicon::proxy::facade_builder
-      ::add_convention<MemProviderRegRegister, bool(std::string, provider_proxy)>
-      ::add_convention<MemProviderRegGet, provider_proxy(std::string_view) const>
+      ::add_convention<MemProviderRegRegister, bool(std::string, silicon::proxy::proxy<provider_facade>)>
+      ::add_convention<MemProviderRegGet, silicon::proxy::proxy<provider_facade>(std::string_view) const>
       ::add_convention<MemProviderRegList, std::vector<std::string>() const>
       ::build {};
 
 template<class T, class... Args>
-[[nodiscard]] tool_proxy make_tool(Args &&...args) {
+[[nodiscard]] silicon::proxy::proxy<tool_facade> make_tool(Args &&...args) {
     return silicon::proxy::make_proxy<tool_facade, T>(std::forward<Args>(args)...);
 }
 template<class T, class... Args>
-[[nodiscard]] provider_proxy make_provider(Args &&...args) {
+[[nodiscard]] silicon::proxy::proxy<provider_facade> make_provider(Args &&...args) {
     return silicon::proxy::make_proxy<provider_facade, T>(std::forward<Args>(args)...);
 }
 template<class T, class... Args>
-[[nodiscard]] protocol_adapter_proxy make_adapter(Args &&...args) {
+[[nodiscard]] silicon::proxy::proxy<protocol_adapter_facade> make_adapter(Args &&...args) {
     return silicon::proxy::make_proxy<protocol_adapter_facade, T>(std::forward<Args>(args)...);
 }
 
@@ -102,8 +99,8 @@ class AI_API tool_registry {
   public:
     tool_registry();
     ~tool_registry();
-    bool register_tool(tool_proxy);
-    tool_proxy get_tool(std::string_view) const;
+    bool register_tool(silicon::proxy::proxy<tool_facade>);
+    silicon::proxy::proxy<tool_facade> get_tool(std::string_view) const;
     std::size_t tool_count() const;
 };
 
@@ -116,8 +113,8 @@ class AI_API provider_registry {
   public:
     provider_registry();
     ~provider_registry();
-    bool register_provider(std::string, provider_proxy);
-    provider_proxy get_provider(std::string_view) const;
+    bool register_provider(std::string, silicon::proxy::proxy<provider_facade>);
+    silicon::proxy::proxy<provider_facade> get_provider(std::string_view) const;
     std::vector<std::string> list_providers() const;
 };
 
@@ -128,7 +125,7 @@ class AI_API json_protocol_adapter {
             const model_request_options &,
             const std::vector<std::string> &
     ) const;
-    result<chat_response> decode_response(std::string_view) const;
+    silicon::error::result<chat_response> decode_response(std::string_view) const;
 };
 
 class AI_API scripted_provider {
@@ -143,7 +140,7 @@ class AI_API scripted_provider {
     void enqueue(chat_response);
     std::size_t remaining() const;
 
-    result<chat_response> chat(const conversation &, const model_request_options &);
+    silicon::error::result<chat_response> chat(const conversation &, const model_request_options &);
 };
 
 class AI_API http_provider {
@@ -181,7 +178,7 @@ class AI_API http_provider {
     ~http_provider();
     bool configured() const;
     std::string_view model_name() const;
-    result<chat_response> chat(const conversation &, const model_request_options &);
+    silicon::error::result<chat_response> chat(const conversation &, const model_request_options &);
 };
 
 }
