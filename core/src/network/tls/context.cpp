@@ -14,6 +14,7 @@ module;
 #endif
 
 module silicon.network;
+import silicon.error;
 
 #ifdef SILICON_FEATURE_TLS
 
@@ -21,7 +22,7 @@ namespace silicon::network::tls {
 static uint64_t g_tls_context_count{0};
 static std::mutex g_tls_context_mutex{};
 
-auto context::create(verify_peer_t verify_peer) -> network::result<context> {
+auto context::create(verify_peer_t verify_peer) -> silicon::error::result<context> {
     {
         std::scoped_lock g{g_tls_context_mutex};
         if(g_tls_context_count == 0) {
@@ -62,7 +63,7 @@ auto context::create(
         std::filesystem::path private_key,
         tls_file_type private_key_type,
         verify_peer_t verify_peer
-) -> network::result<context> {
+) -> silicon::error::result<context> {
     auto ctx = create(verify_peer);
     if(!ctx) {
         return ctx;

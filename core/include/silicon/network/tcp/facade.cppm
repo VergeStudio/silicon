@@ -14,6 +14,7 @@ module;
 
 #include <silicon/common.h>
 export module silicon.network:tcp;
+import silicon.error;
 
 export import silicon.coroutine;
 export import silicon.scheduler;
@@ -61,7 +62,7 @@ class SILICON_CORE_API client final {
   public:
 
     static auto create(std::unique_ptr<silicon::scheduler::io_scheduler> &, network::socket_address)
-            -> network::result<client>;
+            -> silicon::error::result<client>;
 
     client(const client &other);
     client(client &&other) noexcept;
@@ -211,7 +212,7 @@ class SILICON_CORE_API server final {
             options = options{
                     .backlog = 128,
             }
-    ) -> network::result<server>;
+    ) -> silicon::error::result<server>;
 
     server(const server &) = delete;
     server(server &&other);

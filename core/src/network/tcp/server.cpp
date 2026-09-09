@@ -7,6 +7,7 @@ module;
 #include <coroutine>
 
 module silicon.network;
+import silicon.error;
 
 import silicon.coroutine;
 import silicon.scheduler;
@@ -53,7 +54,7 @@ auto server::impl::operator=(impl &&other) noexcept -> impl & {
 server::impl::~impl() = default;
 
 auto server::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint, options opts)
-        -> network::result<server> {
+        -> silicon::error::result<server> {
     if(scheduler == nullptr) {
         return std::unexpected(make_error_code(network_error::kNullScheduler));
     }

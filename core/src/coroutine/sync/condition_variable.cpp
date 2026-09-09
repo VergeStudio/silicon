@@ -1,6 +1,7 @@
 module;
 
 #include <atomic>
+#include <functional>
 #include <memory>
 
 module silicon.coroutine;
@@ -76,7 +77,7 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
 condition_variable::awaiter_with_predicate::awaiter_with_predicate(
         silicon::coroutine::condition_variable &cv,
         silicon::coroutine::scoped_lock &l,
-        condition_variable::predicate_type p
+        std::function<bool()> p
 ) noexcept
     : awaiter_base(cv, l),
       m_predicate(std::move(p)) {
@@ -111,7 +112,7 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
 condition_variable::awaiter_with_predicate_stop_token::awaiter_with_predicate_stop_token(
         silicon::coroutine::condition_variable &cv,
         silicon::coroutine::scoped_lock &l,
-        condition_variable::predicate_type p,
+        std::function<bool()> p,
         std::stop_token stop_token
 ) noexcept
     : awaiter_base(cv, l),
@@ -153,7 +154,7 @@ silicon::scheduler::task<condition_variable::notify_status_t> condition_variable
 condition_variable::controller_data::controller_data(
         std::optional<std::cv_status> &status,
         bool &predicate_result,
-        std::optional<condition_variable::predicate_type> predicate,
+        std::optional<std::function<bool()>> predicate,
         std::optional<const std::stop_token> stop_token
 ) noexcept
     : m_status(status),
@@ -262,7 +263,7 @@ auto condition_variable::wait(silicon::coroutine::scoped_lock &lock) -> awaiter 
 
 auto condition_variable::wait(
         silicon::coroutine::scoped_lock &lock,
-        condition_variable::predicate_type predicate
+        std::function<bool()> predicate
 ) -> awaiter_with_predicate {
     return awaiter_with_predicate{*this, lock, std::move(predicate)};
 }
@@ -272,7 +273,7 @@ auto condition_variable::wait(
 auto condition_variable::wait(
         silicon::coroutine::scoped_lock &lock,
         std::stop_token stop_token,
-        condition_variable::predicate_type predicate
+        std::function<bool()> predicate
 ) -> awaiter_with_predicate_stop_token {
     return awaiter_with_predicate_stop_token{*this, lock, std::move(predicate), std::move(stop_token)};
 }

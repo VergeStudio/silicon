@@ -22,6 +22,7 @@ module;
 
 #include <silicon/common.h>
 export module silicon.network:tls;
+import silicon.error;
 
 export import silicon.coroutine;
 export import silicon.scheduler;
@@ -121,7 +122,7 @@ auto to_string(send_status) -> const std::string &;
 class SILICON_CORE_API context {
   public:
 
-    static auto create(verify_peer_t = verify_peer_t::kYes) -> network::result<context>;
+    static auto create(verify_peer_t = verify_peer_t::kYes) -> silicon::error::result<context>;
 
     static auto create(
             std::filesystem::path,
@@ -129,7 +130,7 @@ class SILICON_CORE_API context {
             std::filesystem::path,
             tls_file_type,
             verify_peer_t = verify_peer_t::kYes
-    ) -> network::result<context>;
+    ) -> silicon::error::result<context>;
 
     context(const context &) = delete;
     context & operator=(const context &) = delete;
@@ -186,7 +187,7 @@ class client final {
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
             std::shared_ptr<context>,
             const network::socket_address &
-    ) -> network::result<client>;
+    ) -> silicon::error::result<client>;
 
     client(const client &) = delete;
     client(client &&other) noexcept;
@@ -475,7 +476,7 @@ class server final {
             options = options{
                     .backlog = 128,
             }
-    ) -> network::result<server>;
+    ) -> silicon::error::result<server>;
 
     server(const server &) = delete;
     server(server &&other);

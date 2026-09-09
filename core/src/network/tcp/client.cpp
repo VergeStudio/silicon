@@ -20,6 +20,7 @@ module;
 #include <coroutine>
 
 module silicon.network;
+import silicon.error;
 
 import silicon.coroutine;
 import silicon.scheduler;
@@ -249,7 +250,7 @@ silicon::scheduler::task<silicon::scheduler::poll_status> client::poll(const sil
 }
 
 auto client::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::socket_address endpoint)
-        -> network::result<client> {
+        -> silicon::error::result<client> {
     if(scheduler == nullptr) {
         return std::unexpected(make_error_code(network_error::kNullScheduler));
     }

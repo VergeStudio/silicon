@@ -19,6 +19,7 @@ module;
 #endif
 
 module silicon.network;
+import silicon.error;
 
 import silicon.coroutine;
 import silicon.scheduler;
@@ -39,7 +40,7 @@ struct peer::impl {
 };
 
 auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, network::domain_t domain)
-        -> network::result<peer> {
+        -> silicon::error::result<peer> {
     if(scheduler == nullptr) {
         return std::unexpected(make_error_code(network_error::kNullScheduler));
     }
@@ -55,7 +56,7 @@ auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, 
 }
 
 auto peer::create(std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler, const network::socket_address &endpoint)
-        -> network::result<peer> {
+        -> silicon::error::result<peer> {
     if(scheduler == nullptr) {
         return std::unexpected(make_error_code(network_error::kNullScheduler));
     }

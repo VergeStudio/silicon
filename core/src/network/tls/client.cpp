@@ -23,6 +23,7 @@ module;
 #endif
 
 module silicon.network;
+import silicon.error;
 
 #ifdef SILICON_FEATURE_TLS
 
@@ -37,7 +38,7 @@ auto client::create(
         std::unique_ptr<silicon::scheduler::io_scheduler> &scheduler,
         std::shared_ptr<context> tls_ctx,
         const network::socket_address &endpoint
-) -> network::result<client> {
+) -> silicon::error::result<client> {
     if(scheduler == nullptr) {
         return std::unexpected(make_error_code(network_error::kNullScheduler));
     }

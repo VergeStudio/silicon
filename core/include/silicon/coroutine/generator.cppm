@@ -2,31 +2,32 @@ module;
 
 #include <version>
 
-#if __has_include(<std::generator>) && defined(__cpp_lib_generator)
-#include <std::generator>
+#if __has_include(<generator>) && defined(__cpp_lib_generator)
+#include <generator>
 #else
 
 #include <coroutine>
 #include <exception>
 #include <iterator>
 #include <memory>
+#include <ranges>
 #include <type_traits>
 #include <utility>
 #endif
 
 export module silicon.coroutine:generator;
 
-#if __has_include(<std::generator>) && defined(__cpp_lib_generator)
+#if __has_include(<generator>) && defined(__cpp_lib_generator)
 
 export namespace silicon::coroutine {
-template <typename T>
+using std::generator;
 }
 
 #else
 
 export namespace silicon::coroutine {
 template <typename T>
-class std::generator;
+class generator;
 
 template <typename T>
 class generator_promise {
@@ -37,7 +38,7 @@ class generator_promise {
 
     generator_promise() = default;
 
-    std::generator<T> get_return_object() noexcept ;
+    generator<T> get_return_object() noexcept ;
 
     constexpr auto initial_suspend() const noexcept { return std::suspend_always{}; }
 
@@ -110,18 +111,18 @@ class generator_iterator {
 };
 
 template <typename T>
-class std::generator : public std::ranges::view_base {
+class generator : public std::ranges::view_base {
   public:
     using promise_type = generator_promise<T>;
     using iterator = generator_iterator<T>;
     using sentinel = generator_sentinel;
 
-    std::generator() noexcept : m_coroutine(nullptr) {}
-    std::generator(const std::generator &) = delete;
-    std::generator(std::generator &&other) noexcept : m_coroutine(std::exchange(other.m_coroutine, nullptr)) {}
+    generator() noexcept : m_coroutine(nullptr) {}
+    generator(const generator &) = delete;
+    generator(generator &&other) noexcept : m_coroutine(std::exchange(other.m_coroutine, nullptr)) {}
 
-    auto operator=(const std::generator &) = delete;
-    std::generator & operator=(std::generator &&other) noexcept {
+    auto operator=(const generator &) = delete;
+    generator & operator=(generator &&other) noexcept {
         if (std::addressof(other) != this) {
             if (m_coroutine) {
                 m_coroutine.destroy();
@@ -131,7 +132,7 @@ class std::generator : public std::ranges::view_base {
         return *this;
     }
 
-    ~std::generator() {
+    ~generator() {
         if (m_coroutine) {
             m_coroutine.destroy();
         }
@@ -151,14 +152,14 @@ class std::generator : public std::ranges::view_base {
 
   private:
     friend class generator_promise<T>;
-    explicit std::generator(std::coroutine_handle<promise_type> coroutine) noexcept : m_coroutine(coroutine) {}
+    explicit generator(std::coroutine_handle<promise_type> coroutine) noexcept : m_coroutine(coroutine) {}
 
     std::coroutine_handle<promise_type> m_coroutine;
 };
 
 template <typename T>
-auto generator_promise<T>::get_return_object() noexcept -> std::generator<T> {
-    return std::generator<T>{std::coroutine_handle<generator_promise<T>>::from_promise(*this)};
+auto generator_promise<T>::get_return_object() noexcept -> generator<T> {
+    return generator<T>{std::coroutine_handle<generator_promise<T>>::from_promise(*this)};
 }
 
 }

@@ -10,6 +10,7 @@ module;
 
 #include <silicon/common.h>
 export module silicon.network:udp;
+import silicon.error;
 
 export import silicon.coroutine;
 export import silicon.scheduler;
@@ -48,12 +49,12 @@ class SILICON_CORE_API peer final {
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
             network::domain_t = network::domain_t::kIpv4
-    ) -> network::result<peer>;
+    ) -> silicon::error::result<peer>;
 
     static auto create(
             std::unique_ptr<silicon::scheduler::io_scheduler> &,
             const network::socket_address &
-    ) -> network::result<peer>;
+    ) -> silicon::error::result<peer>;
 
     peer(const peer &) noexcept;
     peer(peer &&) noexcept;

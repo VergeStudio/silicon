@@ -10,6 +10,7 @@ module;
 #endif
 
 module silicon.network;
+import silicon.error;
 
 #ifdef SILICON_FEATURE_TLS
 
@@ -22,7 +23,7 @@ auto server::create(
         std::shared_ptr<context> tls_ctx,
         const network::socket_address &endpoint,
         options opts
-) -> network::result<server> {
+) -> silicon::error::result<server> {
     if(scheduler == nullptr) {
         return std::unexpected(make_error_code(network_error::kNullScheduler));
     }
