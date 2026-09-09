@@ -22,6 +22,9 @@ export namespace silicon::time {
 // std::chrono 时钟的无缝替代品。
 class SILICON_CORE_API steady_clock {
   public:
+    // 时间点类型，与 std::chrono 时钟同构，便于作为 std::chrono 时钟的替代品。
+    using time_point = std::chrono::steady_clock::time_point;
+
     // 当前单调时间点。
     [[nodiscard]] static std::chrono::steady_clock::time_point now();
 
