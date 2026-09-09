@@ -16,8 +16,6 @@ import silicon.error;
 
 export namespace silicon::ai::llm {
 
-template<typename T>
-
 struct AI_API message {
 
   private:

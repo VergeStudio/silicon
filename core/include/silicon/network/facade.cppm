@@ -49,8 +49,6 @@ void network_set_sockaddr_len6(sockaddr_in6 *sin6);
 
 export namespace silicon::network {
 
-template<typename T>
-
 [[nodiscard]] inline std::error_code system_error(int errno_value) noexcept {
     return {errno_value, std::generic_category()};
 }

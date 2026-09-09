@@ -18,8 +18,6 @@ import silicon.error;
 
 export namespace silicon::coroutine {
 
-template<typename T>
-
 class mutex;
 class scoped_lock;
 class condition_variable;
