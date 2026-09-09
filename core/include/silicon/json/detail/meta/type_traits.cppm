@@ -2,6 +2,7 @@ module;
 
 #include <silicon/json/detail/abi_macros.h>
 #include <silicon/json/detail/macro_scope.h>
+#include <cstdint>
 #include <limits>
 #include <string>
 #include <tuple>
@@ -15,6 +16,7 @@ import :detail.meta.call_std.begin;
 import :detail.meta.call_std.end;
 import :detail.meta.cpp_future;
 import :detail.meta.detected;
+import :detail.meta.void_t;
 import :json_fwd;
 
 SILICON_JSON_NAMESPACE_BEGIN
