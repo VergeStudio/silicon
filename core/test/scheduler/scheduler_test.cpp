@@ -240,11 +240,12 @@ TEST_CASE("thread_pool：创建成功并并发执行提交的任务") {
     CHECK(tp->spawn_detached(set_value_task(value, 7)) == false);
 }
 
-TEST_CASE("parallel_scheduler：get_parallel_scheduler 返回进程唯一实例") {
-    auto &first = sched::parallel_scheduler::get_parallel_scheduler();
-    auto &second = sched::parallel_scheduler::get_parallel_scheduler();
-    CHECK(&first == &second);
+TEST_CASE("parallel_scheduler：实例彼此独立，不提供进程级单例") {
+    sched::parallel_scheduler first;
+    sched::parallel_scheduler second;
+    CHECK(&first != &second);
     CHECK(first.thread_count() > 0);
+    CHECK(second.thread_count() > 0);
 }
 
 TEST_CASE("parallel_scheduler：本地实例满足 scheduler_facade 语义") {

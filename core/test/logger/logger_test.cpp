@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <source_location>
 #include <string>
 
 #include <silicon/test/test.h>
@@ -17,41 +18,59 @@ TEST_CASE("log_level 枚举底层值严格递增（kTrace..kOff）") {
     static_assert(static_cast<std::uint8_t>(log_level::kOff) == 6);
 }
 
-TEST_CASE("init 成功后返回 expected success，且各级别日志函数可调用") {
-    auto r = init("/tmp", log_level::kInfo, 8192, 1, 0);
+TEST_CASE("default_logger：init 成功后各级别日志函数可调用") {
+    default_logger sink;
+    auto r = sink.init("/tmp", log_level::kInfo, 8192, 1, 0);
     REQUIRE(r.has_value());
 
-    trace("trace msg");
-    debug("debug msg");
-    info("info msg");
-    warning("warn msg");
-    error("error msg");
-    critical("critical msg");
+    sink.trace("trace msg", std::source_location::current());
+    sink.debug("debug msg", std::source_location::current());
+    sink.info("info msg", std::source_location::current());
+    sink.warning("warn msg", std::source_location::current());
+    sink.error("error msg", std::source_location::current());
+    sink.critical("critical msg", std::source_location::current());
     CHECK(true);
 
-    stop();
+    sink.stop();
 }
 
-TEST_CASE("init 幂等：重复 init 仍返回 success") {
-    auto a = init("/tmp", log_level::kInfo, 8192, 1, 0);
-    auto b = init("/tmp", log_level::kInfo, 8192, 1, 0);
+TEST_CASE("default_logger：init 幂等，重复 init 仍返回 success") {
+    default_logger sink;
+    auto a = sink.init("/tmp", log_level::kInfo, 8192, 1, 0);
+    auto b = sink.init("/tmp", log_level::kInfo, 8192, 1, 0);
     CHECK(a.has_value());
     CHECK(b.has_value());
 
-    stop();
+    sink.stop();
 }
 
-TEST_CASE("set_log_level 切换级别且不崩溃") {
-    auto r = init("/tmp", log_level::kInfo, 8192, 1, 0);
+TEST_CASE("default_logger：set_log_level 切换级别且不崩溃") {
+    default_logger sink;
+    auto r = sink.init("/tmp", log_level::kInfo, 8192, 1, 0);
     REQUIRE(r.has_value());
 
-    set_log_level(log_level::kDebug);
-    debug("debug after set_log_level");
-    set_log_level(log_level::kCritical);
-    critical("critical after set_log_level");
+    sink.set_log_level(log_level::kDebug);
+    sink.debug("debug after set_log_level", std::source_location::current());
+    sink.set_log_level(log_level::kCritical);
+    sink.critical("critical after set_log_level", std::source_location::current());
     CHECK(true);
 
-    stop();
+    sink.stop();
+}
+
+TEST_CASE("make_logger_view：logger 作为依赖注入到消费方") {
+    default_logger target;
+    auto r = target.init("/tmp", log_level::kInfo, 8192, 1, 0);
+    REQUIRE(r.has_value());
+
+    logger_view view = make_logger_view(target);
+    REQUIRE(view.has_value());
+    view->info("injected info", std::source_location::current());
+    view->set_log_level(log_level::kError);
+    view->error("injected error", std::source_location::current());
+    CHECK(true);
+
+    target.stop();
 }
 
 TEST_CASE("logger error category 自注册：非注入消费方也能构造 error_code（不再 terminate）") {

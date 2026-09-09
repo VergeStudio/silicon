@@ -36,8 +36,6 @@ class SILICON_CORE_API parallel_scheduler final {
     bool is_shutdown() const ;
     std::size_t size() const noexcept ;
     bool empty() const noexcept { return size() == 0; }
-
-    static parallel_scheduler & get_parallel_scheduler() ;
 };
 
 }

@@ -55,14 +55,4 @@ requires silicon::proxy::proxiable_target<T, logger_facade>
     return silicon::proxy::make_proxy_view<logger_facade>(target);
 }
 
-[[nodiscard]] SILICON_CORE_API std::expected<void, std::error_code> init(const std::string_view &, log_level, int32_t, int32_t, int32_t);
-SILICON_CORE_API void stop();
-SILICON_CORE_API void set_log_level(log_level);
-SILICON_CORE_API void trace(const std::string_view &, std::source_location &&location = std::source_location::current());
-SILICON_CORE_API void debug(const std::string_view &, std::source_location &&location = std::source_location::current());
-SILICON_CORE_API void info(const std::string_view &, std::source_location &&location = std::source_location::current());
-SILICON_CORE_API void warning(const std::string_view &, std::source_location &&location = std::source_location::current());
-SILICON_CORE_API void error(const std::string_view &, std::source_location &&location = std::source_location::current());
-SILICON_CORE_API void critical(const std::string_view &, std::source_location &&location = std::source_location::current());
-
 }

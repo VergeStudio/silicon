@@ -59,9 +59,4 @@ std::size_t parallel_scheduler::size() const noexcept {
     return m_impl->m_pool->size();
 }
 
-auto parallel_scheduler::get_parallel_scheduler() -> parallel_scheduler & {
-    static parallel_scheduler instance{};
-    return instance;
-}
-
 }
