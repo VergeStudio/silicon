@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "lsp": {
+      "command": "agent-lsp",
+      "args": ["c:clangd", "cpp:clangd"]
+    },
+    "codebase-memory": {
+      "command": "codebase-memory-mcp"
+    }
+  }
+}

@@ -1,3 +1,7 @@
+# codebuddy-memory-mcp / agent-lsp generated artifacts (do not commit)
+.codebase-memory/
+.codegraph/
+
 # Prerequisites
 #*.d
 
