@@ -112,11 +112,11 @@ silicon::scheduler::task<void> io_scheduler::spawn_joinable(silicon::scheduler::
     return make_spawned_joinable_wait_task(std::move(group_ptr));
 }
 
-silicon::scheduler::task<void> io_scheduler::schedule_at(time_point time) {
+silicon::scheduler::task<void> io_scheduler::schedule_at(silicon::time::steady_clock::time_point time) {
     return yield_until(time);
 }
 
-silicon::scheduler::task<void> io_scheduler::yield_until(time_point time) {
+silicon::scheduler::task<void> io_scheduler::yield_until(silicon::time::steady_clock::time_point time) {
     auto now = silicon::time::steady_clock::now();
 
     if(time <= now) {
@@ -387,7 +387,7 @@ void io_scheduler::process_timeout_execute() {
     update_timeout(silicon::time::steady_clock::now());
 }
 
-auto io_scheduler::add_timer_token(time_point tp, silicon::scheduler::poll_info &pi) -> poll_info::timed_events::iterator {
+auto io_scheduler::add_timer_token(silicon::time::steady_clock::time_point tp, silicon::scheduler::poll_info &pi) -> poll_info::timed_events::iterator {
     std::scoped_lock lk{m_p->m_timed_events_mutex};
     auto pos = m_p->m_timed_events.emplace(tp, &pi);
 
@@ -411,7 +411,7 @@ void io_scheduler::remove_timer_token(poll_info::timed_events::iterator pos) {
     }
 }
 
-void io_scheduler::update_timeout(time_point now) {
+void io_scheduler::update_timeout(silicon::time::steady_clock::time_point now) {
     if(!m_p->m_timed_events.empty()) {
         auto &[tp, pi] = *m_p->m_timed_events.begin();
 

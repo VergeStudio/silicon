@@ -262,7 +262,7 @@ class SILICON_CORE_API io_scheduler {
         return yield_for_internal(std::chrono::duration_cast<std::chrono::nanoseconds>(amount));
     }
 
-    [[nodiscard]] silicon::scheduler::task<void> schedule_at(time_point) ;
+    [[nodiscard]] silicon::scheduler::task<void> schedule_at(silicon::time::steady_clock::time_point) ;
 
     [[nodiscard]] schedule_operation yield() { return schedule_operation{*this}; };
 
@@ -271,7 +271,7 @@ class SILICON_CORE_API io_scheduler {
         return yield_for_internal(std::chrono::duration_cast<std::chrono::nanoseconds>(amount));
     }
 
-    [[nodiscard]] silicon::scheduler::task<void> yield_until(time_point) ;
+    [[nodiscard]] silicon::scheduler::task<void> yield_until(silicon::time::steady_clock::time_point) ;
 
     [[nodiscard]] auto poll(
             int,
@@ -401,9 +401,9 @@ class SILICON_CORE_API io_scheduler {
 
     void destroy_completion_engine() ;
 
-    auto add_timer_token(time_point, silicon::scheduler::poll_info &) -> poll_info::timed_events::iterator;
+    auto add_timer_token(silicon::time::steady_clock::time_point, silicon::scheduler::poll_info &) -> poll_info::timed_events::iterator;
     void remove_timer_token(poll_info::timed_events::iterator) ;
-    void update_timeout(time_point) ;
+    void update_timeout(silicon::time::steady_clock::time_point) ;
 
     silicon::scheduler::task<timeout_status> make_timeout_task(std::chrono::milliseconds timeout) {
         co_await schedule_after(timeout);
