@@ -50,8 +50,6 @@ using namespace silicon::scheduler;
 
 export namespace silicon::scheduler {
 
-template<typename T>
-
 enum class timeout_status {
     kNoTimeout,
     kTimeout,

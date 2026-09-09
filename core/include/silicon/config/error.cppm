@@ -15,8 +15,6 @@ export namespace silicon::config {
 
 SILICON_CORE_API std::atomic<const std::error_category *> config_error_category_instance{nullptr};
 
-template<typename T>
-
 enum class config_error {
     kLoadFailed = 1,
     kParseFailed,
