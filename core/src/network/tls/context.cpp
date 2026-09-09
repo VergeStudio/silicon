@@ -13,6 +13,7 @@ module;
 #    include <utility>
 #endif
 
+#include <cstdint>
 module silicon.network;
 import silicon.error;
 

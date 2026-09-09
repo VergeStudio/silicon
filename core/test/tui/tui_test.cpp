@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <silicon/test/test.h>
+#include <cstdint>
 
 import silicon.proxy;
 import silicon.tui;

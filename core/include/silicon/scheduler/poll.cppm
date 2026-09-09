@@ -4,6 +4,7 @@ module;
 #include <string>
 
 #include <silicon/common.h>
+#include <cstdint>
 export module silicon.scheduler:poll;
 
 import :pipe;

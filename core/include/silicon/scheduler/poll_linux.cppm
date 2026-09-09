@@ -5,6 +5,7 @@ module;
 #endif
 
 #include <silicon/common.h>
+#include <cstdint>
 export module silicon.scheduler:poll_linux;
 
 // poll_op 的 Linux/epoll 取值。仅在 Linux 平台有内容，其余平台为空分区。

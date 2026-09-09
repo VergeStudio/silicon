@@ -5,6 +5,7 @@ module;
 #endif
 
 #include <silicon/common.h>
+#include <cstdint>
 export module silicon.scheduler:poll_kqueue;
 
 // poll_op 的 kqueue 取值（BSD/macOS）。仅在 BSD/Apple 平台有内容，其余平台为空分区。

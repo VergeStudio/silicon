@@ -10,6 +10,7 @@ module;
 
 #include "silicon/common.h"
 
+#include <cstdint>
 export module silicon.logger:default_logger;
 
 import :ilogger;

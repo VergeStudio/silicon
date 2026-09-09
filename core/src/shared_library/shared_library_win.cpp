@@ -10,6 +10,7 @@ module;
 #include <string>
 #include <system_error>
 
+#include <cstdint>
 module silicon.library;
 
 import silicon.platform;

@@ -9,6 +9,7 @@ module;
 #include <optional>
 #include <utility>
 
+#include <cstddef>
 module silicon.coroutine;
 
 namespace silicon::coroutine {

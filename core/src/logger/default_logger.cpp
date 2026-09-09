@@ -13,6 +13,7 @@ module;
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 
+#include <cstdint>
 module silicon.logger;
 
 import :default_logger;

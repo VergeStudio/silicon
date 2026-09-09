@@ -9,6 +9,7 @@ module;
 #include <utility>
 #include <vector>
 
+#include <cstddef>
 export module silicon.coroutine:channel;
 
 import silicon.scheduler;

@@ -6,6 +6,7 @@ module;
 #include <system_error>
 #include <coroutine>
 
+#include <cstdint>
 export module silicon.coroutine:shared_mutex;
 
 import silicon.scheduler;

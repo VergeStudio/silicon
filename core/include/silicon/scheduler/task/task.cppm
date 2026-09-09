@@ -12,6 +12,7 @@ module;
 
 #include "silicon/common.h"
 
+#include <cstdint>
 export module silicon.scheduler.task;
 
 export namespace silicon::scheduler {

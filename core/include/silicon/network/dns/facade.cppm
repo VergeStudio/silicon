@@ -21,6 +21,7 @@ module;
 #include <unordered_map>
 #include <vector>
 
+#include <cstdint>
 export module silicon.network:dns;
 
 export import silicon.coroutine;

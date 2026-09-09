@@ -21,6 +21,10 @@ module;
 #include <silicon/proxy/proxy_macros.h>
 
 #include <silicon/common.h>
+#include <cstdint>
+#include <cstddef>
+#include <string>
+#include <atomic>
 export module silicon.network:tls;
 import silicon.error;
 

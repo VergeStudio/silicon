@@ -3,6 +3,7 @@
 #include <variant>
 
 #include <silicon/test/test.h>
+#include <cstdint>
 
 import silicon.config;
 

@@ -10,6 +10,7 @@ module;
 #include <string>
 #include <coroutine>
 
+#include <cstddef>
 module silicon.network;
 
 #if defined(SILICON_PLATFORM_WINDOWS)

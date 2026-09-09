@@ -9,6 +9,7 @@ module;
 #include <optional>
 #include <utility>
 
+#include <cstddef>
 export module silicon.coroutine:ring_buffer;
 
 import silicon.scheduler;

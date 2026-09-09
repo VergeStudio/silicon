@@ -11,6 +11,7 @@ module;
 #include <utility>
 #include <vector>
 
+#include <cstddef>
 module silicon.cli.parser;
 
 import silicon.cli.error;

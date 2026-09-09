@@ -15,6 +15,7 @@ module;
 #include <system_error>
 #include <utility>
 
+#include <cstdint>
 module silicon.network;
 
 #if defined(_MSC_VER)

@@ -3,6 +3,7 @@
 #include <string>
 
 #include <silicon/test/test.h>
+#include <cstdint>
 
 import silicon.network;
 

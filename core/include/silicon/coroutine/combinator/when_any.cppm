@@ -12,6 +12,8 @@ module;
 #    include <vector>
 #endif
 
+#include <cstddef>
+#include <ranges>
 export module silicon.coroutine:when_any;
 
 #ifndef EMSCRIPTEN

@@ -5,6 +5,7 @@ module;
 #    include <string>
 #endif
 
+#include <cstddef>
 module silicon.util;
 
 #if defined(_MSC_VER)

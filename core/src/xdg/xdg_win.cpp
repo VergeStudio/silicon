@@ -3,6 +3,7 @@ module;
 #include <cstdlib>
 #include <string>
 
+#include <cstddef>
 module silicon.xdg;
 
 #if defined(SILICON_PLATFORM_WINDOWS)

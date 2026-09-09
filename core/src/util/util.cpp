@@ -3,6 +3,7 @@ module;
 #include <cstring>
 #include <atomic>
 
+#include <cstddef>
 module silicon.util;
 
 namespace silicon::util {

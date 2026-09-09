@@ -13,6 +13,7 @@ module;
 #include <silicon/proxy/proxy_macros.h>
 
 #include <silicon/common.h>
+#include <cstdint>
 export module silicon.network:tcp;
 import silicon.error;
 

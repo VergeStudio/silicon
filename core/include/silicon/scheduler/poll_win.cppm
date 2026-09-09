@@ -6,6 +6,7 @@ module;
 #endif
 
 #include <silicon/common.h>
+#include <cstdint>
 export module silicon.scheduler:poll_win;
 
 // poll_op 的 Windows 取值（自造常量，供 WSAPoll 之外的窗口事件封装使用）。

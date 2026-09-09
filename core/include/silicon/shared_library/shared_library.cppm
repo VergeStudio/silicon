@@ -7,6 +7,7 @@ module;
 #include <system_error>
 
 #include <silicon/common.h>
+#include <cstdint>
 export module silicon.library;
 export import silicon.library.error;
 

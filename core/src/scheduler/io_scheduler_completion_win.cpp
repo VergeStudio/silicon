@@ -13,6 +13,7 @@ module;
 
 #include <silicon/common.h>
 
+#include <cstdint>
 module silicon.scheduler;
 
 #if defined(_MSC_VER)

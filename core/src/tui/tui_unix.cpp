@@ -9,6 +9,7 @@ module;
 #include <string>
 #include <string_view>
 
+#include <cstdint>
 module silicon.tui;
 
 #if defined(_MSC_VER)
