@@ -24,8 +24,6 @@ import silicon.error;
 
 export namespace silicon::plugin {
 
-template<typename T>
-
 PRO_DEF_MEM_DISPATCH(MemPluginName, name);
 PRO_DEF_MEM_DISPATCH(MemPluginOnLoad, on_load);
 PRO_DEF_MEM_DISPATCH(MemPluginOnUnload, on_unload);

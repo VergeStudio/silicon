@@ -23,8 +23,6 @@ import silicon.error;
 
 export namespace silicon::fs {
 
-template<typename T>
-
 PRO_DEF_MEM_DISPATCH(MemFsRead, read);
 PRO_DEF_MEM_DISPATCH(MemFsWrite, write);
 PRO_DEF_MEM_DISPATCH(MemFsReadBinary, read_binary);
